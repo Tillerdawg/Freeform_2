@@ -73,21 +73,28 @@ export function drawField(ctx: CanvasRenderingContext2D, v: View, hash: HashPres
   // Yard numbers, 6 ft tall. Back numbers face the back sideline.
   // Decorative only: number placement varies by field, so readouts never reference it (see DECISIONS.md).
   ctx.fillStyle = 'rgba(255,255,255,0.9)';
-  ctx.textAlign = 'center';
+  ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic'; // digits sit on the baseline, so baseline = bottom of the number
   // Size the font so the digits themselves (not the font box) are 6 ft tall.
   ctx.font = 'bold 100px system-ui, sans-serif';
   const px = (100 * (72 / STEP_IN) * s) / ctx.measureText('0').actualBoundingBoxAscent;
   ctx.font = `bold ${px}px system-ui, sans-serif`;
   const depth = 8; // bottom of numbers, steps from the sideline
+  // Digits sit either side of the yard line with equal ink-to-line gaps (measured on the glyphs, not the font box).
+  const gap = (12 / STEP_IN) * s; // 1 ft from line center to each digit
+  const number = (n: number) => {
+    const [a, b] = String(n);
+    const ma = ctx.measureText(a), mb = ctx.measureText(b);
+    ctx.fillText(a, -gap - ma.actualBoundingBoxRight, 0);
+    ctx.fillText(b, gap + mb.actualBoundingBoxLeft, 0);
+  };
   for (let n = 10; n <= 50; n += 10) {
     for (const sign of n === 50 ? [1] : [-1, 1]) {
       const x = sign * (50 - n) * YARD;
-      const label = String(n).split('').join(' ');
       const f = toScreen(v, { x, y: depth });
-      ctx.fillText(label, f.x, f.y);
+      ctx.save(); ctx.translate(f.x, f.y); number(n); ctx.restore();
       const b = toScreen(v, { x, y: FIELD_WIDTH - depth });
-      ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(Math.PI); ctx.fillText(label, 0, 0); ctx.restore();
+      ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(Math.PI); number(n); ctx.restore();
     }
   }
 }
