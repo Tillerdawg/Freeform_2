@@ -6,3 +6,4 @@ node_modules/
 
 # Local GitHub token, never commit
 *.gh-token
+dist/
