@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { readout, type Point } from './engine/coords';
+import { emptyHistory, record, redo, undo } from './engine/history';
 import {
   addPerformer, label, moveSteps, newShow, parseShow, placeInSet, positionsAt, removePerformers,
   setAt, setStarts, type Show,
@@ -46,6 +47,10 @@ export function App() {
   const [fileError, setFileError] = useState('');
   const [box, setBox] = useState<[Point, Point]>();
   const drag = useRef<Drag | null>(null);
+  const [hist, setHist] = useState(emptyHistory<Show>);
+  const lastShow = useRef(show);
+  const boundary = useRef(true); // a click/tap or shortcut happened since the last change
+  const fromHistory = useRef(false);
   const dpr = window.devicePixelRatio || 1;
 
   const starts = useMemo(() => setStarts(show), [show]);
@@ -59,6 +64,34 @@ export function App() {
   useEffect(() => {
     try { localStorage.setItem(AUTOSAVE, JSON.stringify(show)); } catch { /* private mode: no autosave */ }
   }, [show]);
+
+  // Every show change becomes (or merges into) an undo step, except undo/redo themselves.
+  useEffect(() => {
+    if (show === lastShow.current) return;
+    const prev = lastShow.current, at = performance.now(), b = boundary.current; // read now: the updater runs later
+    const holding = drag.current?.kind === 'move';
+    if (fromHistory.current) fromHistory.current = false;
+    else setHist((h) => record(h, prev, at, b, holding));
+    boundary.current = false;
+    lastShow.current = show;
+    setSelected((sel) => (sel.size && [...sel].some((id) => !show.performers.some((p) => p.id === id))
+      ? new Set([...sel].filter((id) => show.performers.some((p) => p.id === id))) : sel));
+  }, [show]);
+
+  useEffect(() => {
+    const mark = () => { boundary.current = true; };
+    window.addEventListener('pointerdown', mark, true);
+    return () => window.removeEventListener('pointerdown', mark, true);
+  }, []);
+
+  const step = (dir: 'undo' | 'redo') => {
+    const r = (dir === 'undo' ? undo : redo)(hist, show);
+    if (!r) return;
+    fromHistory.current = true;
+    setPlaying(false);
+    setHist(r.h);
+    setShow(r.state);
+  };
 
   // Playback in real time at the chosen tempo.
   useEffect(() => {
@@ -130,8 +163,13 @@ export function App() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const el = e.target as HTMLElement;
-      if (el.closest('input, select, textarea')) return;
-      if (e.key === ' ') { e.preventDefault(); setPlaying((p) => !p); }
+      if (el.closest('input, select, textarea')) return; // text fields keep the browser's own undo
+      boundary.current = true;
+      const mod = e.metaKey || e.ctrlKey;
+      if (mod && (e.key === 'z' || e.key === 'Z')) { e.preventDefault(); step(e.shiftKey ? 'redo' : 'undo'); }
+      else if (mod && (e.key === 'y' || e.key === 'Y')) { e.preventDefault(); step('redo'); }
+      else if (mod) return; // leave other shortcuts (copy, select all, ...) to the browser
+      else if (e.key === ' ') { e.preventDefault(); setPlaying((p) => !p); }
       else if (e.key === 'ArrowRight') { e.preventDefault(); setT((x) => Math.min(total, Math.floor(x) + 1)); }
       else if (e.key === 'ArrowLeft') { e.preventDefault(); setT((x) => Math.max(0, Math.ceil(x) - 1)); }
       else if ((e.key === 'Delete' || e.key === 'Backspace') && selected.size) {
@@ -142,7 +180,7 @@ export function App() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [selected, total]);
+  }, [selected, total, hist, show]);
 
   const world = (e: React.PointerEvent) => toWorld(view!, e.nativeEvent.offsetX * dpr, e.nativeEvent.offsetY * dpr);
 
@@ -241,7 +279,7 @@ export function App() {
   };
 
   const fresh = () => {
-    if (show.performers.length && !confirm('Start a new show? Unsaved changes to this one will be lost.')) return;
+    if (show.performers.length && !confirm('Start a new show? (You can Undo this.)')) return;
     const s = newShow();
     setShow(s); setT(0); setSelected(new Set()); setSection(s.sections.find((x) => x.letter === 'T')?.id ?? s.sections[0].id);
   };
@@ -251,6 +289,8 @@ export function App() {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         <div style={{ display: 'flex', gap: 16, alignItems: 'center', padding: '8px 16px' }}>
           <strong>Freeform</strong>
+          <button onClick={() => step('undo')} disabled={!hist.past.length} title="Undo (⌘Z / Ctrl+Z)">Undo</button>
+          <button onClick={() => step('redo')} disabled={!hist.future.length} title="Redo (⇧⌘Z / Ctrl+Y)">Redo</button>
           <button onClick={() => { const c = canvasRef.current!; setView(fitView(c.width, c.height)); }}>Fit field</button>
           <span style={{ fontSize: 12, opacity: 0.7 }}>Scroll to pan · pinch or ⌘/Ctrl+scroll to zoom · right-drag pans</span>
           <span aria-live="polite" style={{ marginLeft: 'auto', fontVariantNumeric: 'tabular-nums' }}>{hover}</span>
