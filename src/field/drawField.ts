@@ -66,6 +66,11 @@ export function drawField(ctx: CanvasRenderingContext2D, v: View, hash: HashPres
     vline(x, h - tick / 2, h + tick / 2);
     vline(x, FIELD_WIDTH - h - tick / 2, FIELD_WIDTH - h + tick / 2);
   }
+  // Hash stripe across every yard line, parallel to the sideline, so the hash depth reads on the line itself.
+  for (let x = -GOAL_LINE_X; x <= GOAL_LINE_X; x += 8) {
+    hline(h, x - tick / 2, x + tick / 2);
+    hline(FIELD_WIDTH - h, x - tick / 2, x + tick / 2);
+  }
 
   // Yard numbers, 6 ft tall. Back numbers face the back sideline.
   // Decorative only: number placement varies by field, so readouts never reference it (see DECISIONS.md).
