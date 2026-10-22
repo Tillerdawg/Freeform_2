@@ -82,5 +82,8 @@ describe('file parsing', () => {
     const broken = JSON.parse(JSON.stringify(show));
     broken.sets[0].pos[id] = { x: 'nope', y: 1 };
     expect(() => parseShow(JSON.stringify(broken))).toThrow(/position/);
+    const badName = JSON.parse(JSON.stringify(show));
+    badName.sets[0].name = { broken: true };
+    expect(() => parseShow(JSON.stringify(badName))).toThrow(/set/);
   });
 });
