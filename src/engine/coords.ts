@@ -4,15 +4,17 @@
 export interface Point { x: number; y: number }
 
 export const STEP_IN = 22.5;
-export const FIELD_WIDTH = 1920 / STEP_IN; // 160 ft
+// Stylized drill field: hashes on whole steps, 84 steps sideline to sideline at every level
+// (real fields are 160 ft = 85.33 steps). See DECISIONS.md.
+export const FIELD_WIDTH = 84;
 export const YARDLINE_SPACING = 8; // 5 yards
 export const GOAL_LINE_X = 80; // 50 yards
 
-/** Hash distance from the nearer sideline, in steps. */
+/** Hash distance from the nearer sideline, in steps (real: HS 28.44, college 32, NFL 37.73). */
 export const HASHES = {
-  highSchool: 640 / STEP_IN, // 53' 4"
-  college: 720 / STEP_IN, // 60'
-  nfl: 849 / STEP_IN, // 70' 9"
+  highSchool: 28, // 28 / 28 / 28
+  college: 32, // 32 / 20 / 32
+  nfl: 36, // 36 / 12 / 36
 } as const;
 export type HashPreset = keyof typeof HASHES;
 

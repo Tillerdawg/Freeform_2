@@ -21,6 +21,12 @@ describe('readouts (IDEA.md examples)', () => {
     expect(sideToSide(14)).toBe('2 steps inside the Side 2 40');
     expect(sideToSide(-24)).toBe('On the Side 1 35');
   });
+  it('stylized hashes: HS back hash 56 from front, college 52, NFL 48', () => {
+    expect(frontToBack(56, 'highSchool')).toBe('On Back Hash');
+    expect(frontToBack(52, 'college')).toBe('On Back Hash');
+    expect(frontToBack(48, 'nfl')).toBe('On Back Hash');
+    expect(frontToBack(42, 'college')).toBe('10 steps behind Front Hash'); // midfield tie goes frontward
+  });
   it('quarter-step rounding', () => expect(sideToSide(10.8)).toBe('2.75 steps outside the Side 2 45'));
   it('goal line and beyond', () => {
     expect(sideToSide(-80)).toBe('On the Side 1 Goal Line');
@@ -30,7 +36,7 @@ describe('readouts (IDEA.md examples)', () => {
     expect(frontToBack(0, 'highSchool')).toBe('On Front Sideline');
     expect(frontToBack(5, 'highSchool')).toBe('5 steps behind Front Sideline');
     expect(frontToBack(HASHES.nfl + 3, 'nfl')).toBe('3 steps behind Front Hash');
-    expect(frontToBack(85.333 - 1, 'college')).toBe('1 step in front of Back Sideline');
+    expect(frontToBack(84 - 1, 'college')).toBe('1 step in front of Back Sideline');
   });
 });
 
