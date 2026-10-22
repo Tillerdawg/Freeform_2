@@ -101,3 +101,51 @@ export function drawField(ctx: CanvasRenderingContext2D, v: View, hash: HashPres
     }
   }
 }
+
+export const TIER_COLOR = { ok: 'rgba(255,255,255,0.55)', yellow: '#f5c518', red: '#ff4d4d' } as const;
+
+export interface Dot { id: string; label: string; at: Point }
+export interface Path { from: Point; to: Point; tier: keyof typeof TIER_COLOR }
+
+/** Performers, their incoming paths, and an optional selection box. */
+export function drawPerformers(
+  ctx: CanvasRenderingContext2D, v: View, dots: Dot[], selected: Set<string>, paths: Path[], box?: [Point, Point],
+) {
+  const s = v.scale;
+  ctx.setLineDash([s * 0.4, s * 0.3]);
+  ctx.lineWidth = Math.max(1.5, s * 0.12);
+  for (const p of paths) {
+    const a = toScreen(v, p.from), b = toScreen(v, p.to);
+    ctx.strokeStyle = TIER_COLOR[p.tier];
+    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  const r = Math.max(4, s * 0.45);
+  ctx.font = `600 ${Math.max(10, s * 0.8)}px system-ui, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'bottom';
+  for (const d of dots) {
+    const c = toScreen(v, d.at);
+    const sel = selected.has(d.id);
+    ctx.beginPath(); ctx.arc(c.x, c.y, r, 0, Math.PI * 2);
+    ctx.fillStyle = sel ? '#ffd166' : '#111';
+    ctx.fill();
+    ctx.lineWidth = Math.max(1.5, r * 0.25);
+    ctx.strokeStyle = sel ? '#fff' : '#ffd166';
+    ctx.stroke();
+    if (s >= 5) {
+      ctx.fillStyle = '#fff';
+      ctx.fillText(d.label, c.x, c.y - r - 2);
+    }
+  }
+
+  if (box) {
+    const a = toScreen(v, box[0]), b = toScreen(v, box[1]);
+    ctx.fillStyle = 'rgba(255,209,102,0.12)';
+    ctx.strokeStyle = '#ffd166';
+    ctx.lineWidth = 1;
+    ctx.fillRect(a.x, a.y, b.x - a.x, b.y - a.y);
+    ctx.strokeRect(a.x, a.y, b.x - a.x, b.y - a.y);
+  }
+}
