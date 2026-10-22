@@ -106,3 +106,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Who:** Claude
 - **Context:** IDEA.md's FTL example.
 - **Decision:** The trail runs leader end ← leader start ← each follower's start, in order. Every performer travels the leader's path length along the trail at the leader's pace. This reproduces the IDEA.md example exactly, and that example is a unit test.
+
+## 2026-10-22 13:20 EDT — Field view orientation and drawing
+- **Who:** Claude (Jason holds veto)
+- **Context:** First on-screen field.
+- **Decision:** Director's view: front sideline at the bottom, Side 1 on the left. The 8-to-5 grid is drawn from the front sideline, with every 4th step (the "splitting" lines) drawn a little brighter, and it hides when zoomed far out. Hash ticks at every yard. Back-side numbers are rotated to read from the back sideline. Yard numbers sit at one approximate depth for all presets (logged as a code shortcut). Mouse wheel zooms around the cursor; drag pans. Hovering shows the live coordinate readout.
+- **Other options:** an audience/press-box view as the default (a view toggle can come later for the performer app).
