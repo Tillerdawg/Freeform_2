@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { readout, type HashPreset } from '../engine/coords';
 import {
-  addSetAfter, label, locate, newId, placeInSet, removePerformers, removeSet, setCounts, xFrom, yFrom,
+  addSetAfter, label, locate, newId, placeInSet, positionsAt, removePerformers, removeSet, setCounts, xFrom, yFrom,
   type FrontDir, type FrontRef, type Show, type SideDir,
 } from '../engine/show';
 
@@ -80,7 +80,7 @@ export function Sidebar(p: Props) {
             </select>
           </label>
         </div>
-        {onSet < 0 && <p style={{ color: '#f5c518', margin: '6px 0 0' }}>Mid-move: scrub to a set to edit.</p>}
+        {onSet < 0 && <p style={{ color: '#f5c518', margin: '6px 0 0' }}>Mid-move: you can select, but scrub to a set to move or add.</p>}
       </section>
 
       <section style={box}>
@@ -113,6 +113,12 @@ export function Sidebar(p: Props) {
         )}
         {one && (
           <>
+            {onSet < 0 && (
+              <p style={{ margin: '8px 0 4px' }}>
+                <strong>{label(show, one)}</strong> at count {Math.round(locate(show, p.t).count * 100) / 100} of move into set {show.sets[cur].name}:<br />
+                {readout(positionsAt(show, p.t)[one.id], show.hash)}
+              </p>
+            )}
             <p style={{ margin: '8px 0 4px' }}><strong>{label(show, one)}</strong> — coordinates by set</p>
             <ol style={{ margin: 0, paddingLeft: 18 }}>
               {show.sets.map((s, i) => (

@@ -48,7 +48,7 @@ export function Timeline({ show, t, setT, playing, setPlaying, bpm, setBpm }: Pr
           role="slider" aria-label="Show timeline in counts" aria-valuemin={0} aria-valuemax={total} aria-valuenow={Math.floor(t)} tabIndex={0}
           onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); scrub(e); }}
           onPointerMove={(e) => e.buttons && scrub(e)}
-          style={{ position: 'relative', display: 'flex', height: 44, cursor: 'pointer', userSelect: 'none' }}
+          style={{ position: 'relative', display: 'flex', height: 56, cursor: 'pointer', userSelect: 'none' }}
         >
           {show.sets.slice(1).map((s, k) => {
             const i = k + 1;
@@ -58,6 +58,17 @@ export function Timeline({ show, t, setT, playing, setPlaying, bpm, setBpm }: Pr
                 <div>{show.sets[i - 1].name} → {s.name} · {s.counts} cts</div>
                 {big && <div style={{ color: TIER_COLOR[big.tier] === TIER_COLOR.ok ? '#cfe' : TIER_COLOR[big.tier] }}>max {fmtStep(big.per5)}</div>}
               </div>
+            );
+          })}
+          {/* One tick per count; taller every 4 counts within a move. Clicking snaps to the nearest count. */}
+          {Array.from({ length: total - 1 }, (_, k) => k + 1).filter((c) => !starts.includes(c)).map((c) => {
+            const intoMove = c - starts[locate(show, c).to - 1];
+            const here = Math.abs(t - c) < 1e-9;
+            return (
+              <div key={c} style={{
+                position: 'absolute', bottom: 0, left: `${(c / total) * 100}%`, width: here ? 2 : 1, marginLeft: here ? -1 : 0,
+                height: here ? 16 : intoMove % 4 === 0 ? 10 : 6, background: here ? '#fff' : 'rgba(255,255,255,0.5)', pointerEvents: 'none',
+              }} />
             );
           })}
           <div style={{ position: 'absolute', top: -4, bottom: -4, width: 2, background: '#fff', left: `${(t / total) * 100}%`, pointerEvents: 'none' }} />
