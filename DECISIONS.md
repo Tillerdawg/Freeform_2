@@ -82,3 +82,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Context:** Every feature (readouts, step sizes, FTL, export) shares one coordinate system.
 - **Options:** inches; yards; 8-to-5 steps.
 - **Decision:** Floating-point 8-to-5 steps (1 step = 22.5 in). Origin is where the 50 yard line meets the front sideline. +x points toward Side 2 (director's right), +y points toward the back sideline. Text readouts are derived from this.
+
+## 2026-10-22 12:05 EDT — Direct GitHub push from Claude's sandbox
+- **Who:** Jason Tiller (method proposed by Claude)
+- **Context:** Pushes were going through a relay because neither of Claude's environments had GitHub credentials.
+- **Options:** keep the relay; fine-grained personal access token; SSH deploy key (not possible, since the sandbox only allows HTTPS).
+- **Decision:** Fine-grained PAT limited to Tillerdawg/Freeform_2, with only Contents read/write. It's kept in the sandbox's private home (git credential store), outside the synced project folder. `*.gh-token` is git-ignored. The relay is the fallback if a new session loses the credential.
