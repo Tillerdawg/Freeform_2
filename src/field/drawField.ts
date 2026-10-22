@@ -1,9 +1,11 @@
-import { FIELD_WIDTH, GOAL_LINE_X, HASHES, type HashPreset, type Point } from '../engine/coords';
+import { FIELD_WIDTH, GOAL_LINE_X, HASHES, STEP_IN, type HashPreset, type Point } from '../engine/coords';
 
 /** Screen transform: px per step, plus screen position of world origin (50 yd line, front sideline). */
 export interface View { scale: number; ox: number; oy: number }
 
 const YARD = 1.6; // steps per yard
+const LINE = 4 / STEP_IN; // painted line width: 4 in
+const HASH_LEN = 24 / STEP_IN; // hash mark length: 24 in
 const END_X = GOAL_LINE_X + 10 * YARD; // back of end zone
 
 // Front sideline at the bottom of the screen (director's view), Side 1 on the left.
@@ -51,15 +53,15 @@ export function drawField(ctx: CanvasRenderingContext2D, v: View, hash: HashPres
 
   // Yard lines every 5 yards, boundary lines.
   ctx.strokeStyle = '#fff';
-  ctx.lineWidth = Math.max(1, s * 0.18);
+  ctx.lineWidth = Math.max(1, s * LINE); // 1px floor keeps lines visible zoomed out
   for (let x = -GOAL_LINE_X; x <= GOAL_LINE_X; x += 8) vline(x, 0, FIELD_WIDTH);
   ctx.lineWidth = Math.max(2, s * 0.3);
   ctx.strokeRect(tl.x, tl.y, 2 * END_X * s, FIELD_WIDTH * s);
 
-  // Hash marks: a stripe across every yard line, parallel to the sideline, at both hash depths. 2 ft long.
+  // Hash marks: a stripe across every yard line, parallel to the sideline, at both hash depths. 24 in x 4 in.
   const h = HASHES[hash];
-  const tick = 24 / 22.5;
-  ctx.lineWidth = Math.max(1, s * 0.15);
+  const tick = HASH_LEN;
+  ctx.lineWidth = Math.max(1, s * LINE);
   for (let x = -GOAL_LINE_X; x <= GOAL_LINE_X; x += 8) {
     hline(h, x - tick / 2, x + tick / 2);
     hline(FIELD_WIDTH - h, x - tick / 2, x + tick / 2);
