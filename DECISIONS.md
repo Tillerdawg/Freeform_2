@@ -194,3 +194,7 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Context:** A future feature: enter a selection's total counts and place sets at specific counts.
 - **Options:** later sets keep their absolute counts; later sets shift along with a moved set.
 - **Decision:** Later sets stay where they were placed. Moving set 3 from count 24 to 28 makes the move into set 3 longer and the move out of it shorter; set 4 stays at count 48. The current "counts in" field still shifts later sets, as it does today.
+
+## 2026-10-22 17:15 EDT — Undo/redo
+- **Who:** Jason Tiller asked; step rules by Claude
+- **Decision:** Undo/redo keeps whole-show snapshots, up to 200 steps per browser session. One step = everything from one click, tap, or shortcut until the next one. Continuous changes after it merge into that step: a held drag (however slow), or typing (until a half-second pause). Fast clicks are separate steps. Keys: ⌘Z / Ctrl+Z, ⇧⌘Z / Ctrl+Shift+Z / Ctrl+Y, plus Undo and Redo buttons. Inside text boxes, ⌘Z is the browser's own text undo. New, Open, and every set or performer edit can be undone; playback, selection, and zoom are not edits. History is not saved with the show or kept after a reload.

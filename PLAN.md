@@ -9,7 +9,7 @@
 6. ✅ **Coordinate panel:** selected performer's readout per set.
 
 ## Milestone 1 follow-ups
-- Undo/redo.
+- ✅ Undo/redo.
 - Play a range of sets (IDEA.md: individual set, sub-collection, whole show); a loop toggle.
 - Touch support pass (tablets).
 
