@@ -74,9 +74,12 @@ export function drawField(ctx: CanvasRenderingContext2D, v: View, hash: HashPres
   // Decorative only: number placement varies by field, so readouts never reference it (see DECISIONS.md).
   ctx.fillStyle = 'rgba(255,255,255,0.9)';
   ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.font = `bold ${(72 / 22.5) * s}px system-ui, sans-serif`;
-  const depth = (9 * 36 - 36) / 22.5; // number center, steps from sideline
+  ctx.textBaseline = 'alphabetic'; // digits sit on the baseline, so baseline = bottom of the number
+  // Size the font so the digits themselves (not the font box) are 6 ft tall.
+  ctx.font = 'bold 100px system-ui, sans-serif';
+  const px = (100 * (72 / STEP_IN) * s) / ctx.measureText('0').actualBoundingBoxAscent;
+  ctx.font = `bold ${px}px system-ui, sans-serif`;
+  const depth = 8; // bottom of numbers, steps from the sideline
   for (let n = 10; n <= 50; n += 10) {
     for (const sign of n === 50 ? [1] : [-1, 1]) {
       const x = sign * (50 - n) * YARD;
