@@ -88,3 +88,21 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Context:** Pushes were going through a relay because neither of Claude's environments had GitHub credentials.
 - **Options:** keep the relay; fine-grained personal access token; SSH deploy key (not possible, since the sandbox only allows HTTPS).
 - **Decision:** Fine-grained PAT limited to Tillerdawg/Freeform_2, with only Contents read/write. It's kept in the sandbox's private home (git credential store), outside the synced project folder. `*.gh-token` is git-ignored. The relay is the fallback if a new session loses the credential.
+
+## 2026-10-22 12:10 EDT — Readout wording for cases IDEA.md doesn't cover
+- **Who:** Claude (Jason holds veto)
+- **Context:** Building the coordinate engine. IDEA.md doesn't spell out these cases.
+- **Decision:**
+  - Exactly on a yard line: "On the Side 1 45". Exactly on a reference: "On Front Hash".
+  - Near the 50: "2 steps outside the 50 on Side 2".
+  - Exactly 4 steps from the 50: "Splitting 45 and 50 on Side 2". The splitting rule wins over "outside the 50", for consistency.
+  - Goal lines are called "Goal Line"; beyond them reads "outside the Side 1 Goal Line".
+  - Front-to-back phrasing: "in front of" is toward the front sideline, "behind" toward the back sideline, e.g. "5 steps behind Front Sideline".
+  - If a point is exactly equidistant from two references, the more frontward one wins.
+  - Rounding to quarter steps applies to the distance from the reference, since that's what performers count. This matters for high school hashes, which don't fall on whole steps.
+- **Other options:** "4 steps outside the 50"; rounding the position instead of the distance.
+
+## 2026-10-22 12:10 EDT — FTL model
+- **Who:** Claude
+- **Context:** IDEA.md's FTL example.
+- **Decision:** The trail runs leader end ← leader start ← each follower's start, in order. Every performer travels the leader's path length along the trail at the leader's pace. This reproduces the IDEA.md example exactly, and that example is a unit test.
