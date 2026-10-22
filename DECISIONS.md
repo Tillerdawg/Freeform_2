@@ -133,3 +133,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Who:** Jason Tiller
 - **Context:** Field lines should be drawn to scale.
 - **Decision:** All yard lines are 4 in wide. Hash marks are 24 in long and 4 in wide, centered on their coordinate. When zoomed far out, lines never draw thinner than 1 screen pixel, so they stay visible. The outer boundary is still a thicker frame, pending Jason's call.
+
+## 2026-10-22 13:50 EDT — Line widths and measurement edges
+- **Who:** Jason Tiller (edge convention proposed by Claude)
+- **Context:** Real fields vary (e.g. NCAA sidelines may be wider, goal lines 4 or 8 in). Freeform isn't for playing football.
+- **Options:** per-level widths; a per-field setting; 4 in everywhere.
+- **Decision:** Every line is 4 in at every level. Coordinates count from the field's inside edge. Sidelines and end lines are drawn outside the field, with their inner edge on the coordinate. Goal lines are drawn into the end zone, with their field-side edge on the coordinate. Yard lines and hashes are centered. This replaces the "thicker frame" note above.

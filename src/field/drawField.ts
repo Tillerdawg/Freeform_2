@@ -51,12 +51,15 @@ export function drawField(ctx: CanvasRenderingContext2D, v: View, hash: HashPres
     }
   }
 
-  // Yard lines every 5 yards, boundary lines.
+  // All lines 4 in. Yard lines are centered on their coordinate. Boundary and goal lines sit outside the
+  // field, inner edge on the coordinate, so measurements start at the field's inside edge.
   ctx.strokeStyle = '#fff';
   ctx.lineWidth = Math.max(1, s * LINE); // 1px floor keeps lines visible zoomed out
-  for (let x = -GOAL_LINE_X; x <= GOAL_LINE_X; x += 8) vline(x, 0, FIELD_WIDTH);
-  ctx.lineWidth = Math.max(2, s * 0.3);
-  ctx.strokeRect(tl.x, tl.y, 2 * END_X * s, FIELD_WIDTH * s);
+  const half = ctx.lineWidth / s / 2;
+  for (let x = -GOAL_LINE_X + 8; x < GOAL_LINE_X; x += 8) vline(x, 0, FIELD_WIDTH);
+  for (const g of [-GOAL_LINE_X - half, GOAL_LINE_X + half]) vline(g, 0, FIELD_WIDTH);
+  const o = toScreen(v, { x: -END_X - half, y: FIELD_WIDTH + half });
+  ctx.strokeRect(o.x, o.y, 2 * (END_X + half) * s, (FIELD_WIDTH + 2 * half) * s);
 
   // Hash marks: a stripe across every yard line, parallel to the sideline, at both hash depths. 24 in x 4 in.
   const h = HASHES[hash];
