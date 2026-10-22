@@ -56,7 +56,8 @@ export function frontToBack(y: number, hash: HashPreset): string {
   return `${steps(Math.abs(d))} ${d < 0 ? 'in front of' : 'behind'} ${name}`;
 }
 
-export const readout = (p: Point, hash: HashPreset) => `${sideToSide(p.x)}, ${frontToBack(p.y, hash)}`;
+export const readout = (p: Point, hash: HashPreset) =>
+  `${sideToSide(p.x)}, ${frontToBack(p.y, hash).replace(/^On /, 'on ')}`;
 
 export type StepTier = 'ok' | 'yellow' | 'red';
 

@@ -7,6 +7,7 @@ describe('readouts (IDEA.md examples)', () => {
       '2 steps outside the Side 2 45, 2 steps in front of Front Hash',
     );
   });
+  it('mid-sentence "on" is lowercase', () => expect(readout({ x: -8, y: HASHES.nfl }, 'nfl')).toBe('On the Side 1 45, on Front Hash'));
   it('splitting 40 and 45 on Side 1', () => {
     expect(sideToSide(-12)).toBe('Splitting 40 and 45 on Side 1');
     expect(sideToSide(-20)).toBe('Splitting 35 and 40 on Side 1');

@@ -118,3 +118,8 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Context:** Some drill writers use landmarks like "top of the numbers." Yard number placement is not consistent from field to field.
 - **Options:** use numbers as front-to-back references; references limited to sidelines and hashes.
 - **Decision:** Readouts reference only the sidelines and hashes. Yard numbers are drawn for orientation only. Their approximate position is fine.
+
+## 2026-10-22 13:35 EDT — Hash stripes on yard lines
+- **Who:** Jason Tiller
+- **Context:** On the field view, the hash depth wasn't marked where a yard line crosses it.
+- **Decision:** Draw a short stripe parallel to the sideline across every yard line (goal lines included) at both hash depths, 2 ft long to match the hash ticks.
