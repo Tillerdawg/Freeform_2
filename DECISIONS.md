@@ -153,3 +153,29 @@ Each entry: timestamp, who decided, context, options considered, decision.
 ## 2026-10-22 14:15 EDT — Yard numbers centered on yard lines
 - **Who:** Jason Tiller
 - **Decision:** The two digits sit on either side of their yard line, with equal space between the line and each digit's inked edge. The gap is 18 in from the line's center to a straight edge (the stems of 1 and 4). Round edges (0, 2, 3, 5) sit 4 in closer, a standard optical correction, because round shapes look farther from a line than straight ones at the same distance. Jason widened the gap from 1 ft after the "10" looked uneven.
+
+## 2026-10-22 14:40 EDT — Performer labels and sections
+- **Who:** Jason Tiller (options from Claude)
+- **Options:** section letter + number; free text; numbers only.
+- **Decision:** Section letter + number (T1, T2…). Numbers are assigned per section in the order performers are added. New shows start with common sections (F Flute, C Clarinet, X Saxophone, T Trumpet, M Mellophone, B Low Brass, U Tuba, S Snare, Q Tenors, D Bass Drum, Y Cymbals, P Front Ensemble, G Color Guard). Their letters and names can be edited per show; Claude picked the default letters.
+
+## 2026-10-22 14:40 EDT — Milestone 1 placement and timeline features
+- **Who:** Jason Tiller
+- **Decision:** Click to add; select, shift-click, and box-select; drag to move with a snap toggle (whole, half, free); exact coordinate entry. Jason added a counts timeline: one segment per move, sized by its counts, for scrubbing between sets count by count.
+
+## 2026-10-22 14:40 EDT — Editing model and controls
+- **Who:** Claude (Jason holds veto)
+- **Decision:**
+  - A set's `counts` is the length of the move into it. Time is measured in counts from set 1.
+  - Positions can only be edited when the timeline sits exactly on a set; mid-move is view only.
+  - A new set starts as a copy of the current one, 16 counts by default.
+  - A performer added in any set appears at that spot in every set.
+  - Dragging a group snaps the grabbed performer to the grid, and the rest of the group keeps its shape.
+  - Scroll or two-finger trackpad pans; pinch or ⌘/Ctrl+scroll zooms; right- or middle-drag pans. This frees left-drag for box selection.
+  - Keys: Space play/pause, ←/→ one count, V select, A add, Delete removes, Esc clears the selection.
+  - Each timeline segment shows that move's largest step, colored by tier. Paths into the current set are drawn dashed in the tier color.
+- **Other options:** editing mid-move by moving the destination; drag-pans with a modifier for box select.
+
+## 2026-10-22 14:40 EDT — Saving
+- **Who:** Claude
+- **Decision:** The browser autosaves every change, so a refresh or crash can't lose work. Save downloads `<title>.freeform.json`; Open loads one. Opened files are checked (format marker, version, finite positions) before use, because files from disk are untrusted. There's no undo yet.
