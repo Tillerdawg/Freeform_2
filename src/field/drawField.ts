@@ -70,14 +70,14 @@ export function drawField(ctx: CanvasRenderingContext2D, v: View, hash: HashPres
     hline(FIELD_WIDTH - h, x - tick / 2, x + tick / 2);
   }
 
-  // Yard numbers, 6 ft tall. Back numbers face the back sideline.
+  // Yard numbers, 4 steps tall. Back numbers face the back sideline.
   // Decorative only: number placement varies by field, so readouts never reference it (see DECISIONS.md).
   ctx.fillStyle = 'rgba(255,255,255,0.9)';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic'; // digits sit on the baseline, so baseline = bottom of the number
-  // Size the font so the digits themselves (not the font box) are 6 ft tall.
+  // Size the font so the digits themselves (not the font box) are 4 steps tall.
   ctx.font = 'bold 100px system-ui, sans-serif';
-  const px = (100 * (72 / STEP_IN) * s) / ctx.measureText('0').actualBoundingBoxAscent;
+  const px = (100 * 4 * s) / ctx.measureText('0').actualBoundingBoxAscent;
   ctx.font = `bold ${px}px system-ui, sans-serif`;
   const depth = 8; // bottom of numbers, steps from the sideline
   // Digits sit either side of the yard line. Round edges (0, 2, 3, 5) read as farther away than straight
