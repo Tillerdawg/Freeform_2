@@ -174,8 +174,12 @@ export function parseShow(text: string): Show {
   if (s.version !== 1) bad(`unsupported version ${s.version}`);
   if (!(s.hash in HASHES)) bad('unknown hash preset');
   if (!Array.isArray(s.sections) || !Array.isArray(s.performers) || !Array.isArray(s.sets) || !s.sets.length) bad('missing lists');
+  const str = (v: unknown) => typeof v === 'string';
+  if (typeof s.title !== 'string') bad('title');
+  for (const x of s.sections) if (!str(x?.id) || !str(x.name) || !str(x.letter)) bad('section');
+  for (const x of s.performers) if (!str(x?.id) || !str(x.section) || !Number.isFinite(x.number)) bad('performer');
   for (const set of s.sets) {
-    if (typeof set.counts !== 'number' || typeof set.pos !== 'object') bad(`set ${set.name}`);
+    if (!str(set?.id) || !str(set.name) || !Number.isFinite(set.counts) || typeof set.pos !== 'object' || !set.pos) bad('set');
     for (const p of Object.values(set.pos) as Point[]) if (!Number.isFinite(p?.x) || !Number.isFinite(p?.y)) bad(`position in set ${set.name}`);
   }
   return s as Show;

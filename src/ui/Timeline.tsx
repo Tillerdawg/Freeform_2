@@ -1,4 +1,4 @@
-import { biggestStep, locate, setStarts, totalCounts, type Show } from '../engine/show';
+import { biggestStep, locate, setAt, setStarts, totalCounts, type Show } from '../engine/show';
 import { TIER_COLOR } from '../field/drawField';
 import { fmtStep } from './format';
 
@@ -17,7 +17,7 @@ export function Timeline({ show, t, setT, playing, setPlaying, bpm, setBpm }: Pr
   const total = totalCounts(show);
   const starts = setStarts(show);
   const { to, count } = locate(show, t);
-  const onSet = starts.findIndex((s) => s === t);
+  const onSet = setAt(show, t);
 
   const scrub = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!total) return;

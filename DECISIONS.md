@@ -179,3 +179,8 @@ Each entry: timestamp, who decided, context, options considered, decision.
 ## 2026-10-22 14:40 EDT — Saving
 - **Who:** Claude
 - **Decision:** The browser autosaves every change, so a refresh or crash can't lose work. Save downloads `<title>.freeform.json`; Open loads one. Opened files are checked (format marker, version, finite positions) before use, because files from disk are untrusted. There's no undo yet.
+
+## 2026-10-22 16:45 EDT — Crash screen and autosave recovery
+- **Who:** Claude
+- **Context:** Jason hit a crash on Play: playback could step to a negative count. That's now fixed. A crash used to leave a blank page, and a corrupt autosave would crash on every reload.
+- **Decision:** A crash now shows the error, with Reload, Download autosaved show, and Reset to a new show. If an autosave won't load, it's kept under `freeform:autosave:unreadable` before a fresh show replaces it. Show files are now checked for every field the app renders (names, ids, numbers), not just positions.

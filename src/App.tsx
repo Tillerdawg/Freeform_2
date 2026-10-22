@@ -8,13 +8,17 @@ import { drawField, drawPerformers, fitView, toWorld, type Path, type View } fro
 import { Sidebar, type Snap, type Tool } from './ui/Sidebar';
 import { Timeline } from './ui/Timeline';
 
-const AUTOSAVE = 'freeform:autosave';
+export const AUTOSAVE = 'freeform:autosave';
 
 function loadAutosave(): Show {
+  let raw: string | null = null;
   try {
-    const raw = localStorage.getItem(AUTOSAVE);
+    raw = localStorage.getItem(AUTOSAVE);
     if (raw) return parseShow(raw);
-  } catch { /* storage blocked or bad data: start fresh */ }
+  } catch {
+    // Bad data: keep a copy before the fresh show's autosave overwrites it.
+    try { if (raw) localStorage.setItem(`${AUTOSAVE}:unreadable`, raw); } catch { /* storage blocked */ }
+  }
   return newShow();
 }
 
@@ -61,7 +65,7 @@ export function App() {
     if (!playing) return;
     let last = performance.now(), raf = 0;
     const tick = (now: number) => {
-      const dt = (now - last) / 1000;
+      const dt = Math.max(0, now - last) / 1000; // a frame timestamp can precede the start time; never step backward
       last = now;
       let done = false;
       setT((cur) => {
