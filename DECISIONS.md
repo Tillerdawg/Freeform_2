@@ -184,3 +184,7 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Who:** Claude
 - **Context:** Jason hit a crash on Play: playback could step to a negative count. That's now fixed. A crash used to leave a blank page, and a corrupt autosave would crash on every reload.
 - **Decision:** A crash now shows the error, with Reload, Download autosaved show, and Reset to a new show. If an autosave won't load, it's kept under `freeform:autosave:unreadable` before a fresh show replaces it. Show files are now checked for every field the app renders (names, ids, numbers), not just positions.
+
+## 2026-10-22 16:55 EDT — Count ticks on the timeline; selecting mid-move
+- **Who:** Jason Tiller (tick details and mid-move selection by Claude)
+- **Decision:** The timeline gets a tick for every count, with every 4th count within a move a little taller; set boundaries keep their yellow line. Clicking anywhere snaps to the nearest count, so clicking a tick lands exactly on it. The current count's tick is highlighted. Mid-move, performers can be selected, but not moved or added. The sidebar shows the selected performer's coordinate at the current count.

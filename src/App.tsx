@@ -161,9 +161,8 @@ export function App() {
     e.currentTarget.setPointerCapture(e.pointerId);
     if (e.button === 1 || e.button === 2) { drag.current = { kind: 'pan', x: e.clientX, y: e.clientY }; return; }
     const p = world(e);
-    if (onSet < 0) return; // mid-move: view only
     if (tool === 'add') {
-      if (!section) return;
+      if (!section || onSet < 0) return; // mid-move: select only, no edits
       const r = addPerformer(show, section, snapTo(p, snap));
       setShow(r.show);
       setSelected(new Set([r.id]));
@@ -177,7 +176,7 @@ export function App() {
         if (sel.has(id)) sel.delete(id); else sel.add(id);
       } else if (!selected.has(id)) sel = new Set([id]);
       setSelected(sel);
-      if (sel.has(id)) {
+      if (sel.has(id) && onSet >= 0) {
         const orig = Object.fromEntries([...sel].map((k) => [k, show.sets[onSet].pos[k]]));
         drag.current = { kind: 'move', start: p, anchor: id, orig };
       }
