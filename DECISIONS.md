@@ -152,4 +152,4 @@ Each entry: timestamp, who decided, context, options considered, decision.
 
 ## 2026-10-22 14:15 EDT — Yard numbers centered on yard lines
 - **Who:** Jason Tiller
-- **Decision:** The two digits sit on either side of their yard line, with equal space between the line and each digit's inked edge. The gap is 1 ft from the line's center to each digit; Claude picked that value and it's easy to change.
+- **Decision:** The two digits sit on either side of their yard line, with equal space between the line and each digit's inked edge. The gap is 18 in from the line's center to a straight edge (the stems of 1 and 4). Round edges (0, 2, 3, 5) sit 4 in closer, a standard optical correction, because round shapes look farther from a line than straight ones at the same distance. Jason widened the gap from 1 ft after the "10" looked uneven.

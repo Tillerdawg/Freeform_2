@@ -80,13 +80,16 @@ export function drawField(ctx: CanvasRenderingContext2D, v: View, hash: HashPres
   const px = (100 * (72 / STEP_IN) * s) / ctx.measureText('0').actualBoundingBoxAscent;
   ctx.font = `bold ${px}px system-ui, sans-serif`;
   const depth = 8; // bottom of numbers, steps from the sideline
-  // Digits sit either side of the yard line with equal ink-to-line gaps (measured on the glyphs, not the font box).
-  const gap = (12 / STEP_IN) * s; // 1 ft from line center to each digit
+  // Digits sit either side of the yard line. Round edges (0, 2, 3, 5) read as farther away than straight
+  // stems (1, 4), so they're tucked a little closer to look equal (the usual typographic optical correction).
+  const gap = (18 / STEP_IN) * s; // line center to a straight edge
+  const tuck = (4 / STEP_IN) * s; // round edges sit this much closer
+  const straightRight = '14';
   const number = (n: number) => {
     const [a, b] = String(n);
     const ma = ctx.measureText(a), mb = ctx.measureText(b);
-    ctx.fillText(a, -gap - ma.actualBoundingBoxRight, 0);
-    ctx.fillText(b, gap + mb.actualBoundingBoxLeft, 0);
+    ctx.fillText(a, -(straightRight.includes(a) ? gap : gap - tuck) - ma.actualBoundingBoxRight, 0);
+    ctx.fillText(b, gap - tuck + mb.actualBoundingBoxLeft, 0); // right digit is always 0: round
   };
   for (let n = 10; n <= 50; n += 10) {
     for (const sign of n === 50 ? [1] : [-1, 1]) {
