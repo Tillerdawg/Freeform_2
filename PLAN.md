@@ -18,7 +18,7 @@
 - FTL transitions (leader + order, path-following; IDEA.md example is the acceptance test).
 - Page markup/text; PDF drill charts and coordinate sheets.
 - Performer view (PWA): director view and personal view, count-by-count.
-- Count-first layout (Jason): enter the total counts for a musical selection (movement) or the whole show, then place sets at specific counts. Fits the current model, since a set at count N just means counts-into-set = N − previous set's count. Open question: when a set moves, do the later sets keep their absolute counts (default?) or shift with it?
+- Count-first layout (Jason): enter the total counts for a musical selection (movement) or the whole show, then place sets at specific counts. Fits the current model, since a set at count N just means counts-into-set = N − previous set's count. When a set moves, later sets keep their absolute counts (Jason): moving set 3 from count 24 to 28 lengthens the move into set 3 and shortens the move out of it; set 4 stays at 48.
 - Music sync (mp3; MIDI tempo map). Pairs with count-first layout: counts → measures → audio time.
 - Basketball court and custom surfaces.
 - Pyware .3dj import (from Jason's own sample files; behavior-only RE, see DECISIONS.md).

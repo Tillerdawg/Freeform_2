@@ -188,3 +188,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 ## 2026-10-22 16:55 EDT — Count ticks on the timeline; selecting mid-move
 - **Who:** Jason Tiller (tick details and mid-move selection by Claude)
 - **Decision:** The timeline gets a tick for every count, with every 4th count within a move a little taller; set boundaries keep their yellow line. Clicking anywhere snaps to the nearest count, so clicking a tick lands exactly on it. The current count's tick is highlighted. Mid-move, performers can be selected, but not moved or added. The sidebar shows the selected performer's coordinate at the current count.
+
+## 2026-10-22 16:50 EDT — Count-first layout: later sets stay pinned
+- **Who:** Jason Tiller
+- **Context:** A future feature: enter a selection's total counts and place sets at specific counts.
+- **Options:** later sets keep their absolute counts; later sets shift along with a moved set.
+- **Decision:** Later sets stay where they were placed. Moving set 3 from count 24 to 28 makes the move into set 3 longer and the move out of it shorter; set 4 stays at count 48. The current "counts in" field still shifts later sets, as it does today.
