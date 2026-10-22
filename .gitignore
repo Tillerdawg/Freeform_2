@@ -3,3 +3,6 @@ Examples_Drill/
 samples/
 .DS_Store
 node_modules/
+
+# Local GitHub token, never commit
+*.gh-token
