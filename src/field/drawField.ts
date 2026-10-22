@@ -56,17 +56,10 @@ export function drawField(ctx: CanvasRenderingContext2D, v: View, hash: HashPres
   ctx.lineWidth = Math.max(2, s * 0.3);
   ctx.strokeRect(tl.x, tl.y, 2 * END_X * s, FIELD_WIDTH * s);
 
-  // Hash ticks at every yard, front and back. 2 ft long.
+  // Hash marks: a stripe across every yard line, parallel to the sideline, at both hash depths. 2 ft long.
   const h = HASHES[hash];
   const tick = 24 / 22.5;
   ctx.lineWidth = Math.max(1, s * 0.15);
-  for (let yd = -49; yd <= 49; yd++) {
-    if (yd % 5 === 0) continue;
-    const x = yd * YARD;
-    vline(x, h - tick / 2, h + tick / 2);
-    vline(x, FIELD_WIDTH - h - tick / 2, FIELD_WIDTH - h + tick / 2);
-  }
-  // Hash stripe across every yard line, parallel to the sideline, so the hash depth reads on the line itself.
   for (let x = -GOAL_LINE_X; x <= GOAL_LINE_X; x += 8) {
     hline(h, x - tick / 2, x + tick / 2);
     hline(FIELD_WIDTH - h, x - tick / 2, x + tick / 2);

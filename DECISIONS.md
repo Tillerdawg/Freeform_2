@@ -123,3 +123,8 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Who:** Jason Tiller
 - **Context:** On the field view, the hash depth wasn't marked where a yard line crosses it.
 - **Decision:** Draw a short stripe parallel to the sideline across every yard line (goal lines included) at both hash depths, 2 ft long to match the hash ticks.
+
+## 2026-10-22 13:40 EDT — No hash ticks between yard lines
+- **Who:** Jason Tiller
+- **Context:** The field view drew football-style hash ticks at every yard as well as the new stripes on yard lines.
+- **Decision:** Drop the per-yard ticks. The hash shows only as the stripes across each yard line.
