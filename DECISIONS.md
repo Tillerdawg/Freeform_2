@@ -112,3 +112,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Context:** First on-screen field.
 - **Decision:** Director's view: front sideline at the bottom, Side 1 on the left. The 8-to-5 grid is drawn from the front sideline, with every 4th step (the "splitting" lines) drawn a little brighter, and it hides when zoomed far out. Hash ticks at every yard. Back-side numbers are rotated to read from the back sideline. Yard numbers sit at one approximate depth for all presets (logged as a code shortcut). Mouse wheel zooms around the cursor; drag pans. Hovering shows the live coordinate readout.
 - **Other options:** an audience/press-box view as the default (a view toggle can come later for the performer app).
+
+## 2026-10-22 13:25 EDT — Yard numbers are not coordinate references
+- **Who:** Jason Tiller
+- **Context:** Some drill writers use landmarks like "top of the numbers." Yard number placement is not consistent from field to field.
+- **Options:** use numbers as front-to-back references; references limited to sidelines and hashes.
+- **Decision:** Readouts reference only the sidelines and hashes. Yard numbers are drawn for orientation only. Their approximate position is fine.

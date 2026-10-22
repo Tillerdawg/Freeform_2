@@ -68,7 +68,7 @@ export function drawField(ctx: CanvasRenderingContext2D, v: View, hash: HashPres
   }
 
   // Yard numbers, 6 ft tall. Back numbers face the back sideline.
-  // shortcut: numbers placed at one approximate depth for all presets (tops ~9 yd in); use rulebook values per preset if needed.
+  // Decorative only: number placement varies by field, so readouts never reference it (see DECISIONS.md).
   ctx.fillStyle = 'rgba(255,255,255,0.9)';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
