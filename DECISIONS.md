@@ -148,7 +148,7 @@ Each entry: timestamp, who decided, context, options considered, decision.
 
 ## 2026-10-22 14:12 EDT — Yard number placement
 - **Who:** Jason Tiller
-- **Decision:** The bottoms of the yard numbers sit 8 steps from their sideline (front numbers from the front sideline, back numbers from the back sideline). The digits are 6 ft tall. Still decorative only.
+- **Decision:** The bottoms of the yard numbers sit 8 steps from their sideline (front numbers from the front sideline, back numbers from the back sideline). The digits are 4 steps tall (Jason, for looks; real numbers are 6 ft = 3.2 steps). Still decorative only.
 
 ## 2026-10-22 14:15 EDT — Yard numbers centered on yard lines
 - **Who:** Jason Tiller
