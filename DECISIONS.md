@@ -128,3 +128,8 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Who:** Jason Tiller
 - **Context:** The field view drew football-style hash ticks at every yard as well as the new stripes on yard lines.
 - **Decision:** Drop the per-yard ticks. The hash shows only as the stripes across each yard line.
+
+## 2026-10-22 13:45 EDT — Real-world line dimensions
+- **Who:** Jason Tiller
+- **Context:** Field lines should be drawn to scale.
+- **Decision:** All yard lines are 4 in wide. Hash marks are 24 in long and 4 in wide, centered on their coordinate. When zoomed far out, lines never draw thinner than 1 screen pixel, so they stay visible. The outer boundary is still a thicker frame, pending Jason's call.
