@@ -65,6 +65,7 @@ describe('exact coordinate entry round-trips through the readout', () => {
     [[2, 45, 2, 'outside'], ['Front Hash', 2, 'in front of', 'college'], '2 steps outside the Side 2 45, 2 steps in front of Front Hash'],
     [[1, 35, 3, 'inside'], ['Back Sideline', 5, 'in front of', 'highSchool'], '3 steps inside the Side 1 35, 5 steps in front of Back Sideline'],
     [[1, 50, 2, 'outside'], ['Back Hash', 0, 'on', 'nfl'], '2 steps outside the 50 on Side 1, on Back Hash'],
+    [[2, 50, 1.5, 'outside'], ['Front Hash', 3, 'behind', 'college'], '1.5 steps outside the 50 on Side 2, 3 steps behind Front Hash'],
     [[2, 0, 0, 'on'], ['Front Sideline', 6, 'behind', 'highSchool'], 'On the Side 2 Goal Line, 6 steps behind Front Sideline'],
   ];
   for (const [x, y, text] of cases) it(text, () => expect(readout({ x: xFrom(...x), y: yFrom(...y) }, y[3])).toBe(text));

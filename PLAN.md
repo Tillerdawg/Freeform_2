@@ -2,11 +2,16 @@
 
 ## Milestone 1 — Core designer (browser)
 1. ✅ **Coordinate engine** (pure TS, unit-tested first): positions in steps, hash presets, readouts in the IDEA.md format ("2 steps outside the Side 2 45, 2 steps in front of Front Hash", "Splitting 40 and 45 on Side 1", "On the 50"), quarter-step rounding, step size per transition with yellow/red tiers.
-2. **Show model + file:** performers (dot/letter/icon, label), sets (counts to arrive), field type and hash preset. Saved as versioned JSON; open and save as local files.
+2. ✅ **Show model + file:** performers (dot/letter/icon, label), sets (counts to arrive), field type and hash preset. Saved as versioned JSON; open and save as local files.
 3. ✅ **Field view:** football field with yard lines, numbers, hashes, and an 8-to-5 grid; zoom and pan.
-4. **Editing:** place, select, multi-select, and drag performers with grid snap; add, duplicate, and delete sets; set counts.
-5. **Playback:** linear (float) interpolation, count-by-count scrub and play for one set, a range, or the whole show; paths colored by step-size tier.
-6. **Coordinate panel:** selected performer's readout per set.
+4. ✅ **Editing:** place, select, multi-select, and drag performers with grid snap; add, duplicate, and delete sets; set counts.
+5. ✅ **Playback:** linear (float) interpolation, count-by-count scrub, play from any count at a set tempo (set ranges are a follow-up); paths colored by step-size tier.
+6. ✅ **Coordinate panel:** selected performer's readout per set.
+
+## Milestone 1 follow-ups
+- Undo/redo.
+- Play a range of sets (IDEA.md: individual set, sub-collection, whole show); a loop toggle.
+- Touch support pass (tablets).
 
 ## Later milestones (rough order)
 - Shape tools: line, arc, curve, block, free.

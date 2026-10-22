@@ -162,7 +162,7 @@ function CoordEntry({ onPlace }: { onPlace: (x: number, y: (h: HashPreset) => nu
         <select aria-label="Inside or outside" value={xd} onChange={(e) => setXd(e.target.value as SideDir)}>
           <option value="on">on</option><option value="inside">inside</option><option value="outside">outside</option>
         </select>
-        <select aria-label="Side" value={side} onChange={(e) => setSide(Number(e.target.value) as 1 | 2)} disabled={line === 50}>
+        <select aria-label="Side" value={side} onChange={(e) => setSide(Number(e.target.value) as 1 | 2)} disabled={line === 50 && xd === 'on'}>
           <option value={1}>Side 1</option><option value={2}>Side 2</option>
         </select>
         <select aria-label="Yard line" value={line} onChange={(e) => setLine(Number(e.target.value))}>
