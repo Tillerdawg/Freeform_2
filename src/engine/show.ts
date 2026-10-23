@@ -1,5 +1,6 @@
 // Show data model and the pure operations on it. All positions are in steps (see coords.ts).
 import { HASHES, FIELD_WIDTH, distance, stepSize, type HashPreset, type Point, type StepTier } from './coords';
+import { assign } from './shapes';
 
 export interface Section { id: string; name: string; letter: string }
 export interface Performer { id: string; section: string; number: number }
@@ -207,4 +208,30 @@ export function advance(t: number, counts: number, [lo, hi]: [number, number], l
   if (next < hi) return { t: next, done: false };
   if (!loop || hi <= lo) return { t: hi, done: true };
   return { t: lo + ((next - lo) % (hi - lo)), done: false };
+}
+
+// ---- Mirroring.
+
+/** Flip performers in set i across the 50 ('x') or across the field's front-to-back center ('y'). */
+export function flip(show: Show, i: number, ids: string[], axis: 'x' | 'y'): Show {
+  const pos = show.sets[i].pos;
+  return placeInSet(show, i, Object.fromEntries(ids.map((id) => [id, axis === 'x' ? { x: -pos[id].x, y: pos[id].y } : { x: pos[id].x, y: FIELD_WIDTH - pos[id].y }])));
+}
+
+/**
+ * The selected performers on side `from` keep their spots; those on the other side take the mirror image across the 50.
+ * Pairing is least total travel from the previous set (where the move starts), so paths don't cross.
+ * Performers exactly on the 50 are left alone. Throws if the two sides have different numbers of performers.
+ */
+export function mirrorSides(show: Show, i: number, ids: string[], from: 1 | 2): Show {
+  const pos = show.sets[i].pos;
+  const onSide = (side: 1 | 2) => ids.filter((id) => (side === 1 ? pos[id].x < 0 : pos[id].x > 0));
+  const src = onSide(from), dst = onSide(from === 1 ? 2 : 1);
+  if (src.length !== dst.length) {
+    throw new Error(`Select the same number on each side (Side ${from}: ${src.length}, Side ${from === 1 ? 2 : 1}: ${dst.length}).`);
+  }
+  const targets = src.map((id) => ({ x: -pos[id].x, y: pos[id].y }));
+  const origin = show.sets[Math.max(0, i - 1)].pos;
+  const slotOf = assign(dst.map((id) => origin[id] ?? pos[id]), targets);
+  return placeInSet(show, i, Object.fromEntries(dst.map((id, k) => [id, targets[slotOf[k]]])));
 }
