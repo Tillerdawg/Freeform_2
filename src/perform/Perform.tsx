@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { readout, type Point } from '../engine/coords';
 import { decodeShow, fetchShow, LOAD_PREFIX, linkHash, loadUrl, SHARE_PREFIX } from '../engine/share';
 import { Scanner } from './Scanner';
+import { isPhone } from './device';
 import { label, locate, moveSteps, parseShow, positionsAt, setAt, setStarts, type Show } from '../engine/show';
 import { drawField, drawMarks, drawPerformers, fitView, TIER_COLOR, toScreen, type View } from '../field/drawField';
 import { fmtStep } from '../ui/format';
@@ -215,7 +216,7 @@ export function Perform() {
           : location.hash.startsWith(LOAD_PREFIX) ? <p>Downloading the show…</p>
           : <p>Open the show link your director sent you. It will be saved on this phone and work offline after that.</p>}
         <PasteLink />
-        <p><a href="#" style={{ color: '#9cf' }} onClick={(e) => { e.preventDefault(); toEditor(); }}>← Editor</a></p>
+        {!isPhone() && <p><a href="#" style={{ color: '#9cf' }} onClick={(e) => { e.preventDefault(); toEditor(); }}>← Editor</a></p>}
       </main>
     );
   }
@@ -238,7 +239,7 @@ export function Perform() {
         </select>
         <span className="perform-title">{error ? <span role="alert" title={error} style={{ color: '#f99' }}>{error} Showing your saved copy. </span>
           : notice ? <span role="status" style={{ color: '#9f9' }}>{notice} </span> : null}{show.title}</span>
-        <button onClick={toEditor} title="Back to the drill editor" style={{ fontSize: 14 }}>← Editor</button>
+        {!isPhone() && <button onClick={toEditor} title="Back to the drill editor" style={{ fontSize: 14 }}>← Editor</button>}
       </header>
       <div className="perform-field">
         <canvas ref={canvasRef} aria-label="Field" style={{ width: '100%', height: '100%', display: 'block', touchAction: 'none' }}
