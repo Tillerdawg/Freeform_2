@@ -77,7 +77,7 @@ export function Timeline({ show, t, setT, playing, setPlaying, bpm, setBpm, rang
             const big = biggestStep(show, i);
             return (
               <div key={s.id} style={{ flex: s.counts, borderLeft: '2px solid #ffd166', background: i === to && onSet < 0 ? '#2c4a35' : '#24382b', overflow: 'hidden', padding: '2px 6px', fontSize: 12, whiteSpace: 'nowrap' }}>
-                <div>{show.sets[i - 1].name} → {s.name} · {s.counts} cts{s.measures ? ` · m. ${s.measures}` : ''}</div>
+                <div>{show.sets[i - 1].name} → {s.name} · {s.counts} cts{s.measures ? ` · m. ${s.measures}` : ''}{s.ftl?.length ? ' · FTL' : ''}</div>
                 {big && <div style={{ color: TIER_COLOR[big.tier] === TIER_COLOR.ok ? '#cfe' : TIER_COLOR[big.tier] }}>max {fmtStep(big.per5)}</div>}
               </div>
             );

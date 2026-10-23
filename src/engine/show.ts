@@ -1,5 +1,5 @@
 // Show data model and the pure operations on it. All positions are in steps (see coords.ts).
-import { HASHES, FIELD_WIDTH, distance, stepSize, type HashPreset, type Point, type StepTier } from './coords';
+import { HASHES, FIELD_WIDTH, distance, ftlPositions, stepSize, type HashPreset, type Point, type StepTier } from './coords';
 import { assign } from './shapes';
 
 export interface Section { id: string; name: string; letter: string }
@@ -12,6 +12,11 @@ export interface DrillSet {
   pos: Record<string, Point>;
   /** Measures the move into this set covers, typed by the drill writer as on a score (e.g. "9–12", or "0–4" from a pickup: pickups are measure 0). */
   measures?: string;
+  /**
+   * Follow-the-leader groups for the move into this set. order[0] is the leader; the rest follow in order.
+   * Followers' spots in this set are computed from the trail (see normalizeFtl), not placed by hand.
+   */
+  ftl?: { order: string[] }[];
 }
 export interface Show {
   format: 'freeform-show';
@@ -139,13 +144,72 @@ export function positionsAt(show: Show, t: number): Record<string, Point> {
     const p = a[id] ?? b[id], q = b[id];
     out[id] = { x: p.x + (q.x - p.x) * f, y: p.y + (q.y - p.y) * f };
   }
+  for (const g of show.sets[to].ftl ?? []) {
+    const at = ftlPositions(g.order.map((id) => a[id] ?? b[id]), b[g.order[0]], f);
+    g.order.forEach((id, k) => { out[id] = at[k]; });
+  }
   return out;
+}
+
+/** The trail a follow-the-leader group marches along in the move into set i: leader's end, leader's start, then each follower's start. */
+export function ftlTrail(show: Show, i: number, order: string[]): Point[] {
+  const a = show.sets[i - 1].pos, b = show.sets[i].pos;
+  return [b[order[0]], ...order.map((id) => a[id] ?? b[id])];
+}
+
+/**
+ * Recompute every follow-the-leader follower's spot from its trail, set by set (a set's spots feed the next move),
+ * and drop groups that lost members. Run after every edit so the stored show is always consistent.
+ */
+export function normalizeFtl(show: Show): Show {
+  if (!show.sets.some((s) => s.ftl?.length)) return show;
+  const alive = new Set(show.performers.map((p) => p.id));
+  const sets = [...show.sets];
+  for (let i = 1; i < sets.length; i++) {
+    const groups = (sets[i].ftl ?? []).map((g) => ({ order: g.order.filter((id) => alive.has(id)) })).filter((g) => g.order.length > 1);
+    if (!sets[i].ftl && !groups.length) continue;
+    const pos = { ...sets[i].pos };
+    for (const g of groups) {
+      const ends = ftlPositions(g.order.map((id) => sets[i - 1].pos[id] ?? pos[id]), pos[g.order[0]], 1);
+      g.order.slice(1).forEach((id, k) => { pos[id] = ends[k + 1]; });
+    }
+    sets[i] = { ...sets[i], pos, ftl: groups.length ? groups : undefined };
+  }
+  return { ...show, sets };
+}
+
+/** Make `order` a follow-the-leader group for the move into set i (order[0] leads). Members leave any other group. */
+export function setFtl(show: Show, i: number, order: string[]): Show {
+  const others = (show.sets[i].ftl ?? []).map((g) => ({ order: g.order.filter((id) => !order.includes(id)) }));
+  return normalizeFtl(mapSet(show, i, (s) => ({ ...s, ftl: [...others, { order }] })));
+}
+
+/** Put performers back to floating for the move into set i. They stay where FTL left them. */
+export const clearFtl = (show: Show, i: number, ids: string[]): Show =>
+  normalizeFtl(mapSet(show, i, (s) => ({ ...s, ftl: (s.ftl ?? []).map((g) => ({ order: g.order.filter((id) => !ids.includes(id)) })) })));
+
+/** Default follower order: from the leader, each next performer is the nearest remaining one (at the start of the move). */
+export function chainOrder(show: Show, i: number, leader: string, ids: string[]): string[] {
+  const a = show.sets[Math.max(0, i - 1)].pos;
+  const order = [leader];
+  const left = new Set(ids.filter((id) => id !== leader));
+  while (left.size) {
+    const last = a[order.at(-1)!];
+    let best = '', bd = Infinity;
+    for (const id of left) { const d = distance(last, a[id]); if (d < bd) { bd = d; best = id; } }
+    order.push(best);
+    left.delete(best);
+  }
+  return order;
 }
 
 /** Step size per performer for the move into set i (i >= 1). */
 export function moveSteps(show: Show, i: number): Record<string, { per5: number; tier: StepTier }> {
   const a = show.sets[i - 1].pos, b = show.sets[i].pos;
-  return Object.fromEntries(Object.keys(b).map((id) => [id, stepSize(distance(a[id] ?? b[id], b[id]), show.sets[i].counts)]));
+  const dist: Record<string, number> = Object.fromEntries(Object.keys(b).map((id) => [id, distance(a[id] ?? b[id], b[id])]));
+  // In follow-the-leader everyone marches the leader's distance, whatever the straight line says.
+  for (const g of show.sets[i].ftl ?? []) for (const id of g.order) dist[id] = dist[g.order[0]];
+  return Object.fromEntries(Object.entries(dist).map(([id, d]) => [id, stepSize(d, show.sets[i].counts)]));
 }
 
 /** The largest step (smallest N-to-5) in the move into set i. */
@@ -189,9 +253,11 @@ export function parseShow(text: string): Show {
   for (const set of s.sets) {
     if (!str(set?.id) || !str(set.name) || !Number.isFinite(set.counts) || typeof set.pos !== 'object' || !set.pos) bad('set');
     if (set.measures !== undefined && !str(set.measures)) bad('set measures');
+    if (set.ftl !== undefined && (!Array.isArray(set.ftl) || !set.ftl.every((g: { order?: unknown }) =>
+      Array.isArray(g?.order) && g.order.every((id) => str(id) && id in set.pos)))) bad('set follow-the-leader');
     for (const p of Object.values(set.pos) as Point[]) if (!Number.isFinite(p?.x) || !Number.isFinite(p?.y)) bad(`position in set ${set.name}`);
   }
-  return s as Show;
+  return normalizeFtl(s as Show);
 }
 
 // ---- Range playback.

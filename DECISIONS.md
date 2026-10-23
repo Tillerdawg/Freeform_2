@@ -277,3 +277,20 @@ Each entry: timestamp, who decided, context, options considered, decision.
   - Dragging an anchor carries its two controls with it.
   - Holding Option (Mac) or Alt (Windows) while dragging moves just that one handle: that's how you make a corner, or move an anchor without its controls.
   - "Smooth" means the controls point within about 2° of directly opposite.
+
+## 2026-10-23 10:00 EDT — Follow-the-leader transitions
+- **Who:** Jason Tiller (IDEA.md: float by default, FTL per transition for any performers, with leader and order); details by Claude
+- **Decisions:**
+  - FTL belongs to a move. It's stored on the set being moved into, as groups (leader first, then followers in order); one move can have several groups. Everyone else floats.
+  - Select 2 or more performers on a set (not set 1) and click "Make FTL". The default leader is the lowest label, and the default order chains from the leader to the nearest remaining performer, measured at the start of the move. That gives A–E for the IDEA.md example. Picking a different leader re-chains from it; ↑/↓ swaps followers. "Float instead" turns it off and leaves everyone where they ended.
+  - The drill writer places only the leader's end spot. Followers' end spots are computed from the trail (leader's end ← leader's start ← each follower's start, in order), and each performer marches the leader's path length at the leader's pace. Followers are recomputed after every edit, including edits to the previous set, so they can't go stale.
+  - Changing the order changes the trail itself: it always runs through the followers' starting spots in the chosen order.
+  - Step sizes for an FTL group use the leader's distance, not each straight line. The trail is drawn once per group in the leader's step-size color, and the timeline segment is tagged "FTL".
+  - The leader moves in a straight line. A leader path with turns is a follow-up.
+  - Imported files are checked: an FTL group can only name performers that exist in that set.
+- **Other options:** placing followers' ends by hand (rejected: they'd fight the trail); a leader path with waypoints (later).
+
+## 2026-10-23 10:00 EDT — Drags apply the release point
+- **Who:** Claude
+- **Context:** One browser test run had a drag land 2 steps short. It couldn't be reproduced in 20+ further runs, with or without the change.
+- **Decision:** On release, the app also applies the pointer's final position for drags of performers, shape handles, and selection boxes, so a release that arrives without a final move event can't leave the drag short.
