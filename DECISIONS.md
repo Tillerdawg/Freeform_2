@@ -198,3 +198,7 @@ Each entry: timestamp, who decided, context, options considered, decision.
 ## 2026-10-22 17:15 EDT — Undo/redo
 - **Who:** Jason Tiller asked; step rules by Claude
 - **Decision:** Undo/redo keeps whole-show snapshots, up to 200 steps per browser session. One step = everything from one click, tap, or shortcut until the next one. Continuous changes after it merge into that step: a held drag (however slow), or typing (until a half-second pause). Fast clicks are separate steps. Keys: ⌘Z / Ctrl+Z, ⇧⌘Z / Ctrl+Shift+Z / Ctrl+Y, plus Undo and Redo buttons. Inside text boxes, ⌘Z is the browser's own text undo. New, Open, and every set or performer edit can be undone; playback, selection, and zoom are not edits. History is not saved with the show or kept after a reload.
+
+## 2026-10-22 21:05 EDT — Yard numbers outside the field (replaces "bottoms 8 steps in")
+- **Who:** Jason Tiller
+- **Decision:** The yard numbers sit outside the sidelines. The top of each front number is 2 steps in front of the front sideline, and the top of each back number is 2 steps behind the back sideline. They're 4 steps tall, so each spans 2 to 6 steps outside its sideline, still facing its own sideline. Fit field leaves room for them.
