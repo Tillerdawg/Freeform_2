@@ -73,7 +73,7 @@ export function Sidebar(p: Props) {
       <div style={row}>
         <button onClick={p.onNew}>New</button>
         <button onClick={p.onOpen}>Open…</button>
-        <button onClick={p.onSave}>Save</button>
+        <button onClick={p.onSave} title="Download this show as a .freeform.json file: a backup, or a copy to share or open in another browser">Export</button>
       </div>
       {p.fileError && <div role="alert" style={{ color: '#ff8080', marginTop: 6 }}>{p.fileError}</div>}
       <div style={{ ...row, marginBottom: 10 }}>
