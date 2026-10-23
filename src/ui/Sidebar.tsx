@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { readout, type HashPreset } from '../engine/coords';
 import { addCurvePoint, type Shape, type ShapeKind } from '../engine/shapes';
 import {
-  addSetAfter, label, locate, newId, placeInSet, positionsAt, removePerformers, removeSet, setCounts, xFrom, yFrom,
+  addSetAfter, flip, label, locate, mirrorSides, newId, placeInSet, positionsAt, removePerformers, removeSet, setCounts, xFrom, yFrom,
   type FrontDir, type FrontRef, type Show, type SideDir,
 } from '../engine/show';
 
@@ -45,6 +45,17 @@ export function Sidebar(p: Props) {
   const { show, setShow, onSet, selected } = p;
   const cur = onSet >= 0 ? onSet : locate(show, p.t).to;
   const one = selected.size === 1 ? show.performers.find((x) => selected.has(x.id)) : undefined;
+  const [mirrorError, setMirrorError] = useState('');
+  useEffect(() => setMirrorError(''), [selected]);
+  const ids = [...selected];
+  const mirror = (from: 1 | 2) => {
+    try {
+      const next = mirrorSides(show, onSet, ids, from); // run here, not in the updater, so a refusal is caught
+      setShow(() => next);
+      setMirrorError('');
+    }
+    catch (e) { setMirrorError(e instanceof Error ? e.message : String(e)); }
+  };
 
   return (
     <aside style={{ width: 300, padding: '8px 14px', overflowY: 'auto', borderLeft: '1px solid #33443a', fontSize: 14 }}>
@@ -113,6 +124,22 @@ export function Sidebar(p: Props) {
         <strong>Selection</strong>
         {selected.size === 0 && <p style={{ opacity: 0.7, margin: '6px 0 0' }}>Click a performer, shift-click to add, or drag a box.</p>}
         {selected.size > 1 && <p style={{ margin: '6px 0 0' }}>{selected.size} performers selected</p>}
+        {selected.size > 0 && onSet >= 0 && (
+          <fieldset style={{ marginTop: 10, border: '1px solid #33443a' }}>
+            <legend>Mirror</legend>
+            <div style={row}>
+              <button onClick={() => { setShow((s) => flip(s, onSet, ids, 'x')); setMirrorError(''); }} title="Swap sides: Side 1 ↔ Side 2">Flip across the 50</button>
+              <button onClick={() => { setShow((s) => flip(s, onSet, ids, 'y')); setMirrorError(''); }} title="Swap front and back">Flip front ↔ back</button>
+            </div>
+            {selected.size > 1 && (
+              <div style={row}>
+                <button onClick={() => mirror(1)} title="Side 2 performers take the mirror image of Side 1">Copy Side 1 → 2</button>
+                <button onClick={() => mirror(2)} title="Side 1 performers take the mirror image of Side 2">Copy Side 2 → 1</button>
+              </div>
+            )}
+            {mirrorError && <div role="alert" style={{ color: '#ff8080', marginTop: 6 }}>{mirrorError}</div>}
+          </fieldset>
+        )}
         {selected.size > 1 && onSet >= 0 && <ShapePanel {...p} />}
         {selected.size > 0 && (
           <div style={row}>

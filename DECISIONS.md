@@ -220,3 +220,12 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Who:** Claude (Jason reported the flashing on a smaller screen)
 - **Context:** The hover readout in the top bar changed length on every mouse move. That changed the bar's size, which resized the field canvas. A canvas resize clears it and refits the view, so the screen flashed. Measured 8 to 27 resizes per 60 mouse moves at every window size.
 - **Decision:** The top bar has a fixed height and never wraps, and its hint text truncates first. The coordinate readout moved to a small label floating in the field's lower-left corner, so it never affects layout. Its live screen-reader announcement was dropped, since announcing on every mouse move is noise. Verified: 0 resizes during mouse moves and playback at 1500, 1100 and 900 px wide.
+
+## 2026-10-23 07:25 EDT — Mirroring
+- **Who:** Jason Tiller asked; details by Claude
+- **Decision:** In the Selection panel, on a set:
+  - **Flip across the 50:** x → −x for the selected performers.
+  - **Flip front ↔ back:** y → 84 − y, across the field's center line.
+  - **Copy Side 1 → 2** (and 2 → 1): the selected performers on the source side keep their spots, and those on the other side take the mirror image. Pairing is least total travel from the previous set, so paths don't cross. Anyone exactly on the 50 is left alone. Uneven sides are refused with a message giving both counts.
+  - Each is one undo step.
+- **Other options:** mirroring around the selection's own center instead of the 50 (possible later as part of rotate/scale).

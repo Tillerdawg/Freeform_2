@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { readout } from './coords';
 import {
-  addPerformer, addSetAfter, advance, biggestStep, playRange, playStart, label, locate, newShow, parseShow, placeInSet, positionsAt,
+  addPerformer, addSetAfter, advance, biggestStep, flip, mirrorSides, playRange, playStart, label, locate, newShow, parseShow, placeInSet, positionsAt,
   removePerformers, removeSet, setAt, setCounts, setStarts, totalCounts, xFrom, yFrom,
 } from './show';
 
@@ -108,5 +108,36 @@ describe('range playback', () => {
     expect(advance(23, 2, [16, 24], false)).toEqual({ t: 24, done: true });
     expect(advance(23, 2, [16, 24], true)).toEqual({ t: 17, done: false });
     expect(advance(16, 1, [16, 16], true)).toEqual({ t: 16, done: true }); // single-set range
+  });
+});
+
+describe('mirroring', () => {
+  function build(spots: [number, number][]) {
+    let show = newShow();
+    const ids: string[] = [];
+    for (const [x, y] of spots) { const r = addPerformer(show, show.sections[0].id, { x, y }); show = r.show; ids.push(r.id); }
+    return { show: addSetAfter(show, 0), ids };
+  }
+  it('flips across the 50 and front to back', () => {
+    const { show, ids } = build([[-10, 20], [4, 30]]);
+    const fx = flip(show, 1, ids, 'x');
+    expect(ids.map((id) => fx.sets[1].pos[id])).toEqual([{ x: 10, y: 20 }, { x: -4, y: 30 }]);
+    const fy = flip(show, 1, ids, 'y');
+    expect(ids.map((id) => fy.sets[1].pos[id])).toEqual([{ x: -10, y: 64 }, { x: 4, y: 54 }]);
+    expect(flip(fx, 1, ids, 'x').sets[1].pos).toEqual(show.sets[1].pos);
+  });
+  it('mirrors Side 1 onto Side 2, pairing by least travel, ignoring anyone on the 50', () => {
+    // Side 1 form: (-16, 10) and (-8, 40). Side 2 performers start near (20, 38) and (6, 12).
+    const { show, ids } = build([[-16, 10], [-8, 40], [20, 38], [6, 12], [0, 50]]);
+    const m = mirrorSides(show, 1, ids, 1);
+    const p = (k: number) => m.sets[1].pos[ids[k]];
+    expect(p(0)).toEqual({ x: -16, y: 10 }); // source untouched
+    expect(p(2)).toEqual({ x: 8, y: 40 }); // (20,38) is nearer the mirrored (8,40)
+    expect(p(3)).toEqual({ x: 16, y: 10 });
+    expect(p(4)).toEqual({ x: 0, y: 50 }); // on the 50: left alone
+  });
+  it('refuses uneven sides with a clear message', () => {
+    const { show, ids } = build([[-16, 10], [-8, 40], [20, 38]]);
+    expect(() => mirrorSides(show, 1, ids, 1)).toThrow(/Side 1: 2, Side 2: 1/);
   });
 });
