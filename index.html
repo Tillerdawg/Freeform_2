@@ -29,6 +29,9 @@
       .perform-controls { padding: 6px 12px calc(10px + env(safe-area-inset-bottom)); flex-shrink: 0; border-top: 1px solid #33443a; }
       .perform-controls input[type=range] { width: 100%; height: 32px; }
       .perform-sets { display: flex; gap: 6px; overflow-x: auto; white-space: nowrap; height: 44px; align-items: center; scrollbar-width: none; }
+      .perform-sets[data-more=right] { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 48px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 48px), transparent); }
+      .perform-sets[data-more=left] { -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 48px), transparent); mask-image: linear-gradient(to left, #000 calc(100% - 48px), transparent); }
+      .perform-sets[data-more=both] { -webkit-mask-image: linear-gradient(to right, transparent, #000 48px, #000 calc(100% - 48px), transparent); mask-image: linear-gradient(to right, transparent, #000 48px, #000 calc(100% - 48px), transparent); }
       .perform-sets button { flex: none; min-width: 40px; height: 36px; font-size: 16px; border: 2px solid transparent; }
       .perform-sets button[aria-pressed=true] { border-color: #e8c547; font-weight: bold; }
       .perform-buttons { display: flex; gap: 8px; align-items: center; justify-content: space-between; }

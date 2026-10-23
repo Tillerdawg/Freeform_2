@@ -6,6 +6,7 @@ import { assign, fitShape, isControl, moveHandle, samplePath, slots, type Shape,
 import {
   addPerformer, ftlTrail, label, newId, setMarks, moveSteps, normalizeFtl, snapPoint, playRange, newShow, parseShow, placeInSet, positionsAt, removePerformers,
   setAt, setStarts, type Show,
+  totalCounts,
 } from './engine/show';
 import { HANDLE_PX, drawField, drawMarks, drawPerformers, drawShape, fitView, toScreen, toWorld, type Path, type View } from './field/drawField';
 import { Sidebar, type Snap, type Tool } from './ui/Sidebar';
@@ -111,7 +112,7 @@ export function App() {
   };
 
   const span = useMemo(() => playRange(show, range.from, range.to), [show, range.from, range.to]);
-  usePlayback(playing, setPlaying, t, setT, bpm, span, range.loop);
+  usePlayback(playing, setPlaying, t, setT, bpm, span, range.loop, totalCounts(show));
 
   useEffect(() => {
     const c = canvasRef.current!;
