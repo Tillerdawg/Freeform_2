@@ -303,3 +303,13 @@ Each entry: timestamp, who decided, context, options considered, decision.
   - **Keep spots on the field:** dots stay put and only the hashes move.
   - **Cancel.**
   - Either choice is one undo step. An empty show switches without asking. Editor shortcuts are off while any dialog is open.
+
+## 2026-10-23 11:00 EDT — Page markup, page notes, and cues
+- **Who:** Jason Tiller (text, arrows, page notes and freehand; per-set cues on dot sheets; markup visible on its own set only); details by Claude
+- **Decisions:**
+  - **Tools:** Text (T): click to place, then type; the sidebar's box takes the typing right away, and Enter or Esc finishes. Arrow: drag tail to tip. Draw: freehand. Text and arrows snap with the Snap setting; freehand doesn't.
+  - **Editing:** with Select, click a mark to select it, drag to move, Delete to remove. Performers take priority when a click is near both. An empty note is removed as soon as it's not the one being edited; a click with the Arrow tool that doesn't drag leaves nothing behind.
+  - **Page note:** a text box per set, printed under that set's drill chart.
+  - **Cues:** select performers on a set and type a cue. It's stored per performer per set and printed in italics under that set's row on each performer's dot sheet (the quarter-page card has no room for another column). With a mixed selection the box shows "(different cues)"; typing gives them all the same cue.
+  - Markup belongs to one set: it shows when the timeline is on that set and on that set's chart (black on white), and a new set starts with none. Everything is saved in the show file and checked on import; deleting a performer removes their cues.
+- **Other options:** markup spanning several sets; inline editing of text on the field; a cue column on dot sheets.

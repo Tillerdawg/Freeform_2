@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addPerformer, addSetAfter, newShow, parseShow, placeInSet, setMeasures } from '../engine/show';
+import { addPerformer, addSetAfter, newShow, parseShow, placeInSet, setCue, setMeasures } from '../engine/show';
 import { ROWS_PER_CARD, chartTitle, chunk, dotCards, hasMeasures, sortedPerformers } from './docs';
 
 function show3() {
@@ -24,8 +24,8 @@ describe('dot sheets', () => {
     expect(card.label).toBe('T1');
     expect(card.section).toBe('Trumpet');
     expect(card.rows).toEqual([
-      { set: '1', counts: '—', measures: '', side: '2 steps outside the Side 2 45', front: '2 steps in front of Front Hash' },
-      { set: '2', counts: '16', measures: '', side: 'Splitting 35 and 40 on Side 1', front: 'On Back Hash' },
+      { set: '1', counts: '—', measures: '', side: '2 steps outside the Side 2 45', front: '2 steps in front of Front Hash', cue: '' },
+      { set: '2', counts: '16', measures: '', side: 'Splitting 35 and 40 on Side 1', front: 'On Back Hash', cue: '' },
     ]);
   });
   it('long shows continue onto more cards', () => {
@@ -65,4 +65,12 @@ describe('measure numbers', () => {
     bad.sets[1].measures = 12;
     expect(() => parseShow(JSON.stringify(bad))).toThrow(/measures/);
   });
+});
+
+it('cues print on the performer\'s own card only', () => {
+  const { s, t1, t2 } = show3();
+  const c = setCue(s, 1, [t1], 'Horns 45, slide L');
+  const cards = dotCards(c, c.performers.filter((p) => p.id === t1 || p.id === t2));
+  expect(cards[0].rows.map((r) => r.cue)).toEqual(['', 'Horns 45, slide L']);
+  expect(cards[1].rows.map((r) => r.cue)).toEqual(['', '']);
 });

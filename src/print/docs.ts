@@ -4,7 +4,7 @@ import { label, setStarts, type Performer, type Show } from '../engine/show';
 
 export const ROWS_PER_CARD = 24; // what fits a quarter-letter card at a readable size
 
-export interface CardRow { set: string; counts: string; measures: string; side: string; front: string }
+export interface CardRow { set: string; counts: string; measures: string; side: string; front: string; cue: string }
 export interface Card { label: string; section: string; part: number; parts: number; rows: CardRow[] }
 
 /** Performers in section order, then by number. */
@@ -23,6 +23,7 @@ export function dotCards(show: Show, performers: Performer[]): Card[] {
       set: s.name,
       counts: i === 0 ? '—' : String(s.counts),
       measures: s.measures ?? '',
+      cue: s.cues?.[p.id] ?? '',
       side: sideToSide(s.pos[p.id].x),
       front: frontToBack(s.pos[p.id].y, show.hash),
     }));

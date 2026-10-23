@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { readout, type Point } from './engine/coords';
 import { emptyHistory, record, redo, undo } from './engine/history';
+import { addInk, hitMark, moveMark, type Mark } from './engine/marks';
 import { assign, fitShape, isControl, moveHandle, samplePath, slots, type Shape, type ShapeKind } from './engine/shapes';
 import {
-  addPerformer, advance, ftlTrail, label, moveSteps, normalizeFtl, snapPoint, playRange, playStart, newShow, parseShow, placeInSet, positionsAt, removePerformers,
+  addPerformer, advance, ftlTrail, label, newId, setMarks, moveSteps, normalizeFtl, snapPoint, playRange, playStart, newShow, parseShow, placeInSet, positionsAt, removePerformers,
   setAt, setStarts, type Show,
 } from './engine/show';
-import { HANDLE_PX, drawField, drawPerformers, drawShape, fitView, toScreen, toWorld, type Path, type View } from './field/drawField';
+import { HANDLE_PX, drawField, drawMarks, drawPerformers, drawShape, fitView, toScreen, toWorld, type Path, type View } from './field/drawField';
 import { Sidebar, type Snap, type Tool } from './ui/Sidebar';
 import { Timeline } from './ui/Timeline';
 import { PrintDialog } from './print/Print';
@@ -29,7 +30,10 @@ type Drag =
   | { kind: 'move'; start: Point; anchor: string; orig: Record<string, Point> }
   | { kind: 'box'; a: Point; b: Point; add: boolean }
   | { kind: 'pan'; x: number; y: number }
-  | { kind: 'handle'; i: number };
+  | { kind: 'handle'; i: number }
+  | { kind: 'mark'; id: string; start: Point; orig: Mark }
+  | { kind: 'arrow'; id: string }
+  | { kind: 'ink'; id: string };
 
 const snapTo = snapPoint;
 
@@ -51,6 +55,7 @@ export function App() {
   const [range, setRange] = useState<{ from: string | null; to: string | null; loop: boolean }>({ from: null, to: null, loop: false });
   const tRef = useRef(0);
   // Shape being edited: performers in slot order (order[k] takes slot k), in the set it was started in.
+  const [selectedMark, setSelectedMark] = useState<string | null>(null);
   const [shapeEdit, setShapeEdit] = useState<{ shape: Shape; order: string[]; set: number } | null>(null);
   const [fileError, setFileError] = useState('');
   const [printing, setPrinting] = useState(false);
@@ -78,7 +83,7 @@ export function App() {
   useEffect(() => {
     if (show === lastShow.current) return;
     const prev = lastShow.current, at = performance.now(), b = boundary.current; // read now: the updater runs later
-    const holding = drag.current?.kind === 'move' || drag.current?.kind === 'handle';
+    const holding = !!drag.current && drag.current.kind !== 'pan' && drag.current.kind !== 'box';
     if (fromHistory.current) fromHistory.current = false;
     else setHist((h) => record(h, prev, at, b, holding));
     boundary.current = false;
@@ -156,6 +161,7 @@ export function App() {
     const ctx = canvasRef.current!.getContext('2d')!;
     drawField(ctx, view, show.hash);
     const dots = show.performers.filter((p) => positions[p.id]).map((p) => ({ id: p.id, label: label(show, p), at: positions[p.id] }));
+    if (onSet >= 0) drawMarks(ctx, view, show.sets[onSet].marks ?? [], 'screen', selectedMark);
     drawPerformers(ctx, view, dots, selected, paths, box);
     if (shapeEdit) {
       const sh = shapeEdit.shape;
@@ -169,7 +175,18 @@ export function App() {
         : [];
       drawShape(ctx, view, guide.pts, guide.closed, h, h.map((_, k) => isControl(sh, k)), arms);
     }
-  }, [view, show, positions, selected, paths, box, shapeEdit]);
+  }, [view, show, positions, selected, paths, box, shapeEdit, onSet, selectedMark]);
+
+  // Empty text notes are removed as soon as they're not the one being edited (no timing to get wrong).
+  useEffect(() => {
+    if (show.sets.some((st) => st.marks?.some((m) => m.kind === 'text' && !m.text.trim() && m.id !== selectedMark))) {
+      setShow((sh) => ({ ...sh, sets: sh.sets.map((st, i) => {
+        const keep = st.marks?.filter((m) => !(m.kind === 'text' && !m.text.trim() && m.id !== selectedMark));
+        return keep && keep.length !== st.marks!.length ? (setMarks(sh, i, () => keep).sets[i]) : st;
+      }) }));
+    }
+  }, [selectedMark, show, setShow]);
+  useEffect(() => { setSelectedMark(null); }, [onSet]);
 
   // Leaving the set (scrubbing, undo, deleting performers) ends shape editing.
   useEffect(() => {
@@ -235,15 +252,18 @@ export function App() {
       else if (e.key === ' ') { e.preventDefault(); setPlaying((p) => !p); }
       else if (e.key === 'ArrowRight') { e.preventDefault(); setT((x) => Math.min(total, Math.floor(x) + 1)); }
       else if (e.key === 'ArrowLeft') { e.preventDefault(); setT((x) => Math.max(0, Math.ceil(x) - 1)); }
-      else if ((e.key === 'Delete' || e.key === 'Backspace') && selected.size) {
+      else if ((e.key === 'Delete' || e.key === 'Backspace') && selectedMark && onSet >= 0) {
+        setShow((s) => setMarks(s, onSet, (ms) => ms.filter((m) => m.id !== selectedMark))); setSelectedMark(null);
+      } else if ((e.key === 'Delete' || e.key === 'Backspace') && selected.size) {
         setShow((s) => removePerformers(s, selected)); setSelected(new Set());
-      } else if (e.key === 'Escape') { if (shapeEdit) setShapeEdit(null); else setSelected(new Set()); }
+      } else if (e.key === 'Escape') { if (shapeEdit) setShapeEdit(null); else { setSelected(new Set()); setSelectedMark(null); } }
       else if (e.key === 'v' || e.key === 'V') setTool('select');
       else if (e.key === 'a' || e.key === 'A') setTool('add');
+      else if (e.key === 't' || e.key === 'T') setTool('text');
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [selected, total, hist, show, shapeEdit, printing]);
+  }, [selected, total, hist, show, shapeEdit, printing, selectedMark, onSet]);
 
   const world = (e: React.PointerEvent) => toWorld(view!, e.nativeEvent.offsetX * dpr, e.nativeEvent.offsetY * dpr);
 
@@ -271,6 +291,19 @@ export function App() {
       if (i >= 0) { drag.current = { kind: 'handle', i }; return; }
       setShapeEdit(null); // clicking elsewhere finishes the shape
     }
+    if ((tool === 'text' || tool === 'arrow' || tool === 'draw') && onSet >= 0) {
+      e.preventDefault(); // keep the click from pulling focus off the note's text box
+      const id = newId('m');
+      const q = tool === 'text' ? snapTo(p, snap) : p;
+      const mark: Mark = tool === 'text' ? { id, kind: 'text', at: q, text: '' }
+        : tool === 'arrow' ? { id, kind: 'arrow', from: snapTo(p, snap), to: snapTo(p, snap) }
+        : { id, kind: 'ink', pts: [p] };
+      setShow((s) => setMarks(s, onSet, (ms) => [...ms, mark]));
+      setSelected(new Set());
+      setSelectedMark(id);
+      if (tool !== 'text') drag.current = { kind: tool === 'arrow' ? 'arrow' : 'ink', id };
+      return;
+    }
     if (tool === 'add') {
       if (!section || onSet < 0) return; // mid-move: select only, no edits
       const r = addPerformer(show, section, snapTo(p, snap));
@@ -280,6 +313,7 @@ export function App() {
     }
     const id = hit(p);
     if (id) {
+      setSelectedMark(null);
       let sel = selected;
       if (e.shiftKey) {
         sel = new Set(selected);
@@ -291,6 +325,14 @@ export function App() {
         drag.current = { kind: 'move', start: p, anchor: id, orig };
       }
     } else {
+      const m = onSet >= 0 ? hitMark(show.sets[onSet].marks ?? [], p, Math.max(0.5, (6 * dpr) / view.scale)) : undefined;
+      if (m) {
+        setSelected(new Set());
+        setSelectedMark(m.id);
+        drag.current = { kind: 'mark', id: m.id, start: p, orig: m };
+        return;
+      }
+      setSelectedMark(null);
       drag.current = { kind: 'box', a: p, b: p, add: e.shiftKey };
       if (!e.shiftKey) setSelected(new Set());
     }
@@ -309,6 +351,13 @@ export function App() {
     } else if (d.kind === 'box') {
       drag.current = { ...d, b: p };
       setBox([d.a, p]);
+    } else if (d.kind === 'mark') {
+      const q = snapTo({ x: p.x - d.start.x, y: p.y - d.start.y }, d.orig.kind === 'ink' ? 0 : snap);
+      setShow((s) => setMarks(s, onSet, (ms) => ms.map((m) => (m.id === d.id ? moveMark(d.orig, q.x, q.y) : m))));
+    } else if (d.kind === 'arrow') {
+      setShow((s) => setMarks(s, onSet, (ms) => ms.map((m) => (m.id === d.id && m.kind === 'arrow' ? { ...m, to: snapTo(p, snap) } : m))));
+    } else if (d.kind === 'ink') {
+      setShow((s) => setMarks(s, onSet, (ms) => ms.map((m) => (m.id === d.id && m.kind === 'ink' ? { ...m, pts: addInk(m.pts, p) } : m))));
     } else if (d.kind === 'handle') {
       if (!shapeEdit) return;
       updateShape(moveHandle(shapeEdit.shape, d.i, snapTo(p, snap), e.altKey)); // Option/Alt: move this handle alone
@@ -327,6 +376,10 @@ export function App() {
     if (drag.current && drag.current.kind !== 'pan') onPointerMove(e);
     const d = drag.current;
     drag.current = null;
+    if (d?.kind === 'arrow' || d?.kind === 'ink') {
+      setShow((s) => setMarks(s, onSet, (ms) => ms.filter((m) => m.id !== d.id ||
+        (m.kind === 'arrow' ? m.from.x !== m.to.x || m.from.y !== m.to.y : m.kind !== 'ink' || m.pts.length > 1))));
+    }
     if (d?.kind === 'box') {
       const [x0, x1] = [Math.min(d.a.x, d.b.x), Math.max(d.a.x, d.b.x)];
       const [y0, y1] = [Math.min(d.a.y, d.b.y), Math.max(d.a.y, d.b.y)];
@@ -375,7 +428,7 @@ export function App() {
         <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
         <canvas
           ref={canvasRef}
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', touchAction: 'none', cursor: tool === 'add' ? 'copy' : 'default' }}
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', touchAction: 'none', cursor: tool === 'add' ? 'copy' : tool === 'text' ? 'text' : tool === 'select' ? 'default' : 'crosshair' }}
           onContextMenu={(e) => e.preventDefault()}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
@@ -396,7 +449,7 @@ export function App() {
         selected={selected} setSelected={setSelected} tool={tool} setTool={setTool}
         section={section} setSection={setSection} snap={snap} setSnap={setSnap} starts={starts}
         onNew={fresh} onOpen={() => fileRef.current?.click()} onSave={save} onPrint={() => setPrinting(true)} fileError={fileError}
-        shape={shapeEdit?.shape ?? null} startShape={startShape} updateShape={updateShape} endShape={() => setShapeEdit(null)}
+        selectedMark={selectedMark} setSelectedMark={setSelectedMark} shape={shapeEdit?.shape ?? null} startShape={startShape} updateShape={updateShape} endShape={() => setShapeEdit(null)}
       />
       {printing && <PrintDialog show={show} selected={selected} onClose={() => setPrinting(false)} />}
       <input ref={fileRef} type="file" accept=".json,application/json" hidden
