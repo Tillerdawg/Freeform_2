@@ -32,3 +32,36 @@ export async function decodeShow(payload: string): Promise<Show> {
   }
   return parseShow(text);
 }
+
+// ---- Hosted links: for shows too big for a link or a QR code, the link points at a show file stored online.
+
+export const LOAD_PREFIX = '#load=';
+const MAX_BYTES = 10_000_000;
+
+/** A short link that makes the performer view download the show from `fileUrl` (must be https). */
+export function hostedLink(base: string, fileUrl: string): string {
+  const u = new URL(fileUrl.trim()); // throws on garbage
+  if (u.protocol !== 'https:') throw new Error('The show file address must start with https://');
+  return base + LOAD_PREFIX + encodeURIComponent(u.href);
+}
+
+/** The show file address in a "#load=" hash, or null. */
+export function loadUrl(hash: string): string | null {
+  if (!hash.startsWith(LOAD_PREFIX)) return null;
+  try {
+    const u = new URL(decodeURIComponent(hash.slice(LOAD_PREFIX.length)));
+    return u.protocol === 'https:' ? u.href : null;
+  } catch { return null; }
+}
+
+/** Download a hosted show file. It comes from anywhere, so it's size-capped and checked like any file. */
+export async function fetchShow(url: string, fetcher: typeof fetch = fetch): Promise<{ show: Show; text: string }> {
+  let res: Response;
+  try { res = await fetcher(url, { cache: 'no-cache' }); } catch {
+    throw new Error("Couldn't download the show. Check your connection, or that the file allows other sites to read it.");
+  }
+  if (!res.ok) throw new Error(`Couldn't download the show (the server said ${res.status}).`);
+  const text = await res.text();
+  if (text.length > MAX_BYTES) throw new Error('That file is too big to be a show.');
+  return { show: parseShow(text), text };
+}

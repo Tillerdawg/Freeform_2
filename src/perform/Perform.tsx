@@ -1,7 +1,7 @@
 // Performer / staff view: read-only playback of a shared show, centered on "my" dot. Built for phones (portrait).
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { readout, type Point } from '../engine/coords';
-import { decodeShow, SHARE_PREFIX } from '../engine/share';
+import { decodeShow, fetchShow, LOAD_PREFIX, loadUrl, SHARE_PREFIX } from '../engine/share';
 import { label, locate, moveSteps, parseShow, positionsAt, setAt, setStarts, type Show } from '../engine/show';
 import { drawField, drawMarks, drawPerformers, fitView, TIER_COLOR, toScreen, type View } from '../field/drawField';
 import { fmtStep } from '../ui/format';
@@ -14,14 +14,15 @@ const STORE = 'freeform:performer'; // separate from the editor's autosave, so o
 const STAFF = 'staff';
 const FOLLOW_STEPS = 36; // how much field fits across the screen when following a performer
 
-interface Saved { show: Show; me: string | null; facingFront: boolean; follow: boolean }
+/** `source`: where a hosted show came from, so the phone can pick up updates whenever it's online. */
+interface Saved { show: Show; me: string | null; facingFront: boolean; follow: boolean; source?: string }
 
 function loadSaved(): Saved | null {
   try {
     const raw = localStorage.getItem(STORE);
     if (!raw) return null;
     const s = JSON.parse(raw);
-    return { show: parseShow(JSON.stringify(s.show)), me: s.me ?? null, facingFront: !!s.facingFront, follow: s.follow !== false };
+    return { show: parseShow(JSON.stringify(s.show)), me: s.me ?? null, facingFront: !!s.facingFront, follow: s.follow !== false, source: typeof s.source === 'string' && s.source.startsWith('https://') ? s.source : undefined };
   } catch { return null; }
 }
 const save = (s: Saved) => { try { localStorage.setItem(STORE, JSON.stringify(s)); } catch { /* private mode: nothing kept */ } };
@@ -36,19 +37,35 @@ export function Perform() {
   const [size, setSize] = useState<[number, number]>([0, 0]);
   const dpr = window.devicePixelRatio || 1;
 
-  // Opening a share link: unpack it, keep it on this phone, and tidy the address bar.
+  const [notice, setNotice] = useState('');
+  // Keep a newly arrived show on this phone; keep "who I am" if that performer is still in it.
+  const adopt = (show: Show, source: string | undefined, fresh: boolean) => {
+    const prev = loadSaved();
+    const keepMe = prev?.me && (prev.me === STAFF || show.performers.some((p) => p.id === prev.me)) ? prev.me : null;
+    const next = { show, me: keepMe, facingFront: prev?.facingFront ?? false, follow: prev?.follow ?? true, source };
+    save(next); setState(next); setError('');
+    if (fresh) setT(0);
+  };
+
+  // Opening a link: a share link carries the show; a hosted link (#load=) says where to download it.
   useEffect(() => {
-    if (!location.hash.startsWith(SHARE_PREFIX)) return;
-    decodeShow(location.hash.slice(SHARE_PREFIX.length))
-      .then((show) => {
-        const prev = loadSaved();
-        const keepMe = prev?.me && (prev.me === STAFF || show.performers.some((p) => p.id === prev.me)) ? prev.me : null;
-        const next = { show, me: keepMe, facingFront: prev?.facingFront ?? false, follow: prev?.follow ?? true };
-        save(next); setState(next); setT(0); setError('');
-        history.replaceState(null, '', location.pathname + '#perform');
-      })
-      .catch((e) => setError(e instanceof Error ? e.message : String(e)));
-  }, []);
+    const done = () => history.replaceState(null, '', location.pathname + '#perform');
+    const fail = (e: unknown) => setError(e instanceof Error ? e.message : String(e));
+    if (location.hash.startsWith(SHARE_PREFIX)) {
+      decodeShow(location.hash.slice(SHARE_PREFIX.length)).then((show) => { adopt(show, undefined, true); done(); }).catch(fail);
+      return;
+    }
+    const url = loadUrl(location.hash);
+    if (location.hash.startsWith(LOAD_PREFIX) && !url) { fail(new Error('This link is damaged or incomplete. Ask for the link again.')); return; }
+    if (url) { fetchShow(url).then(({ show }) => { adopt(show, url, true); done(); }).catch(fail); return; }
+    // Reopening a hosted show: quietly check for a newer version when online. Offline, the saved copy is used.
+    const saved = loadSaved();
+    if (saved?.source && navigator.onLine) {
+      fetchShow(saved.source).then(({ show }) => {
+        if (JSON.stringify(show) !== JSON.stringify(saved.show)) { adopt(show, saved.source, false); setNotice('Show updated.'); }
+      }).catch(() => { /* keep the saved copy */ });
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const update = (patch: Partial<Saved>) => setState((s) => { if (!s) return s; const n = { ...s, ...patch }; save(n); return n; });
 
@@ -193,7 +210,9 @@ export function Perform() {
     return (
       <main className="perform-empty">
         <h1>Freeform</h1>
-        {error ? <p role="alert">{error}</p> : <p>Open the show link your director sent you. It will be saved on this phone and work offline after that.</p>}
+        {error ? <p role="alert">{error}</p>
+          : location.hash.startsWith(LOAD_PREFIX) ? <p>Downloading the show…</p>
+          : <p>Open the show link your director sent you. It will be saved on this phone and work offline after that.</p>}
         <PasteLink />
         <p><a href="#" style={{ color: '#9cf' }} onClick={(e) => { e.preventDefault(); toEditor(); }}>← Editor</a></p>
       </main>
@@ -216,7 +235,8 @@ export function Perform() {
             return ps.length ? <optgroup key={sec.id} label={sec.name}>{ps.map((p) => <option key={p.id} value={p.id}>{label(show, p)}</option>)}</optgroup> : null;
           })}
         </select>
-        <span className="perform-title">{show.title}</span>
+        <span className="perform-title">{error ? <span role="alert" title={error} style={{ color: '#f99' }}>{error} Showing your saved copy. </span>
+          : notice ? <span role="status" style={{ color: '#9f9' }}>{notice} </span> : null}{show.title}</span>
         <button onClick={toEditor} title="Back to the drill editor" style={{ fontSize: 14 }}>← Editor</button>
       </header>
       <div className="perform-field">
@@ -313,9 +333,9 @@ function PasteLink() {
   const [text, setText] = useState('');
   const [bad, setBad] = useState(false);
   const open = () => {
-    const i = text.indexOf(SHARE_PREFIX);
+    const i = Math.max(text.indexOf(SHARE_PREFIX), text.indexOf(LOAD_PREFIX));
     if (i < 0) { setBad(true); return; }
-    location.hash = text.slice(i).trim();
+    location.hash = text.slice(i).trim().split(/\s/)[0];
   };
   return (
     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
