@@ -25,7 +25,8 @@
 - Print follow-ups: paths on charts; a notes column; 1-per-page sheets; computing measures from a meter map once music sync exists.
 - ✅ Page markup: text notes, arrows, freehand drawing, page notes; per-performer cues on dot sheets.
 - Markup follow-ups: markup that spans several sets; text size/color options; editing ink strokes point by point.
-- Performer view (PWA): director view and personal view, count-by-count.
+- ✅ Published on GitHub Pages; installable and offline (PWA).
+- Performer view (phone): director view and personal view, count-by-count.
 - Count-first layout (Jason): ✅ drag a set's button on the timeline to place it at a specific count (neighbors stay pinned). Still to do: enter the total counts for a musical selection (movement) or the whole show up front. Fits the current model, since a set at count N just means counts-into-set = N − previous set's count. When a set moves, later sets keep their absolute counts (Jason): moving set 3 from count 24 to 28 lengthens the move into set 3 and shortens the move out of it; set 4 stays at 48.
 - Music sync (mp3; MIDI tempo map). Pairs with count-first layout: counts → measures → audio time.
 - Basketball court and custom surfaces.

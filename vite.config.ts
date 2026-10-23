@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-export default defineConfig({ plugins: [react()] });
+// Relative base: the same build works at a domain root, under /Freeform_2/ on GitHub Pages, or opened locally.
+export default defineConfig({ base: './', plugins: [react()] });

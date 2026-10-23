@@ -341,3 +341,14 @@ Each entry: timestamp, who decided, context, options considered, decision.
 ## 2026-10-23 12:10 EDT — Top bar holds the set controls; Undo/Redo/Fit at the bottom of the sidebar
 - **Who:** Jason Tiller; layout details by Claude
 - **Decision:** "Set X · Counts · Measures · + Add set · Delete set" moved from the bottom panel into the top bar, on the same line as "Freeform" and centered over the field. When space is short, the scroll/zoom hint shrinks away first and the controls slide left toward "Freeform"; at 900 px wide they just fit. Undo, Redo and Fit field moved to the bottom of the sidebar, pinned there however long the sidebar gets: Fit field on the left, Undo and Redo on the right (Jason). "+ Set after" is now "+ Add set" (it still adds the new set right after the current one, 16 counts). The top bar keeps its fixed height and no-wrap rule, so the field never resizes from it.
+
+## 2026-10-23 12:40 EDT — Published on GitHub Pages; installable and offline
+- **Who:** Jason Tiller (go-ahead); details by Claude
+- **Context:** The app only ran on Jason's Mac. Phones (performer view) and other programs need a URL, and the project's plan is no servers and no cost.
+- **Decision:** GitHub Pages at tillerdawg.github.io/Freeform_2, deployed by a GitHub Actions workflow on every push to `main`: type-check, test, build, publish. A failing test stops the deploy. The build uses relative paths, so it also works under a custom domain later with no changes.
+  - **Offline/installable:** a web app manifest, icons, and a small hand-written service worker. After one visit, the app works with no network: it caches the page and every file the page links. Online, the page loads from the network first so updates appear right away, and files from older releases are pruned from the cache.
+- **Other options:** vite-plugin-pwa (planned in the tech-stack decision). Replaced by the ~40-line service worker, since the plugin added 320 dev packages for the same result.
+
+## 2026-10-23 12:40 EDT — README kept current; CLAUDE.md holds the house rules
+- **Who:** Jason Tiller (README must be updated with every feature change); CLAUDE.md by Claude
+- **Decision:** README.md describes what the app does today, how to use it, the roadmap, how to run and deploy it, the code map, the coordinate model, the clean-room policy, and the license. CLAUDE.md (the file AI coding agents read automatically) makes "update README.md in the same commit as any feature change" a standing rule, along with logging decisions, updating PLAN.md, testing before pushing, and the fixed-height layout rule.

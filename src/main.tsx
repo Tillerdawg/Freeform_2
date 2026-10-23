@@ -37,3 +37,8 @@ class Crash extends Component<{ children: ReactNode }, { error?: Error }> {
 }
 
 createRoot(document.getElementById('root')!).render(<Crash><App /></Crash>);
+
+// Offline support in the published app only (in development it would cache stale code).
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => { /* offline just won't be available */ }));
+}
