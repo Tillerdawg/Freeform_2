@@ -391,3 +391,10 @@ Each entry: timestamp, who decided, context, options considered, decision.
 ## 2026-10-23 14:10 EDT — "Following me" renamed "My view"
 - **Who:** Jason Tiller
 - **Decision:** The performer view's zoomed-in, follows-my-dot mode is labeled "My view". The other choice is still "Whole field".
+
+## 2026-10-23 14:30 EDT — Performer view: pinch-zoom and keeping the screen awake
+- **Who:** Jason Tiller (go-ahead); details by Claude
+- **Decisions:**
+  - **Pinch-zoom** (0.5×–5×) in the performer view. In My view the camera stays centered on my dot, and one-finger drags do nothing, so the view can't drift off me. In Whole field (and the Staff view), dragging with one or two fingers moves around the field, in the right direction in Facing front too. "Reset zoom" appears whenever the view is zoomed or moved; switching views or picking a different performer also resets. Zoom isn't saved. The page itself never zooms: the field takes the pinch, including Safari's older gesture events.
+  - **The yard-line ruler** now also shows whenever the view is zoomed in, not only in My view.
+  - **Screen wake lock** while playing, released on pause, when playback ends, or when the app is hidden, and re-taken when it comes back. Where the browser doesn't allow it (older iOS home-screen apps), nothing happens.
