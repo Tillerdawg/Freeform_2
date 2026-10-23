@@ -432,3 +432,8 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Decision:** On a phone, Freeform always opens the performer view, and **← Editor** is hidden. "Phone" means a touch screen whose short side is under 600 CSS px: every iPhone counts, and iPads (744 px and up) and computers keep the editor. Directors on a phone pick **Staff** and use Director view / Facing front. The editor's "turn your phone sideways" screen is removed, since the editor never shows on a phone now.
 - **Note:** an editor autosave already on a phone isn't deleted, just unreachable there. Export from a computer is the way to move shows.
 - **Other options:** a hidden way back into the editor on phones (not requested); judging by screen width alone (a narrow desktop window would lose the editor).
+
+## 2026-10-23 14:45 EDT — Set buttons in the performer view
+- **Who:** Claude (Jason missed the editor's set buttons on his phone) *(Jason can veto)*
+- **Decision:** The performer view's "Set…" dropdown is replaced by a row of set-number buttons above the count slider, as large as the other touch buttons. The current set is outlined in gold. The row scrolls sideways when there are more sets than fit and keeps the current set in view during playback. Its height is fixed, so it can't resize the field.
+- **Other options:** buttons placed at each set's spot along the slider, as in the editor (they overlap once a show has more than about 10 sets on a phone); keeping the dropdown.

@@ -69,7 +69,7 @@ Every spot reads in standard drill language, e.g. *"2 steps outside the Side 2 4
 - **Facing front:** turns the field around to match what I see facing the audience: front sideline at the top, Side 1 on my right. **Director view** is the editor's orientation.
 - **Who's around me:** my nearest neighbors (up to 4, within 10 steps) are labeled on the field, and an **Around you** list says where each one is, e.g. "T5 · 4 steps toward Side 1", "T2 · 4 steps in front". Directions are in field terms, so they mean the same in either view.
 - **Readouts:** my coordinate now and in the next set, with counts, measures and step size (colored like the editor's warnings), plus my performer notes and the ensemble notes.
-- **Controls:** play at any tempo, step count by count, scrub, or jump to a set. Works in portrait and landscape.
+- **Controls:** play at any tempo, step count by count, scrub, or tap a set number to jump to it (the row of set buttons scrolls sideways in long shows and follows playback). Works in portrait and landscape.
 
 ### Saving
 - **Autosave:** your show saves in this browser automatically.
