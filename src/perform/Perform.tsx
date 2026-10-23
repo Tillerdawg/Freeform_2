@@ -1,7 +1,8 @@
 // Performer / staff view: read-only playback of a shared show, centered on "my" dot. Built for phones (portrait).
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { readout, type Point } from '../engine/coords';
-import { decodeShow, fetchShow, LOAD_PREFIX, loadUrl, SHARE_PREFIX } from '../engine/share';
+import { decodeShow, fetchShow, LOAD_PREFIX, linkHash, loadUrl, SHARE_PREFIX } from '../engine/share';
+import { Scanner } from './Scanner';
 import { label, locate, moveSteps, parseShow, positionsAt, setAt, setStarts, type Show } from '../engine/show';
 import { drawField, drawMarks, drawPerformers, fitView, TIER_COLOR, toScreen, type View } from '../field/drawField';
 import { fmtStep } from '../ui/format';
@@ -333,15 +334,18 @@ function PasteLink() {
   const [text, setText] = useState('');
   const [bad, setBad] = useState(false);
   const open = () => {
-    const i = Math.max(text.indexOf(SHARE_PREFIX), text.indexOf(LOAD_PREFIX));
-    if (i < 0) { setBad(true); return; }
-    location.hash = text.slice(i).trim().split(/\s/)[0];
+    const hash = linkHash(text);
+    if (!hash) { setBad(true); return; }
+    location.hash = hash;
   };
+  const [scan, setScan] = useState(false);
   return (
     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
       <input aria-label="Paste a share link" placeholder="Paste a share link" value={text} onChange={(e) => { setText(e.target.value); setBad(false); }}
         style={{ flex: 1, minWidth: 180, fontSize: 16 }} />
       <button onClick={open} disabled={!text.trim()} style={{ fontSize: 16 }}>Open</button>
+      {'mediaDevices' in navigator && <button onClick={() => setScan(true)} style={{ fontSize: 16 }}>Scan QR code</button>}
+      {scan && <Scanner onClose={() => setScan(false)} />}
       {bad && <span role="alert" style={{ width: '100%', color: '#ff8080' }}>That doesn't look like a Freeform share link.</span>}
     </div>
   );

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { decodeShow, encodeShow, fetchShow, hostedLink, loadUrl } from './share';
+import { decodeShow, encodeShow, fetchShow, hostedLink, linkHash, loadUrl } from './share';
 import { qrSvg } from './qr';
 import { addPerformer, addSetAfter, newShow, placeInSet, setCue } from './show';
 
@@ -68,5 +68,14 @@ describe('QR codes', () => {
     expect(qrSvg('x'.repeat(3500))).toBeNull();
     const big = await encodeShow(band(150, 40).s);
     expect(qrSvg('https://x/#show=' + big)).toBeNull();
+  });
+});
+
+describe('finding a link in text', () => {
+  it('pulls the Freeform part out of a message or QR code', () => {
+    expect(linkHash('Drill is up! https://x.io/app/#load=https%3A%2F%2Fg.io%2Fs.json see you')).toBe('#load=https%3A%2F%2Fg.io%2Fs.json');
+    expect(linkHash('https://x.io/#show=abc_-123')).toBe('#show=abc_-123');
+    expect(linkHash('https://example.com/menu')).toBeNull();
+    expect(linkHash('#perform')).toBeNull();
   });
 });

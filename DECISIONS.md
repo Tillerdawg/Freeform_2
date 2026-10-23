@@ -414,3 +414,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
   - For testing, the dialog explains using a secret gist with a commit-free Raw link. QR library: `qrcode-generator` (MIT, no dependencies).
 - **Other options:** shrink links further to fit QR (not enough for real shows); a Freeform server now (premature before the hosting/protection decision); multi-QR sequences (awkward to scan).
 - **Open:** protected hosting for deployment; client-side encryption with the key in the link fragment is the first idea to evaluate (PLAN.md).
+
+## 2026-10-23 14:30 EDT — QR scanner inside the app
+- **Who:** Jason Tiller (build the scanner); details by Claude *(Jason can veto)*
+- **Context:** On iPhone, scanning a QR code with the Camera app always opens Safari. Home-screen web apps can't claim links, and they keep storage separate from Safari, so the scanned show never reached the installed app.
+- **Decision:** A **Scan QR code** button in the performer view (empty screen and "Open a different show") opens the rear camera inside the app and decodes with `jsqr` (Apache-2.0, no dependencies). The first Freeform link it sees (`#show=` or `#load=`) opens, and the camera turns off. Any other QR code gets "isn't a Freeform show link" and scanning continues. Only the link's `#…` part is used, the same as pasting, so a code made on any copy of Freeform works. If camera access is refused, it says so and points to pasting.
+- **Other options:** the browser's built-in BarcodeDetector (not available in iPhone Safari); telling performers to use Safari only (works, but students install the app).
