@@ -348,23 +348,30 @@ export function App() {
   return (
     <div style={{ display: 'flex', height: '100%' }}>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-        <div style={{ display: 'flex', gap: 16, alignItems: 'center', padding: '8px 16px' }}>
+        {/* Fixed height, no wrapping: nothing up here may resize the field (a canvas resize clears it, which flashes). */}
+        <div style={{ display: 'flex', gap: 16, alignItems: 'center', padding: '0 16px', height: 40, flexShrink: 0, whiteSpace: 'nowrap', overflow: 'hidden' }}>
           <strong>Freeform</strong>
           <button onClick={() => step('undo')} disabled={!hist.past.length} title="Undo (⌘Z / Ctrl+Z)">Undo</button>
           <button onClick={() => step('redo')} disabled={!hist.future.length} title="Redo (⇧⌘Z / Ctrl+Y)">Redo</button>
           <button onClick={() => { const c = canvasRef.current!; setView(fitView(c.width, c.height)); }}>Fit field</button>
-          <span style={{ fontSize: 12, opacity: 0.7 }}>Scroll to pan · pinch or ⌘/Ctrl+scroll to zoom · right-drag pans</span>
-          <span aria-live="polite" style={{ marginLeft: 'auto', fontVariantNumeric: 'tabular-nums' }}>{hover}</span>
+          <span style={{ fontSize: 12, opacity: 0.7, minWidth: 0, flex: '0 1 auto', overflow: 'hidden', textOverflow: 'ellipsis' }}>Scroll to pan · pinch or ⌘/Ctrl+scroll to zoom · right-drag pans</span>
         </div>
+        <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
         <canvas
           ref={canvasRef}
-          style={{ flex: 1, width: '100%', minHeight: 0, touchAction: 'none', cursor: tool === 'add' ? 'copy' : 'default' }}
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', touchAction: 'none', cursor: tool === 'add' ? 'copy' : 'default' }}
           onContextMenu={(e) => e.preventDefault()}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
           onPointerLeave={() => setHover('')}
         />
+        {/* Floats over the field so its changing length can't move the layout. */}
+        {hover && (
+          <div style={{ position: 'absolute', left: 8, bottom: 8, maxWidth: 'calc(100% - 16px)', padding: '4px 8px', borderRadius: 4,
+            background: 'rgba(16,24,18,0.85)', fontSize: 14, fontVariantNumeric: 'tabular-nums', pointerEvents: 'none' }}>{hover}</div>
+        )}
+        </div>
         <Timeline show={show} t={t} setT={(x) => { setPlaying(false); setT(x); }} playing={playing} setPlaying={setPlaying} bpm={bpm} setBpm={setBpm}
           range={range} setRange={setRange} span={span} />
       </div>

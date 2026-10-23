@@ -215,3 +215,8 @@ Each entry: timestamp, who decided, context, options considered, decision.
   - **Spacing:** Even (end to end; around the whole circle; filling the block's rectangle), or every N steps from the first handle, continuing past the far end if needed. Typing a number switches to interval spacing. Blocks start at 2-step intervals.
   - **Who goes where:** the assignment that minimizes total travel (Hungarian algorithm), measured from the previous set, where the move starts. That guarantees the move's paths never cross. The assignment is made when a shape is picked and kept while its handles are dragged, so performers don't swap mid-edit; clicking the same shape button again re-picks it.
 - **Other options:** draw-then-fill; label order; current left-to-right order; assignment measured from the current set (rejected: after trying several shapes it measures from the last shape, not from where the move starts, and paths could cross).
+
+## 2026-10-23 07:05 EDT — Fix screen flashing; hover readout floats over the field
+- **Who:** Claude (Jason reported the flashing on a smaller screen)
+- **Context:** The hover readout in the top bar changed length on every mouse move. That changed the bar's size, which resized the field canvas. A canvas resize clears it and refits the view, so the screen flashed. Measured 8 to 27 resizes per 60 mouse moves at every window size.
+- **Decision:** The top bar has a fixed height and never wraps, and its hint text truncates first. The coordinate readout moved to a small label floating in the field's lower-left corner, so it never affects layout. Its live screen-reader announcement was dropped, since announcing on every mouse move is noise. Verified: 0 resizes during mouse moves and playback at 1500, 1100 and 900 px wide.
