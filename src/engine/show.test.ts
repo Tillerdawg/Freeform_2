@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { readout } from './coords';
 import {
-  addPerformer, addSetAfter, biggestStep, label, locate, newShow, parseShow, placeInSet, positionsAt,
+  addPerformer, addSetAfter, advance, biggestStep, playRange, playStart, label, locate, newShow, parseShow, placeInSet, positionsAt,
   removePerformers, removeSet, setAt, setCounts, setStarts, totalCounts, xFrom, yFrom,
 } from './show';
 
@@ -85,5 +85,28 @@ describe('file parsing', () => {
     const badName = JSON.parse(JSON.stringify(show));
     badName.sets[0].name = { broken: true };
     expect(() => parseShow(JSON.stringify(badName))).toThrow(/set/);
+  });
+});
+
+describe('range playback', () => {
+  // Sets at counts 0, 16, 24, 40.
+  const show = setCounts(addSetAfter(addSetAfter(addSetAfter(newShow(), 0, 16), 1, 8), 2, 16), 3, 16);
+  const id = (i: number) => show.sets[i].id;
+  it('maps set ids to a count range; missing ids fall back to the ends; order does not matter', () => {
+    expect(playRange(show, null, null)).toEqual([0, 40]);
+    expect(playRange(show, id(1), id(2))).toEqual([16, 24]);
+    expect(playRange(show, id(2), id(1))).toEqual([16, 24]);
+    expect(playRange(show, 'gone', id(2))).toEqual([0, 24]);
+  });
+  it('starts inside the range, or jumps to its start', () => {
+    expect(playStart(20, [16, 24])).toBe(20);
+    expect(playStart(24, [16, 24])).toBe(16); // at the end: replay
+    expect(playStart(3, [16, 24])).toBe(16);
+  });
+  it('stops at the range end, or wraps when looping', () => {
+    expect(advance(20, 2, [16, 24], false)).toEqual({ t: 22, done: false });
+    expect(advance(23, 2, [16, 24], false)).toEqual({ t: 24, done: true });
+    expect(advance(23, 2, [16, 24], true)).toEqual({ t: 17, done: false });
+    expect(advance(16, 1, [16, 16], true)).toEqual({ t: 16, done: true }); // single-set range
   });
 });

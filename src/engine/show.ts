@@ -184,3 +184,27 @@ export function parseShow(text: string): Show {
   }
   return s as Show;
 }
+
+// ---- Range playback.
+
+/** The count range [lo, hi] from set `fromId` to set `toId` (null = first / last set, as do ids no longer in the show). */
+export function playRange(show: Show, fromId: string | null, toId: string | null): [number, number] {
+  const starts = setStarts(show);
+  const idx = (id: string | null, fallback: number) => {
+    const i = id ? show.sets.findIndex((s) => s.id === id) : -1;
+    return i < 0 ? fallback : i;
+  };
+  const a = idx(fromId, 0), b = idx(toId, show.sets.length - 1);
+  return [starts[Math.min(a, b)], starts[Math.max(a, b)]];
+}
+
+/** Where playback starts: the current count if it's inside the range (and not at its end), else the range start. */
+export const playStart = (t: number, [lo, hi]: [number, number]) => (t >= lo && t < hi ? t : lo);
+
+/** Advance playback by `counts`; at the range end either stop or wrap around to the start. */
+export function advance(t: number, counts: number, [lo, hi]: [number, number], loop: boolean): { t: number; done: boolean } {
+  const next = t + counts;
+  if (next < hi) return { t: next, done: false };
+  if (!loop || hi <= lo) return { t: hi, done: true };
+  return { t: lo + ((next - lo) % (hi - lo)), done: false };
+}

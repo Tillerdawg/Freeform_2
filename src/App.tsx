@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { readout, type Point } from './engine/coords';
 import { emptyHistory, record, redo, undo } from './engine/history';
 import {
-  addPerformer, label, moveSteps, newShow, parseShow, placeInSet, positionsAt, removePerformers,
+  addPerformer, advance, label, moveSteps, playRange, playStart, newShow, parseShow, placeInSet, positionsAt, removePerformers,
   setAt, setStarts, type Show,
 } from './engine/show';
 import { drawField, drawPerformers, fitView, toWorld, type Path, type View } from './field/drawField';
@@ -44,6 +44,8 @@ export function App() {
   const [snap, setSnap] = useState<Snap>(1);
   const [playing, setPlaying] = useState(false);
   const [bpm, setBpm] = useState(120);
+  const [range, setRange] = useState<{ from: string | null; to: string | null; loop: boolean }>({ from: null, to: null, loop: false });
+  const tRef = useRef(0);
   const [fileError, setFileError] = useState('');
   const [box, setBox] = useState<[Point, Point]>();
   const drag = useRef<Drag | null>(null);
@@ -93,25 +95,25 @@ export function App() {
     setShow(r.state);
   };
 
-  // Playback in real time at the chosen tempo.
+  tRef.current = t;
+  const span = useMemo(() => playRange(show, range.from, range.to), [show, range.from, range.to]);
+
+  // Playback in real time at the chosen tempo, within the chosen range.
   useEffect(() => {
     if (!playing) return;
-    let last = performance.now(), raf = 0;
+    let cur = playStart(tRef.current, span), last = performance.now(), raf = 0;
+    setT(cur);
     const tick = (now: number) => {
       const dt = Math.max(0, now - last) / 1000; // a frame timestamp can precede the start time; never step backward
       last = now;
-      let done = false;
-      setT((cur) => {
-        const next = Math.min(total, cur + (dt * bpm) / 60);
-        done = next >= total;
-        return next;
-      });
-      if (done) setPlaying(false); else raf = requestAnimationFrame(tick);
+      const r = advance(cur, (dt * bpm) / 60, span, range.loop);
+      cur = r.t;
+      setT(cur);
+      if (r.done) setPlaying(false); else raf = requestAnimationFrame(tick);
     };
-    setT((cur) => (cur >= total ? 0 : cur));
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [playing, bpm, total]);
+  }, [playing, bpm, span, range.loop]);
 
   useEffect(() => {
     const c = canvasRef.current!;
@@ -304,7 +306,8 @@ export function App() {
           onPointerUp={onPointerUp}
           onPointerLeave={() => setHover('')}
         />
-        <Timeline show={show} t={t} setT={(x) => { setPlaying(false); setT(x); }} playing={playing} setPlaying={setPlaying} bpm={bpm} setBpm={setBpm} />
+        <Timeline show={show} t={t} setT={(x) => { setPlaying(false); setT(x); }} playing={playing} setPlaying={setPlaying} bpm={bpm} setBpm={setBpm}
+          range={range} setRange={setRange} span={span} />
       </div>
       <Sidebar
         show={show} setShow={setShow} t={t} setT={(x) => { setPlaying(false); setT(x); }} onSet={onSet}

@@ -5,12 +5,12 @@
 2. ✅ **Show model + file:** performers (dot/letter/icon, label), sets (counts to arrive), field type and hash preset. Saved as versioned JSON; open and save as local files.
 3. ✅ **Field view:** football field with yard lines, numbers, hashes, and an 8-to-5 grid; zoom and pan.
 4. ✅ **Editing:** place, select, multi-select, and drag performers with grid snap; add, duplicate, and delete sets; set counts.
-5. ✅ **Playback:** linear (float) interpolation, count-by-count scrub, play from any count at a set tempo (set ranges are a follow-up); paths colored by step-size tier.
+5. ✅ **Playback:** linear (float) interpolation, count-by-count scrub, play from any count at a set tempo, a range of sets with optional loop; paths colored by step-size tier.
 6. ✅ **Coordinate panel:** selected performer's readout per set.
 
 ## Milestone 1 follow-ups
 - ✅ Undo/redo.
-- Play a range of sets (IDEA.md: individual set, sub-collection, whole show); a loop toggle.
+- ✅ Play a range of sets (IDEA.md: individual set, sub-collection, whole show); a loop toggle.
 - Touch support pass (tablets).
 
 ## Later milestones (rough order)
