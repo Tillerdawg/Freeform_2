@@ -3,7 +3,7 @@ import { readout, type Point } from './engine/coords';
 import { emptyHistory, record, redo, undo } from './engine/history';
 import { assign, fitShape, samplePath, slots, type Shape, type ShapeKind } from './engine/shapes';
 import {
-  addPerformer, advance, label, moveSteps, playRange, playStart, newShow, parseShow, placeInSet, positionsAt, removePerformers,
+  addPerformer, advance, label, moveSteps, snapPoint, playRange, playStart, newShow, parseShow, placeInSet, positionsAt, removePerformers,
   setAt, setStarts, type Show,
 } from './engine/show';
 import { HANDLE_PX, drawField, drawPerformers, drawShape, fitView, toScreen, toWorld, type Path, type View } from './field/drawField';
@@ -30,8 +30,7 @@ type Drag =
   | { kind: 'pan'; x: number; y: number }
   | { kind: 'handle'; i: number };
 
-const snapTo = (p: Point, snap: Snap): Point =>
-  snap ? { x: Math.round(p.x / snap) * snap, y: Math.round(p.y / snap) * snap } : p;
+const snapTo = snapPoint;
 
 export function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { readout } from './coords';
 import {
-  addPerformer, addSetAfter, advance, biggestStep, flip, mirrorSides, rotateScale, playRange, playStart, label, locate, newShow, parseShow, placeInSet, positionsAt,
+  addPerformer, addSetAfter, advance, biggestStep, flip, mirrorSides, rotateScale, snapSelection, playRange, playStart, label, locate, newShow, parseShow, placeInSet, positionsAt,
   removePerformers, removeSet, setAt, setCounts, setStarts, totalCounts, xFrom, yFrom,
 } from './show';
 
@@ -168,5 +168,27 @@ describe('rotate and scale', () => {
     expect(at(big, ids)[0]).toEqual({ x: -2, y: 19 }); // 1.5x the distance from center (4, 22)
     const back = at(rotateScale(big, 0, ids, 0, 1 / 1.5), ids);
     back.forEach((p, k) => { expect(p.x).toBeCloseTo(at(show, ids)[k].x, 9); expect(p.y).toBeCloseTo(at(show, ids)[k].y, 9); });
+  });
+});
+
+describe('snap selection to grid', () => {
+  function build(spots: [number, number][]) {
+    let show = newShow();
+    const ids: string[] = [];
+    for (const [x, y] of spots) { const r = addPerformer(show, show.sections[0].id, { x, y }); show = r.show; ids.push(r.id); }
+    return { show, ids };
+  }
+  it('rounds to whole or half steps, only for the selection', () => {
+    const { show, ids } = build([[2.3, 10.8], [-3.6, 4.25], [7.7, 7.7]]);
+    const w = snapSelection(show, 0, ids.slice(0, 2), 1);
+    expect(ids.map((id) => w.show.sets[0].pos[id])).toEqual([{ x: 2, y: 11 }, { x: -4, y: 4 }, { x: 7.7, y: 7.7 }]);
+    expect(w.stacked).toEqual([]);
+    const h = snapSelection(show, 0, ids, 0.5);
+    expect(h.show.sets[0].pos[ids[0]]).toEqual({ x: 2.5, y: 11 });
+  });
+  it('reports performers that land on the same spot, including an unselected one already there', () => {
+    const { show, ids } = build([[2.2, 5.1], [1.9, 4.8], [10, 10], [10.3, 9.8]]);
+    const r = snapSelection(show, 0, [ids[0], ids[1], ids[3]], 1);
+    expect(r.stacked).toEqual(['F1', 'F2', 'F3', 'F4']);
   });
 });
