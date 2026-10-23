@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { readout, type HashPreset } from '../engine/coords';
 import { addBezierSegment, addCurvePoint, type Shape, type ShapeKind } from '../engine/shapes';
 import {
-  addSetAfter, chainOrder, clearFtl, flip, label, locate, mirrorSides, newId, placeInSet, rotateScale, setFtl, setMeasures, snapSelection, positionsAt, removePerformers, removeSet, setCounts, xFrom, yFrom,
+  addSetAfter, chainOrder, clearFtl, flip, label, locate, mirrorSides, newId, placeInSet, remapHash, rotateScale, setFtl, setMeasures, snapSelection, positionsAt, removePerformers, removeSet, setCounts, xFrom, yFrom,
   type FrontDir, type FrontRef, type Show, type SideDir,
 } from '../engine/show';
 
@@ -47,6 +47,7 @@ export function Sidebar(p: Props) {
   const cur = onSet >= 0 ? onSet : locate(show, p.t).to;
   const one = selected.size === 1 ? show.performers.find((x) => selected.has(x.id)) : undefined;
   const [mirrorError, setMirrorError] = useState('');
+  const [pendingHash, setPendingHash] = useState<HashPreset | null>(null);
   useEffect(() => setMirrorError(''), [selected]);
   const [deg, setDeg] = useState(15);
   const [pct, setPct] = useState(110);
@@ -80,10 +81,34 @@ export function Sidebar(p: Props) {
       {p.fileError && <div role="alert" style={{ color: '#ff8080', marginTop: 6 }}>{p.fileError}</div>}
       <div style={{ ...row, marginBottom: 10 }}>
         <input aria-label="Show title" value={show.title} onChange={(e) => setShow((s) => ({ ...s, title: e.target.value }))} style={{ flex: 1 }} />
-        <select aria-label="Hashes" value={show.hash} onChange={(e) => setShow((s) => ({ ...s, hash: e.target.value as HashPreset }))}>
+        <select aria-label="Hashes" value={show.hash} onChange={(e) => {
+          const to = e.target.value as HashPreset;
+          if (show.performers.length) setPendingHash(to); // ask what should happen to the drill
+          else setShow((s) => ({ ...s, hash: to }));
+        }}>
           {PRESETS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
         </select>
       </div>
+      {pendingHash && (
+        <div role="dialog" aria-modal="true" aria-label="Change hash marks" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'grid', placeItems: 'center', zIndex: 10 }}>
+          <div style={{ background: '#1d2a1f', border: '1px solid #33443a', padding: 20, width: 420, maxWidth: 'calc(100vw - 32px)' }}>
+            <h2 style={{ margin: '0 0 8px', fontSize: 18 }}>Change to {PRESETS.find(([k]) => k === pendingHash)![1]} hashes</h2>
+            <p style={{ margin: '0 0 12px' }}>What should happen to the drill?</p>
+            <div style={{ display: 'grid', gap: 8 }}>
+              <button onClick={() => { setShow((s) => remapHash(s, pendingHash)); setPendingHash(null); }} style={{ textAlign: 'left', padding: 8 }}>
+                <strong>Keep positions relative to the hashes</strong><br />
+                <span style={{ fontSize: 12 }}>On the hash stays on the hash; the field stretches to fit. Use this if the show was started with the wrong hashes.</span>
+              </button>
+              <button onClick={() => { setShow((s) => ({ ...s, hash: pendingHash })); setPendingHash(null); }} style={{ textAlign: 'left', padding: 8 }}>
+                <strong>Keep spots on the field</strong><br />
+                <span style={{ fontSize: 12 }}>Dots stay where they are; only the hashes move, so coordinates change.</span>
+              </button>
+              <button onClick={() => setPendingHash(null)}>Cancel</button>
+            </div>
+            <p style={{ margin: '10px 0 0', fontSize: 12, opacity: 0.75 }}>Changes every set. Undo reverses it.</p>
+          </div>
+        </div>
+      )}
 
       <section style={box}>
         <strong>Tools</strong>
