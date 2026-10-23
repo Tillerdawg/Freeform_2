@@ -420,3 +420,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Context:** On iPhone, scanning a QR code with the Camera app always opens Safari. Home-screen web apps can't claim links, and they keep storage separate from Safari, so the scanned show never reached the installed app.
 - **Decision:** A **Scan QR code** button in the performer view (empty screen and "Open a different show") opens the rear camera inside the app and decodes with `jsqr` (Apache-2.0, no dependencies). The first Freeform link it sees (`#show=` or `#load=`) opens, and the camera turns off. Any other QR code gets "isn't a Freeform show link" and scanning continues. Only the link's `#…` part is used, the same as pasting, so a code made on any copy of Freeform works. If camera access is refused, it says so and points to pasting.
 - **Other options:** the browser's built-in BarcodeDetector (not available in iPhone Safari); telling performers to use Safari only (works, but students install the app).
+
+## 2026-10-23 14:30 EDT — "Performer view" button in the editor
+- **Who:** Claude (Jason couldn't find the scanner from the editor) *(Jason can veto)*
+- **Context:** The home-screen app opens in the editor, and the only way into the performer view was Share… → Open performer view here, which needs a show with performers. A student with a fresh app had no way to reach Scan QR code.
+- **Decision:** The editor's top button row gets **Performer view**, which always opens the performer view (the saved show, or the empty screen with Scan QR code and paste). **← Editor** comes back.
+- **Other options:** open phones straight into the performer view (later, if students find the editor confusing).
