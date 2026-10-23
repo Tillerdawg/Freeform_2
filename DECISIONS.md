@@ -332,3 +332,8 @@ Each entry: timestamp, who decided, context, options considered, decision.
 ## 2026-10-23 11:45 EDT — "Counts in" relabeled "Counts"
 - **Who:** Jason Tiller
 - **Decision:** The label is just "Counts", the term drill writers use. It still means the counts of the move into that set.
+
+## 2026-10-23 11:55 EDT — Drag set buttons to change where a set lands
+- **Who:** Jason Tiller (draggable set buttons; neighbors stay pinned, per the earlier count-first decision); details by Claude
+- **Decision:** Dragging a set's button on the timeline moves the count that set lands on. The move into it and the move out of it trade counts, and every other set stays put. It snaps to whole counts, each move keeps at least 1 count, and dragging the last set just lengthens or shortens the final move. Set 1 stays at count 0. A plain click (less than a few pixels of movement) still jumps to the set, and the playhead follows a dragged set. Each drag is one undo step.
+- **Note:** typed measure numbers don't update when counts change.

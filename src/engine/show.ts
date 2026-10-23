@@ -398,3 +398,19 @@ export function setCue(show: Show, i: number, ids: string[], cue: string): Show 
     return { ...s, cues: Object.keys(cues).length ? cues : undefined };
   });
 }
+
+/**
+ * Move set i (i >= 1) to land on count `at`, keeping every other set where it is: the move into set i and the
+ * move out of it trade counts. Each move keeps at least 1 count. Returns the show unchanged for set 1.
+ */
+export function moveSetTo(show: Show, i: number, at: number): Show {
+  if (i < 1 || i >= show.sets.length) return show;
+  const starts = setStarts(show);
+  const hi = i + 1 < show.sets.length ? starts[i + 1] - 1 : Infinity;
+  const c = Math.min(hi, Math.max(starts[i - 1] + 1, Math.round(at)));
+  if (c === starts[i]) return show;
+  return {
+    ...show,
+    sets: show.sets.map((s, j) => (j === i ? { ...s, counts: c - starts[i - 1] } : j === i + 1 ? { ...s, counts: starts[i + 1] - c } : s)),
+  };
+}
