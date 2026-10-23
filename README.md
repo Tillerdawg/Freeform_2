@@ -60,8 +60,8 @@ Every spot reads in standard drill language, e.g. *"2 steps outside the Side 2 4
 ### Performer view (phones)
 - **Share links:** in the editor, **Share…** makes a link with the whole show packed inside it. A 150-performer, 40-set show is about 40 KB. Text it, email it, or post it; there's no server involved. Anyone with the link can view the show. Later edits aren't sent automatically, so share a new link after changes.
 - **Opening a link:** on a phone, it opens a read-only performer screen. Each performer picks **who they are** (or **Staff** for the whole band); the choice and the show stay saved on that phone and work offline.
-- **Yard lines always labeled:** while following me, a ruler along the bottom names every yard line on screen ("S1 40", "50", "S2 35", "G"), since the painted numbers are usually out of view when zoomed in.
-- **My dot:** highlighted, with the camera **following me** through each move, my path into the next set (including follow-the-leader trails), and where I end up.
+- **Yard lines always labeled:** in My view, a ruler along the bottom names every yard line on screen ("S1 40", "50", "S2 35", "G"), since the painted numbers are usually out of view when zoomed in.
+- **My dot:** highlighted, with **My view** following me through each move, my path into the next set (including follow-the-leader trails), and where I end up.
 - **Facing front:** turns the field around to match what I see facing the audience: front sideline at the top, Side 1 on my right. **Director view** is the editor's orientation.
 - **Who's around me:** my nearest neighbors (up to 4, within 10 steps) are labeled on the field, and an **Around you** list says where each one is, e.g. "T5 · 4 steps toward Side 1", "T2 · 4 steps in front". Directions are in field terms, so they mean the same in either view.
 - **Readouts:** my coordinate now and in the next set, with counts, measures and step size (colored like the editor's warnings), plus my performer notes and the ensemble notes.

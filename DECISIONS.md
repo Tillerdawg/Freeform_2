@@ -387,3 +387,7 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Who:** Jason Tiller (yard numbers always visible); details by Claude
 - **Decision:** While "Following me", a band pinned to the bottom of the field view labels every yard line on screen, every 5 yards, not just the painted 10s, with its side: "S1 40", "50", "S2 45", "G". It follows the view, so Facing front reads correctly too. In Whole field view the painted numbers are already visible, so there's no ruler.
 - **Other options:** labels only on the painted 10-yard numbers; side shown by color instead of "S1/S2".
+
+## 2026-10-23 14:10 EDT — "Following me" renamed "My view"
+- **Who:** Jason Tiller
+- **Decision:** The performer view's zoomed-in, follows-my-dot mode is labeled "My view". The other choice is still "Whole field".

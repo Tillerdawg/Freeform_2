@@ -188,7 +188,7 @@ export function Perform() {
         <canvas ref={canvasRef} aria-label="Field" style={{ width: '100%', height: '100%', display: 'block', touchAction: 'none' }} />
         <div className="perform-toggles">
           <button aria-pressed={state!.facingFront} onClick={() => update({ facingFront: !state!.facingFront })}>{state!.facingFront ? 'Facing front' : 'Director view'}</button>
-          {me && <button aria-pressed={state!.follow} onClick={() => update({ follow: !state!.follow })}>{state!.follow ? 'Following me' : 'Whole field'}</button>}
+          {me && <button aria-pressed={state!.follow} onClick={() => update({ follow: !state!.follow })}>{state!.follow ? 'My view' : 'Whole field'}</button>}
         </div>
       </div>
       <section className="perform-info" aria-live="off">
