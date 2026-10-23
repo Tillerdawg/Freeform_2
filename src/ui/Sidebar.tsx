@@ -254,14 +254,21 @@ export function Sidebar(p: Props) {
                 {readout(positionsAt(show, p.t)[one.id], show.hash)}
               </p>
             )}
-            <p style={{ margin: '8px 0 4px' }}><strong>{label(show, one)}</strong> — coordinates by set</p>
-            <ol style={{ margin: 0, paddingLeft: 18 }}>
-              {show.sets.map((s, i) => (
-                <li key={s.id} value={Number(s.name) || undefined} style={{ fontWeight: i === onSet ? 700 : 400, marginBottom: 2 }}>
-                  {readout(s.pos[one.id], show.hash)}
-                </li>
-              ))}
-            </ol>
+            {onSet >= 0 && (
+              <p style={{ margin: '8px 0 4px' }}>
+                <strong>{label(show, one)}</strong> on set {show.sets[onSet].name}:<br />{readout(show.sets[onSet].pos[one.id], show.hash)}
+              </p>
+            )}
+            <details style={{ margin: '4px 0 0' }}>
+              <summary>All sets</summary>
+              <ol style={{ margin: '4px 0 0', paddingLeft: 18 }}>
+                {show.sets.map((s, i) => (
+                  <li key={s.id} value={Number(s.name) || undefined} style={{ fontWeight: i === onSet ? 700 : 400, marginBottom: 2 }}>
+                    {readout(s.pos[one.id], show.hash)}
+                  </li>
+                ))}
+              </ol>
+            </details>
             {onSet >= 0 && <CoordEntry onPlace={(x, y) => setShow((s) => placeInSet(s, onSet, { [one.id]: { x, y: y(s.hash) } }))} />}
           </>
         )}

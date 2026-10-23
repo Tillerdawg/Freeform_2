@@ -313,3 +313,7 @@ Each entry: timestamp, who decided, context, options considered, decision.
   - **Cues:** select performers on a set and type a cue. It's stored per performer per set and printed in italics under that set's row on each performer's dot sheet (the quarter-page card has no room for another column). With a mixed selection the box shows "(different cues)"; typing gives them all the same cue.
   - Markup belongs to one set: it shows when the timeline is on that set and on that set's chart (black on white), and a new set starts with none. Everything is saved in the show file and checked on import; deleting a performer removes their cues.
 - **Other options:** markup spanning several sets; inline editing of text on the field; a cue column on dot sheets.
+
+## 2026-10-23 11:10 EDT — Selected performer shows the current set's coordinate only
+- **Who:** Jason Tiller
+- **Decision:** Clicking a performer shows its coordinate on the current set, plus its exact spot at the current count when mid-move. The full list of coordinates for every set is folded into a closed "All sets" section.
