@@ -316,4 +316,4 @@ Each entry: timestamp, who decided, context, options considered, decision.
 
 ## 2026-10-23 11:10 EDT — Selected performer shows the current set's coordinate only
 - **Who:** Jason Tiller
-- **Decision:** Clicking a performer shows its coordinate on the current set, plus its exact spot at the current count when mid-move. The full list of coordinates for every set is folded into a closed "All sets" section.
+- **Decision:** Clicking a performer shows its coordinate on the current set, plus its exact spot at the current count when mid-move. The full list of coordinates for every set is folded into a closed "All sets" section. "Place exactly" is folded into a closed section too.

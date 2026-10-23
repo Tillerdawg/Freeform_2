@@ -303,8 +303,9 @@ function CoordEntry({ onPlace }: { onPlace: (x: number, y: (h: HashPreset) => nu
   const [yd, setYd] = useState<FrontDir>('on');
   const num = (v: string) => Math.max(0, Number(v) || 0);
   return (
-    <fieldset style={{ marginTop: 10, border: '1px solid #33443a' }}>
-      <legend>Place exactly (this set)</legend>
+    <details style={{ marginTop: 10 }}>
+      <summary>Place exactly (this set)</summary>
+    <fieldset style={{ marginTop: 6, border: '1px solid #33443a' }}>
       <div style={row}>
         <input aria-label="Side-to-side steps" type="number" min={0} step={0.25} value={xs} onChange={(e) => setXs(num(e.target.value))} style={{ width: 52 }} />
         <select aria-label="Inside or outside" value={xd} onChange={(e) => setXd(e.target.value as SideDir)}>
@@ -330,6 +331,7 @@ function CoordEntry({ onPlace }: { onPlace: (x: number, y: (h: HashPreset) => nu
         <button onClick={() => onPlace(xFrom(side, line, xs, xd), (h) => yFrom(ref, ys, yd, h))}>Place</button>
       </div>
     </fieldset>
+    </details>
   );
 }
 
