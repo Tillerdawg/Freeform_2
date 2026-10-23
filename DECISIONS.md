@@ -398,3 +398,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
   - **Pinch-zoom** (0.5×–5×) in the performer view. In My view the camera stays centered on my dot, and one-finger drags do nothing, so the view can't drift off me. In Whole field (and the Staff view), dragging with one or two fingers moves around the field, in the right direction in Facing front too. "Reset zoom" appears whenever the view is zoomed or moved; switching views or picking a different performer also resets. Zoom isn't saved. The page itself never zooms: the field takes the pinch, including Safari's older gesture events.
   - **The yard-line ruler** now also shows whenever the view is zoomed in, not only in My view.
   - **Screen wake lock** while playing, released on pause, when playback ends, or when the app is hidden, and re-taken when it comes back. Where the browser doesn't allow it (older iOS home-screen apps), nothing happens.
+
+## 2026-10-23 14:45 EDT — Reaching the performer view inside the home-screen app
+- **Who:** Claude (Jason couldn't find the performer view in his installed app)
+- **Context:** The performer view only opened from a share link. On iPhone, links open in Safari, and a home-screen app keeps storage separate from Safari and has no address bar, so there was no way to reach the performer view from inside the installed app.
+- **Decision:** The Share dialog's "Preview" link became **Open performer view here**, which switches the current app or tab to the performer view of that show. The performer view has **← Editor** to go back, and a **paste a share link** box (on its empty screen, and under "Open a different show") that finds the link even inside a pasted message.
+- **Note:** performers who only use Safari don't need any of this. Opening the link is enough, and it works offline.
