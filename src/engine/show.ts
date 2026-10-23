@@ -252,3 +252,25 @@ export function rotateScale(show: Show, i: number, ids: string[], deg: number, s
     return [id, { x: tidy(cx + scale * (dx * cos - dy * sin)), y: tidy(cy + scale * (dx * sin + dy * cos)) }];
   })));
 }
+
+// ---- Grid snapping.
+
+/** Round a point to the nearest multiple of `unit` steps (0 = leave as is). */
+export const snapPoint = (p: Point, unit: number): Point =>
+  unit ? { x: Math.round(p.x / unit) * unit, y: Math.round(p.y / unit) * unit } : p;
+
+/** Snap the selected performers in set i to the grid. Returns the labels of any that ended up sharing a spot. */
+export function snapSelection(show: Show, i: number, ids: string[], unit: number): { show: Show; stacked: string[] } {
+  const moves = Object.fromEntries(ids.map((id) => [id, snapPoint(show.sets[i].pos[id], unit)]));
+  const next = placeInSet(show, i, moves);
+  const byKey = new Map<string, string[]>();
+  for (const p of show.performers) {
+    const q = next.sets[i].pos[p.id];
+    if (!q) continue;
+    const k = `${q.x},${q.y}`;
+    byKey.set(k, [...(byKey.get(k) ?? []), p.id]);
+  }
+  const stacked = [...byKey.values()].filter((g) => g.length > 1 && g.some((id) => ids.includes(id))).flat()
+    .map((id) => label(show, show.performers.find((p) => p.id === id)!));
+  return { show: next, stacked };
+}

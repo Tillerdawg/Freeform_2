@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { readout, type HashPreset } from '../engine/coords';
 import { addCurvePoint, type Shape, type ShapeKind } from '../engine/shapes';
 import {
-  addSetAfter, flip, label, locate, mirrorSides, newId, placeInSet, rotateScale, positionsAt, removePerformers, removeSet, setCounts, xFrom, yFrom,
+  addSetAfter, flip, label, locate, mirrorSides, newId, placeInSet, rotateScale, snapSelection, positionsAt, removePerformers, removeSet, setCounts, xFrom, yFrom,
   type FrontDir, type FrontRef, type Show, type SideDir,
 } from '../engine/show';
 
@@ -50,6 +50,14 @@ export function Sidebar(p: Props) {
   const [deg, setDeg] = useState(15);
   const [pct, setPct] = useState(110);
   const turn = (d: number, k: number) => setShow((s) => rotateScale(s, onSet, ids, d, k));
+  const [snapNote, setSnapNote] = useState('');
+  useEffect(() => setSnapNote(''), [selected]);
+  const snapUnit = p.snap || 1; // Free snapping falls back to whole steps
+  const snapSel = () => {
+    const r = snapSelection(show, onSet, ids, snapUnit);
+    setShow(() => r.show);
+    setSnapNote(r.stacked.length ? `Now sharing a spot: ${r.stacked.join(', ')}. Move them apart or undo.` : '');
+  };
   const ids = [...selected];
   const mirror = (from: 1 | 2) => {
     try {
@@ -163,9 +171,11 @@ export function Sidebar(p: Props) {
         {selected.size > 1 && onSet >= 0 && <ShapePanel {...p} />}
         {selected.size > 0 && (
           <div style={row}>
+            {onSet >= 0 && <button onClick={snapSel} title="Round the selected performers to the grid">Snap to grid ({snapUnit === 1 ? 'whole' : 'half'} steps)</button>}
             <button onClick={() => { setShow((s) => removePerformers(s, selected)); p.setSelected(new Set()); }}>Delete performer{selected.size > 1 ? 's' : ''}</button>
           </div>
         )}
+        {snapNote && <div role="alert" style={{ color: '#f5c518', marginTop: 6 }}>{snapNote}</div>}
         {one && (
           <>
             {onSet < 0 && (

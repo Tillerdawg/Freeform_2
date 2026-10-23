@@ -234,3 +234,7 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Who:** Jason Tiller asked; details by Claude
 - **Decision:** A "Rotate & scale" box in the Selection panel (2 or more performers, on a set). Rotate by a typed angle (1–180°, default 15°) with ↺ / ↻ buttons, counterclockwise and clockwise as the director sees the field. Expand or Contract by a typed percentage (101–400%, default 110%); Contract divides by the same factor, so it exactly undoes one Expand. Both pivot on the center of the selection's bounding box, and each click is one undo step. Results aren't snapped to the grid: a 30° turn lands between steps and the readout shows quarter steps. A 90° turn of an on-grid form stays on the grid.
 - **Other options:** on-field drag handles for rotate and scale (later); pivoting on the 50 or a chosen point; stretching in one direction only.
+
+## 2026-10-23 07:55 EDT — Snap selection to grid
+- **Who:** Jason Tiller asked; details by Claude
+- **Decision:** A "Snap to grid" button in the Selection panel (on a set) rounds the selected performers to the nearest grid point, using the Snap setting: whole or half steps, with Free falling back to whole steps. It's one undo step. Performers that end up sharing a spot are named in a warning, including an unselected performer already standing there. They're not moved apart automatically, since any automatic choice could be wrong.
