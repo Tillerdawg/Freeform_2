@@ -1,4 +1,5 @@
-import { addSetAfter, biggestStep, locate, removeSet, setAt, setCounts, setMeasures, setStarts, totalCounts, type Show } from '../engine/show';
+import { useRef } from 'react';
+import { addSetAfter, biggestStep, locate, moveSetTo, removeSet, setAt, setCounts, setMeasures, setStarts, totalCounts, type Show } from '../engine/show';
 import { TIER_COLOR } from '../field/drawField';
 import { fmtStep } from './format';
 
@@ -34,6 +35,8 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
     : `Set ${show.sets[to - 1].name} → ${show.sets[to].name} · count ${Math.floor(count)} of ${show.sets[to].counts}`;
 
   const cur = onSet >= 0 ? onSet : to; // the set being edited (mid-move: the one being moved into)
+  const strip = useRef<HTMLDivElement>(null);
+  const setDrag = useRef<{ i: number; x0: number; from: number; perCount: number; moved: boolean } | null>(null);
   const fixedRow: React.CSSProperties = { display: 'flex', gap: 8, alignItems: 'center', height: 30, whiteSpace: 'nowrap', overflow: 'hidden' };
   return (
     <div style={{ padding: '8px 16px 12px', borderTop: '1px solid #33443a' }}>
@@ -82,11 +85,32 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
         <span style={{ marginLeft: 'auto', fontVariantNumeric: 'tabular-nums' }}>{status} · {Math.floor(t)} / {total} counts</span>
       </div>
       {/* Set buttons sit above the line where each set lands. */}
-      <div style={{ position: 'relative', height: 24 }}>
+      {/* Click a set to go to it; drag it (not set 1) to land it on a different count. Its neighbors stay put. */}
+      <div ref={strip} style={{ position: 'relative', height: 24 }}>
         {show.sets.map((s, i) => (
-          <button key={s.id} onClick={() => setT(starts[i])} aria-label={`Go to set ${s.name}`}
+          <button key={s.id} aria-label={`Go to set ${s.name}`} title={i ? 'Click to go here; drag to change which count this set lands on' : undefined}
+            onPointerDown={(e) => {
+              e.currentTarget.setPointerCapture(e.pointerId);
+              // Fix the scale at the start: dragging the last set changes the show's length.
+              setDrag.current = { i, x0: e.clientX, from: starts[i], perCount: (strip.current?.clientWidth ?? 1) / Math.max(1, total), moved: false };
+            }}
+            onPointerMove={(e) => {
+              const d = setDrag.current;
+              if (!d || d.i === 0) return;
+              if (!d.moved && Math.abs(e.clientX - d.x0) < 4) return;
+              d.moved = true;
+              const next = moveSetTo(show, d.i, d.from + (e.clientX - d.x0) / d.perCount);
+              setShow(() => next);
+              setT(setStarts(next)[d.i]); // the playhead stays on the set, wherever it was allowed to land
+            }}
+            onPointerUp={() => {
+              const d = setDrag.current;
+              setDrag.current = null;
+              if (d && !d.moved) setT(starts[i]);
+            }}
             style={{ position: 'absolute', left: total ? `${(starts[i] / total) * 100}%` : 0, transform: total ? 'translateX(-50%)' : undefined,
-              fontWeight: i === onSet ? 700 : 400, outline: i === onSet ? '2px solid #ffd166' : undefined, padding: '0 6px', minWidth: 24 }}>
+              fontWeight: i === onSet ? 700 : 400, outline: i === onSet ? '2px solid #ffd166' : undefined, padding: '0 6px', minWidth: 24,
+              cursor: i ? 'ew-resize' : 'pointer', touchAction: 'none' }}>
             {s.name}
           </button>
         ))}

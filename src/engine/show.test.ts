@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { HASHES, readout } from './coords';
 import {
-  addPerformer, addSetAfter, advance, biggestStep, chainOrder, clearFtl, ftlTrail, moveSteps, normalizeFtl, flip, mirrorSides, remapHash, rotateScale, setFtl, snapSelection, playRange, playStart, label, locate, newShow, parseShow, placeInSet, positionsAt,
+  addPerformer, addSetAfter, advance, biggestStep, chainOrder, clearFtl, ftlTrail, moveSteps, normalizeFtl, flip, mirrorSides, moveSetTo, remapHash, rotateScale, setFtl, snapSelection, playRange, playStart, label, locate, newShow, parseShow, placeInSet, positionsAt,
   removePerformers, removeSet, setAt, setCounts, setStarts, totalCounts, xFrom, yFrom,
 } from './show';
 
@@ -274,5 +274,24 @@ describe('changing hash marks, keeping positions relative to the hashes', () => 
     const { show, ids } = college([5, 31, 44, 70]);
     const back = remapHash(remapHash(show, 'highSchool'), 'college');
     ids.forEach((id) => expect(back.sets[0].pos[id].y).toBeCloseTo(show.sets[0].pos[id].y, 9));
+  });
+});
+
+describe('dragging a set to a new count', () => {
+  // Sets at counts 0, 16, 24, 40.
+  const show = addSetAfter(addSetAfter(addSetAfter(newShow(), 0, 16), 1, 8), 2, 16);
+  it('trades counts between the moves into and out of it; other sets stay put', () => {
+    const m = moveSetTo(show, 2, 28);
+    expect(setStarts(m)).toEqual([0, 16, 28, 40]);
+    expect(m.sets.map((s) => s.counts).slice(1)).toEqual([16, 12, 12]);
+  });
+  it('keeps at least 1 count on each side; rounds to whole counts', () => {
+    expect(setStarts(moveSetTo(show, 2, 100))).toEqual([0, 16, 39, 40]);
+    expect(setStarts(moveSetTo(show, 2, -5))).toEqual([0, 16, 17, 40]);
+    expect(setStarts(moveSetTo(show, 1, 9.4))).toEqual([0, 9, 24, 40]);
+  });
+  it('the last set just lengthens or shortens the final move; set 1 never moves', () => {
+    expect(setStarts(moveSetTo(show, 3, 48))).toEqual([0, 16, 24, 48]);
+    expect(moveSetTo(show, 0, 5)).toBe(show);
   });
 });
