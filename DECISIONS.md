@@ -206,3 +206,12 @@ Each entry: timestamp, who decided, context, options considered, decision.
 ## 2026-10-22 21:20 EDT — Range playback
 - **Who:** Jason Tiller asked (IDEA.md: play one set, a sub-collection, or the whole show); details by Claude
 - **Decision:** "Play set A to B", with a Loop checkbox, next to the transport controls; the default is the whole show. Play starts from the current count if it's inside the range, otherwise from the range start, and stops at the range end (or wraps when looping). To play a single move, pick its two sets. The timeline dims everything outside the range. The range is stored by set, so it follows its sets when counts change. It isn't saved with the show.
+
+## 2026-10-22 21:50 EDT — Shape tools
+- **Who:** Jason Tiller (options from Claude); geometry details by Claude
+- **Decisions:**
+  - **Workflow:** select 2 or more performers on a set, then pick Line, Arc, Curve, Circle, or Block. A shape starts fitted around the selection, and dragging its blue handles (with snap) updates the performers live. Done, Esc, clicking elsewhere on the field, or leaving the set finishes it. Creating a shape and each handle drag are separate undo steps.
+  - **Handles:** Line, 2 ends. Arc, 2 ends plus a bend point it passes through (a bend point exactly on the line makes it straight). Curve, a smooth curve (Catmull-Rom spline) through every point, with "+ Curve point" to add one. Circle, center plus an edge point (the first performer sits at the edge point). Block, two opposite corners plus a column count, filled row by row from the first corner.
+  - **Spacing:** Even (end to end; around the whole circle; filling the block's rectangle), or every N steps from the first handle, continuing past the far end if needed. Typing a number switches to interval spacing. Blocks start at 2-step intervals.
+  - **Who goes where:** the assignment that minimizes total travel (Hungarian algorithm), measured from the previous set, where the move starts. That guarantees the move's paths never cross. The assignment is made when a shape is picked and kept while its handles are dragged, so performers don't swap mid-edit; clicking the same shape button again re-picks it.
+- **Other options:** draw-then-fill; label order; current left-to-right order; assignment measured from the current set (rejected: after trying several shapes it measures from the last shape, not from where the move starts, and paths could cross).

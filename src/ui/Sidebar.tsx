@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { readout, type HashPreset } from '../engine/coords';
+import { addCurvePoint, type Shape, type ShapeKind } from '../engine/shapes';
 import {
   addSetAfter, label, locate, newId, placeInSet, positionsAt, removePerformers, removeSet, setCounts, xFrom, yFrom,
   type FrontDir, type FrontRef, type Show, type SideDir,
@@ -27,7 +28,13 @@ interface Props {
   onOpen: () => void;
   onSave: () => void;
   fileError: string;
+  shape: Shape | null;
+  startShape: (k: ShapeKind) => void;
+  updateShape: (patch: Partial<Shape>) => void;
+  endShape: () => void;
 }
+
+const SHAPES: [ShapeKind, string][] = [['line', 'Line'], ['arc', 'Arc'], ['curve', 'Curve'], ['circle', 'Circle'], ['block', 'Block']];
 
 const PRESETS: [HashPreset, string][] = [['highSchool', 'High school'], ['college', 'College / DCI'], ['nfl', 'NFL']];
 const LINES = [50, 45, 40, 35, 30, 25, 20, 15, 10, 5, 0];
@@ -106,6 +113,7 @@ export function Sidebar(p: Props) {
         <strong>Selection</strong>
         {selected.size === 0 && <p style={{ opacity: 0.7, margin: '6px 0 0' }}>Click a performer, shift-click to add, or drag a box.</p>}
         {selected.size > 1 && <p style={{ margin: '6px 0 0' }}>{selected.size} performers selected</p>}
+        {selected.size > 1 && onSet >= 0 && <ShapePanel {...p} />}
         {selected.size > 0 && (
           <div style={row}>
             <button onClick={() => { setShow((s) => removePerformers(s, selected)); p.setSelected(new Set()); }}>Delete performer{selected.size > 1 ? 's' : ''}</button>
@@ -187,6 +195,43 @@ function CoordEntry({ onPlace }: { onPlace: (x: number, y: (h: HashPreset) => nu
       <div style={row}>
         <button onClick={() => onPlace(xFrom(side, line, xs, xd), (h) => yFrom(ref, ys, yd, h))}>Place</button>
       </div>
+    </fieldset>
+  );
+}
+
+function ShapePanel({ shape, startShape, updateShape, endShape }: Props) {
+  return (
+    <fieldset style={{ marginTop: 10, border: '1px solid #33443a' }}>
+      <legend>Shape</legend>
+      <div style={row} role="radiogroup" aria-label="Shape">
+        {SHAPES.map(([k, l]) => (
+          <button key={k} role="radio" aria-checked={shape?.kind === k} onClick={() => startShape(k)}
+            style={{ fontWeight: shape?.kind === k ? 700 : 400, outline: shape?.kind === k ? '2px solid #5ad1ff' : undefined }}>{l}</button>
+        ))}
+      </div>
+      {shape && (
+        <>
+          <div style={row}>
+            <label><input type="radio" name="spacing" checked={shape.interval == null} onChange={() => updateShape({ interval: null })} /> Even</label>
+            <label>
+              <input type="radio" name="spacing" checked={shape.interval != null} onChange={() => updateShape({ interval: 2 })} /> Every{' '}
+              <input aria-label="Interval in steps" type="number" min={0.5} step={0.5} value={shape.interval ?? 2} style={{ width: 48 }}
+                onChange={(e) => updateShape({ interval: Math.max(0.5, Number(e.target.value) || 2) })} /> steps
+            </label>
+          </div>
+          {shape.kind === 'block' && (
+            <div style={row}>
+              <label>Columns <input aria-label="Columns" type="number" min={1} value={shape.cols} style={{ width: 48 }}
+                onChange={(e) => updateShape({ cols: Math.max(1, Math.round(Number(e.target.value) || 1)) })} /></label>
+            </div>
+          )}
+          <div style={row}>
+            {shape.kind === 'curve' && <button onClick={() => updateShape(addCurvePoint(shape))}>+ Curve point</button>}
+            <button onClick={endShape}>Done (Esc)</button>
+          </div>
+          <p style={{ margin: '6px 0 0', opacity: 0.75, fontSize: 12 }}>Drag the blue handles on the field. Performers keep their order along the shape.</p>
+        </>
+      )}
     </fieldset>
   );
 }
