@@ -115,6 +115,11 @@ export function Perform() {
   const me = state?.me && state.me !== STAFF ? show?.performers.find((p) => p.id === state.me) : undefined;
   const positions = useMemo(() => (show ? positionsAt(show, t) : {}), [show, t]);
   const onSet = show ? setAt(show, t) : -1;
+  // Keep the current set's button in view as playback moves along a long show.
+  const setStrip = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (onSet >= 0) (setStrip.current?.children[onSet] as HTMLElement | undefined)?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }, [onSet]);
   const { to, count } = show ? locate(show, t) : { to: 0, count: 0 };
   const cur = onSet >= 0 ? onSet : to;
   const next = onSet >= 0 ? onSet + 1 : to; // the set I'm heading to
@@ -312,15 +317,16 @@ export function Perform() {
         </details>
       </section>
       <footer className="perform-controls">
+        <div className="perform-sets" ref={setStrip} role="group" aria-label="Go to set">
+          {show.sets.map((x, i) => (
+            <button key={x.id} aria-pressed={i === onSet} onClick={() => { setPlaying(false); setT(starts[i]); }}>{x.name}</button>
+          ))}
+        </div>
         <input type="range" aria-label="Count" min={0} max={total} step={1} value={t} onChange={(e) => { setPlaying(false); setT(Number(e.target.value)); }} disabled={!total} />
         <div className="perform-buttons">
           <button style={btn} aria-label="Previous count" onClick={() => { setPlaying(false); setT(Math.max(0, Math.ceil(t) - 1)); }}><IconPrev /></button>
           <button style={btn} aria-label={playing ? 'Pause' : 'Play'} disabled={!total} onClick={() => setPlaying(!playing)}>{playing ? <IconPause /> : <IconPlay />}</button>
           <button style={btn} aria-label="Next count" onClick={() => { setPlaying(false); setT(Math.min(total, Math.floor(t) + 1)); }}><IconNext /></button>
-          <select aria-label="Go to set" value={onSet >= 0 ? onSet : ''} onChange={(e) => { setPlaying(false); setT(starts[Number(e.target.value)]); }} style={{ fontSize: 16 }}>
-            {onSet < 0 && <option value="">Set…</option>}
-            {show.sets.map((x, i) => <option key={x.id} value={i}>Set {x.name}</option>)}
-          </select>
           <label style={{ fontSize: 14 }}><input aria-label="Tempo" type="number" min={20} max={300} value={bpm} onChange={(e) => setBpm(Number(e.target.value) || 120)} style={{ width: 52, fontSize: 16 }} /> bpm</label>
         </div>
       </footer>
