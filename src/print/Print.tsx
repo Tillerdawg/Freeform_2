@@ -1,7 +1,7 @@
-import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { Show } from '../engine/show';
-import { drawField, fitView, toScreen } from '../field/drawField';
+import { drawField, drawMarks, fitView, toScreen } from '../field/drawField';
 import { chartTitle, chunk, dotCards, hasMeasures, sortedPerformers } from './docs';
 
 type Kind = 'dots' | 'charts';
@@ -34,6 +34,7 @@ function chartImage(show: Show, i: number): string {
     ctx.strokeText(`${letter}${p.number}`, q.x, q.y - 0.65 * s);
     ctx.fillText(`${letter}${p.number}`, q.x, q.y - 0.65 * s);
   }
+  drawMarks(ctx, v, show.sets[i].marks ?? [], 'print');
   return c.toDataURL('image/png');
 }
 
@@ -121,7 +122,10 @@ function Pages({ show, job }: { show: Show; job: Job }) {
                 <table className={meas ? "with-meas" : undefined}>
                   <thead><tr><th>Set</th><th>Cts</th>{meas && <th>Meas.</th>}<th>Side to side</th><th>Front to back</th></tr></thead>
                   <tbody>{c.rows.map((r) => (
-                    <tr key={r.set}><td>{r.set}</td><td>{r.counts}</td>{meas && <td className="meas">{r.measures}</td>}<td>{keep(r.side)}</td><td>{keep(r.front)}</td></tr>
+                    <Fragment key={r.set}>
+                      <tr className={r.cue ? 'has-cue' : undefined}><td>{r.set}</td><td>{r.counts}</td>{meas && <td className="meas">{r.measures}</td>}<td>{keep(r.side)}</td><td>{keep(r.front)}</td></tr>
+                      {r.cue && <tr className="cue"><td></td><td colSpan={meas ? 4 : 3}>{r.cue}</td></tr>}
+                    </Fragment>
                   ))}</tbody>
                 </table>
               </section>
@@ -132,6 +136,7 @@ function Pages({ show, job }: { show: Show; job: Job }) {
           <div className="chart-page" key={i}>
             <header><strong>{show.title}</strong><span>{chartTitle(show, i)}</span></header>
             <img src={src} alt={`Drill chart, ${chartTitle(show, i)}`} />
+            {show.sets[i].note && <p className="chart-note">{show.sets[i].note}</p>}
           </div>
         ))}
     </>

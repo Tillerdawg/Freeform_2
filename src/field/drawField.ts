@@ -1,4 +1,5 @@
 import { FIELD_WIDTH, GOAL_LINE_X, HASHES, STEP_IN, type HashPreset, type Point } from '../engine/coords';
+import { TEXT_STEPS, type Mark } from '../engine/marks';
 
 /** Screen transform: px per step, plus screen position of world origin (50 yd line, front sideline). */
 export interface View { scale: number; ox: number; oy: number }
@@ -196,3 +197,46 @@ export function drawShape(
 }
 
 export const HANDLE_PX = 6; // half-size of a shape handle, in CSS pixels
+
+/** Page markup: text notes, arrows, freehand ink. `selected` gets a blue outline. */
+export function drawMarks(ctx: CanvasRenderingContext2D, v: View, marks: Mark[], theme: Theme = 'screen', selected?: string | null) {
+  const s = v.scale;
+  const ink = theme === 'print' ? '#000' : '#fff';
+  const halo = theme === 'print' ? '#fff' : 'rgba(0,0,0,0.55)';
+  ctx.save();
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  for (const m of marks) {
+    const sel = m.id === selected;
+    const stroke = (w: number, path: () => void) => {
+      if (sel) { ctx.strokeStyle = '#5ad1ff'; ctx.lineWidth = w + 6; ctx.beginPath(); path(); ctx.stroke(); }
+      ctx.strokeStyle = ink; ctx.lineWidth = w; ctx.beginPath(); path(); ctx.stroke();
+    };
+    if (m.kind === 'text') {
+      const q = toScreen(v, m.at);
+      ctx.font = `600 ${TEXT_STEPS * s}px system-ui, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'alphabetic';
+      const label = m.text || (theme === 'screen' ? '(type a note)' : '');
+      ctx.lineWidth = 0.4 * s;
+      ctx.strokeStyle = sel ? '#5ad1ff' : halo;
+      ctx.strokeText(label, q.x, q.y);
+      ctx.fillStyle = m.text ? ink : 'rgba(255,255,255,0.5)';
+      ctx.fillText(label, q.x, q.y);
+    } else if (m.kind === 'arrow') {
+      const a = toScreen(v, m.from), b = toScreen(v, m.to);
+      const ang = Math.atan2(b.y - a.y, b.x - a.x), head = Math.min(1.2 * s, Math.hypot(b.x - a.x, b.y - a.y) * 0.5);
+      const w = Math.max(2, 0.22 * s);
+      stroke(w, () => {
+        ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y);
+        ctx.moveTo(b.x - head * Math.cos(ang - 0.45), b.y - head * Math.sin(ang - 0.45));
+        ctx.lineTo(b.x, b.y);
+        ctx.lineTo(b.x - head * Math.cos(ang + 0.45), b.y - head * Math.sin(ang + 0.45));
+      });
+    } else {
+      const w = Math.max(2, 0.18 * s);
+      stroke(w, () => m.pts.forEach((p, k) => { const q = toScreen(v, p); if (k) ctx.lineTo(q.x, q.y); else ctx.moveTo(q.x, q.y); }));
+    }
+  }
+  ctx.restore();
+}

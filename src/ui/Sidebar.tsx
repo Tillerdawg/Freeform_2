@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react';
 import { readout, type HashPreset } from '../engine/coords';
 import { addBezierSegment, addCurvePoint, type Shape, type ShapeKind } from '../engine/shapes';
 import {
-  addSetAfter, chainOrder, clearFtl, flip, label, locate, mirrorSides, newId, placeInSet, remapHash, rotateScale, setFtl, setMeasures, snapSelection, positionsAt, removePerformers, removeSet, setCounts, xFrom, yFrom,
+  addSetAfter, chainOrder, setCue, setMarks, setNote, clearFtl, flip, label, locate, mirrorSides, newId, placeInSet, remapHash, rotateScale, setFtl, setMeasures, snapSelection, positionsAt, removePerformers, removeSet, setCounts, xFrom, yFrom,
   type FrontDir, type FrontRef, type Show, type SideDir,
 } from '../engine/show';
 
-export type Tool = 'select' | 'add';
+export type Tool = 'select' | 'add' | 'text' | 'arrow' | 'draw';
 export type Snap = 1 | 0.5 | 0;
 
 interface Props {
@@ -29,6 +29,8 @@ interface Props {
   onSave: () => void;
   onPrint: () => void;
   fileError: string;
+  selectedMark: string | null;
+  setSelectedMark: (id: string | null) => void;
   shape: Shape | null;
   startShape: (k: ShapeKind) => void;
   updateShape: (patch: Partial<Shape>) => void;
@@ -113,10 +115,10 @@ export function Sidebar(p: Props) {
       <section style={box}>
         <strong>Tools</strong>
         <div style={row} role="radiogroup" aria-label="Tool">
-          {(['select', 'add'] as Tool[]).map((t) => (
+          {([['select', 'Select / move (V)'], ['add', 'Add performer (A)'], ['text', 'Text (T)'], ['arrow', 'Arrow'], ['draw', 'Draw']] as [Tool, string][]).map(([t, l]) => (
             <button key={t} role="radio" aria-checked={p.tool === t} onClick={() => p.setTool(t)}
               style={{ fontWeight: p.tool === t ? 700 : 400, outline: p.tool === t ? '2px solid #ffd166' : undefined }}>
-              {t === 'select' ? 'Select / move (V)' : 'Add performer (A)'}
+              {l}
             </button>
           ))}
         </div>
@@ -155,6 +157,11 @@ export function Sidebar(p: Props) {
           <button onClick={() => { setShow((s) => addSetAfter(s, cur)); p.setT(p.starts[cur] + 16); }}>+ Set after</button>
           <button disabled={show.sets.length < 2} onClick={() => { setShow((s) => removeSet(s, cur)); p.setT(p.starts[Math.max(0, cur - 1)]); }}>Delete set</button>
         </div>
+        <label style={{ display: 'block', marginTop: 6 }}>Page note
+          <textarea aria-label="Page note" value={show.sets[cur].note ?? ''} rows={2} placeholder="Printed under this set's chart"
+            style={{ display: 'block', width: '100%', boxSizing: 'border-box', marginTop: 2 }}
+            onChange={(e) => setShow((s) => setNote(s, cur, e.target.value))} />
+        </label>
         <div style={row}>
           {show.sets.map((s, i) => (
             <button key={s.id} onClick={() => p.setT(p.starts[i])} style={{ fontWeight: i === onSet ? 700 : 400 }}>{s.name}</button>
@@ -208,6 +215,37 @@ export function Sidebar(p: Props) {
           </div>
         )}
         {snapNote && <div role="alert" style={{ color: '#f5c518', marginTop: 6 }}>{snapNote}</div>}
+        {selected.size > 0 && onSet >= 0 && (() => {
+          const cues = ids.map((id) => show.sets[onSet].cues?.[id] ?? '');
+          const same = cues.every((c) => c === cues[0]);
+          return (
+            <label style={{ display: 'block', marginTop: 8 }}>Cue for set {show.sets[onSet].name}
+              <input aria-label="Cue" value={same ? cues[0] : ''} placeholder={same ? 'e.g. Slide L, horns 45' : '(different cues)'}
+                style={{ display: 'block', width: '100%', boxSizing: 'border-box', marginTop: 2 }}
+                onChange={(e) => setShow((s) => setCue(s, onSet, ids, e.target.value))} />
+            </label>
+          );
+        })()}
+        {p.selectedMark && onSet >= 0 && (() => {
+          const m = show.sets[onSet].marks?.find((x) => x.id === p.selectedMark);
+          if (!m) return null;
+          return (
+            <fieldset style={{ marginTop: 10, border: '1px solid #33443a' }}>
+              <legend>{m.kind === 'text' ? 'Note' : m.kind === 'arrow' ? 'Arrow' : 'Drawing'}</legend>
+              {m.kind === 'text' && (
+                <input key={m.id} aria-label="Note text" value={m.text} placeholder="Type the note"
+                  ref={(el) => { if (el && !m.text && document.activeElement !== el) el.focus(); }}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === 'Escape') { e.currentTarget.blur(); p.setSelectedMark(null); } }}
+                  style={{ width: '100%', boxSizing: 'border-box' }}
+                  onChange={(e) => setShow((s) => setMarks(s, onSet, (ms) => ms.map((x) => (x.id === m.id && x.kind === 'text' ? { ...x, text: e.target.value } : x))))} />
+              )}
+              <div style={row}>
+                <button onClick={() => { setShow((s) => setMarks(s, onSet, (ms) => ms.filter((x) => x.id !== m.id))); p.setSelectedMark(null); }}>Delete</button>
+                <span style={{ fontSize: 12, opacity: 0.75 }}>Drag it on the field to move it.</span>
+              </div>
+            </fieldset>
+          );
+        })()}
         {one && (
           <>
             {onSet < 0 && (

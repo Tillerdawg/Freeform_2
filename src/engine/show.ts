@@ -1,6 +1,7 @@
 // Show data model and the pure operations on it. All positions are in steps (see coords.ts).
 import { HASHES, FIELD_WIDTH, distance, ftlPositions, stepSize, type HashPreset, type Point, type StepTier } from './coords';
 import { assign } from './shapes';
+import { validMark, type Mark } from './marks';
 
 export interface Section { id: string; name: string; letter: string }
 export interface Performer { id: string; section: string; number: number }
@@ -17,6 +18,12 @@ export interface DrillSet {
    * Followers' spots in this set are computed from the trail (see normalizeFtl), not placed by hand.
    */
   ftl?: { order: string[] }[];
+  /** Page markup shown on this set only: notes, arrows, freehand drawing. */
+  marks?: Mark[];
+  /** A note for the whole set, printed under its chart. */
+  note?: string;
+  /** Per-performer cue for this set ("Slide L, horns 45"), printed on their dot sheet. */
+  cues?: Record<string, string>;
 }
 export interface Show {
   format: 'freeform-show';
@@ -76,7 +83,11 @@ export function removePerformers(show: Show, ids: Set<string>): Show {
   return {
     ...show,
     performers: show.performers.filter((p) => !ids.has(p.id)),
-    sets: show.sets.map((s) => ({ ...s, pos: Object.fromEntries(Object.entries(s.pos).filter(([k]) => !ids.has(k))) })),
+    sets: show.sets.map((s) => ({
+      ...s,
+      pos: Object.fromEntries(Object.entries(s.pos).filter(([k]) => !ids.has(k))),
+      cues: s.cues && Object.fromEntries(Object.entries(s.cues).filter(([k]) => !ids.has(k))),
+    })),
   };
 }
 
@@ -255,6 +266,10 @@ export function parseShow(text: string): Show {
     if (set.measures !== undefined && !str(set.measures)) bad('set measures');
     if (set.ftl !== undefined && (!Array.isArray(set.ftl) || !set.ftl.every((g: { order?: unknown }) =>
       Array.isArray(g?.order) && g.order.every((id) => str(id) && id in set.pos)))) bad('set follow-the-leader');
+    if (set.marks !== undefined && (!Array.isArray(set.marks) || !set.marks.every(validMark))) bad('set markup');
+    if (set.note !== undefined && !str(set.note)) bad('set note');
+    if (set.cues !== undefined && (typeof set.cues !== 'object' || !set.cues ||
+      !Object.entries(set.cues).every(([id, c]) => id in set.pos && str(c)))) bad('set cues');
     for (const p of Object.values(set.pos) as Point[]) if (!Number.isFinite(p?.x) || !Number.isFinite(p?.y)) bad(`position in set ${set.name}`);
   }
   return normalizeFtl(s as Show);
@@ -366,4 +381,20 @@ export function remapHash(show: Show, to: HashPreset): Show {
     : h1 + ((v - h0) * (W - 2 * h1)) / (W - 2 * h0);
   const sets = show.sets.map((s) => ({ ...s, pos: Object.fromEntries(Object.entries(s.pos).map(([id, p]) => [id, { x: p.x, y: y(p.y) }])) }));
   return normalizeFtl({ ...show, hash: to, sets });
+}
+
+// ---- Markup, page notes, cues.
+
+export const setMarks = (show: Show, i: number, f: (marks: Mark[]) => Mark[]): Show =>
+  mapSet(show, i, (s) => { const marks = f(s.marks ?? []); return { ...s, marks: marks.length ? marks : undefined }; });
+
+export const setNote = (show: Show, i: number, note: string): Show => mapSet(show, i, (s) => ({ ...s, note: note || undefined }));
+
+/** Give the performers the same cue in set i ('' clears it). */
+export function setCue(show: Show, i: number, ids: string[], cue: string): Show {
+  return mapSet(show, i, (s) => {
+    const cues = { ...s.cues };
+    for (const id of ids) { if (cue) cues[id] = cue; else delete cues[id]; }
+    return { ...s, cues: Object.keys(cues).length ? cues : undefined };
+  });
 }
