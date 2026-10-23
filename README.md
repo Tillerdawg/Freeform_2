@@ -62,6 +62,7 @@ Every spot reads in standard drill language, e.g. *"2 steps outside the Side 2 4
 - **Opening a link:** on a phone, it opens a read-only performer screen. Each performer picks **who they are** (or **Staff** for the whole band); the choice and the show stay saved on that phone and work offline.
 - **My dot:** highlighted, with the camera **following me** through each move, my path into the next set (including follow-the-leader trails), and where I end up.
 - **Facing front:** turns the field around to match what I see facing the audience: front sideline at the top, Side 1 on my right. **Director view** is the editor's orientation.
+- **Who's around me:** my nearest neighbors (up to 4, within 10 steps) are labeled on the field, and an **Around you** list says where each one is, e.g. "T5 · 4 steps toward Side 1", "T2 · 4 steps in front". Directions are in field terms, so they mean the same in either view.
 - **Readouts:** my coordinate now and in the next set, with counts, measures and step size (colored like the editor's warnings), plus my performer notes and the ensemble notes.
 - **Controls:** play at any tempo, step count by count, scrub, or jump to a set. Works in portrait and landscape.
 

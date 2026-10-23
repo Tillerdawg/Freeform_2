@@ -6,6 +6,7 @@ import { label, locate, moveSteps, parseShow, positionsAt, setAt, setStarts, typ
 import { drawField, drawMarks, drawPerformers, fitView, TIER_COLOR, toScreen, type View } from '../field/drawField';
 import { fmtStep } from '../ui/format';
 import { usePlayback } from '../ui/usePlayback';
+import { describe, nearest } from './neighbors';
 
 const STORE = 'freeform:performer'; // separate from the editor's autosave, so opening a link never touches a director's work
 const STAFF = 'staff';
@@ -71,6 +72,8 @@ export function Perform() {
   const next = onSet >= 0 ? onSet + 1 : to; // the set I'm heading to
   const hasNext = !!show && next < show.sets.length && (onSet < 0 || onSet + 1 < show.sets.length);
 
+  const around = useMemo(() => (me ? nearest(positions, me.id) : []), [positions, me]);
+
   // My path into the next set, sampled count by count (so follow-the-leader trails come out right).
   const myPath = useMemo<Point[]>(() => {
     if (!show || !me || !hasNext) return [];
@@ -115,15 +118,28 @@ export function Perform() {
       const q = toScreen(v, positions[me.id]);
       ctx.fillStyle = '#ffd166'; ctx.strokeStyle = '#fff'; ctx.lineWidth = Math.max(2, s * 0.15);
       ctx.beginPath(); ctx.arc(q.x, q.y, Math.max(7, s * 0.6), 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-      // My label stays upright either way.
+      // Neighbors: a brighter dot each, so "who I'm next to" stands out from the rest of the band.
+      for (const n of around) {
+        const nq = toScreen(v, positions[n.id]);
+        ctx.fillStyle = '#e8f1ff';
+        ctx.beginPath(); ctx.arc(nq.x, nq.y, Math.max(4, s * 0.38), 0, Math.PI * 2); ctx.fill();
+      }
+      // Labels stay upright either way: mine, plus my nearest neighbors'.
       ctx.setTransform(1, 0, 0, 1, 0, 0);
-      const lq = state!.facingFront ? { x: W - q.x, y: H - q.y } : q;
-      ctx.font = `700 ${14 * dpr}px system-ui, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
-      ctx.lineWidth = 4 * dpr; ctx.strokeStyle = 'rgba(0,0,0,0.6)'; ctx.strokeText(label(show, me), lq.x, lq.y - 12 * dpr);
-      ctx.fillStyle = '#fff'; ctx.fillText(label(show, me), lq.x, lq.y - 12 * dpr);
+      const flip = (pt: { x: number; y: number }) => (state!.facingFront ? { x: W - pt.x, y: H - pt.y } : pt);
+      const tag = (text: string, at: { x: number; y: number }, px: number, color: string) => {
+        ctx.font = `700 ${px * dpr}px system-ui, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+        ctx.lineWidth = 4 * dpr; ctx.strokeStyle = 'rgba(0,0,0,0.65)'; ctx.strokeText(text, at.x, at.y - 10 * dpr);
+        ctx.fillStyle = color; ctx.fillText(text, at.x, at.y - 10 * dpr);
+      };
+      for (const n of around) {
+        const nq = flip(toScreen(v, positions[n.id]));
+        tag(label(show, show.performers.find((x) => x.id === n.id)!), nq, 12, '#e8f1ff');
+      }
+      tag(label(show, me), flip(q), 14, '#fff');
     }
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-  }, [show, size, positions, me, state, onSet, myPath, dpr]);
+  }, [show, size, positions, me, state, onSet, myPath, dpr, around]);
 
   if (!show) {
     return (
@@ -175,6 +191,16 @@ export function Perform() {
                 {readout(nx.pos[me.id], show.hash)}
                 {steps && <span style={{ color: steps.tier === 'ok' ? '#cfe' : TIER_COLOR[steps.tier] }}> · {fmtStep(steps.per5)}</span>}
               </p>
+            )}
+            {around.length > 0 && (
+              <div className="perform-note">
+                <span className="perform-k">Around you</span>
+                <ul className="perform-around">
+                  {around.map((n) => (
+                    <li key={n.id}><strong>{label(show, show.performers.find((x) => x.id === n.id)!)}</strong> · {describe(n.dx, n.dy)}</li>
+                  ))}
+                </ul>
+              </div>
             )}
             {myCue(cur) && <p className="perform-note"><span className="perform-k">My notes</span> {myCue(cur)}</p>}
           </>
