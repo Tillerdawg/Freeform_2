@@ -8,6 +8,7 @@ import { fmtStep } from '../ui/format';
 import { usePlayback } from '../ui/usePlayback';
 import { IconNext, IconPause, IconPlay, IconPrev } from '../ui/icons';
 import { describe, nearest, yardLabel } from './neighbors';
+import { panCenter, pinchZoom } from './gestures';
 
 const STORE = 'freeform:performer'; // separate from the editor's autosave, so opening a link never touches a director's work
 const STAFF = 'staff';
@@ -57,6 +58,33 @@ export function Perform() {
   const span = useMemo<[number, number]>(() => [0, total], [total]);
   usePlayback(playing, setPlaying, t, setT, bpm, span, false);
 
+  // Keep the screen awake while the show plays (where the browser allows it), so the phone doesn't dim mid-rep.
+  useEffect(() => {
+    if (!playing || !('wakeLock' in navigator)) return;
+    let lock: WakeLockSentinel | null = null, live = true;
+    const grab = () => navigator.wakeLock.request('screen').then((l) => { if (live) lock = l; else l.release(); }).catch(() => { /* not allowed here */ });
+    grab();
+    const again = () => { if (document.visibilityState === 'visible') grab(); }; // the lock drops when the app is hidden
+    document.addEventListener('visibilitychange', again);
+    return () => { live = false; document.removeEventListener('visibilitychange', again); lock?.release(); };
+  }, [playing]);
+
+  // Pinch zoom (both views) and drag to look around (whole field). Not saved: switching views resets it.
+  const [zoom, setZoom] = useState(1);
+  const [center, setCenter] = useState({ x: 0, y: 42 });
+  const touches = useRef(new Map<number, { x: number; y: number }>());
+  const pinch = useRef<{ dist: number; zoom: number } | null>(null);
+  const viewRef = useRef<View | null>(null);
+  // Older iOS Safari pinches the whole page with its own gesture events; keep the pinch on the field.
+  useEffect(() => {
+    const c = canvasRef.current;
+    if (!c) return;
+    const stop = (e: Event) => e.preventDefault();
+    c.addEventListener('gesturestart', stop);
+    c.addEventListener('gesturechange', stop);
+    return () => { c.removeEventListener('gesturestart', stop); c.removeEventListener('gesturechange', stop); };
+  }, [!!show]); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     const c = canvasRef.current;
     if (!c) return;
@@ -88,11 +116,15 @@ export function Perform() {
     const ctx = c.getContext('2d')!;
     const [W, H] = size;
     const follow = !!me && state!.follow;
-    let v: View = fitView(W, H);
+    let v: View;
     if (follow) {
-      const p = positions[me!.id], scale = W / FOLLOW_STEPS;
+      const p = positions[me!.id], scale = (W / FOLLOW_STEPS) * zoom;
       v = { scale, ox: W / 2 - p.x * scale, oy: H / 2 + p.y * scale };
+    } else {
+      const scale = fitView(W, H).scale * zoom;
+      v = { scale, ox: W / 2 - center.x * scale, oy: H / 2 + center.y * scale };
     }
+    viewRef.current = v;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     if (state!.facingFront) ctx.setTransform(-1, 0, 0, -1, W, H); // turn the field around: front sideline at the top
     drawField(ctx, v, show.hash);
@@ -140,7 +172,7 @@ export function Perform() {
       tag(label(show, me), flip(q), 14, '#fff');
     }
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-    if (follow) {
+    if (follow || zoom > 1) {
       // Zoomed in, the painted yard numbers are usually off screen: pin a yard-line ruler to the bottom edge.
       const band = 22 * dpr;
       ctx.fillStyle = 'rgba(16,24,18,0.85)';
@@ -155,7 +187,7 @@ export function Perform() {
         ctx.fillText(yardLabel(x), at, H - band / 2 + 2 * dpr);
       }
     }
-  }, [show, size, positions, me, state, onSet, myPath, dpr, around]);
+  }, [show, size, positions, me, state, onSet, myPath, dpr, around, zoom, center]);
 
   if (!show) {
     return (
@@ -174,7 +206,7 @@ export function Perform() {
   return (
     <div className="perform">
       <header className="perform-bar">
-        <select aria-label="Who are you?" value={state!.me ?? ''} onChange={(e) => update({ me: e.target.value || null })} style={{ fontSize: 16, maxWidth: '55%' }}>
+        <select aria-label="Who are you?" value={state!.me ?? ''} onChange={(e) => { update({ me: e.target.value || null }); setZoom(1); setCenter({ x: 0, y: 42 }); }} style={{ fontSize: 16, maxWidth: '55%' }}>
           <option value="">Who are you?</option>
           <option value={STAFF}>Staff (whole band)</option>
           {show.sections.map((sec) => {
@@ -185,10 +217,35 @@ export function Perform() {
         <span className="perform-title">{show.title}</span>
       </header>
       <div className="perform-field">
-        <canvas ref={canvasRef} aria-label="Field" style={{ width: '100%', height: '100%', display: 'block', touchAction: 'none' }} />
+        <canvas ref={canvasRef} aria-label="Field" style={{ width: '100%', height: '100%', display: 'block', touchAction: 'none' }}
+          onPointerDown={(e) => {
+            e.currentTarget.setPointerCapture(e.pointerId);
+            touches.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+            if (touches.current.size === 2) {
+              const [a, b] = [...touches.current.values()];
+              pinch.current = { dist: Math.hypot(a.x - b.x, a.y - b.y), zoom };
+            }
+          }}
+          onPointerMove={(e) => {
+            const prev = touches.current.get(e.pointerId);
+            if (!prev) return;
+            touches.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+            if (touches.current.size === 2 && pinch.current) {
+              const [a, b] = [...touches.current.values()];
+              setZoom(pinchZoom(pinch.current.zoom, pinch.current.dist, Math.hypot(a.x - b.x, a.y - b.y)));
+            }
+            // In My view the camera stays on my dot; elsewhere, dragging (one finger or two) moves around the field.
+            if (!(me && state!.follow) && viewRef.current) {
+              const share = touches.current.size; // two fingers each move half the drag
+              setCenter((c) => panCenter(c, ((e.clientX - prev.x) * dpr) / share, ((e.clientY - prev.y) * dpr) / share, viewRef.current!.scale, state!.facingFront));
+            }
+          }}
+          onPointerUp={(e) => { touches.current.delete(e.pointerId); if (touches.current.size < 2) pinch.current = null; }}
+          onPointerCancel={(e) => { touches.current.delete(e.pointerId); pinch.current = null; }} />
         <div className="perform-toggles">
           <button aria-pressed={state!.facingFront} onClick={() => update({ facingFront: !state!.facingFront })}>{state!.facingFront ? 'Facing front' : 'Director view'}</button>
-          {me && <button aria-pressed={state!.follow} onClick={() => update({ follow: !state!.follow })}>{state!.follow ? 'My view' : 'Whole field'}</button>}
+          {(zoom !== 1 || center.x !== 0 || center.y !== 42) && <button onClick={() => { setZoom(1); setCenter({ x: 0, y: 42 }); }}>Reset zoom</button>}
+          {me && <button aria-pressed={state!.follow} onClick={() => { update({ follow: !state!.follow }); setZoom(1); setCenter({ x: 0, y: 42 }); }}>{state!.follow ? 'My view' : 'Whole field'}</button>}
         </div>
       </div>
       <section className="perform-info" aria-live="off">
