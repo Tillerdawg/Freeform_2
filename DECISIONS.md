@@ -201,4 +201,4 @@ Each entry: timestamp, who decided, context, options considered, decision.
 
 ## 2026-10-22 21:05 EDT — Yard numbers outside the field (replaces "bottoms 8 steps in")
 - **Who:** Jason Tiller
-- **Decision:** The yard numbers sit outside the sidelines. The top of each front number is 2 steps in front of the front sideline, and the top of each back number is 2 steps behind the back sideline. They're 4 steps tall, so each spans 2 to 6 steps outside its sideline, still facing its own sideline. Fit field leaves room for them.
+- **Decision:** The yard numbers sit outside the sidelines. The top of each front number is 2 steps in front of the front sideline, and the top of each back number is 2 steps behind the back sideline. They're 4 steps tall, so each spans 2 to 6 steps outside its sideline, still facing its own sideline. Fit field leaves room for them. Why: it keeps the playing surface uncluttered so formations read clearly. No green apron or extended yard lines.
