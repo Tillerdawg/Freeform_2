@@ -44,7 +44,7 @@ Every spot reads in standard drill language, e.g. *"2 steps outside the Side 2 4
 
 ### Moves and playback
 - **Timeline:** one segment per move with a tick for every count. Click any count to see exactly where everyone is.
-- **Playback** at any tempo, for the whole show or a range of sets, with optional looping.
+- **Playback** at any tempo. Play always starts where you are (pick a set, then Play) and goes forward. Set a range of sets to stop, or loop, at the range's end; from outside the range it plays on to the end of the show.
 - **Step-size warnings:** moves bigger than 6-to-5 turn **yellow**, and bigger than 4-to-5 turn **red**, on both the paths and the timeline.
 - **Follow-the-leader:** pick a leader and an order; the followers march the leader's trail automatically.
 
@@ -69,7 +69,7 @@ Every spot reads in standard drill language, e.g. *"2 steps outside the Side 2 4
 - **Facing front:** turns the field around to match what I see facing the audience: front sideline at the top, Side 1 on my right. **Director view** is the editor's orientation.
 - **Who's around me:** my nearest neighbors (up to 4, within 10 steps) are labeled on the field, and an **Around you** list says where each one is, e.g. "T5 · 4 steps toward Side 1", "T2 · 4 steps in front". Directions are in field terms, so they mean the same in either view.
 - **Readouts:** my coordinate now and in the next set, with counts, measures and step size (colored like the editor's warnings), plus my performer notes and the ensemble notes.
-- **Controls:** play at any tempo, step count by count, scrub, or tap a set number to jump to it (the row of set buttons scrolls sideways in long shows and follows playback). Works in portrait and landscape.
+- **Controls:** play at any tempo, step count by count, scrub, or tap a set number to jump to it (the row of set buttons scrolls sideways in long shows, with faded edges showing there's more, and keeps the current set centered); Play starts from where you are. Works in portrait and landscape.
 
 ### Saving
 - **Autosave:** your show saves in this browser automatically.

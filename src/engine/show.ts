@@ -288,8 +288,14 @@ export function playRange(show: Show, fromId: string | null, toId: string | null
   return [starts[Math.min(a, b)], starts[Math.max(a, b)]];
 }
 
-/** Where playback starts: the current count if it's inside the range (and not at its end), else the range start. */
-export const playStart = (t: number, [lo, hi]: [number, number]) => (t >= lo && t < hi ? t : lo);
+/**
+ * What Play does from count `t`: start right there and go forward. The play range only decides where it stops
+ * (or loops back to); from outside the range, it plays on to the end of the show. Null: nothing ahead to play.
+ */
+export function playPlan(t: number, [lo, hi]: [number, number], total: number, loop: boolean): { from: number; span: [number, number]; loop: boolean } | null {
+  if (t >= lo && t < hi) return { from: t, span: [lo, hi], loop };
+  return t < total ? { from: t, span: [t, total], loop: false } : null;
+}
 
 /** Advance playback by `counts`; at the range end either stop or wrap around to the start. */
 export function advance(t: number, counts: number, [lo, hi]: [number, number], loop: boolean): { t: number; done: boolean } {

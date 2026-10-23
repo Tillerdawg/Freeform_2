@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { HASHES, readout } from './coords';
 import {
-  addPerformer, addSetAfter, advance, biggestStep, chainOrder, clearFtl, ftlTrail, moveSteps, normalizeFtl, flip, mirrorSides, moveSetTo, remapHash, rotateScale, setFtl, snapSelection, playRange, playStart, label, locate, newShow, parseShow, placeInSet, positionsAt,
+  addPerformer, addSetAfter, advance, biggestStep, chainOrder, clearFtl, ftlTrail, moveSteps, normalizeFtl, flip, mirrorSides, moveSetTo, remapHash, rotateScale, setFtl, snapSelection, playRange, playPlan, label, locate, newShow, parseShow, placeInSet, positionsAt,
   removePerformers, removeSet, setAt, setCounts, setStarts, totalCounts, xFrom, yFrom,
 } from './show';
 
@@ -98,10 +98,12 @@ describe('range playback', () => {
     expect(playRange(show, id(2), id(1))).toEqual([16, 24]);
     expect(playRange(show, 'gone', id(2))).toEqual([0, 24]);
   });
-  it('starts inside the range, or jumps to its start', () => {
-    expect(playStart(20, [16, 24])).toBe(20);
-    expect(playStart(24, [16, 24])).toBe(16); // at the end: replay
-    expect(playStart(3, [16, 24])).toBe(16);
+  it('always starts where you are and goes forward', () => {
+    expect(playPlan(20, [16, 24], 40, true)).toEqual({ from: 20, span: [16, 24], loop: true }); // inside the range: stop or loop there
+    expect(playPlan(3, [16, 24], 40, true)).toEqual({ from: 3, span: [3, 40], loop: false }); // before it: play on, don't jump ahead
+    expect(playPlan(24, [16, 24], 40, false)).toEqual({ from: 24, span: [24, 40], loop: false }); // at its end: keep going
+    expect(playPlan(40, [0, 40], 40, false)).toBeNull(); // end of the show: nothing to play
+    expect(playPlan(40, [0, 40], 40, true)).toBeNull();
   });
   it('stops at the range end, or wraps when looping', () => {
     expect(advance(20, 2, [16, 24], false)).toEqual({ t: 22, done: false });

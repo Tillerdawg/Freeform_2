@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { addSetAfter, biggestStep, locate, moveSetTo, removeSet, setAt, setCounts, setMeasures, setStarts, totalCounts, type Show } from '../engine/show';
+import { addSetAfter, biggestStep, locate, moveSetTo, removeSet, setAt, setCounts, setMeasures, playPlan, setStarts, totalCounts, type Show } from '../engine/show';
 import { TIER_COLOR } from '../field/drawField';
 import { fmtStep } from './format';
 import { IconNext, IconPause, IconPlay, IconPrev, IconStart } from './icons';
@@ -44,7 +44,8 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
       <div style={{ ...fixedRow, marginBottom: 4 }}>
         <button aria-label="Back to start" onClick={() => setT(0)}><IconStart /></button>
         <button aria-label="Previous count" onClick={() => setT(Math.max(0, Math.ceil(t) - 1))}><IconPrev /></button>
-        <button aria-label={playing ? 'Pause' : 'Play'} onClick={() => setPlaying(!playing)} disabled={!total}>{playing ? <IconPause /> : <IconPlay />}</button>
+        <button aria-label={playing ? 'Pause' : 'Play'} onClick={() => setPlaying(!playing)} disabled={!total || (!playing && !playPlan(t, span, total, range.loop))}
+          title={!playing && t >= total ? 'End of the show: pick a set to play from there' : undefined}>{playing ? <IconPause /> : <IconPlay />}</button>
         <button aria-label="Next count" onClick={() => setT(Math.min(total, Math.floor(t) + 1))}><IconNext /></button>
         <label>
           Tempo <input type="number" min={20} max={300} value={bpm} onChange={(e) => setBpm(Number(e.target.value) || 120)} style={{ width: 56 }} /> bpm

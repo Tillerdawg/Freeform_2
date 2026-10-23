@@ -75,7 +75,7 @@ export function Perform() {
   const starts = useMemo(() => (show ? setStarts(show) : [0]), [show]);
   const total = starts.at(-1)!;
   const span = useMemo<[number, number]>(() => [0, total], [total]);
-  usePlayback(playing, setPlaying, t, setT, bpm, span, false);
+  usePlayback(playing, setPlaying, t, setT, bpm, span, false, total);
 
   // Keep the screen awake while the show plays (where the browser allows it), so the phone doesn't dim mid-rep.
   useEffect(() => {
@@ -117,9 +117,19 @@ export function Perform() {
   const onSet = show ? setAt(show, t) : -1;
   // Keep the current set's button in view as playback moves along a long show.
   const setStrip = useRef<HTMLDivElement>(null);
+  // Fade whichever edge of the set row has more sets past it, so it's clear the row scrolls.
+  const [more, setMore] = useState('');
+  const checkMore = () => {
+    const e = setStrip.current;
+    if (!e) return;
+    const left = e.scrollLeft > 1, right = e.scrollLeft + e.clientWidth < e.scrollWidth - 1;
+    setMore(left && right ? 'both' : left ? 'left' : right ? 'right' : '');
+  };
   useEffect(() => {
-    if (onSet >= 0) (setStrip.current?.children[onSet] as HTMLElement | undefined)?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-  }, [onSet]);
+    if (onSet >= 0) (setStrip.current?.children[onSet] as HTMLElement | undefined)?.scrollIntoView({ block: 'nearest', inline: 'center' });
+    checkMore();
+  }, [onSet, show]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { addEventListener('resize', checkMore); return () => removeEventListener('resize', checkMore); }, []);
   const { to, count } = show ? locate(show, t) : { to: 0, count: 0 };
   const cur = onSet >= 0 ? onSet : to;
   const next = onSet >= 0 ? onSet + 1 : to; // the set I'm heading to
@@ -317,7 +327,7 @@ export function Perform() {
         </details>
       </section>
       <footer className="perform-controls">
-        <div className="perform-sets" ref={setStrip} role="group" aria-label="Go to set">
+        <div className="perform-sets" data-more={more} ref={setStrip} onScroll={checkMore} role="group" aria-label="Go to set">
           {show.sets.map((x, i) => (
             <button key={x.id} aria-pressed={i === onSet} onClick={() => { setPlaying(false); setT(starts[i]); }}>{x.name}</button>
           ))}
@@ -325,7 +335,7 @@ export function Perform() {
         <input type="range" aria-label="Count" min={0} max={total} step={1} value={t} onChange={(e) => { setPlaying(false); setT(Number(e.target.value)); }} disabled={!total} />
         <div className="perform-buttons">
           <button style={btn} aria-label="Previous count" onClick={() => { setPlaying(false); setT(Math.max(0, Math.ceil(t) - 1)); }}><IconPrev /></button>
-          <button style={btn} aria-label={playing ? 'Pause' : 'Play'} disabled={!total} onClick={() => setPlaying(!playing)}>{playing ? <IconPause /> : <IconPlay />}</button>
+          <button style={btn} aria-label={playing ? 'Pause' : 'Play'} disabled={!total || (!playing && t >= total)} title={t >= total ? 'End of the show: tap set 1 (or another set) to play from there' : undefined} onClick={() => setPlaying(!playing)}>{playing ? <IconPause /> : <IconPlay />}</button>
           <button style={btn} aria-label="Next count" onClick={() => { setPlaying(false); setT(Math.min(total, Math.floor(t) + 1)); }}><IconNext /></button>
           <label style={{ fontSize: 14 }}><input aria-label="Tempo" type="number" min={20} max={300} value={bpm} onChange={(e) => setBpm(Number(e.target.value) || 120)} style={{ width: 52, fontSize: 16 }} /> bpm</label>
         </div>

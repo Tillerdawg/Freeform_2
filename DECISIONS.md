@@ -437,3 +437,10 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Who:** Claude (Jason missed the editor's set buttons on his phone) *(Jason can veto)*
 - **Decision:** The performer view's "Set…" dropdown is replaced by a row of set-number buttons above the count slider, as large as the other touch buttons. The current set is outlined in gold. The row scrolls sideways when there are more sets than fit and keeps the current set in view during playback. Its height is fixed, so it can't resize the field.
 - **Other options:** buttons placed at each set's spot along the slider, as in the editor (they overlap once a show has more than about 10 sets on a phone); keeping the dropdown.
+
+## 2026-10-23 15:15 EDT — Play always starts where you are
+- **Who:** Jason Tiller ("select a set, hit play, it should begin at that spot and go forward"); details by Claude *(Jason can veto)*
+- **Context:** Play jumped back to the start of the show from the last set, and in the editor it jumped to the play range's start whenever the playhead was outside the range.
+- **Decision:** In both the editor and the performer view, Play starts at the playhead and moves forward. Inside a play range, it stops (or loops) at the range's end. From outside the range, it plays on to the end of the show and doesn't loop. At the end of the show Play is grayed out; tap a set (or Back to start) to play again.
+- **Also:** the performer view's row of set buttons fades whichever edge has more sets past it, and keeps the current set centered.
+- **Other options:** from outside the range, jump into the range (the old behavior); at the show's end, restart from set 1 (the usual media-player habit, but it's the surprise Jason hit).
