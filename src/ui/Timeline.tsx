@@ -40,8 +40,8 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
       {/* Every row has a fixed height: a panel that grows or shrinks would resize (and flash) the field. */}
       <div style={{ ...fixedRow, marginBottom: 4 }}>
         <strong>Set {show.sets[cur].name}</strong>
-        <label>Counts in{' '}
-          <input type="number" min={1} aria-label="Counts in" disabled={cur === 0} title={cur === 0 ? 'The opening set has no move into it' : undefined}
+        <label>Counts{' '}
+          <input type="number" min={1} aria-label="Counts" disabled={cur === 0} title={cur === 0 ? 'The opening set has no move into it' : undefined}
             value={cur === 0 ? '' : show.sets[cur].counts} style={{ width: 56 }}
             onChange={(e) => setShow((s) => setCounts(s, cur, Number(e.target.value)))} />
         </label>
