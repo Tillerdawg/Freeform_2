@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { addPerformer, addSetAfter, newShow, placeInSet } from '../engine/show';
-import { ROWS_PER_CARD, chartTitle, chunk, dotCards, sortedPerformers } from './docs';
+import { addPerformer, addSetAfter, newShow, parseShow, placeInSet, setMeasures } from '../engine/show';
+import { ROWS_PER_CARD, chartTitle, chunk, dotCards, hasMeasures, sortedPerformers } from './docs';
 
 function show3() {
   let s = newShow();
@@ -24,8 +24,8 @@ describe('dot sheets', () => {
     expect(card.label).toBe('T1');
     expect(card.section).toBe('Trumpet');
     expect(card.rows).toEqual([
-      { set: '1', counts: '—', side: '2 steps outside the Side 2 45', front: '2 steps in front of Front Hash' },
-      { set: '2', counts: '16', side: 'Splitting 35 and 40 on Side 1', front: 'On Back Hash' },
+      { set: '1', counts: '—', measures: '', side: '2 steps outside the Side 2 45', front: '2 steps in front of Front Hash' },
+      { set: '2', counts: '16', measures: '', side: 'Splitting 35 and 40 on Side 1', front: 'On Back Hash' },
     ]);
   });
   it('long shows continue onto more cards', () => {
@@ -43,4 +43,26 @@ describe('charts', () => {
     expect(chartTitle(s, 1)).toBe('Set 2 · 16 counts (counts 0–16)');
   });
   it('chunks into pages', () => expect(chunk([1, 2, 3, 4, 5], 4)).toEqual([[1, 2, 3, 4], [5]]));
+});
+
+describe('measure numbers', () => {
+  it('are typed per set, printed on cards and chart titles, and only when any exist', () => {
+    let { s, t1 } = show3();
+    expect(hasMeasures(s)).toBe(false);
+    s = setMeasures(setMeasures(s, 0, 'pu'), 1, '1–4');
+    expect(hasMeasures(s)).toBe(true);
+    const [card] = dotCards(s, s.performers.filter((p) => p.id === t1));
+    expect(card.rows.map((r) => r.measures)).toEqual(['pu', '1–4']);
+    expect(chartTitle(s, 1)).toBe('Set 2 · 16 counts (counts 0–16) · m. 1–4');
+    expect(chartTitle(s, 0)).toBe('Set 1 · opening set · m. pu');
+    expect(setMeasures(s, 1, '').sets[1].measures).toBeUndefined();
+  });
+  it('survive a file round trip; non-text measures are rejected', () => {
+    const { s } = show3();
+    const m = setMeasures(s, 1, '9–12');
+    expect(parseShow(JSON.stringify(m)).sets[1].measures).toBe('9–12');
+    const bad = JSON.parse(JSON.stringify(m));
+    bad.sets[1].measures = 12;
+    expect(() => parseShow(JSON.stringify(bad))).toThrow(/measures/);
+  });
 });

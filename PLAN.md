@@ -20,7 +20,8 @@
 - Shape follow-ups: shapes that create new performers; on-field rotate/scale handles; stretch in one direction only.
 - FTL transitions (leader + order, path-following; IDEA.md example is the acceptance test).
 - ✅ Coordinate (dot) sheets, 4 cards per page, and drill charts, one per set (print / Save as PDF).
-- Print follow-ups: paths on charts; a notes column; 1-per-page sheets; measure numbers once music sync exists.
+- ✅ Measure numbers per set (typed), on dot sheets, chart headers, and the timeline.
+- Print follow-ups: paths on charts; a notes column; 1-per-page sheets; computing measures from a meter map once music sync exists.
 - Page markup/text (count notes, measure numbers, arrows, body/horn cues).
 - Performer view (PWA): director view and personal view, count-by-count.
 - Count-first layout (Jason): enter the total counts for a musical selection (movement) or the whole show, then place sets at specific counts. Fits the current model, since a set at count N just means counts-into-set = N − previous set's count. When a set moves, later sets keep their absolute counts (Jason): moving set 3 from count 24 to 28 lengthens the move into set 3 and shortens the move out of it; set 4 stays at 48.

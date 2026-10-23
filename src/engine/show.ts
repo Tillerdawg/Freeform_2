@@ -5,7 +5,14 @@ import { assign } from './shapes';
 export interface Section { id: string; name: string; letter: string }
 export interface Performer { id: string; section: string; number: number }
 /** A set ("page"). `counts` = counts of the move INTO this set; ignored for the first set. */
-export interface DrillSet { id: string; name: string; counts: number; pos: Record<string, Point> }
+export interface DrillSet {
+  id: string;
+  name: string;
+  counts: number;
+  pos: Record<string, Point>;
+  /** Measures the move into this set covers, typed by the drill writer as on a score (e.g. "9–12", "pu–4"). */
+  measures?: string;
+}
 export interface Show {
   format: 'freeform-show';
   version: 1;
@@ -181,6 +188,7 @@ export function parseShow(text: string): Show {
   for (const x of s.performers) if (!str(x?.id) || !str(x.section) || !Number.isFinite(x.number)) bad('performer');
   for (const set of s.sets) {
     if (!str(set?.id) || !str(set.name) || !Number.isFinite(set.counts) || typeof set.pos !== 'object' || !set.pos) bad('set');
+    if (set.measures !== undefined && !str(set.measures)) bad('set measures');
     for (const p of Object.values(set.pos) as Point[]) if (!Number.isFinite(p?.x) || !Number.isFinite(p?.y)) bad(`position in set ${set.name}`);
   }
   return s as Show;
@@ -274,3 +282,6 @@ export function snapSelection(show: Show, i: number, ids: string[], unit: number
     .map((id) => label(show, show.performers.find((p) => p.id === id)!));
   return { show: next, stacked };
 }
+
+export const setMeasures = (show: Show, i: number, measures: string): Show =>
+  mapSet(show, i, (s) => ({ ...s, measures: measures || undefined }));

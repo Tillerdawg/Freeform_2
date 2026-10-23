@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { Show } from '../engine/show';
 import { drawField, fitView, toScreen } from '../field/drawField';
-import { chartTitle, chunk, dotCards, sortedPerformers } from './docs';
+import { chartTitle, chunk, dotCards, hasMeasures, sortedPerformers } from './docs';
 
 type Kind = 'dots' | 'charts';
 type Who = 'all' | 'section' | 'selected';
@@ -104,6 +104,7 @@ export function PrintDialog({ show, selected, onClose }: Props) {
 
 function Pages({ show, job }: { show: Show; job: Job }) {
   const charts = useMemo(() => (job.kind === 'charts' ? show.sets.map((_, i) => chartImage(show, i)) : []), [show, job]);
+  const meas = hasMeasures(show);
   const pageStyle = job.kind === 'charts' ? '@page { size: letter landscape; margin: 0.4in; }' : '@page { size: letter portrait; margin: 0.4in; }';
   return (
     <>
@@ -117,9 +118,11 @@ function Pages({ show, job }: { show: Show; job: Job }) {
                   <strong>{c.label}</strong> <span>{c.section}</span>
                   <span className="dot-show">{show.title}{c.parts > 1 ? ` · card ${c.part} of ${c.parts}` : ''}</span>
                 </header>
-                <table>
-                  <thead><tr><th>Set</th><th>Cts</th><th>Side to side</th><th>Front to back</th></tr></thead>
-                  <tbody>{c.rows.map((r) => <tr key={r.set}><td>{r.set}</td><td>{r.counts}</td><td>{keep(r.side)}</td><td>{keep(r.front)}</td></tr>)}</tbody>
+                <table className={meas ? "with-meas" : undefined}>
+                  <thead><tr><th>Set</th><th>Cts</th>{meas && <th>Meas.</th>}<th>Side to side</th><th>Front to back</th></tr></thead>
+                  <tbody>{c.rows.map((r) => (
+                    <tr key={r.set}><td>{r.set}</td><td>{r.counts}</td>{meas && <td className="meas">{r.measures}</td>}<td>{keep(r.side)}</td><td>{keep(r.front)}</td></tr>
+                  ))}</tbody>
                 </table>
               </section>
             ))}
