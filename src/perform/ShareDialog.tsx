@@ -31,7 +31,8 @@ export function ShareDialog({ show, onClose }: { show: Show; onClose: () => void
         </p>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           {note && <span role="status" style={{ marginRight: 'auto', alignSelf: 'center' }}>{note}</span>}
-          <a href={url || undefined} target="_blank" rel="noopener" style={{ color: '#9cf', alignSelf: 'center' }}>Preview performer view</a>
+          <button disabled={!url} onClick={() => { location.hash = url.slice(url.indexOf('#')); }}
+            title="Switch this app to the performer view of this show (← Editor comes back)">Open performer view here</button>
           {'share' in navigator && <button disabled={!url} onClick={() => navigator.share({ title: show.title, url }).catch(() => {})}>Share…</button>}
           <button disabled={!url} onClick={copy}>Copy link</button>
           <button onClick={onClose}>Close</button>

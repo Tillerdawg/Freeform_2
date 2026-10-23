@@ -59,7 +59,7 @@ Every spot reads in standard drill language, e.g. *"2 steps outside the Side 2 4
 
 ### Performer view (phones)
 - **Share links:** in the editor, **Share…** makes a link with the whole show packed inside it. A 150-performer, 40-set show is about 40 KB. Text it, email it, or post it; there's no server involved. Anyone with the link can view the show. Later edits aren't sent automatically, so share a new link after changes.
-- **Opening a link:** on a phone, it opens a read-only performer screen. Each performer picks **who they are** (or **Staff** for the whole band); the choice and the show stay saved on that phone and work offline.
+- **Opening a link:** on a phone, it opens a read-only performer screen. In the home-screen app (which has no address bar), paste the link into **Open a different show** instead. The editor's Share… dialog also has **Open performer view here**, to switch the app you're in to the performer view; **← Editor** switches back. Each performer picks **who they are** (or **Staff** for the whole band); the choice and the show stay saved on that phone and work offline.
 - **Yard lines always labeled:** in My view, or whenever you've zoomed in, a ruler along the bottom names every yard line on screen ("S1 40", "50", "S2 35", "G"), since the painted numbers are usually out of view.
 - **Pinch to zoom:** in My view you stay centered on your dot. In Whole field you can also drag around. **Reset zoom** or switching views puts it back.
 - **Screen stays awake** while the show is playing, where the browser allows it (on iPhone, recent iOS versions).

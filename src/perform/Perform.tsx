@@ -194,6 +194,8 @@ export function Perform() {
       <main className="perform-empty">
         <h1>Freeform</h1>
         {error ? <p role="alert">{error}</p> : <p>Open the show link your director sent you. It will be saved on this phone and work offline after that.</p>}
+        <PasteLink />
+        <p><a href="#" style={{ color: '#9cf' }} onClick={(e) => { e.preventDefault(); toEditor(); }}>← Editor</a></p>
       </main>
     );
   }
@@ -215,6 +217,7 @@ export function Perform() {
           })}
         </select>
         <span className="perform-title">{show.title}</span>
+        <button onClick={toEditor} title="Back to the drill editor" style={{ fontSize: 14 }}>← Editor</button>
       </header>
       <div className="perform-field">
         <canvas ref={canvasRef} aria-label="Field" style={{ width: '100%', height: '100%', display: 'block', touchAction: 'none' }}
@@ -281,6 +284,10 @@ export function Perform() {
           <p className="perform-note">Pick who you are above to see your spot.</p>
         )}
         {s.note && <p className="perform-note"><span className="perform-k">Ensemble</span> {s.note}</p>}
+        <details style={{ marginTop: 10, fontSize: 14 }}>
+          <summary>Open a different show</summary>
+          <PasteLink />
+        </details>
       </section>
       <footer className="perform-controls">
         <input type="range" aria-label="Count" min={0} max={total} step={1} value={t} onChange={(e) => { setPlaying(false); setT(Number(e.target.value)); }} disabled={!total} />
@@ -295,6 +302,27 @@ export function Perform() {
           <label style={{ fontSize: 14 }}><input aria-label="Tempo" type="number" min={20} max={300} value={bpm} onChange={(e) => setBpm(Number(e.target.value) || 120)} style={{ width: 52, fontSize: 16 }} /> bpm</label>
         </div>
       </footer>
+    </div>
+  );
+}
+
+const toEditor = () => { location.hash = ''; location.reload(); };
+
+/** For the home-screen app, which has no address bar: paste a share link to open it here. */
+function PasteLink() {
+  const [text, setText] = useState('');
+  const [bad, setBad] = useState(false);
+  const open = () => {
+    const i = text.indexOf(SHARE_PREFIX);
+    if (i < 0) { setBad(true); return; }
+    location.hash = text.slice(i).trim();
+  };
+  return (
+    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
+      <input aria-label="Paste a share link" placeholder="Paste a share link" value={text} onChange={(e) => { setText(e.target.value); setBad(false); }}
+        style={{ flex: 1, minWidth: 180, fontSize: 16 }} />
+      <button onClick={open} disabled={!text.trim()} style={{ fontSize: 16 }}>Open</button>
+      {bad && <span role="alert" style={{ width: '100%', color: '#ff8080' }}>That doesn't look like a Freeform share link.</span>}
     </div>
   );
 }
