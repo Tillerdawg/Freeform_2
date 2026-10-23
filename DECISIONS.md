@@ -238,3 +238,8 @@ Each entry: timestamp, who decided, context, options considered, decision.
 ## 2026-10-23 07:55 EDT — Snap selection to grid
 - **Who:** Jason Tiller asked; details by Claude
 - **Decision:** A "Snap to grid" button in the Selection panel (on a set) rounds the selected performers to the nearest grid point, using the Snap setting: whole or half steps, with Free falling back to whole steps. It's one undo step. Performers that end up sharing a spot are named in a warning, including an unselected performer already standing there. They're not moved apart automatically, since any automatic choice could be wrong.
+
+## 2026-10-23 08:00 EDT — "Save" button renamed "Export"
+- **Who:** Jason Tiller
+- **Context:** Work autosaves in the browser, so a Save button was confusing.
+- **Decision:** The button that downloads the show file is now "Export". Its tooltip says what it's for: a backup, or a copy to share or open in another browser. Autosave lives only in that one browser, so Export is the real backup.
