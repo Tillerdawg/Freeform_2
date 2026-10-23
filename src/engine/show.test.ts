@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { readout } from './coords';
+import { HASHES, readout } from './coords';
 import {
-  addPerformer, addSetAfter, advance, biggestStep, flip, mirrorSides, rotateScale, snapSelection, playRange, playStart, label, locate, newShow, parseShow, placeInSet, positionsAt,
+  addPerformer, addSetAfter, advance, biggestStep, chainOrder, clearFtl, ftlTrail, moveSteps, normalizeFtl, flip, mirrorSides, rotateScale, setFtl, snapSelection, playRange, playStart, label, locate, newShow, parseShow, placeInSet, positionsAt,
   removePerformers, removeSet, setAt, setCounts, setStarts, totalCounts, xFrom, yFrom,
 } from './show';
 
@@ -190,5 +190,62 @@ describe('snap selection to grid', () => {
     const { show, ids } = build([[2.2, 5.1], [1.9, 4.8], [10, 10], [10.3, 9.8]]);
     const r = snapSelection(show, 0, [ids[0], ids[1], ids[3]], 1);
     expect(r.stacked).toEqual(['F1', 'F2', 'F3', 'F4']);
+  });
+});
+
+describe('follow-the-leader (IDEA.md example through the show model)', () => {
+  // Front hash, Side 1 40 to the 50: A on the 40, B split, C on the 45, D split, E on the 50.
+  function idea() {
+    let show = newShow();
+    const ids: string[] = [];
+    const h = HASHES.highSchool;
+    for (const x of [-16, -12, -8, -4, 0]) { const r = addPerformer(show, show.sections[0].id, { x, y: h }); show = r.show; ids.push(r.id); }
+    show = addSetAfter(show, 0, 16);
+    return { show, ids, h };
+  }
+  it('default order chains from the leader to the nearest next performer', () => {
+    const { show, ids } = idea();
+    expect(chainOrder(show, 1, ids[0], [...ids].reverse())).toEqual(ids);
+  });
+  it('moving the leader 16 steps forward puts everyone on the Side 1 40, 4 steps apart', () => {
+    let { show, ids, h } = idea();
+    show = setFtl(show, 1, ids);
+    show = normalizeFtl(placeInSet(show, 1, { [ids[0]]: { x: -16, y: h - 16 } }));
+    ids.forEach((id, k) => {
+      expect(show.sets[1].pos[id].x).toBeCloseTo(-16);
+      expect(show.sets[1].pos[id].y).toBeCloseTo(h - 16 + 4 * k);
+    });
+    // Count 4: B reaches A's start and turns; count 8: E is halfway left.
+    expect(positionsAt(show, 4)[ids[1]].x).toBeCloseTo(-16);
+    expect(positionsAt(show, 4)[ids[1]].y).toBeCloseTo(h);
+    expect(positionsAt(show, 8)[ids[4]].x).toBeCloseTo(-8);
+    // Everyone marches 16 steps in 16 counts: 8-to-5, even E whose straight line is shorter.
+    expect(Object.values(moveSteps(show, 1)).map((s) => s.per5)).toEqual([8, 8, 8, 8, 8]);
+    expect(ftlTrail(show, 1, ids)[0]).toEqual({ x: -16, y: h - 16 });
+  });
+  it('followers update when the move start changes; a deleted member leaves the group', () => {
+    let { show, ids, h } = idea();
+    show = normalizeFtl(placeInSet(setFtl(show, 1, ids), 1, { [ids[0]]: { x: -16, y: h - 16 } }));
+    show = normalizeFtl(placeInSet(show, 0, { [ids[4]]: { x: 4, y: h } })); // E starts 4 farther away
+    // E starts 4 steps farther back along the trail, so it ends 4 steps short: on the hash, at B's starting spot.
+    expect(show.sets[1].pos[ids[4]].y).toBeCloseTo(h);
+    expect(show.sets[1].pos[ids[4]].x).toBeCloseTo(-12);
+    const gone = normalizeFtl(removePerformers(show, new Set([ids[2]])));
+    expect(gone.sets[1].ftl![0].order).toEqual([ids[0], ids[1], ids[3], ids[4]]);
+  });
+  it('clearing FTL leaves performers where they are and floats them', () => {
+    let { show, ids, h } = idea();
+    show = normalizeFtl(placeInSet(setFtl(show, 1, ids), 1, { [ids[0]]: { x: -16, y: h - 16 } }));
+    const c = clearFtl(show, 1, ids);
+    expect(c.sets[1].ftl).toBeUndefined();
+    expect(c.sets[1].pos).toEqual(show.sets[1].pos);
+  });
+  it('a group survives a file round trip; a group naming a missing performer is rejected', () => {
+    let { show, ids } = idea();
+    show = setFtl(show, 1, ids);
+    expect(parseShow(JSON.stringify(show)).sets[1].ftl).toEqual([{ order: ids }]);
+    const bad = JSON.parse(JSON.stringify(show));
+    bad.sets[1].ftl[0].order.push('nobody');
+    expect(() => parseShow(JSON.stringify(bad))).toThrow(/follow-the-leader/);
   });
 });

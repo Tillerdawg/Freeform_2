@@ -18,7 +18,8 @@
 - ✅ Mirror: flip across the 50 or front to back; copy Side 1 → 2 (or 2 → 1) with least-travel pairing.
 - ✅ Rotate and scale a selection around its center.
 - Shape follow-ups: shapes that create new performers; on-field rotate/scale handles; stretch in one direction only.
-- FTL transitions (leader + order, path-following; IDEA.md example is the acceptance test).
+- ✅ FTL transitions (leader + order, path-following; IDEA.md example is the acceptance test).
+- FTL follow-ups: a leader path with turns (several points) instead of a straight leader move; FTL trail shown mid-move.
 - ✅ Coordinate (dot) sheets, 4 cards per page, and drill charts, one per set (print / Save as PDF).
 - ✅ Measure numbers per set (typed), on dot sheets, chart headers, and the timeline.
 - Print follow-ups: paths on charts; a notes column; 1-per-page sheets; computing measures from a meter map once music sync exists.

@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { readout, type Point } from './engine/coords';
 import { emptyHistory, record, redo, undo } from './engine/history';
 import { assign, fitShape, isControl, moveHandle, samplePath, slots, type Shape, type ShapeKind } from './engine/shapes';
 import {
-  addPerformer, advance, label, moveSteps, snapPoint, playRange, playStart, newShow, parseShow, placeInSet, positionsAt, removePerformers,
+  addPerformer, advance, ftlTrail, label, moveSteps, normalizeFtl, snapPoint, playRange, playStart, newShow, parseShow, placeInSet, positionsAt, removePerformers,
   setAt, setStarts, type Show,
 } from './engine/show';
 import { HANDLE_PX, drawField, drawPerformers, drawShape, fitView, toScreen, toWorld, type Path, type View } from './field/drawField';
@@ -36,7 +36,9 @@ const snapTo = snapPoint;
 export function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
-  const [show, setShow] = useState<Show>(loadAutosave);
+  const [show, setShowRaw] = useState<Show>(loadAutosave);
+  // Every edit goes through here so follow-the-leader followers always match their leader.
+  const setShow = useCallback((f: Show | ((s: Show) => Show)) => setShowRaw((s) => normalizeFtl(typeof f === 'function' ? f(s) : f)), []);
   const [t, setT] = useState(0);
   const [view, setView] = useState<View | null>(null);
   const [hover, setHover] = useState('');
@@ -137,8 +139,16 @@ export function App() {
     if (onSet < 1) return [];
     const steps = moveSteps(show, onSet);
     const a = show.sets[onSet - 1].pos, b = show.sets[onSet].pos;
-    return Object.keys(b).filter((id) => a[id] && (a[id].x !== b[id].x || a[id].y !== b[id].y))
+    const groups = show.sets[onSet].ftl ?? [];
+    const inFtl = new Set(groups.flatMap((g) => g.order));
+    const straight = Object.keys(b).filter((id) => !inFtl.has(id) && a[id] && (a[id].x !== b[id].x || a[id].y !== b[id].y))
       .map((id) => ({ from: a[id], to: b[id], tier: steps[id].tier }));
+    // A follow-the-leader group draws its trail once, in the leader's step-size color.
+    const trails = groups.flatMap((g) => {
+      const t = ftlTrail(show, onSet, g.order);
+      return t.slice(1).map((p, k) => ({ from: t[k], to: p, tier: steps[g.order[0]].tier }));
+    });
+    return [...straight, ...trails];
   }, [show, onSet]);
 
   useEffect(() => {
@@ -312,7 +322,9 @@ export function App() {
     }
   };
 
-  const onPointerUp = () => {
+  const onPointerUp = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    // Apply the release point too: a fast release can arrive without a final pointermove, landing the drag short.
+    if (drag.current && drag.current.kind !== 'pan') onPointerMove(e);
     const d = drag.current;
     drag.current = null;
     if (d?.kind === 'box') {

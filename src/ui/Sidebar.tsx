@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { readout, type HashPreset } from '../engine/coords';
 import { addBezierSegment, addCurvePoint, type Shape, type ShapeKind } from '../engine/shapes';
 import {
-  addSetAfter, flip, label, locate, mirrorSides, newId, placeInSet, rotateScale, setMeasures, snapSelection, positionsAt, removePerformers, removeSet, setCounts, xFrom, yFrom,
+  addSetAfter, chainOrder, clearFtl, flip, label, locate, mirrorSides, newId, placeInSet, rotateScale, setFtl, setMeasures, snapSelection, positionsAt, removePerformers, removeSet, setCounts, xFrom, yFrom,
   type FrontDir, type FrontRef, type Show, type SideDir,
 } from '../engine/show';
 
@@ -174,6 +174,7 @@ export function Sidebar(p: Props) {
             </div>
           </fieldset>
         )}
+        {selected.size > 1 && onSet > 0 && <FtlPanel {...p} ids={ids} />}
         {selected.size > 1 && onSet >= 0 && <ShapePanel {...p} />}
         {selected.size > 0 && (
           <div style={row}>
@@ -297,6 +298,62 @@ function ShapePanel({ shape, startShape, updateShape, endShape }: Props) {
             Drag the blue handles on the field. Performers keep their order along the shape.
             {shape.kind === 'bezier' && ' Squares are points the curve passes through; circles pull the curve toward them. Hold Option (Alt) while dragging to move one handle by itself, e.g. to make a corner.'}
           </p>
+        </>
+      )}
+    </fieldset>
+  );
+}
+
+/** Follow-the-leader for the move into the current set. */
+function FtlPanel({ show, setShow, onSet, ids }: Props & { ids: string[] }) {
+  const groups = show.sets[onSet].ftl ?? [];
+  // The group this selection is exactly, if any; otherwise offer to make one.
+  const current = groups.find((g) => g.order.length === ids.length && g.order.every((id) => ids.includes(id)));
+  const name = (id: string) => label(show, show.performers.find((x) => x.id === id)!);
+  const byLabel = [...ids].sort((a, b) => name(a).localeCompare(name(b), undefined, { numeric: true }));
+  const inOther = ids.some((id) => groups.some((g) => g !== current && g.order.includes(id)));
+  const make = (leader: string) => setShow((s) => setFtl(s, onSet, chainOrder(s, onSet, leader, ids)));
+  const swap = (k: number, j: number) => {
+    if (!current || j < 0 || j >= current.order.length) return;
+    const order = [...current.order];
+    [order[k], order[j]] = [order[j], order[k]];
+    setShow((s) => setFtl(s, onSet, order));
+  };
+  return (
+    <fieldset style={{ marginTop: 10, border: '1px solid #33443a' }}>
+      <legend>Follow the leader (move into set {show.sets[onSet].name})</legend>
+      {!current ? (
+        <>
+          <div style={row}>
+            <button onClick={() => make(byLabel[0])}>Make FTL</button>
+            <span style={{ opacity: 0.75, fontSize: 12 }}>Leader: {name(byLabel[0])}; you can change it after.</span>
+          </div>
+          {inOther && <p style={{ margin: '6px 0 0', color: '#f5c518', fontSize: 12 }}>Some of these are in another FTL group; they'll move to this one.</p>}
+        </>
+      ) : (
+        <>
+          <div style={row}>
+            <label>Leader{' '}
+              <select aria-label="FTL leader" value={current.order[0]} onChange={(e) => make(e.target.value)}>
+                {byLabel.map((id) => <option key={id} value={id}>{name(id)}</option>)}
+              </select>
+            </label>
+            <button onClick={() => setShow((s) => clearFtl(s, onSet, ids))} title="Back to a normal straight-line move">Float instead</button>
+          </div>
+          <ol aria-label="FTL order" style={{ margin: '6px 0 0', paddingLeft: 22 }}>
+            {current.order.map((id, k) => (
+              <li key={id} style={{ marginBottom: 2 }}>
+                {name(id)}{k === 0 ? ' (leader)' : ''}
+                {k > 0 && (
+                  <span style={{ marginLeft: 6 }}>
+                    <button aria-label={`Move ${name(id)} earlier`} disabled={k === 1} onClick={() => swap(k, k - 1)}>↑</button>
+                    <button aria-label={`Move ${name(id)} later`} disabled={k === current.order.length - 1} onClick={() => swap(k, k + 1)}>↓</button>
+                  </span>
+                )}
+              </li>
+            ))}
+          </ol>
+          <p style={{ margin: '6px 0 0', opacity: 0.75, fontSize: 12 }}>Move the leader to its end spot; the others follow its trail. Picking a new leader re-chains the order from it.</p>
         </>
       )}
     </fieldset>
