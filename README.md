@@ -4,9 +4,9 @@
 
 Freeform is a browser-based drill writer: put performers on a football field, build sets, animate the moves count by count, and print dot sheets and drill charts. It's inspired by Pyware and the Ultimate Drill Book, with one goal: take licensing cost off the table for school and community programs.
 
-**Use it:** <https://tillerdawg.github.io/Freeform_2/>. No account and no install. It also works offline and can be added to your phone or tablet's home screen. On a phone, the editor runs in landscape: turn the phone sideways (Android locks it automatically; iPhones can't lock a web app's orientation, so Freeform asks you to rotate).
+**Use it:** <https://tillerdawg.github.io/Freeform_2/>. No account and no install. It also works offline and can be added to your phone or tablet's home screen. Write drill on a computer or tablet. On a phone the editor needs landscape (Freeform asks you to turn the phone sideways); phones are mainly for the performer view.
 
-> **Status:** early, actively developed. The drill writer's core workflow works today. A performer view for phones and music sync are next (see [Roadmap](#roadmap)). Shows are saved in your browser and as files you export; there are no accounts or cloud sync yet.
+> **Status:** early, actively developed. The drill writer's core workflow and a performer view for phones work today; music sync is next (see [Roadmap](#roadmap)). Shows are saved in your browser, in files you export, and in share links. There are no accounts or cloud sync.
 
 ---
 
@@ -57,6 +57,14 @@ Every spot reads in standard drill language, e.g. *"2 steps outside the Side 2 4
 - **Drill charts:** one page per set, with labeled dots, markup, and notes. Black on white, for copiers.
 - **PDFs:** use your browser's print dialog and choose **Save as PDF**.
 
+### Performer view (phones)
+- **Share links:** in the editor, **Share…** makes a link with the whole show packed inside it. A 150-performer, 40-set show is about 40 KB. Text it, email it, or post it; there's no server involved. Anyone with the link can view the show. Later edits aren't sent automatically, so share a new link after changes.
+- **Opening a link:** on a phone, it opens a read-only performer screen. Each performer picks **who they are** (or **Staff** for the whole band); the choice and the show stay saved on that phone and work offline.
+- **My dot:** highlighted, with the camera **following me** through each move, my path into the next set (including follow-the-leader trails), and where I end up.
+- **Facing front:** turns the field around to match what I see facing the audience: front sideline at the top, Side 1 on my right. **Director view** is the editor's orientation.
+- **Readouts:** my coordinate now and in the next set, with counts, measures and step size (colored like the editor's warnings), plus my performer notes and the ensemble notes.
+- **Controls:** play at any tempo, step count by count, scrub, or jump to a set. Works in portrait and landscape.
+
 ### Saving
 - **Autosave:** your show saves in this browser automatically.
 - **Export / Import** a `.freeform.json` file to back up a show, share it, or move it to another browser or device. *Export is your real backup:* the autosave lives only in that one browser.
@@ -80,9 +88,9 @@ The editor has the field in the middle, the current set's controls across the to
 
 Roughly in order (details in [PLAN.md](PLAN.md)):
 
-1. **Performer view (phone):** pick your dot and play the show from the director's view or your own.
-2. **Music sync:** play the drill against an mp3, compute measures from the meter, and lay out sets by musical selection.
-3. **Pyware `.3dj` import.**
+1. **Music sync:** play the drill against an mp3, compute measures from the meter, and lay out sets by musical selection.
+2. **Pyware `.3dj` import.**
+3. Performer view extras: pinch-zoom, keeping the screen awake during playback, and updating a shared show without a new link.
 4. Follow-the-leader paths with turns, markup that spans several sets, basketball courts and custom surfaces, and optional cloud sync and app-store versions.
 
 ## Running it yourself
@@ -106,6 +114,7 @@ Every push to `main` runs the tests and publishes to GitHub Pages ([`.github/wor
 | `src/field/` | Drawing the field, performers, shapes and markup on a canvas |
 | `src/ui/` | Sidebar, timeline, and top-bar controls |
 | `src/print/` | Dot sheets and drill charts |
+| `src/perform/` | Performer/staff view and the Share dialog |
 | `public/` | App icons, manifest, offline service worker |
 
 Positions are stored in **8-to-5 steps**: 1 step = 22.5 in, measured from where the 50 yard line meets the front sideline. +x points toward Side 2 and +y toward the back sideline. Every readout is computed from that.

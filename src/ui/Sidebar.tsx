@@ -28,6 +28,7 @@ interface Props {
   onOpen: () => void;
   onSave: () => void;
   onPrint: () => void;
+  onShare: () => void;
   fileError: string;
   onUndo: () => void;
   onRedo: () => void;
@@ -84,6 +85,7 @@ export function Sidebar(p: Props) {
         <button onClick={p.onOpen} title="Load a .freeform.json show file (replaces the current show; Undo brings it back)">Import…</button>
         <button onClick={p.onSave} title="Download this show as a .freeform.json file: a backup, or a copy to share or open in another browser">Export</button>
         <button onClick={p.onPrint} disabled={!show.performers.length} title="Dot sheets and drill charts (print or save as PDF)">Print…</button>
+        <button onClick={p.onShare} disabled={!show.performers.length} title="A link that opens this show on performers' and staff phones">Share…</button>
       </div>
       {p.fileError && <div role="alert" style={{ color: '#ff8080', marginTop: 6 }}>{p.fileError}</div>}
       <div style={{ ...row, marginBottom: 10 }}>

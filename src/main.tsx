@@ -1,6 +1,7 @@
 import { Component, type ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App, AUTOSAVE } from './App';
+import { Perform } from './perform/Perform';
 
 /** If the app crashes, show the error and keep the autosaved show recoverable (a bad save would otherwise crash every reload). */
 class Crash extends Component<{ children: ReactNode }, { error?: Error }> {
@@ -36,7 +37,14 @@ class Crash extends Component<{ children: ReactNode }, { error?: Error }> {
   }
 }
 
-createRoot(document.getElementById('root')!).render(<Crash><App /></Crash>);
+// Share links (#show=...) and the saved performer view (#perform) open the read-only performer screen.
+const perform = location.hash.startsWith('#show=') || location.hash.startsWith('#perform');
+document.body.classList.toggle('performer', perform);
+window.addEventListener('hashchange', () => {
+  if ((location.hash.startsWith('#show=') || location.hash.startsWith('#perform')) !== perform) location.reload();
+  else if (location.hash.startsWith('#show=')) location.reload(); // a new link opened in the same tab
+});
+createRoot(document.getElementById('root')!).render(<Crash>{perform ? <Perform /> : <App />}</Crash>);
 
 // Offline support in the published app only (in development it would cache stale code).
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {

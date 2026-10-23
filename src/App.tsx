@@ -4,13 +4,15 @@ import { emptyHistory, record, redo, undo } from './engine/history';
 import { addInk, hitMark, moveMark, type Mark } from './engine/marks';
 import { assign, fitShape, isControl, moveHandle, samplePath, slots, type Shape, type ShapeKind } from './engine/shapes';
 import {
-  addPerformer, advance, ftlTrail, label, newId, setMarks, moveSteps, normalizeFtl, snapPoint, playRange, playStart, newShow, parseShow, placeInSet, positionsAt, removePerformers,
+  addPerformer, ftlTrail, label, newId, setMarks, moveSteps, normalizeFtl, snapPoint, playRange, newShow, parseShow, placeInSet, positionsAt, removePerformers,
   setAt, setStarts, type Show,
 } from './engine/show';
 import { HANDLE_PX, drawField, drawMarks, drawPerformers, drawShape, fitView, toScreen, toWorld, type Path, type View } from './field/drawField';
 import { Sidebar, type Snap, type Tool } from './ui/Sidebar';
 import { SetControls, Timeline } from './ui/Timeline';
+import { usePlayback } from './ui/usePlayback';
 import { PrintDialog } from './print/Print';
+import { ShareDialog } from './perform/ShareDialog';
 
 export const AUTOSAVE = 'freeform:autosave';
 
@@ -53,12 +55,12 @@ export function App() {
   const [playing, setPlaying] = useState(false);
   const [bpm, setBpm] = useState(120);
   const [range, setRange] = useState<{ from: string | null; to: string | null; loop: boolean }>({ from: null, to: null, loop: false });
-  const tRef = useRef(0);
   // Shape being edited: performers in slot order (order[k] takes slot k), in the set it was started in.
   const [selectedMark, setSelectedMark] = useState<string | null>(null);
   const [shapeEdit, setShapeEdit] = useState<{ shape: Shape; order: string[]; set: number } | null>(null);
   const [fileError, setFileError] = useState('');
   const [printing, setPrinting] = useState(false);
+  const [sharing, setSharing] = useState(false);
   const [box, setBox] = useState<[Point, Point]>();
   const drag = useRef<Drag | null>(null);
   const [hist, setHist] = useState(emptyHistory<Show>);
@@ -108,25 +110,8 @@ export function App() {
     setShow(r.state);
   };
 
-  tRef.current = t;
   const span = useMemo(() => playRange(show, range.from, range.to), [show, range.from, range.to]);
-
-  // Playback in real time at the chosen tempo, within the chosen range.
-  useEffect(() => {
-    if (!playing) return;
-    let cur = playStart(tRef.current, span), last = performance.now(), raf = 0;
-    setT(cur);
-    const tick = (now: number) => {
-      const dt = Math.max(0, now - last) / 1000; // a frame timestamp can precede the start time; never step backward
-      last = now;
-      const r = advance(cur, (dt * bpm) / 60, span, range.loop);
-      cur = r.t;
-      setT(cur);
-      if (r.done) setPlaying(false); else raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [playing, bpm, span, range.loop]);
+  usePlayback(playing, setPlaying, t, setT, bpm, span, range.loop);
 
   useEffect(() => {
     const c = canvasRef.current!;
@@ -447,11 +432,12 @@ export function App() {
         show={show} setShow={setShow} t={t} setT={(x) => { setPlaying(false); setT(x); }} onSet={onSet}
         selected={selected} setSelected={setSelected} tool={tool} setTool={setTool}
         section={section} setSection={setSection} snap={snap} setSnap={setSnap} starts={starts}
-        onNew={fresh} onOpen={() => fileRef.current?.click()} onSave={save} onPrint={() => setPrinting(true)} fileError={fileError}
+        onNew={fresh} onOpen={() => fileRef.current?.click()} onSave={save} onPrint={() => setPrinting(true)} onShare={() => setSharing(true)} fileError={fileError}
         selectedMark={selectedMark} setSelectedMark={setSelectedMark}
         onUndo={() => step('undo')} onRedo={() => step('redo')} canUndo={!!hist.past.length} canRedo={!!hist.future.length}
         onFit={() => { const c = canvasRef.current!; setView(fitView(c.width, c.height)); }} shape={shapeEdit?.shape ?? null} startShape={startShape} updateShape={updateShape} endShape={() => setShapeEdit(null)}
       />
+      {sharing && <ShareDialog show={show} onClose={() => setSharing(false)} />}
       {printing && <PrintDialog show={show} selected={selected} onClose={() => setPrinting(false)} />}
       <input ref={fileRef} type="file" accept=".json,application/json" hidden
         onChange={(e) => { const f = e.target.files?.[0]; if (f) open(f); e.target.value = ''; }} />
