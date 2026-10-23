@@ -267,4 +267,13 @@ Each entry: timestamp, who decided, context, options considered, decision.
 ## 2026-10-23 09:10 EDT — Bézier curve tool
 - **Who:** Jason Tiller asked for it alongside the simple Curve; details by Claude
 - **Decision:** A Bézier shape made of cubic segments. Anchors (squares) are points the curve passes through. Each segment's two controls (circles, on thin arms from their anchors) pull the curve toward them without touching it, as in Illustrator or Keynote. "+ Segment" adds a segment in the same direction; the new joint starts smooth (its two controls mirror each other), but either control can be dragged to make a corner. Spacing and least-travel assignment work as for the other shapes.
-- **Other options:** keep a joint smooth automatically when one of its controls is dragged (deferred: not always wanted, and it hides how Bézier handles work).
+- **Other options:** keep a joint smooth automatically when one of its controls is dragged (deferred at first; adopted below).
+
+## 2026-10-23 09:30 EDT — Bézier joints stay smooth unless Option is held
+- **Who:** Jason Tiller; behavior details by Claude (modeled on Illustrator)
+- **Decision:**
+  - Dragging a control at a smooth joint swings the other control to stay opposite, keeping its own length, so lopsided-but-smooth joints are possible.
+  - A joint that's already a corner stays a corner.
+  - Dragging an anchor carries its two controls with it.
+  - Holding Option (Mac) or Alt (Windows) while dragging moves just that one handle: that's how you make a corner, or move an anchor without its controls.
+  - "Smooth" means the controls point within about 2° of directly opposite.

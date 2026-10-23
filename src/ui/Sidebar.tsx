@@ -295,7 +295,7 @@ function ShapePanel({ shape, startShape, updateShape, endShape }: Props) {
           </div>
           <p style={{ margin: '6px 0 0', opacity: 0.75, fontSize: 12 }}>
             Drag the blue handles on the field. Performers keep their order along the shape.
-            {shape.kind === 'bezier' && ' Squares are points the curve passes through; circles pull the curve toward them.'}
+            {shape.kind === 'bezier' && ' Squares are points the curve passes through; circles pull the curve toward them. Hold Option (Alt) while dragging to move one handle by itself, e.g. to make a corner.'}
           </p>
         </>
       )}
