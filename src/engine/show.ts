@@ -351,3 +351,19 @@ export function snapSelection(show: Show, i: number, ids: string[], unit: number
 
 export const setMeasures = (show: Show, i: number, measures: string): Show =>
   mapSet(show, i, (s) => ({ ...s, measures: measures || undefined }));
+
+// ---- Changing hash marks.
+
+/**
+ * Re-draw every set for a different hash preset, keeping positions relative to the hashes: on the hash stays on the
+ * hash, sidelines stay sidelines, and each zone (sideline–hash, hash–hash, hash–sideline) stretches proportionally.
+ */
+export function remapHash(show: Show, to: HashPreset): Show {
+  const h0 = HASHES[show.hash], h1 = HASHES[to], W = FIELD_WIDTH;
+  const y = (v: number) =>
+    v <= h0 ? (v * h1) / h0
+    : v >= W - h0 ? W - ((W - v) * h1) / h0
+    : h1 + ((v - h0) * (W - 2 * h1)) / (W - 2 * h0);
+  const sets = show.sets.map((s) => ({ ...s, pos: Object.fromEntries(Object.entries(s.pos).map(([id, p]) => [id, { x: p.x, y: y(p.y) }])) }));
+  return normalizeFtl({ ...show, hash: to, sets });
+}

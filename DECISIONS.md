@@ -294,3 +294,12 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Who:** Claude
 - **Context:** One browser test run had a drag land 2 steps short. It couldn't be reproduced in 20+ further runs, with or without the change.
 - **Decision:** On release, the app also applies the pointer's final position for drags of performers, shape handles, and selection boxes, so a release that arrives without a final move event can't leave the drag short.
+
+## 2026-10-23 10:20 EDT — Changing hash marks on an existing show
+- **Who:** Jason Tiller (both options); details by Claude
+- **Context:** A drill writer may start a show with the wrong hashes by mistake. Dots are stored as physical spots, so switching hashes kept the dots in place and changed their coordinates ("on Front Hash" became "4 steps behind Front Hash").
+- **Decision:** Changing the hash preset on a show with performers asks:
+  - **Keep positions relative to the hashes:** each zone (front sideline to front hash, hash to hash, back hash to back sideline) is stretched or squeezed proportionally, in every set. On the hash stays on the hash, and switching back restores the original spots exactly. Shapes that cross a hash can bend slightly there, and step sizes change a little; the step-size warnings flag anything that gets too big.
+  - **Keep spots on the field:** dots stay put and only the hashes move.
+  - **Cancel.**
+  - Either choice is one undo step. An empty show switches without asking. Editor shortcuts are off while any dialog is open.

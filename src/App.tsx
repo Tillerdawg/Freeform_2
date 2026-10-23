@@ -226,7 +226,7 @@ export function App() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const el = e.target as HTMLElement;
-      if (printing || el.closest('input, select, textarea')) return; // text fields keep the browser's own undo
+      if (printing || document.querySelector('[role=dialog]') || el.closest('input, select, textarea')) return; // text fields keep the browser's own undo
       boundary.current = true;
       const mod = e.metaKey || e.ctrlKey;
       if (mod && (e.key === 'z' || e.key === 'Z')) { e.preventDefault(); step(e.shiftKey ? 'redo' : 'undo'); }

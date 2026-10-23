@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { HASHES, readout } from './coords';
 import {
-  addPerformer, addSetAfter, advance, biggestStep, chainOrder, clearFtl, ftlTrail, moveSteps, normalizeFtl, flip, mirrorSides, rotateScale, setFtl, snapSelection, playRange, playStart, label, locate, newShow, parseShow, placeInSet, positionsAt,
+  addPerformer, addSetAfter, advance, biggestStep, chainOrder, clearFtl, ftlTrail, moveSteps, normalizeFtl, flip, mirrorSides, remapHash, rotateScale, setFtl, snapSelection, playRange, playStart, label, locate, newShow, parseShow, placeInSet, positionsAt,
   removePerformers, removeSet, setAt, setCounts, setStarts, totalCounts, xFrom, yFrom,
 } from './show';
 
@@ -247,5 +247,32 @@ describe('follow-the-leader (IDEA.md example through the show model)', () => {
     const bad = JSON.parse(JSON.stringify(show));
     bad.sets[1].ftl[0].order.push('nobody');
     expect(() => parseShow(JSON.stringify(bad))).toThrow(/follow-the-leader/);
+  });
+});
+
+describe('changing hash marks, keeping positions relative to the hashes', () => {
+  function college(ys: number[]) {
+    let show: ReturnType<typeof newShow> = { ...newShow(), hash: 'college' };
+    const ids: string[] = [];
+    for (const y of ys) { const r = addPerformer(show, show.sections[0].id, { x: 8, y }); show = r.show; ids.push(r.id); }
+    return { show, ids };
+  }
+  it('hashes stay hashes, sidelines stay sidelines, zones stretch proportionally', () => {
+    // College 32/20/32 -> high school 28/28/28.
+    const { show, ids } = college([0, 16, 32, 42, 52, 84, 30]);
+    const hs = remapHash(show, 'highSchool');
+    expect(hs.hash).toBe('highSchool');
+    expect(ids.map((id) => hs.sets[0].pos[id].y)).toEqual([0, 14, 28, 42, 56, 84, 26.25]);
+    expect(hs.sets[0].pos[ids[0]].x).toBe(8);
+  });
+  it('a dot on the college front hash still reads "on Front Hash" in high school and NFL', () => {
+    const { show, ids } = college([32]);
+    expect(readout(remapHash(show, 'highSchool').sets[0].pos[ids[0]], 'highSchool')).toBe('On the Side 2 45, on Front Hash');
+    expect(readout(remapHash(show, 'nfl').sets[0].pos[ids[0]], 'nfl')).toBe('On the Side 2 45, on Front Hash');
+  });
+  it('switching back restores the original spots', () => {
+    const { show, ids } = college([5, 31, 44, 70]);
+    const back = remapHash(remapHash(show, 'highSchool'), 'college');
+    ids.forEach((id) => expect(back.sets[0].pos[id].y).toBeCloseTo(show.sets[0].pos[id].y, 9));
   });
 });
