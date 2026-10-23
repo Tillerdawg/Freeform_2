@@ -426,3 +426,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Context:** The home-screen app opens in the editor, and the only way into the performer view was Share… → Open performer view here, which needs a show with performers. A student with a fresh app had no way to reach Scan QR code.
 - **Decision:** The editor's top button row gets **Performer view**, which always opens the performer view (the saved show, or the empty screen with Scan QR code and paste). **← Editor** comes back.
 - **Other options:** open phones straight into the performer view (later, if students find the editor confusing).
+
+## 2026-10-23 14:40 EDT — No editor on phones
+- **Who:** Jason Tiller (remove editing from phones; keep performer and director views); details by Claude *(Jason can veto)*
+- **Decision:** On a phone, Freeform always opens the performer view, and **← Editor** is hidden. "Phone" means a touch screen whose short side is under 600 CSS px: every iPhone counts, and iPads (744 px and up) and computers keep the editor. Directors on a phone pick **Staff** and use Director view / Facing front. The editor's "turn your phone sideways" screen is removed, since the editor never shows on a phone now.
+- **Note:** an editor autosave already on a phone isn't deleted, just unreachable there. Export from a computer is the way to move shows.
+- **Other options:** a hidden way back into the editor on phones (not requested); judging by screen width alone (a narrow desktop window would lose the editor).

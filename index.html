@@ -38,17 +38,6 @@
         .perform-info, .perform-controls { grid-column: 2; overflow-y: auto; }
         .perform-info { height: auto; }
       }
-      /* Phones in portrait: the editor needs landscape. iOS can't lock a web app's orientation, so ask instead.
-         Tablets and desktop windows are wide enough and aren't affected. */
-      #rotate-hint { display: none; }
-      @media screen and (orientation: portrait) and (max-width: 600px) {
-        body:not(.performer) #rotate-hint { display: flex; }
-        #rotate-hint { position: fixed; inset: 0; z-index: 100; background: #1d2a1f; color: #eee;
-          flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 24px; text-align: center; font-size: 18px; }
-        #rotate-hint .phone { width: 56px; height: 96px; border: 4px solid #eee; border-radius: 12px; animation: turn 2.4s ease-in-out infinite; }
-        @keyframes turn { 0%, 30% { transform: rotate(0deg); } 60%, 100% { transform: rotate(-90deg); } }
-        @media (prefers-reduced-motion: reduce) { #rotate-hint .phone { animation: none; transform: rotate(-90deg); } }
-      }
       @media print {
         html, body { height: auto; background: #fff; color: #000; }
         #root { display: none !important; }
@@ -74,7 +63,6 @@
     </style>
   </head>
   <body>
-    <div id="rotate-hint" role="alert"><div class="phone" aria-hidden="true"></div><p>Turn your phone sideways to use Freeform.</p><p style="font-size:14px;opacity:.75">Your show is safe; it picks up right where you left off.</p></div>
     <div id="root"></div>
     <div id="print-root"></div>
     <script type="module" src="/src/main.tsx"></script>

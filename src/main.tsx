@@ -2,6 +2,7 @@ import { Component, type ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App, AUTOSAVE } from './App';
 import { Perform } from './perform/Perform';
+import { isPhone } from './perform/device';
 
 /** If the app crashes, show the error and keep the autosaved show recoverable (a bad save would otherwise crash every reload). */
 class Crash extends Component<{ children: ReactNode }, { error?: Error }> {
@@ -39,10 +40,11 @@ class Crash extends Component<{ children: ReactNode }, { error?: Error }> {
 
 // Share links (#show=...), hosted links (#load=...) and the saved performer view (#perform) open the read-only performer screen.
 const isPerform = () => ['#show=', '#load=', '#perform'].some((p) => location.hash.startsWith(p));
-const perform = isPerform();
+const perform = isPhone() || isPerform();
+if (perform && !isPerform()) history.replaceState(null, '', location.pathname + '#perform');
 document.body.classList.toggle('performer', perform);
 window.addEventListener('hashchange', () => {
-  if (isPerform() !== perform) location.reload();
+  if (isPerform() !== perform && !isPhone()) location.reload();
   else if (location.hash.startsWith('#show=') || location.hash.startsWith('#load=')) location.reload(); // a new link opened in the same tab
 });
 createRoot(document.getElementById('root')!).render(<Crash>{perform ? <Perform /> : <App />}</Crash>);
