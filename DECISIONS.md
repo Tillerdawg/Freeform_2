@@ -372,3 +372,8 @@ Each entry: timestamp, who decided, context, options considered, decision.
   - **Rotation:** the "turn sideways" prompt no longer appears in the performer view. The manifest's landscape setting was removed, because Android would apply it to the whole installed app, performer view included. The editor still asks phones in portrait to rotate.
   - Playback timing is shared by the editor and the performer view (`usePlayback`).
 - **Other options:** import the file (still works); QR codes (too small for real shows without hosting); a hosted copy that updates in place (needs a server or sync; later).
+
+## 2026-10-23 13:45 EDT — Performer view shows who's around me
+- **Who:** Jason Tiller (show surrounding performers); details by Claude
+- **Decision:** In the performer view, my nearest neighbors (up to 4, within 10 steps, at the current count) get a brighter dot and an upright label; everyone else stays an unlabeled dim dot, to avoid clutter. The info panel's "Around you" list gives each neighbor's offset in field directions ("toward Side 1/2", "in front" = toward the front sideline, "behind"), rounded to quarter steps, so it reads the same in Director view and Facing front. The portrait info panel now has a fixed height and scrolls, so changing content can't resize (and flash) the field.
+- **Other options:** label everyone (too cluttered on a phone); performer-relative left/right (depends on which way the performer is facing at that moment, which Freeform doesn't know).
