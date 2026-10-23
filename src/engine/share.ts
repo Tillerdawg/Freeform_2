@@ -65,3 +65,9 @@ export async function fetchShow(url: string, fetcher: typeof fetch = fetch): Pro
   if (text.length > MAX_BYTES) throw new Error('That file is too big to be a show.');
   return { show: parseShow(text), text };
 }
+
+/** The Freeform part ("#show=…" or "#load=…") of a pasted message or scanned QR code, or null. */
+export function linkHash(text: string): string | null {
+  const m = text.match(/#(show|load)=\S+/);
+  return m ? m[0] : null;
+}
