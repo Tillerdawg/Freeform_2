@@ -10,10 +10,13 @@ interface Props {
   setPlaying: (p: boolean) => void;
   bpm: number;
   setBpm: (n: number) => void;
+  range: { from: string | null; to: string | null; loop: boolean };
+  setRange: (r: { from: string | null; to: string | null; loop: boolean }) => void;
+  span: [number, number];
 }
 
 /** One segment per move, width proportional to its counts; click or drag to scrub by whole counts. */
-export function Timeline({ show, t, setT, playing, setPlaying, bpm, setBpm }: Props) {
+export function Timeline({ show, t, setT, playing, setPlaying, bpm, setBpm, range, setRange, span }: Props) {
   const total = totalCounts(show);
   const starts = setStarts(show);
   const { to, count } = locate(show, t);
@@ -39,6 +42,25 @@ export function Timeline({ show, t, setT, playing, setPlaying, bpm, setBpm }: Pr
         <label>
           Tempo <input type="number" min={20} max={300} value={bpm} onChange={(e) => setBpm(Number(e.target.value) || 120)} style={{ width: 56 }} /> bpm
         </label>
+        {show.sets.length > 1 && (
+          <>
+            <label>
+              Play set{' '}
+              <select aria-label="Play from set" value={range.from ?? ''} onChange={(e) => setRange({ ...range, from: e.target.value || null })}>
+                <option value="">{show.sets[0].name} (start)</option>
+                {show.sets.slice(1).map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+            </label>
+            <label>
+              to{' '}
+              <select aria-label="Play to set" value={range.to ?? ''} onChange={(e) => setRange({ ...range, to: e.target.value || null })}>
+                <option value="">{show.sets.at(-1)!.name} (end)</option>
+                {show.sets.slice(0, -1).map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+            </label>
+            <label><input type="checkbox" checked={range.loop} onChange={(e) => setRange({ ...range, loop: e.target.checked })} /> Loop</label>
+          </>
+        )}
         <span style={{ marginLeft: 'auto', fontVariantNumeric: 'tabular-nums' }}>{status} · {Math.floor(t)} / {total} counts</span>
       </div>
       {total === 0 ? (
@@ -71,6 +93,9 @@ export function Timeline({ show, t, setT, playing, setPlaying, bpm, setBpm }: Pr
               }} />
             );
           })}
+          {/* Dim what's outside the play range. */}
+          {span[0] > 0 && <div style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: `${(span[0] / total) * 100}%`, background: 'rgba(0,0,0,0.45)', pointerEvents: 'none' }} />}
+          {span[1] < total && <div style={{ position: 'absolute', top: 0, bottom: 0, right: 0, width: `${((total - span[1]) / total) * 100}%`, background: 'rgba(0,0,0,0.45)', pointerEvents: 'none' }} />}
           <div style={{ position: 'absolute', top: -4, bottom: -4, width: 2, background: '#fff', left: `${(t / total) * 100}%`, pointerEvents: 'none' }} />
         </div>
       )}
