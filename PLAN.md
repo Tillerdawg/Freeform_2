@@ -14,7 +14,7 @@
 - Touch support pass (tablets).
 
 ## Later milestones (rough order)
-- ✅ Shape tools: line, arc, curve, circle, block (select, then shape; even or interval spacing; least-travel assignment).
+- ✅ Shape tools: line, arc, curve, Bézier, circle, block (select, then shape; even or interval spacing; least-travel assignment).
 - ✅ Mirror: flip across the 50 or front to back; copy Side 1 → 2 (or 2 → 1) with least-travel pairing.
 - ✅ Rotate and scale a selection around its center.
 - Shape follow-ups: shapes that create new performers; on-field rotate/scale handles; stretch in one direction only.

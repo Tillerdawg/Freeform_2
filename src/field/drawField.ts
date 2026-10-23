@@ -159,7 +159,10 @@ export function drawPerformers(
 }
 
 /** Shape guide (dashed) and its draggable handles. */
-export function drawShape(ctx: CanvasRenderingContext2D, v: View, guide: Point[], closed: boolean, handles: Point[]) {
+export function drawShape(
+  ctx: CanvasRenderingContext2D, v: View, guide: Point[], closed: boolean, handles: Point[],
+  controls: boolean[] = [], arms: [Point, Point][] = [],
+) {
   ctx.save();
   ctx.strokeStyle = '#5ad1ff';
   ctx.lineWidth = Math.max(1.5, v.scale * 0.1);
@@ -169,15 +172,26 @@ export function drawShape(ctx: CanvasRenderingContext2D, v: View, guide: Point[]
   if (closed) ctx.closePath();
   ctx.stroke();
   ctx.setLineDash([]);
+  // Bézier control arms: thin lines from each anchor to its controls.
+  ctx.strokeStyle = 'rgba(90,209,255,0.7)';
+  ctx.lineWidth = 1.5;
+  for (const [a, b] of arms) {
+    const p = toScreen(v, a), q = toScreen(v, b);
+    ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke();
+  }
   const r = HANDLE_PX * (window.devicePixelRatio || 1);
-  for (const h of handles) {
+  handles.forEach((h, k) => {
     const s = toScreen(v, h);
     ctx.fillStyle = '#5ad1ff';
     ctx.strokeStyle = '#0b2a36';
     ctx.lineWidth = 2;
-    ctx.fillRect(s.x - r, s.y - r, 2 * r, 2 * r);
-    ctx.strokeRect(s.x - r, s.y - r, 2 * r, 2 * r);
-  }
+    if (controls[k]) { // controls are circles; points the shape passes through are squares
+      ctx.beginPath(); ctx.arc(s.x, s.y, r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    } else {
+      ctx.fillRect(s.x - r, s.y - r, 2 * r, 2 * r);
+      ctx.strokeRect(s.x - r, s.y - r, 2 * r, 2 * r);
+    }
+  });
   ctx.restore();
 }
 

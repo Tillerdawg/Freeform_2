@@ -49,12 +49,12 @@ describe('measure numbers', () => {
   it('are typed per set, printed on cards and chart titles, and only when any exist', () => {
     let { s, t1 } = show3();
     expect(hasMeasures(s)).toBe(false);
-    s = setMeasures(setMeasures(s, 0, 'pu'), 1, '1–4');
+    s = setMeasures(setMeasures(s, 0, '0'), 1, '1–4');
     expect(hasMeasures(s)).toBe(true);
     const [card] = dotCards(s, s.performers.filter((p) => p.id === t1));
-    expect(card.rows.map((r) => r.measures)).toEqual(['pu', '1–4']);
+    expect(card.rows.map((r) => r.measures)).toEqual(['0', '1–4']);
     expect(chartTitle(s, 1)).toBe('Set 2 · 16 counts (counts 0–16) · m. 1–4');
-    expect(chartTitle(s, 0)).toBe('Set 1 · opening set · m. pu');
+    expect(chartTitle(s, 0)).toBe('Set 1 · opening set · m. 0');
     expect(setMeasures(s, 1, '').sets[1].measures).toBeUndefined();
   });
   it('survive a file round trip; non-text measures are rejected', () => {

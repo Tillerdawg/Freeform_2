@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { readout, type HashPreset } from '../engine/coords';
-import { addCurvePoint, type Shape, type ShapeKind } from '../engine/shapes';
+import { addBezierSegment, addCurvePoint, type Shape, type ShapeKind } from '../engine/shapes';
 import {
   addSetAfter, flip, label, locate, mirrorSides, newId, placeInSet, rotateScale, setMeasures, snapSelection, positionsAt, removePerformers, removeSet, setCounts, xFrom, yFrom,
   type FrontDir, type FrontRef, type Show, type SideDir,
@@ -35,7 +35,7 @@ interface Props {
   endShape: () => void;
 }
 
-const SHAPES: [ShapeKind, string][] = [['line', 'Line'], ['arc', 'Arc'], ['curve', 'Curve'], ['circle', 'Circle'], ['block', 'Block']];
+const SHAPES: [ShapeKind, string][] = [['line', 'Line'], ['arc', 'Arc'], ['curve', 'Curve'], ['bezier', 'Bézier'], ['circle', 'Circle'], ['block', 'Block']];
 
 const PRESETS: [HashPreset, string][] = [['highSchool', 'High school'], ['college', 'College / DCI'], ['nfl', 'NFL']];
 const LINES = [50, 45, 40, 35, 30, 25, 20, 15, 10, 5, 0];
@@ -124,7 +124,7 @@ export function Sidebar(p: Props) {
             </label>
           )}
           <label>Measures{' '}
-            <input aria-label="Measures" placeholder={cur > 0 ? 'e.g. 9–12' : 'e.g. 1'} value={show.sets[cur].measures ?? ''} style={{ width: 72 }}
+            <input aria-label="Measures" placeholder={cur > 0 ? 'e.g. 9–12' : 'e.g. 0 or 1'} value={show.sets[cur].measures ?? ''} style={{ width: 72 }}
               onChange={(e) => setShow((s) => setMeasures(s, cur, e.target.value))} />
           </label>
           <button onClick={() => { setShow((s) => addSetAfter(s, cur)); p.setT(p.starts[cur] + 16); }}>+ Set after</button>
@@ -290,9 +290,13 @@ function ShapePanel({ shape, startShape, updateShape, endShape }: Props) {
           )}
           <div style={row}>
             {shape.kind === 'curve' && <button onClick={() => updateShape(addCurvePoint(shape))}>+ Curve point</button>}
+            {shape.kind === 'bezier' && <button onClick={() => updateShape(addBezierSegment(shape))}>+ Segment</button>}
             <button onClick={endShape}>Done (Esc)</button>
           </div>
-          <p style={{ margin: '6px 0 0', opacity: 0.75, fontSize: 12 }}>Drag the blue handles on the field. Performers keep their order along the shape.</p>
+          <p style={{ margin: '6px 0 0', opacity: 0.75, fontSize: 12 }}>
+            Drag the blue handles on the field. Performers keep their order along the shape.
+            {shape.kind === 'bezier' && ' Squares are points the curve passes through; circles pull the curve toward them.'}
+          </p>
         </>
       )}
     </fieldset>

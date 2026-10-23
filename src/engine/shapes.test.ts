@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { distance, type Point } from './coords';
-import { addCurvePoint, assign, fitShape, slots, type Shape } from './shapes';
+import { addBezierSegment, addCurvePoint, assign, fitShape, isControl, samplePath, slots, type Shape } from './shapes';
 
 const near = (p: Point, x: number, y: number) => { expect(p.x).toBeCloseTo(x, 4); expect(p.y).toBeCloseTo(y, 4); };
 const S = (kind: Shape['kind'], handles: Point[], extra: Partial<Shape> = {}): Shape => ({ kind, handles, interval: null, cols: 3, ...extra });
@@ -86,5 +86,27 @@ describe('helpers', () => {
   it('addCurvePoint splits the longest segment', () => {
     const s = addCurvePoint(S('curve', [{ x: 0, y: 0 }, { x: 2, y: 0 }, { x: 12, y: 0 }]));
     expect(s.handles.map((p) => p.x)).toEqual([0, 2, 7, 12]);
+  });
+});
+
+describe('bezier', () => {
+  const B = (h: Point[]) => S('bezier', h);
+  it('passes through its anchors but not its controls', () => {
+    const s = B([{ x: 0, y: 0 }, { x: 0, y: 12 }, { x: 16, y: 12 }, { x: 16, y: 0 }]);
+    const { pts } = samplePath(s);
+    near(pts[0], 0, 0); near(pts.at(-1)!, 16, 0);
+    expect(Math.max(...pts.map((p) => p.y))).toBeCloseTo(9, 1); // pulled to 3/4 of the controls' height at the middle
+    expect(isControl(s, 0)).toBe(false); expect(isControl(s, 1)).toBe(true); expect(isControl(s, 3)).toBe(false);
+  });
+  it('with controls on the line it is a straight line, evenly spaced', () => {
+    const p = slots(B([{ x: 0, y: 0 }, { x: 4, y: 0 }, { x: 12, y: 0 }, { x: 16, y: 0 }]), 5);
+    p.forEach((q, i) => near(q, 4 * i, 0));
+  });
+  it('a new segment joins smoothly and ends on a new anchor', () => {
+    const s = addBezierSegment(B([{ x: 0, y: 0 }, { x: 4, y: 6 }, { x: 12, y: 6 }, { x: 16, y: 0 }]));
+    expect(s.handles).toHaveLength(7);
+    const [c, a, c2] = [s.handles[2], s.handles[3], s.handles[4]];
+    expect(c2).toEqual({ x: 2 * a.x - c.x, y: 2 * a.y - c.y }); // mirror: same tangent both sides of the joint
+    expect(isControl(s, 6)).toBe(false);
   });
 });

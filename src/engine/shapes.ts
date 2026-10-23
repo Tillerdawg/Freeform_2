@@ -1,10 +1,12 @@
 // Shape tools: lay selected performers out along a line, arc, curve, circle, or block. All units are steps.
 import { distance, type Point } from './coords';
 
-export type ShapeKind = 'line' | 'arc' | 'curve' | 'circle' | 'block';
+export type ShapeKind = 'line' | 'arc' | 'curve' | 'bezier' | 'circle' | 'block';
 /**
  * Handles by kind: line [a, b]; arc [a, bend, b] (the arc passes through all three);
- * curve [p0..pn] (smooth curve through every point); circle [center, edge]; block [corner, opposite corner].
+ * curve [p0..pn] (smooth curve through every point); circle [center, edge]; block [corner, opposite corner];
+ * bezier [anchor, control, control, anchor, control, control, anchor, ...]: cubic segments that pass through the
+ * anchors and are pulled toward (not through) the controls.
  */
 export interface Shape { kind: ShapeKind; handles: Point[]; interval: number | null; cols: number }
 
@@ -32,6 +34,19 @@ export function samplePath(s: Shape): { pts: Point[]; closed: boolean } {
     if (ccw(ang(m)) > sweep) sweep -= 2 * Math.PI;
     const n = 128;
     return { pts: Array.from({ length: n + 1 }, (_, i) => ({ x: c.x + r * Math.cos(t0 + (sweep * i) / n), y: c.y + r * Math.sin(t0 + (sweep * i) / n) })), closed: false };
+  }
+  if (s.kind === 'bezier') {
+    const pts: Point[] = [];
+    for (let k = 0; k + 3 < h.length; k += 3) {
+      const [p0, p1, p2, p3] = h.slice(k, k + 4);
+      for (let i = 0; i < 48; i++) {
+        const t = i / 48, u = 1 - t;
+        const w = [u * u * u, 3 * u * u * t, 3 * u * t * t, t * t * t];
+        pts.push({ x: w[0] * p0.x + w[1] * p1.x + w[2] * p2.x + w[3] * p3.x, y: w[0] * p0.y + w[1] * p1.y + w[2] * p2.y + w[3] * p3.y });
+      }
+    }
+    pts.push(h.at(-1)!);
+    return { pts, closed: false };
   }
   // curve: Catmull-Rom spline through every handle
   const pts: Point[] = [];
@@ -136,6 +151,7 @@ export function fitShape(kind: ShapeKind, pts: Point[]): Shape {
     case 'line': return { kind, handles: [P(x0, cy), P(x1, cy)], ...base };
     case 'arc': return { kind, handles: [P(x0, cy), P(cx, cy + span / 4), P(x1, cy)], ...base };
     case 'curve': return { kind, handles: [P(x0, cy), P(x0 + span / 3, cy + span / 6), P(x0 + (2 * span) / 3, cy - span / 6), P(x1, cy)], ...base };
+    case 'bezier': return { kind, handles: [P(x0, cy), P(x0 + span / 3, cy + span / 3), P(x0 + (2 * span) / 3, cy - span / 3), P(x1, cy)], ...base };
     case 'circle': return { kind, handles: [P(cx, cy), P(cx + span / 2, cy)], ...base };
     case 'block': {
       const c = base.cols, r = Math.ceil(pts.length / c);
@@ -154,4 +170,15 @@ export function addCurvePoint(s: Shape): Shape {
   const handles = [...s.handles];
   handles.splice(k + 1, 0, lerp(s.handles[k], s.handles[k + 1], 0.5));
   return { ...s, handles };
+}
+
+/** Is handle k of a shape a Bézier control (pulls the curve) rather than a point it passes through? */
+export const isControl = (s: Shape, k: number) => s.kind === 'bezier' && k % 3 !== 0;
+
+/** Extends a Bézier with another segment. The joint starts smooth: its two controls are mirror images. */
+export function addBezierSegment(s: Shape): Shape {
+  const h = s.handles, a = h.at(-1)!, c = h.at(-2)!, prev = h.at(-4)!;
+  const d = { x: a.x - prev.x, y: a.y - prev.y }; // continue in roughly the same direction and length
+  const r = (p: Point) => ({ x: Math.round(p.x), y: Math.round(p.y) });
+  return { ...s, handles: [...h, r({ x: 2 * a.x - c.x, y: 2 * a.y - c.y }), r({ x: a.x + (2 * d.x) / 3, y: a.y + (2 * d.y) / 3 }), r({ x: a.x + d.x, y: a.y + d.y })] };
 }
