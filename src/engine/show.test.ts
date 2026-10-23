@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { readout } from './coords';
 import {
-  addPerformer, addSetAfter, advance, biggestStep, flip, mirrorSides, playRange, playStart, label, locate, newShow, parseShow, placeInSet, positionsAt,
+  addPerformer, addSetAfter, advance, biggestStep, flip, mirrorSides, rotateScale, playRange, playStart, label, locate, newShow, parseShow, placeInSet, positionsAt,
   removePerformers, removeSet, setAt, setCounts, setStarts, totalCounts, xFrom, yFrom,
 } from './show';
 
@@ -139,5 +139,34 @@ describe('mirroring', () => {
   it('refuses uneven sides with a clear message', () => {
     const { show, ids } = build([[-16, 10], [-8, 40], [20, 38]]);
     expect(() => mirrorSides(show, 1, ids, 1)).toThrow(/Side 1: 2, Side 2: 1/);
+  });
+});
+
+describe('rotate and scale', () => {
+  function build(spots: [number, number][]) {
+    let show = newShow();
+    const ids: string[] = [];
+    for (const [x, y] of spots) { const r = addPerformer(show, show.sections[0].id, { x, y }); show = r.show; ids.push(r.id); }
+    return { show, ids };
+  }
+  const at = (show: ReturnType<typeof newShow>, ids: string[]) => ids.map((id) => show.sets[0].pos[id]);
+  it('rotates 90° counterclockwise around the selection center, exactly', () => {
+    const { show, ids } = build([[0, 20], [8, 20]]); // a line on the hash, center (4, 20)
+    expect(at(rotateScale(show, 0, ids, 90, 1), ids)).toEqual([{ x: 4, y: 16 }, { x: 4, y: 24 }]);
+  });
+  it('four 90° turns come back to the start; distances are kept', () => {
+    const { show, ids } = build([[-10, 12], [3, 30], [7, 18]]);
+    let s = show;
+    for (let k = 0; k < 4; k++) s = rotateScale(s, 0, ids, 90, 1);
+    expect(at(s, ids)).toEqual(at(show, ids));
+    const r = at(rotateScale(show, 0, ids, 33, 1), ids), o = at(show, ids);
+    expect(Math.hypot(r[0].x - r[1].x, r[0].y - r[1].y)).toBeCloseTo(Math.hypot(o[0].x - o[1].x, o[0].y - o[1].y), 9);
+  });
+  it('expand then contract by the same factor returns to the start', () => {
+    const { show, ids } = build([[0, 20], [4, 20], [8, 24]]);
+    const big = rotateScale(show, 0, ids, 0, 1.5);
+    expect(at(big, ids)[0]).toEqual({ x: -2, y: 19 }); // 1.5x the distance from center (4, 22)
+    const back = at(rotateScale(big, 0, ids, 0, 1 / 1.5), ids);
+    back.forEach((p, k) => { expect(p.x).toBeCloseTo(at(show, ids)[k].x, 9); expect(p.y).toBeCloseTo(at(show, ids)[k].y, 9); });
   });
 });
