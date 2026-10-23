@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { distance, type Point } from './coords';
-import { addBezierSegment, addCurvePoint, assign, fitShape, isControl, samplePath, slots, type Shape } from './shapes';
+import { addBezierSegment, addCurvePoint, assign, fitShape, isControl, moveHandle, samplePath, slots, type Shape } from './shapes';
 
 const near = (p: Point, x: number, y: number) => { expect(p.x).toBeCloseTo(x, 4); expect(p.y).toBeCloseTo(y, 4); };
 const S = (kind: Shape['kind'], handles: Point[], extra: Partial<Shape> = {}): Shape => ({ kind, handles, interval: null, cols: 3, ...extra });
@@ -108,5 +108,34 @@ describe('bezier', () => {
     const [c, a, c2] = [s.handles[2], s.handles[3], s.handles[4]];
     expect(c2).toEqual({ x: 2 * a.x - c.x, y: 2 * a.y - c.y }); // mirror: same tangent both sides of the joint
     expect(isControl(s, 6)).toBe(false);
+  });
+});
+
+describe('bezier handle dragging', () => {
+  // Two segments with a smooth joint at anchor 3, (16,0): controls at (12,0) and (20,0).
+  const two = (): Shape => S('bezier', [{ x: 0, y: 0 }, { x: 4, y: 4 }, { x: 12, y: 0 }, { x: 16, y: 0 }, { x: 20, y: 0 }, { x: 28, y: 4 }, { x: 32, y: 0 }]);
+  it('dragging a control at a smooth joint swings its partner opposite, keeping the partner length', () => {
+    const s = moveHandle(two(), 2, { x: 16, y: -4 }); // straight below the anchor
+    near(s.handles[4], 16, 4); // partner now straight above, still 4 away
+  });
+  it('a lopsided joint keeps the partner its own length', () => {
+    const s = moveHandle(two(), 2, { x: 8, y: 0 }); // longer arm, same direction
+    near(s.handles[4], 20, 0);
+  });
+  it('holding Option moves one control alone (makes a corner); a corner then stays a corner', () => {
+    const corner = moveHandle(two(), 2, { x: 16, y: -4 }, true);
+    near(corner.handles[4], 20, 0);
+    const again = moveHandle(corner, 2, { x: 12, y: -4 });
+    near(again.handles[4], 20, 0);
+  });
+  it('moving an anchor carries its controls; Option leaves them', () => {
+    const s = moveHandle(two(), 3, { x: 16, y: 8 });
+    near(s.handles[2], 12, 8); near(s.handles[4], 20, 8);
+    const f = moveHandle(two(), 3, { x: 16, y: 8 }, true);
+    near(f.handles[2], 12, 0);
+  });
+  it('other shapes just move the one handle', () => {
+    const s = moveHandle(S('line', [{ x: 0, y: 0 }, { x: 8, y: 0 }]), 1, { x: 8, y: 4 });
+    expect(s.handles).toEqual([{ x: 0, y: 0 }, { x: 8, y: 4 }]);
   });
 });

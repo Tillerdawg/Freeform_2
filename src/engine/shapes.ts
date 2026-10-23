@@ -182,3 +182,37 @@ export function addBezierSegment(s: Shape): Shape {
   const r = (p: Point) => ({ x: Math.round(p.x), y: Math.round(p.y) });
   return { ...s, handles: [...h, r({ x: 2 * a.x - c.x, y: 2 * a.y - c.y }), r({ x: a.x + (2 * d.x) / 3, y: a.y + (2 * d.y) / 3 }), r({ x: a.x + d.x, y: a.y + d.y })] };
 }
+
+/** Is the Bézier joint at anchor k smooth (its two controls on a straight line through it)? */
+function smoothAt(h: Point[], k: number): boolean {
+  const a = h[k], c1 = h[k - 1], c2 = h[k + 1];
+  if (!c1 || !c2) return false;
+  const u = { x: c1.x - a.x, y: c1.y - a.y }, w = { x: c2.x - a.x, y: c2.y - a.y };
+  const lu = Math.hypot(u.x, u.y), lw = Math.hypot(w.x, w.y);
+  if (!lu || !lw) return true; // a control sitting on its anchor doesn't make a corner
+  return (u.x * w.x + u.y * w.y) / (lu * lw) < -0.9995; // pointing opposite ways, within about 2°
+}
+
+/**
+ * Move handle k to p. For a Bézier (unless `free`, i.e. Option/Alt held): a smooth joint stays smooth (the other
+ * control swings to stay opposite, keeping its own length), and an anchor carries its two controls with it.
+ */
+export function moveHandle(s: Shape, k: number, p: Point, free = false): Shape {
+  const h = [...s.handles];
+  if (s.kind !== 'bezier' || free) { h[k] = p; return { ...s, handles: h }; }
+  if (k % 3 === 0) {
+    const dx = p.x - h[k].x, dy = p.y - h[k].y;
+    for (const j of [k - 1, k + 1]) if (h[j]) h[j] = { x: h[j].x + dx, y: h[j].y + dy };
+    h[k] = p;
+    return { ...s, handles: h };
+  }
+  const anchor = k % 3 === 1 ? k - 1 : k + 1, partner = k % 3 === 1 ? k - 2 : k + 2;
+  const keep = h[partner] && smoothAt(h, anchor);
+  h[k] = p;
+  if (keep) {
+    const a = h[anchor], len = Math.hypot(h[partner].x - a.x, h[partner].y - a.y);
+    const d = { x: a.x - p.x, y: a.y - p.y }, ld = Math.hypot(d.x, d.y);
+    if (ld) h[partner] = { x: a.x + (d.x / ld) * len, y: a.y + (d.y / ld) * len };
+  }
+  return { ...s, handles: h };
+}

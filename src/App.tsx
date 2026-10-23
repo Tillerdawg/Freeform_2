@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { readout, type Point } from './engine/coords';
 import { emptyHistory, record, redo, undo } from './engine/history';
-import { assign, fitShape, isControl, samplePath, slots, type Shape, type ShapeKind } from './engine/shapes';
+import { assign, fitShape, isControl, moveHandle, samplePath, slots, type Shape, type ShapeKind } from './engine/shapes';
 import {
   addPerformer, advance, label, moveSteps, snapPoint, playRange, playStart, newShow, parseShow, placeInSet, positionsAt, removePerformers,
   setAt, setStarts, type Show,
@@ -301,8 +301,7 @@ export function App() {
       setBox([d.a, p]);
     } else if (d.kind === 'handle') {
       if (!shapeEdit) return;
-      const handles = shapeEdit.shape.handles.map((h, k) => (k === d.i ? snapTo(p, snap) : h));
-      updateShape({ handles });
+      updateShape(moveHandle(shapeEdit.shape, d.i, snapTo(p, snap), e.altKey)); // Option/Alt: move this handle alone
     } else {
       // Snap the grabbed performer; the rest of the selection keeps its shape.
       const a0 = d.orig[d.anchor];
