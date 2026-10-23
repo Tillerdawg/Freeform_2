@@ -441,7 +441,7 @@ export function App() {
             background: 'rgba(16,24,18,0.85)', fontSize: 14, fontVariantNumeric: 'tabular-nums', pointerEvents: 'none' }}>{hover}</div>
         )}
         </div>
-        <Timeline show={show} t={t} setT={(x) => { setPlaying(false); setT(x); }} playing={playing} setPlaying={setPlaying} bpm={bpm} setBpm={setBpm}
+        <Timeline show={show} setShow={setShow} t={t} setT={(x) => { setPlaying(false); setT(x); }} playing={playing} setPlaying={setPlaying} bpm={bpm} setBpm={setBpm}
           range={range} setRange={setRange} span={span} />
       </div>
       <Sidebar
