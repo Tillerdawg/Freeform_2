@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { readout, type Point } from './engine/coords';
 import { emptyHistory, record, redo, undo } from './engine/history';
+import { assign, fitShape, samplePath, slots, type Shape, type ShapeKind } from './engine/shapes';
 import {
   addPerformer, advance, label, moveSteps, playRange, playStart, newShow, parseShow, placeInSet, positionsAt, removePerformers,
   setAt, setStarts, type Show,
 } from './engine/show';
-import { drawField, drawPerformers, fitView, toWorld, type Path, type View } from './field/drawField';
+import { HANDLE_PX, drawField, drawPerformers, drawShape, fitView, toScreen, toWorld, type Path, type View } from './field/drawField';
 import { Sidebar, type Snap, type Tool } from './ui/Sidebar';
 import { Timeline } from './ui/Timeline';
 
@@ -26,7 +27,8 @@ function loadAutosave(): Show {
 type Drag =
   | { kind: 'move'; start: Point; anchor: string; orig: Record<string, Point> }
   | { kind: 'box'; a: Point; b: Point; add: boolean }
-  | { kind: 'pan'; x: number; y: number };
+  | { kind: 'pan'; x: number; y: number }
+  | { kind: 'handle'; i: number };
 
 const snapTo = (p: Point, snap: Snap): Point =>
   snap ? { x: Math.round(p.x / snap) * snap, y: Math.round(p.y / snap) * snap } : p;
@@ -46,6 +48,8 @@ export function App() {
   const [bpm, setBpm] = useState(120);
   const [range, setRange] = useState<{ from: string | null; to: string | null; loop: boolean }>({ from: null, to: null, loop: false });
   const tRef = useRef(0);
+  // Shape being edited: performers in slot order (order[k] takes slot k), in the set it was started in.
+  const [shapeEdit, setShapeEdit] = useState<{ shape: Shape; order: string[]; set: number } | null>(null);
   const [fileError, setFileError] = useState('');
   const [box, setBox] = useState<[Point, Point]>();
   const drag = useRef<Drag | null>(null);
@@ -71,7 +75,7 @@ export function App() {
   useEffect(() => {
     if (show === lastShow.current) return;
     const prev = lastShow.current, at = performance.now(), b = boundary.current; // read now: the updater runs later
-    const holding = drag.current?.kind === 'move';
+    const holding = drag.current?.kind === 'move' || drag.current?.kind === 'handle';
     if (fromHistory.current) fromHistory.current = false;
     else setHist((h) => record(h, prev, at, b, holding));
     boundary.current = false;
@@ -89,6 +93,7 @@ export function App() {
   const step = (dir: 'undo' | 'redo') => {
     const r = (dir === 'undo' ? undo : redo)(hist, show);
     if (!r) return;
+    setShapeEdit(null);
     fromHistory.current = true;
     setPlaying(false);
     setHist(r.h);
@@ -141,7 +146,48 @@ export function App() {
     drawField(ctx, view, show.hash);
     const dots = show.performers.filter((p) => positions[p.id]).map((p) => ({ id: p.id, label: label(show, p), at: positions[p.id] }));
     drawPerformers(ctx, view, dots, selected, paths, box);
-  }, [view, show, positions, selected, paths, box]);
+    if (shapeEdit) {
+      const sh = shapeEdit.shape;
+      const [a, b] = sh.handles;
+      const guide = sh.kind === 'block'
+        ? { pts: [a, { x: b.x, y: a.y }, b, { x: a.x, y: b.y }], closed: true }
+        : samplePath(sh);
+      drawShape(ctx, view, guide.pts, guide.closed, sh.handles);
+    }
+  }, [view, show, positions, selected, paths, box, shapeEdit]);
+
+  // Leaving the set (scrubbing, undo, deleting performers) ends shape editing.
+  useEffect(() => {
+    if (shapeEdit && (onSet !== shapeEdit.set || shapeEdit.order.some((id) => !show.performers.some((p) => p.id === id)))) setShapeEdit(null);
+  }, [onSet, show, shapeEdit]);
+
+  /** Lay the shape's performers onto its spots in the current set. */
+  const applyShape = (shape: Shape, order: string[]) => {
+    const spots = slots(shape, order.length);
+    setShow((s) => placeInSet(s, onSet, Object.fromEntries(order.map((id, k) => [id, spots[k]]))));
+  };
+
+  const startShape = (kind: ShapeKind) => {
+    if (onSet < 0 || selected.size < 2) return;
+    const ids = [...selected];
+    const here = ids.map((id) => show.sets[onSet].pos[id]);
+    // Least total travel measured from where the move starts (the previous set), so the move's paths never cross.
+    const origin = ids.map((id) => show.sets[Math.max(0, onSet - 1)].pos[id] ?? show.sets[onSet].pos[id]);
+    const prev = shapeEdit && shapeEdit.shape.kind === kind ? shapeEdit.shape : null;
+    const shape = prev ?? fitShape(kind, here);
+    const slotOf = assign(origin, slots(shape, ids.length));
+    const order: string[] = [];
+    ids.forEach((id, i) => { order[slotOf[i]] = id; });
+    setShapeEdit({ shape, order, set: onSet });
+    applyShape(shape, order);
+  };
+
+  const updateShape = (patch: Partial<Shape>) => {
+    if (!shapeEdit) return;
+    const shape = { ...shapeEdit.shape, ...patch };
+    setShapeEdit({ ...shapeEdit, shape });
+    applyShape(shape, shapeEdit.order);
+  };
 
   // Trackpad/mouse wheel pans; pinch or ctrl+wheel zooms around the cursor.
   useEffect(() => {
@@ -176,13 +222,13 @@ export function App() {
       else if (e.key === 'ArrowLeft') { e.preventDefault(); setT((x) => Math.max(0, Math.ceil(x) - 1)); }
       else if ((e.key === 'Delete' || e.key === 'Backspace') && selected.size) {
         setShow((s) => removePerformers(s, selected)); setSelected(new Set());
-      } else if (e.key === 'Escape') setSelected(new Set());
+      } else if (e.key === 'Escape') { if (shapeEdit) setShapeEdit(null); else setSelected(new Set()); }
       else if (e.key === 'v' || e.key === 'V') setTool('select');
       else if (e.key === 'a' || e.key === 'A') setTool('add');
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [selected, total, hist, show]);
+  }, [selected, total, hist, show, shapeEdit]);
 
   const world = (e: React.PointerEvent) => toWorld(view!, e.nativeEvent.offsetX * dpr, e.nativeEvent.offsetY * dpr);
 
@@ -201,6 +247,15 @@ export function App() {
     e.currentTarget.setPointerCapture(e.pointerId);
     if (e.button === 1 || e.button === 2) { drag.current = { kind: 'pan', x: e.clientX, y: e.clientY }; return; }
     const p = world(e);
+    if (shapeEdit) {
+      const r = HANDLE_PX * 1.5 * dpr;
+      const i = shapeEdit.shape.handles.findIndex((h) => {
+        const q = toScreen(view, h);
+        return Math.abs(q.x - e.nativeEvent.offsetX * dpr) <= r && Math.abs(q.y - e.nativeEvent.offsetY * dpr) <= r;
+      });
+      if (i >= 0) { drag.current = { kind: 'handle', i }; return; }
+      setShapeEdit(null); // clicking elsewhere finishes the shape
+    }
     if (tool === 'add') {
       if (!section || onSet < 0) return; // mid-move: select only, no edits
       const r = addPerformer(show, section, snapTo(p, snap));
@@ -239,6 +294,10 @@ export function App() {
     } else if (d.kind === 'box') {
       drag.current = { ...d, b: p };
       setBox([d.a, p]);
+    } else if (d.kind === 'handle') {
+      if (!shapeEdit) return;
+      const handles = shapeEdit.shape.handles.map((h, k) => (k === d.i ? snapTo(p, snap) : h));
+      updateShape({ handles });
     } else {
       // Snap the grabbed performer; the rest of the selection keeps its shape.
       const a0 = d.orig[d.anchor];
@@ -314,6 +373,7 @@ export function App() {
         selected={selected} setSelected={setSelected} tool={tool} setTool={setTool}
         section={section} setSection={setSection} snap={snap} setSnap={setSnap} starts={starts}
         onNew={fresh} onOpen={() => fileRef.current?.click()} onSave={save} fileError={fileError}
+        shape={shapeEdit?.shape ?? null} startShape={startShape} updateShape={updateShape} endShape={() => setShapeEdit(null)}
       />
       <input ref={fileRef} type="file" accept=".json,application/json" hidden
         onChange={(e) => { const f = e.target.files?.[0]; if (f) open(f); e.target.value = ''; }} />

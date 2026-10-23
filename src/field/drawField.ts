@@ -149,3 +149,28 @@ export function drawPerformers(
     ctx.strokeRect(a.x, a.y, b.x - a.x, b.y - a.y);
   }
 }
+
+/** Shape guide (dashed) and its draggable handles. */
+export function drawShape(ctx: CanvasRenderingContext2D, v: View, guide: Point[], closed: boolean, handles: Point[]) {
+  ctx.save();
+  ctx.strokeStyle = '#5ad1ff';
+  ctx.lineWidth = Math.max(1.5, v.scale * 0.1);
+  ctx.setLineDash([6, 4]);
+  ctx.beginPath();
+  guide.forEach((p, i) => { const s = toScreen(v, p); if (i) ctx.lineTo(s.x, s.y); else ctx.moveTo(s.x, s.y); });
+  if (closed) ctx.closePath();
+  ctx.stroke();
+  ctx.setLineDash([]);
+  const r = HANDLE_PX * (window.devicePixelRatio || 1);
+  for (const h of handles) {
+    const s = toScreen(v, h);
+    ctx.fillStyle = '#5ad1ff';
+    ctx.strokeStyle = '#0b2a36';
+    ctx.lineWidth = 2;
+    ctx.fillRect(s.x - r, s.y - r, 2 * r, 2 * r);
+    ctx.strokeRect(s.x - r, s.y - r, 2 * r, 2 * r);
+  }
+  ctx.restore();
+}
+
+export const HANDLE_PX = 6; // half-size of a shape handle, in CSS pixels

@@ -14,7 +14,8 @@
 - Touch support pass (tablets).
 
 ## Later milestones (rough order)
-- Shape tools: line, arc, curve, block, free.
+- ✅ Shape tools: line, arc, curve, circle, block (select, then shape; even or interval spacing; least-travel assignment).
+- Shape follow-ups: rotate/scale a selection as a group; mirror across the 50; shapes that create new performers.
 - FTL transitions (leader + order, path-following; IDEA.md example is the acceptance test).
 - Page markup/text; PDF drill charts and coordinate sheets.
 - Performer view (PWA): director view and personal view, count-by-count.
