@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { readout, type HashPreset } from '../engine/coords';
 import { addCurvePoint, type Shape, type ShapeKind } from '../engine/shapes';
 import {
-  addSetAfter, flip, label, locate, mirrorSides, newId, placeInSet, rotateScale, snapSelection, positionsAt, removePerformers, removeSet, setCounts, xFrom, yFrom,
+  addSetAfter, flip, label, locate, mirrorSides, newId, placeInSet, rotateScale, setMeasures, snapSelection, positionsAt, removePerformers, removeSet, setCounts, xFrom, yFrom,
   type FrontDir, type FrontRef, type Show, type SideDir,
 } from '../engine/show';
 
@@ -123,6 +123,10 @@ export function Sidebar(p: Props) {
                 onChange={(e) => setShow((s) => setCounts(s, cur, Number(e.target.value)))} />
             </label>
           )}
+          <label>Measures{' '}
+            <input aria-label="Measures" placeholder={cur > 0 ? 'e.g. 9–12' : 'e.g. 1'} value={show.sets[cur].measures ?? ''} style={{ width: 72 }}
+              onChange={(e) => setShow((s) => setMeasures(s, cur, e.target.value))} />
+          </label>
           <button onClick={() => { setShow((s) => addSetAfter(s, cur)); p.setT(p.starts[cur] + 16); }}>+ Set after</button>
           <button disabled={show.sets.length < 2} onClick={() => { setShow((s) => removeSet(s, cur)); p.setT(p.starts[Math.max(0, cur - 1)]); }}>Delete set</button>
         </div>

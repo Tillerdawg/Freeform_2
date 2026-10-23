@@ -253,3 +253,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
   - **Paper style:** black on white, not green turf, to save toner and stay readable on copiers. Labels get a white halo so lines don't run through them.
   - **How:** a Print… button lays out the pages and opens the browser's print dialog; "Save as PDF" there gives the PDF. That works in every browser, including iPhone Safari, with no PDF library to add. The editor's keyboard shortcuts are off while the dialog is open.
 - **Other options:** a PDF library (bigger download, more code); green charts; 1 performer per page; 2 charts per page; a notes column; paths on charts (left for later).
+
+## 2026-10-23 08:45 EDT — Measure numbers
+- **Who:** Jason Tiller (typed per set; range of the move; pickups allowed); free-text field by Claude
+- **Decision:** Each set has an optional Measures box. The drill writer types the measures the move into that set covers, as on the score ("9–12"; "pu" or "pu–4" for pickups; notes like "17–24 (fermata)" are fine). Freeform doesn't interpret it, so pickups and irregular music need no special handling. It shows as "m. 9–12" on the timeline segment and the drill chart header, and in a Meas. column on dot sheets. The column only appears once some set has measures. Saved in the show file as an optional per-set text field, so older files still load; non-text values are rejected on import.
+- **Other options:** computed from a meter map (counts per measure + changes + pickup), or computed with per-set override. Revisit with music sync, where a meter map is needed anyway.
+- **Note:** typed measures don't update when a move's counts change. The drill writer edits them.

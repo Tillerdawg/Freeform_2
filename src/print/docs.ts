@@ -4,7 +4,7 @@ import { label, setStarts, type Performer, type Show } from '../engine/show';
 
 export const ROWS_PER_CARD = 24; // what fits a quarter-letter card at a readable size
 
-export interface CardRow { set: string; counts: string; side: string; front: string }
+export interface CardRow { set: string; counts: string; measures: string; side: string; front: string }
 export interface Card { label: string; section: string; part: number; parts: number; rows: CardRow[] }
 
 /** Performers in section order, then by number. */
@@ -22,6 +22,7 @@ export function dotCards(show: Show, performers: Performer[]): Card[] {
     const rows: CardRow[] = show.sets.map((s, i) => ({
       set: s.name,
       counts: i === 0 ? '—' : String(s.counts),
+      measures: s.measures ?? '',
       side: sideToSide(s.pos[p.id].x),
       front: frontToBack(s.pos[p.id].y, show.hash),
     }));
@@ -37,9 +38,13 @@ export function dotCards(show: Show, performers: Performer[]): Card[] {
 /** Header for set i's chart, e.g. "Set 3 · 16 counts (counts 24–40)". */
 export function chartTitle(show: Show, i: number): string {
   const s = show.sets[i];
-  if (i === 0) return `Set ${s.name} · opening set`;
+  const m = s.measures ? ` · m. ${s.measures}` : '';
+  if (i === 0) return `Set ${s.name} · opening set${m}`;
   const starts = setStarts(show);
-  return `Set ${s.name} · ${s.counts} counts (counts ${starts[i - 1]}–${starts[i]})`;
+  return `Set ${s.name} · ${s.counts} counts (counts ${starts[i - 1]}–${starts[i]})${m}`;
 }
 
 export const chunk = <T,>(xs: T[], n: number): T[][] => Array.from({ length: Math.ceil(xs.length / n) }, (_, k) => xs.slice(k * n, (k + 1) * n));
+
+/** Only print a Measures column if the drill writer has entered any. */
+export const hasMeasures = (show: Show) => show.sets.some((s) => s.measures);
