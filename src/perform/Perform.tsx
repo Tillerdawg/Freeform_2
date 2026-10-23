@@ -6,6 +6,7 @@ import { label, locate, moveSteps, parseShow, positionsAt, setAt, setStarts, typ
 import { drawField, drawMarks, drawPerformers, fitView, TIER_COLOR, toScreen, type View } from '../field/drawField';
 import { fmtStep } from '../ui/format';
 import { usePlayback } from '../ui/usePlayback';
+import { IconNext, IconPause, IconPlay, IconPrev } from '../ui/icons';
 import { describe, nearest } from './neighbors';
 
 const STORE = 'freeform:performer'; // separate from the editor's autosave, so opening a link never touches a director's work
@@ -153,7 +154,7 @@ export function Perform() {
   const steps = me && hasNext ? moveSteps(show, next)[me.id] : null;
   const s = show.sets[cur], nx = hasNext ? show.sets[next] : null;
   const myCue = (i: number) => (me ? show.sets[i]?.cues?.[me.id] : undefined);
-  const btn: React.CSSProperties = { fontSize: 18, minWidth: 44, minHeight: 40 };
+  const btn: React.CSSProperties = { fontSize: 18, minWidth: 44, minHeight: 40, display: 'grid', placeItems: 'center' };
 
   return (
     <div className="perform">
@@ -212,9 +213,9 @@ export function Perform() {
       <footer className="perform-controls">
         <input type="range" aria-label="Count" min={0} max={total} step={1} value={t} onChange={(e) => { setPlaying(false); setT(Number(e.target.value)); }} disabled={!total} />
         <div className="perform-buttons">
-          <button style={btn} aria-label="Previous count" onClick={() => { setPlaying(false); setT(Math.max(0, Math.ceil(t) - 1)); }}>◀</button>
-          <button style={btn} aria-label={playing ? 'Pause' : 'Play'} disabled={!total} onClick={() => setPlaying(!playing)}>{playing ? '⏸' : '▶'}</button>
-          <button style={btn} aria-label="Next count" onClick={() => { setPlaying(false); setT(Math.min(total, Math.floor(t) + 1)); }}>▶︎|</button>
+          <button style={btn} aria-label="Previous count" onClick={() => { setPlaying(false); setT(Math.max(0, Math.ceil(t) - 1)); }}><IconPrev /></button>
+          <button style={btn} aria-label={playing ? 'Pause' : 'Play'} disabled={!total} onClick={() => setPlaying(!playing)}>{playing ? <IconPause /> : <IconPlay />}</button>
+          <button style={btn} aria-label="Next count" onClick={() => { setPlaying(false); setT(Math.min(total, Math.floor(t) + 1)); }}><IconNext /></button>
           <select aria-label="Go to set" value={onSet >= 0 ? onSet : ''} onChange={(e) => { setPlaying(false); setT(starts[Number(e.target.value)]); }} style={{ fontSize: 16 }}>
             {onSet < 0 && <option value="">Set…</option>}
             {show.sets.map((x, i) => <option key={x.id} value={i}>Set {x.name}</option>)}

@@ -377,3 +377,8 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Who:** Jason Tiller (show surrounding performers); details by Claude
 - **Decision:** In the performer view, my nearest neighbors (up to 4, within 10 steps, at the current count) get a brighter dot and an upright label; everyone else stays an unlabeled dim dot, to avoid clutter. The info panel's "Around you" list gives each neighbor's offset in field directions ("toward Side 1/2", "in front" = toward the front sideline, "behind"), rounded to quarter steps, so it reads the same in Director view and Facing front. The portrait info panel now has a fixed height and scrolls, so changing content can't resize (and flash) the field.
 - **Other options:** label everyone (too cluttered on a phone); performer-relative left/right (depends on which way the performer is facing at that moment, which Freeform doesn't know).
+
+## 2026-10-23 13:55 EDT — Transport buttons use drawn icons
+- **Who:** Claude (Jason reported the mismatch)
+- **Context:** On Apple devices ⏮ and ⏸ render as colored emoji while ▶ and ◀ render as text, so the transport buttons didn't match.
+- **Decision:** All transport buttons (editor and performer view) use one small set of SVG icons in the button's text color: back to start, back one count (|◀, a bar plus triangle, matching forward one count ▶|), play, pause, forward one count. Each keeps its spoken label for screen readers.
