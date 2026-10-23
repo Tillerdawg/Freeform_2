@@ -282,9 +282,9 @@ export function Sidebar(p: Props) {
       </details>
       {/* Pinned to the bottom of the panel, however long the sections above get. */}
       <div style={{ ...row, marginTop: 'auto', position: 'sticky', bottom: 0, background: '#1d2a1f', borderTop: '1px solid #33443a', padding: '8px 0', zIndex: 1 }}>
-        <button onClick={p.onUndo} disabled={!p.canUndo} title="Undo (⌘Z / Ctrl+Z)">Undo</button>
-        <button onClick={p.onRedo} disabled={!p.canRedo} title="Redo (⇧⌘Z / Ctrl+Y)">Redo</button>
         <button onClick={p.onFit} title="Zoom out to the whole field">Fit field</button>
+        <button onClick={p.onUndo} disabled={!p.canUndo} title="Undo (⌘Z / Ctrl+Z)" style={{ marginLeft: 'auto' }}>Undo</button>
+        <button onClick={p.onRedo} disabled={!p.canRedo} title="Redo (⇧⌘Z / Ctrl+Y)">Redo</button>
       </div>
     </aside>
   );
