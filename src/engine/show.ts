@@ -10,7 +10,7 @@ export interface DrillSet {
   name: string;
   counts: number;
   pos: Record<string, Point>;
-  /** Measures the move into this set covers, typed by the drill writer as on a score (e.g. "9–12", "pu–4"). */
+  /** Measures the move into this set covers, typed by the drill writer as on a score (e.g. "9–12", or "0–4" from a pickup: pickups are measure 0). */
   measures?: string;
 }
 export interface Show {

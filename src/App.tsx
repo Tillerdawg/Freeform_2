@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { readout, type Point } from './engine/coords';
 import { emptyHistory, record, redo, undo } from './engine/history';
-import { assign, fitShape, samplePath, slots, type Shape, type ShapeKind } from './engine/shapes';
+import { assign, fitShape, isControl, samplePath, slots, type Shape, type ShapeKind } from './engine/shapes';
 import {
   addPerformer, advance, label, moveSteps, snapPoint, playRange, playStart, newShow, parseShow, placeInSet, positionsAt, removePerformers,
   setAt, setStarts, type Show,
@@ -153,7 +153,11 @@ export function App() {
       const guide = sh.kind === 'block'
         ? { pts: [a, { x: b.x, y: a.y }, b, { x: a.x, y: b.y }], closed: true }
         : samplePath(sh);
-      drawShape(ctx, view, guide.pts, guide.closed, sh.handles);
+      const h = sh.handles;
+      const arms: [Point, Point][] = sh.kind === 'bezier'
+        ? h.flatMap((p, k) => (k % 3 === 1 ? [[h[k - 1], p] as [Point, Point]] : k % 3 === 2 ? [[h[k + 1], p] as [Point, Point]] : []))
+        : [];
+      drawShape(ctx, view, guide.pts, guide.closed, h, h.map((_, k) => isControl(sh, k)), arms);
     }
   }, [view, show, positions, selected, paths, box, shapeEdit]);
 

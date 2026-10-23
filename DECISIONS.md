@@ -259,3 +259,12 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Decision:** Each set has an optional Measures box. The drill writer types the measures the move into that set covers, as on the score ("9–12"; "pu" or "pu–4" for pickups; notes like "17–24 (fermata)" are fine). Freeform doesn't interpret it, so pickups and irregular music need no special handling. It shows as "m. 9–12" on the timeline segment and the drill chart header, and in a Meas. column on dot sheets. The column only appears once some set has measures. Saved in the show file as an optional per-set text field, so older files still load; non-text values are rejected on import.
 - **Other options:** computed from a meter map (counts per measure + changes + pickup), or computed with per-set override. Revisit with music sync, where a meter map is needed anyway.
 - **Note:** typed measures don't update when a move's counts change. The drill writer edits them.
+
+## 2026-10-23 08:55 EDT — Pickups are measure 0
+- **Who:** Jason Tiller
+- **Decision:** A pickup is written as measure 0 ("0", "0–4"), not "pu". The Measures box hint and the examples use that convention. It's still free text, so nothing is enforced.
+
+## 2026-10-23 09:10 EDT — Bézier curve tool
+- **Who:** Jason Tiller asked for it alongside the simple Curve; details by Claude
+- **Decision:** A Bézier shape made of cubic segments. Anchors (squares) are points the curve passes through. Each segment's two controls (circles, on thin arms from their anchors) pull the curve toward them without touching it, as in Illustrator or Keynote. "+ Segment" adds a segment in the same direction; the new joint starts smooth (its two controls mirror each other), but either control can be dragged to make a corner. Spacing and least-travel assignment work as for the other shapes.
+- **Other options:** keep a joint smooth automatically when one of its controls is dragged (deferred: not always wanted, and it hides how Bézier handles work).
