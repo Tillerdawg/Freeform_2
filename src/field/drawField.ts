@@ -18,14 +18,22 @@ export function fitView(w: number, h: number): View {
   return { scale, ox: w / 2, oy: h / 2 + (FIELD_WIDTH / 2) * scale };
 }
 
-export function drawField(ctx: CanvasRenderingContext2D, v: View, hash: HashPreset) {
+/** Colors for the screen (green turf) and for paper (black on white, easy on toner and copiers). */
+export const THEMES = {
+  screen: { bg: '#1d2a1f', turf: '#2f6b3a', gridMinor: 'rgba(255,255,255,0.09)', gridMajor: 'rgba(255,255,255,0.22)', line: '#fff', number: 'rgba(255,255,255,0.9)' },
+  print: { bg: '#fff', turf: '#fff', gridMinor: 'rgba(0,0,0,0.07)', gridMajor: 'rgba(0,0,0,0.2)', line: '#000', number: '#555' },
+};
+export type Theme = keyof typeof THEMES;
+
+export function drawField(ctx: CanvasRenderingContext2D, v: View, hash: HashPreset, theme: Theme = 'screen') {
+  const T = THEMES[theme];
   const { width, height } = ctx.canvas;
-  ctx.fillStyle = '#1d2a1f';
+  ctx.fillStyle = T.bg;
   ctx.fillRect(0, 0, width, height);
 
   const tl = toScreen(v, { x: -END_X, y: FIELD_WIDTH });
   const s = v.scale;
-  ctx.fillStyle = '#2f6b3a';
+  ctx.fillStyle = T.turf;
   ctx.fillRect(tl.x, tl.y, 2 * END_X * s, FIELD_WIDTH * s);
 
   const vline = (x: number, y0: number, y1: number) => {
@@ -41,19 +49,19 @@ export function drawField(ctx: CanvasRenderingContext2D, v: View, hash: HashPres
   if (s >= 4) {
     for (let i = -GOAL_LINE_X; i <= GOAL_LINE_X; i++) {
       if (i % 8 === 0) continue;
-      ctx.strokeStyle = i % 4 === 0 ? 'rgba(255,255,255,0.22)' : 'rgba(255,255,255,0.09)';
+      ctx.strokeStyle = i % 4 === 0 ? T.gridMajor : T.gridMinor;
       ctx.lineWidth = 1;
       vline(i, 0, FIELD_WIDTH);
     }
     for (let j = 1; j < FIELD_WIDTH; j++) {
-      ctx.strokeStyle = j % 4 === 0 ? 'rgba(255,255,255,0.22)' : 'rgba(255,255,255,0.09)';
+      ctx.strokeStyle = j % 4 === 0 ? T.gridMajor : T.gridMinor;
       hline(j, -GOAL_LINE_X, GOAL_LINE_X);
     }
   }
 
   // All lines 4 in. Yard lines are centered on their coordinate. Boundary and goal lines sit outside the
   // field, inner edge on the coordinate, so measurements start at the field's inside edge.
-  ctx.strokeStyle = '#fff';
+  ctx.strokeStyle = T.line;
   ctx.lineWidth = Math.max(1, s * LINE); // 1px floor keeps lines visible zoomed out
   const half = ctx.lineWidth / s / 2;
   for (let x = -GOAL_LINE_X + 8; x < GOAL_LINE_X; x += 8) vline(x, 0, FIELD_WIDTH);
@@ -72,7 +80,7 @@ export function drawField(ctx: CanvasRenderingContext2D, v: View, hash: HashPres
 
   // Yard numbers, 4 steps tall. Back numbers face the back sideline.
   // Decorative only: number placement varies by field, so readouts never reference it (see DECISIONS.md).
-  ctx.fillStyle = 'rgba(255,255,255,0.9)';
+  ctx.fillStyle = T.number;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic'; // digits sit on the baseline, so baseline = bottom of the number
   // Size the font so the digits themselves (not the font box) are 4 steps tall.
