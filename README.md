@@ -4,7 +4,7 @@
 
 Freeform is a browser-based drill writer: put performers on a football field, build sets, animate the moves count by count, and print dot sheets and drill charts. It's inspired by Pyware and the Ultimate Drill Book, with one goal: take licensing cost off the table for school and community programs.
 
-**Use it:** <https://tillerdawg.github.io/Freeform_2/>. No account and no install. It also works offline and can be added to your phone or tablet's home screen.
+**Use it:** <https://tillerdawg.github.io/Freeform_2/>. No account and no install. It also works offline and can be added to your phone or tablet's home screen. On a phone, the editor runs in landscape: turn the phone sideways (Android locks it automatically; iPhones can't lock a web app's orientation, so Freeform asks you to rotate).
 
 > **Status:** early, actively developed. The drill writer's core workflow works today. A performer view for phones and music sync are next (see [Roadmap](#roadmap)). Shows are saved in your browser and as files you export; there are no accounts or cloud sync yet.
 
