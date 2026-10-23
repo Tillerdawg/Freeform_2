@@ -1,9 +1,10 @@
-import { biggestStep, locate, setAt, setStarts, totalCounts, type Show } from '../engine/show';
+import { addSetAfter, biggestStep, locate, removeSet, setAt, setCounts, setMeasures, setStarts, totalCounts, type Show } from '../engine/show';
 import { TIER_COLOR } from '../field/drawField';
 import { fmtStep } from './format';
 
 interface Props {
   show: Show;
+  setShow: (f: (s: Show) => Show) => void;
   t: number;
   setT: (t: number) => void;
   playing: boolean;
@@ -16,7 +17,7 @@ interface Props {
 }
 
 /** One segment per move, width proportional to its counts; click or drag to scrub by whole counts. */
-export function Timeline({ show, t, setT, playing, setPlaying, bpm, setBpm, range, setRange, span }: Props) {
+export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, setBpm, range, setRange, span }: Props) {
   const total = totalCounts(show);
   const starts = setStarts(show);
   const { to, count } = locate(show, t);
@@ -32,9 +33,26 @@ export function Timeline({ show, t, setT, playing, setPlaying, bpm, setBpm, rang
     ? `Set ${show.sets[onSet].name}`
     : `Set ${show.sets[to - 1].name} → ${show.sets[to].name} · count ${Math.floor(count)} of ${show.sets[to].counts}`;
 
+  const cur = onSet >= 0 ? onSet : to; // the set being edited (mid-move: the one being moved into)
+  const fixedRow: React.CSSProperties = { display: 'flex', gap: 8, alignItems: 'center', height: 30, whiteSpace: 'nowrap', overflow: 'hidden' };
   return (
     <div style={{ padding: '8px 16px 12px', borderTop: '1px solid #33443a' }}>
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
+      {/* Every row has a fixed height: a panel that grows or shrinks would resize (and flash) the field. */}
+      <div style={{ ...fixedRow, marginBottom: 4 }}>
+        <strong>Set {show.sets[cur].name}</strong>
+        <label>Counts in{' '}
+          <input type="number" min={1} aria-label="Counts in" disabled={cur === 0} title={cur === 0 ? 'The opening set has no move into it' : undefined}
+            value={cur === 0 ? '' : show.sets[cur].counts} style={{ width: 56 }}
+            onChange={(e) => setShow((s) => setCounts(s, cur, Number(e.target.value)))} />
+        </label>
+        <label>Measures{' '}
+          <input aria-label="Measures" placeholder={cur > 0 ? 'e.g. 9–12' : 'e.g. 0 or 1'} value={show.sets[cur].measures ?? ''} style={{ width: 72 }}
+            onChange={(e) => setShow((s) => setMeasures(s, cur, e.target.value))} />
+        </label>
+        <button onClick={() => { setShow((s) => addSetAfter(s, cur)); setT(starts[cur] + 16); }}>+ Set after</button>
+        <button disabled={show.sets.length < 2} onClick={() => { setShow((s) => removeSet(s, cur)); setT(starts[Math.max(0, cur - 1)]); }}>Delete set</button>
+      </div>
+      <div style={{ ...fixedRow, marginBottom: 4 }}>
         <button aria-label="Back to start" onClick={() => setT(0)}>⏮</button>
         <button aria-label="Previous count" onClick={() => setT(Math.max(0, Math.ceil(t) - 1))}>◀</button>
         <button aria-label={playing ? 'Pause' : 'Play'} onClick={() => setPlaying(!playing)} disabled={!total}>{playing ? '⏸' : '▶'}</button>
@@ -63,8 +81,18 @@ export function Timeline({ show, t, setT, playing, setPlaying, bpm, setBpm, rang
         )}
         <span style={{ marginLeft: 'auto', fontVariantNumeric: 'tabular-nums' }}>{status} · {Math.floor(t)} / {total} counts</span>
       </div>
+      {/* Set buttons sit above the line where each set lands. */}
+      <div style={{ position: 'relative', height: 24 }}>
+        {show.sets.map((s, i) => (
+          <button key={s.id} onClick={() => setT(starts[i])} aria-label={`Go to set ${s.name}`}
+            style={{ position: 'absolute', left: total ? `${(starts[i] / total) * 100}%` : 0, transform: total ? 'translateX(-50%)' : undefined,
+              fontWeight: i === onSet ? 700 : 400, outline: i === onSet ? '2px solid #ffd166' : undefined, padding: '0 6px', minWidth: 24 }}>
+            {s.name}
+          </button>
+        ))}
+      </div>
       {total === 0 ? (
-        <div style={{ opacity: 0.7, fontSize: 14 }}>Only one set so far. Add a set to create a move.</div>
+        <div style={{ opacity: 0.7, fontSize: 14, height: 56, display: 'flex', alignItems: 'center' }}>Only one set so far. Add a set to create a move.</div>
       ) : (
         <div
           role="slider" aria-label="Show timeline in counts" aria-valuemin={0} aria-valuemax={total} aria-valuenow={Math.floor(t)} tabIndex={0}

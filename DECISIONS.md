@@ -323,3 +323,8 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Context:** "Page note" and "Cue for set X" looked like duplicates.
 - **Options:** clearer labels, kept separate; one box whose meaning changes with the selection.
 - **Decision:** Kept separate, renamed, with help text under each. **Ensemble notes** (the set's page note) are for everyone and print under the set's drill chart. **Performer notes** (cues) are only for the selected performers and print on their dot sheets under that set. The help text names the set and how many performers are selected. The show file fields are unchanged (`note`, `cues`).
+
+## 2026-10-23 11:40 EDT — Set controls in the bottom panel; set buttons on the timeline
+- **Who:** Jason Tiller; layout details by Claude
+- **Decision:** "Set N · Counts in · Measures · + Set after · Delete set" moved from the sidebar to a row at the top of the bottom panel. The set number buttons moved into a strip right above the timeline bar, each centered over the line where its set lands (the last set at the bar's end). Ensemble notes stay in the sidebar. Every bottom-panel row has a fixed height so moving between sets or playing never resizes the field (no flashing); "Counts in" stays visible but disabled on set 1. Mid-move, the row shows the set being moved into.
+- **Known limit:** sets only a few counts apart in a long show put their buttons on top of each other; at narrow widths the status text on the transport row is cut off first.

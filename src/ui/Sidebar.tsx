@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { readout, type HashPreset } from '../engine/coords';
 import { addBezierSegment, addCurvePoint, type Shape, type ShapeKind } from '../engine/shapes';
 import {
-  addSetAfter, chainOrder, setCue, setMarks, setNote, clearFtl, flip, label, locate, mirrorSides, newId, placeInSet, remapHash, rotateScale, setFtl, setMeasures, snapSelection, positionsAt, removePerformers, removeSet, setCounts, xFrom, yFrom,
+  chainOrder, setCue, setMarks, setNote, clearFtl, flip, label, locate, mirrorSides, newId, placeInSet, remapHash, rotateScale, setFtl, snapSelection, positionsAt, removePerformers, xFrom, yFrom,
   type FrontDir, type FrontRef, type Show, type SideDir,
 } from '../engine/show';
 
@@ -143,31 +143,12 @@ export function Sidebar(p: Props) {
 
       <section style={box}>
         <strong>Set {show.sets[cur].name}</strong>
-        <div style={row}>
-          {cur > 0 && (
-            <label>Counts in{' '}
-              <input type="number" min={1} value={show.sets[cur].counts} style={{ width: 56 }}
-                onChange={(e) => setShow((s) => setCounts(s, cur, Number(e.target.value)))} />
-            </label>
-          )}
-          <label>Measures{' '}
-            <input aria-label="Measures" placeholder={cur > 0 ? 'e.g. 9–12' : 'e.g. 0 or 1'} value={show.sets[cur].measures ?? ''} style={{ width: 72 }}
-              onChange={(e) => setShow((s) => setMeasures(s, cur, e.target.value))} />
-          </label>
-          <button onClick={() => { setShow((s) => addSetAfter(s, cur)); p.setT(p.starts[cur] + 16); }}>+ Set after</button>
-          <button disabled={show.sets.length < 2} onClick={() => { setShow((s) => removeSet(s, cur)); p.setT(p.starts[Math.max(0, cur - 1)]); }}>Delete set</button>
-        </div>
         <label style={{ display: 'block', marginTop: 6 }}>Ensemble notes
           <textarea aria-label="Ensemble notes" aria-describedby="ensemble-help" value={show.sets[cur].note ?? ''} rows={2} placeholder="e.g. Guard: flag toss on 9"
             style={{ display: 'block', width: '100%', boxSizing: 'border-box', marginTop: 2, font: 'inherit' }}
             onChange={(e) => setShow((s) => setNote(s, cur, e.target.value))} />
         </label>
         <span id="ensemble-help" style={{ display: 'block', fontSize: 12, opacity: 0.75, marginTop: 2 }}>For everyone: printed under set {show.sets[cur].name}'s drill chart.</span>
-        <div style={row}>
-          {show.sets.map((s, i) => (
-            <button key={s.id} onClick={() => p.setT(p.starts[i])} style={{ fontWeight: i === onSet ? 700 : 400 }}>{s.name}</button>
-          ))}
-        </div>
       </section>
 
       <section style={box}>
