@@ -358,3 +358,17 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Context:** In portrait on an iPhone the sidebar takes most of the screen. iOS ignores orientation locks for home-screen web apps and doesn't support the Screen Orientation lock API, so a true lock isn't possible there.
 - **Decision:** The manifest asks for landscape, which Android honors. Phones in portrait (portrait and 600 px wide or less) get a full-screen "Turn your phone sideways" message over the app; the app keeps running underneath, so nothing is lost. iPads in portrait and desktop windows aren't affected.
 - **Note:** the coming performer view will probably want portrait and should opt out of this.
+
+## 2026-10-23 13:30 EDT — Performer view and share links
+- **Who:** Jason Tiller (share link; "my view" = follow me + facing front; info shown; staff option); details by Claude
+- **Decisions:**
+  - **Share links:** the editor's Share… packs the whole show (compressed, positions to 1/1000 step) into the link after "#show=". No server: the files-first plan holds. About 40 KB for 150 performers × 40 sets. Links are untrusted input and go through the same checks as files; a damaged link says so. Copy, the phone share sheet (where available), and a preview are offered. Anyone with the link can view the show, and later edits need a new link.
+  - **Performer screen:** opening a link shows a read-only screen built for phones (portrait first, side by side in landscape). The show is stored on the phone under its own key, separate from the editor's autosave, so opening a link in a director's browser never touches their work. The address becomes "#perform", so reloading or opening offline returns to it.
+  - **Who are you?:** pick a performer (grouped by section) or **Staff** for the whole band with labels. The pick, and the view toggles, are remembered on the phone; a new link keeps the pick if that performer still exists.
+  - **Views:** **Following me** centers on my dot, about 36 steps across; **Whole field** shows everything. **Facing front** turns the field 180° (front sideline at the top, Side 1 on my right); **Director view** is the editor's orientation. My label stays upright either way.
+  - **What I see:** my dot highlighted; others dimmed; my path into the next set, sampled count by count so follow-the-leader trails are right; and a ring where I end up. Ensemble markup shows on its set.
+  - **Info:** the set, counts, measures, and the count within a move; my spot (or "Now" mid-move); the next set with its counts, measures, coordinate and step size, colored by tier; my performer notes; and the ensemble notes.
+  - **Controls:** a count slider, previous/next count, play/pause with tempo, and go to set, all with large touch targets.
+  - **Rotation:** the "turn sideways" prompt no longer appears in the performer view. The manifest's landscape setting was removed, because Android would apply it to the whole installed app, performer view included. The editor still asks phones in portrait to rotate.
+  - Playback timing is shared by the editor and the performer view (`usePlayback`).
+- **Other options:** import the file (still works); QR codes (too small for real shows without hosting); a hosted copy that updates in place (needs a server or sync; later).
