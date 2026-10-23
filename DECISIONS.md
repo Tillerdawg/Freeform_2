@@ -229,3 +229,8 @@ Each entry: timestamp, who decided, context, options considered, decision.
   - **Copy Side 1 → 2** (and 2 → 1): the selected performers on the source side keep their spots, and those on the other side take the mirror image. Pairing is least total travel from the previous set, so paths don't cross. Anyone exactly on the 50 is left alone. Uneven sides are refused with a message giving both counts.
   - Each is one undo step.
 - **Other options:** mirroring around the selection's own center instead of the 50 (possible later as part of rotate/scale).
+
+## 2026-10-23 07:40 EDT — Rotate and scale
+- **Who:** Jason Tiller asked; details by Claude
+- **Decision:** A "Rotate & scale" box in the Selection panel (2 or more performers, on a set). Rotate by a typed angle (1–180°, default 15°) with ↺ / ↻ buttons, counterclockwise and clockwise as the director sees the field. Expand or Contract by a typed percentage (101–400%, default 110%); Contract divides by the same factor, so it exactly undoes one Expand. Both pivot on the center of the selection's bounding box, and each click is one undo step. Results aren't snapped to the grid: a 30° turn lands between steps and the readout shows quarter steps. A 90° turn of an on-grid form stays on the grid.
+- **Other options:** on-field drag handles for rotate and scale (later); pivoting on the 50 or a chosen point; stretching in one direction only.

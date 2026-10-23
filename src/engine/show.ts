@@ -235,3 +235,20 @@ export function mirrorSides(show: Show, i: number, ids: string[], from: 1 | 2): 
   const slotOf = assign(dst.map((id) => origin[id] ?? pos[id]), targets);
   return placeInSet(show, i, Object.fromEntries(dst.map((id, k) => [id, targets[slotOf[k]]])));
 }
+
+/**
+ * Rotate (degrees; positive = counterclockwise as the director sees it) and/or scale the selected performers
+ * in set i around the center of their bounding box.
+ */
+export function rotateScale(show: Show, i: number, ids: string[], deg: number, scale: number): Show {
+  if (!ids.length) return show;
+  const pos = show.sets[i].pos;
+  const xs = ids.map((id) => pos[id].x), ys = ids.map((id) => pos[id].y);
+  const cx = (Math.min(...xs) + Math.max(...xs)) / 2, cy = (Math.min(...ys) + Math.max(...ys)) / 2;
+  const a = (deg * Math.PI) / 180, cos = Math.cos(a), sin = Math.sin(a);
+  const tidy = (n: number) => Math.round(n * 1e9) / 1e9; // keep 90° turns landing exactly on whole steps
+  return placeInSet(show, i, Object.fromEntries(ids.map((id) => {
+    const dx = pos[id].x - cx, dy = pos[id].y - cy;
+    return [id, { x: tidy(cx + scale * (dx * cos - dy * sin)), y: tidy(cy + scale * (dx * sin + dy * cos)) }];
+  })));
+}

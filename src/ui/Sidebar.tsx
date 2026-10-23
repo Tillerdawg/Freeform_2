@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { readout, type HashPreset } from '../engine/coords';
 import { addCurvePoint, type Shape, type ShapeKind } from '../engine/shapes';
 import {
-  addSetAfter, flip, label, locate, mirrorSides, newId, placeInSet, positionsAt, removePerformers, removeSet, setCounts, xFrom, yFrom,
+  addSetAfter, flip, label, locate, mirrorSides, newId, placeInSet, rotateScale, positionsAt, removePerformers, removeSet, setCounts, xFrom, yFrom,
   type FrontDir, type FrontRef, type Show, type SideDir,
 } from '../engine/show';
 
@@ -47,6 +47,9 @@ export function Sidebar(p: Props) {
   const one = selected.size === 1 ? show.performers.find((x) => selected.has(x.id)) : undefined;
   const [mirrorError, setMirrorError] = useState('');
   useEffect(() => setMirrorError(''), [selected]);
+  const [deg, setDeg] = useState(15);
+  const [pct, setPct] = useState(110);
+  const turn = (d: number, k: number) => setShow((s) => rotateScale(s, onSet, ids, d, k));
   const ids = [...selected];
   const mirror = (from: 1 | 2) => {
     try {
@@ -138,6 +141,23 @@ export function Sidebar(p: Props) {
               </div>
             )}
             {mirrorError && <div role="alert" style={{ color: '#ff8080', marginTop: 6 }}>{mirrorError}</div>}
+          </fieldset>
+        )}
+        {selected.size > 1 && onSet >= 0 && (
+          <fieldset style={{ marginTop: 10, border: '1px solid #33443a' }}>
+            <legend>Rotate &amp; scale</legend>
+            <div style={row}>
+              <input aria-label="Rotation in degrees" type="number" min={1} max={180} value={deg} style={{ width: 52 }}
+                onChange={(e) => setDeg(Math.min(180, Math.max(1, Number(e.target.value) || 15)))} />°
+              <button onClick={() => turn(deg, 1)} title="Rotate counterclockwise">↺</button>
+              <button onClick={() => turn(-deg, 1)} title="Rotate clockwise">↻</button>
+            </div>
+            <div style={row}>
+              <input aria-label="Scale percent" type="number" min={101} max={400} value={pct} style={{ width: 52 }}
+                onChange={(e) => setPct(Math.min(400, Math.max(101, Number(e.target.value) || 110)))} />%
+              <button onClick={() => turn(0, pct / 100)}>Expand</button>
+              <button onClick={() => turn(0, 100 / pct)}>Contract</button>
+            </div>
           </fieldset>
         )}
         {selected.size > 1 && onSet >= 0 && <ShapePanel {...p} />}
