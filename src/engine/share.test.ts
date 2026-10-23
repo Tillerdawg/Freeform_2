@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { decodeShow, encodeShow } from './share';
+import { decodeShow, encodeShow, fetchShow, hostedLink, loadUrl } from './share';
+import { qrSvg } from './qr';
 import { addPerformer, addSetAfter, newShow, placeInSet, setCue } from './show';
 
 function band(n: number, sets: number) {
@@ -34,5 +35,38 @@ describe('share links', () => {
     await expect(decodeShow('not-a-real-link')).rejects.toThrow(/damaged/);
     const good = await encodeShow(band(3, 2).s);
     await expect(decodeShow(good.slice(0, good.length / 2))).rejects.toThrow();
+  });
+});
+
+describe('hosted links', () => {
+  const gist = 'https://gist.githubusercontent.com/someone/abc123/raw/opener.freeform.json';
+  it('builds a short link to a hosted file and reads it back', () => {
+    const link = hostedLink('https://example.org/Freeform_2/', gist);
+    expect(link.length).toBeLessThan(200);
+    expect(loadUrl(link.slice(link.indexOf('#')))).toBe(gist);
+  });
+  it('only accepts https addresses', () => {
+    expect(() => hostedLink('x/', 'http://example.org/show.json')).toThrow(/https/);
+    expect(() => hostedLink('x/', 'not a url')).toThrow();
+    expect(loadUrl('#load=' + encodeURIComponent('javascript:alert(1)'))).toBeNull();
+    expect(loadUrl('#show=abc')).toBeNull();
+  });
+  it('downloads and checks the file', async () => {
+    const show = band(4, 2).s;
+    const ok = (body: string, status = 200) => (async () => new Response(body, { status })) as unknown as typeof fetch;
+    expect((await fetchShow(gist, ok(JSON.stringify(show)))).show.performers).toEqual(show.performers);
+    await expect(fetchShow(gist, ok('{"not":"a show"}'))).rejects.toThrow(/Not a valid Freeform show/);
+    await expect(fetchShow(gist, ok('', 404))).rejects.toThrow(/404/);
+    const down = (async () => { throw new TypeError('Failed to fetch'); }) as unknown as typeof fetch;
+    await expect(fetchShow(gist, down)).rejects.toThrow(/allows other sites/);
+  });
+});
+
+describe('QR codes', () => {
+  it('fits short links and says when a link is too long', async () => {
+    expect(qrSvg('https://tillerdawg.github.io/Freeform_2/#load=' + encodeURIComponent('https://gist.githubusercontent.com/a/b/raw/c.json'))).toMatch(/^<svg/);
+    expect(qrSvg('x'.repeat(3500))).toBeNull();
+    const big = await encodeShow(band(150, 40).s);
+    expect(qrSvg('https://x/#show=' + big)).toBeNull();
   });
 });

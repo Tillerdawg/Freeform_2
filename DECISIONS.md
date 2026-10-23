@@ -404,3 +404,13 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Context:** The performer view only opened from a share link. On iPhone, links open in Safari, and a home-screen app keeps storage separate from Safari and has no address bar, so there was no way to reach the performer view from inside the installed app.
 - **Decision:** The Share dialog's "Preview" link became **Open performer view here**, which switches the current app or tab to the performer view of that show. The performer view has **← Editor** to go back, and a **paste a share link** box (on its empty screen, and under "Open a different show") that finds the link even inside a pasted message.
 - **Note:** performers who only use Safari don't need any of this. Opening the link is enough, and it works offline.
+
+## 2026-10-23 15:30 EDT — QR codes and hosted show links
+- **Who:** Jason Tiller (QR sharing; gists for testing, something protected for deployment); details by Claude *(Jason can veto)*
+- **Context:** Share links carry the whole show (about 40 KB for a big show), but a QR code holds about 3 KB, so only small shows fit.
+- **Decisions:**
+  - The Share dialog shows a QR code whenever the share link fits, and says when it doesn't.
+  - **Hosted links:** `…/#load=<https address of a show file>`. The phone downloads the file (no-cache, 10 MB cap, checked by the same validation as Import), saves it with its address, and on each later online open re-downloads it and updates in place, keeping the performer's choice. A failed download keeps the saved copy and shows the error. Only https addresses are accepted. The file host must allow other sites to read it (CORS); GitHub gist "raw" links do.
+  - For testing, the dialog explains using a secret gist with a commit-free Raw link. QR library: `qrcode-generator` (MIT, no dependencies).
+- **Other options:** shrink links further to fit QR (not enough for real shows); a Freeform server now (premature before the hosting/protection decision); multi-QR sequences (awkward to scan).
+- **Open:** protected hosting for deployment; client-side encryption with the key in the link fragment is the first idea to evaluate (PLAN.md).

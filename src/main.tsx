@@ -37,12 +37,13 @@ class Crash extends Component<{ children: ReactNode }, { error?: Error }> {
   }
 }
 
-// Share links (#show=...) and the saved performer view (#perform) open the read-only performer screen.
-const perform = location.hash.startsWith('#show=') || location.hash.startsWith('#perform');
+// Share links (#show=...), hosted links (#load=...) and the saved performer view (#perform) open the read-only performer screen.
+const isPerform = () => ['#show=', '#load=', '#perform'].some((p) => location.hash.startsWith(p));
+const perform = isPerform();
 document.body.classList.toggle('performer', perform);
 window.addEventListener('hashchange', () => {
-  if ((location.hash.startsWith('#show=') || location.hash.startsWith('#perform')) !== perform) location.reload();
-  else if (location.hash.startsWith('#show=')) location.reload(); // a new link opened in the same tab
+  if (isPerform() !== perform) location.reload();
+  else if (location.hash.startsWith('#show=') || location.hash.startsWith('#load=')) location.reload(); // a new link opened in the same tab
 });
 createRoot(document.getElementById('root')!).render(<Crash>{perform ? <Perform /> : <App />}</Crash>);
 
