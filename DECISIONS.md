@@ -352,3 +352,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 ## 2026-10-23 12:40 EDT — README kept current; CLAUDE.md holds the house rules
 - **Who:** Jason Tiller (README must be updated with every feature change); CLAUDE.md by Claude
 - **Decision:** README.md describes what the app does today, how to use it, the roadmap, how to run and deploy it, the code map, the coordinate model, the clean-room policy, and the license. CLAUDE.md (the file AI coding agents read automatically) makes "update README.md in the same commit as any feature change" a standing rule, along with logging decisions, updating PLAN.md, testing before pushing, and the fixed-height layout rule.
+
+## 2026-10-23 12:55 EDT — Landscape on phones
+- **Who:** Jason Tiller (lock to landscape); approach by Claude
+- **Context:** In portrait on an iPhone the sidebar takes most of the screen. iOS ignores orientation locks for home-screen web apps and doesn't support the Screen Orientation lock API, so a true lock isn't possible there.
+- **Decision:** The manifest asks for landscape, which Android honors. Phones in portrait (portrait and 600 px wide or less) get a full-screen "Turn your phone sideways" message over the app; the app keeps running underneath, so nothing is lost. iPads in portrait and desktop windows aren't affected.
+- **Note:** the coming performer view will probably want portrait and should opt out of this.
