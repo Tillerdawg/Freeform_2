@@ -14,7 +14,7 @@ export const toWorld = (v: View, sx: number, sy: number): Point => ({ x: (sx - v
 
 /** View that fits the whole field (end zones included) into w x h px. */
 export function fitView(w: number, h: number): View {
-  const scale = Math.min(w / (2 * END_X + 8), h / (FIELD_WIDTH + 8));
+  const scale = Math.min(w / (2 * END_X + 8), h / (FIELD_WIDTH + 16)); // room for the yard numbers outside the sidelines
   return { scale, ox: w / 2, oy: h / 2 + (FIELD_WIDTH / 2) * scale };
 }
 
@@ -79,7 +79,7 @@ export function drawField(ctx: CanvasRenderingContext2D, v: View, hash: HashPres
   ctx.font = 'bold 100px system-ui, sans-serif';
   const px = (100 * 4 * s) / ctx.measureText('0').actualBoundingBoxAscent;
   ctx.font = `bold ${px}px system-ui, sans-serif`;
-  const depth = 8; // bottom of numbers, steps from the sideline
+  const depth = -6; // bottom of numbers, steps from the sideline: outside the field, tops 2 steps beyond the sideline
   // Digits sit either side of the yard line. Round edges (0, 2, 3, 5) read as farther away than straight
   // stems (1, 4), so they're tucked a little closer to look equal (the usual typographic optical correction).
   const gap = (18 / STEP_IN) * s; // line center to a straight edge
