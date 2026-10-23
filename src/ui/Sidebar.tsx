@@ -157,11 +157,12 @@ export function Sidebar(p: Props) {
           <button onClick={() => { setShow((s) => addSetAfter(s, cur)); p.setT(p.starts[cur] + 16); }}>+ Set after</button>
           <button disabled={show.sets.length < 2} onClick={() => { setShow((s) => removeSet(s, cur)); p.setT(p.starts[Math.max(0, cur - 1)]); }}>Delete set</button>
         </div>
-        <label style={{ display: 'block', marginTop: 6 }}>Page note
-          <textarea aria-label="Page note" value={show.sets[cur].note ?? ''} rows={2} placeholder="Printed under this set's chart"
-            style={{ display: 'block', width: '100%', boxSizing: 'border-box', marginTop: 2 }}
+        <label style={{ display: 'block', marginTop: 6 }}>Ensemble notes
+          <textarea aria-label="Ensemble notes" aria-describedby="ensemble-help" value={show.sets[cur].note ?? ''} rows={2} placeholder="e.g. Guard: flag toss on 9"
+            style={{ display: 'block', width: '100%', boxSizing: 'border-box', marginTop: 2, font: 'inherit' }}
             onChange={(e) => setShow((s) => setNote(s, cur, e.target.value))} />
         </label>
+        <span id="ensemble-help" style={{ display: 'block', fontSize: 12, opacity: 0.75, marginTop: 2 }}>For everyone: printed under set {show.sets[cur].name}'s drill chart.</span>
         <div style={row}>
           {show.sets.map((s, i) => (
             <button key={s.id} onClick={() => p.setT(p.starts[i])} style={{ fontWeight: i === onSet ? 700 : 400 }}>{s.name}</button>
@@ -219,11 +220,16 @@ export function Sidebar(p: Props) {
           const cues = ids.map((id) => show.sets[onSet].cues?.[id] ?? '');
           const same = cues.every((c) => c === cues[0]);
           return (
-            <label style={{ display: 'block', marginTop: 8 }}>Cue for set {show.sets[onSet].name}
-              <input aria-label="Cue" value={same ? cues[0] : ''} placeholder={same ? 'e.g. Slide L, horns 45' : '(different cues)'}
-                style={{ display: 'block', width: '100%', boxSizing: 'border-box', marginTop: 2 }}
-                onChange={(e) => setShow((s) => setCue(s, onSet, ids, e.target.value))} />
-            </label>
+            <>
+              <label style={{ display: 'block', marginTop: 8 }}>Performer notes
+                <input aria-label="Performer notes" aria-describedby="performer-help" value={same ? cues[0] : ''} placeholder={same ? 'e.g. Slide L, horns 45' : '(different notes)'}
+                  style={{ display: 'block', width: '100%', boxSizing: 'border-box', marginTop: 2 }}
+                  onChange={(e) => setShow((s) => setCue(s, onSet, ids, e.target.value))} />
+              </label>
+              <span id="performer-help" style={{ display: 'block', fontSize: 12, opacity: 0.75, marginTop: 2 }}>
+                Only for the {ids.length === 1 ? 'selected performer' : `${ids.length} selected performers`}: printed on their dot sheets under set {show.sets[onSet].name}.
+              </span>
+            </>
           );
         })()}
         {p.selectedMark && onSet >= 0 && (() => {
