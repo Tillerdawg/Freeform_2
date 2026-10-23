@@ -382,3 +382,8 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Who:** Claude (Jason reported the mismatch)
 - **Context:** On Apple devices ⏮ and ⏸ render as colored emoji while ▶ and ◀ render as text, so the transport buttons didn't match.
 - **Decision:** All transport buttons (editor and performer view) use one small set of SVG icons in the button's text color: back to start, back one count (|◀, a bar plus triangle, matching forward one count ▶|), play, pause, forward one count. Each keeps its spoken label for screen readers.
+
+## 2026-10-23 14:05 EDT — Yard-line ruler in the performer view
+- **Who:** Jason Tiller (yard numbers always visible); details by Claude
+- **Decision:** While "Following me", a band pinned to the bottom of the field view labels every yard line on screen, every 5 yards, not just the painted 10s, with its side: "S1 40", "50", "S2 45", "G". It follows the view, so Facing front reads correctly too. In Whole field view the painted numbers are already visible, so there's no ruler.
+- **Other options:** labels only on the painted 10-yard numbers; side shown by color instead of "S1/S2".

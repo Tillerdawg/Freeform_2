@@ -25,3 +25,11 @@ export function describe(dx: number, dy: number): string {
   if (q(dy)) parts.push(`${steps(dy)} ${dy < 0 ? 'in front' : 'behind'}`);
   return parts.join(', ') || 'same spot';
 }
+
+/** Ruler label for the yard line at x steps from the 50 (multiples of 8): "50", "S1 40", "G" for goal lines. */
+export function yardLabel(x: number): string {
+  const yd = 50 - Math.abs(x) / 1.6;
+  if (yd === 50) return '50';
+  if (yd === 0) return 'G';
+  return `S${x < 0 ? 1 : 2} ${yd}`;
+}

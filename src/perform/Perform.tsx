@@ -7,7 +7,7 @@ import { drawField, drawMarks, drawPerformers, fitView, TIER_COLOR, toScreen, ty
 import { fmtStep } from '../ui/format';
 import { usePlayback } from '../ui/usePlayback';
 import { IconNext, IconPause, IconPlay, IconPrev } from '../ui/icons';
-import { describe, nearest } from './neighbors';
+import { describe, nearest, yardLabel } from './neighbors';
 
 const STORE = 'freeform:performer'; // separate from the editor's autosave, so opening a link never touches a director's work
 const STAFF = 'staff';
@@ -140,6 +140,21 @@ export function Perform() {
       tag(label(show, me), flip(q), 14, '#fff');
     }
     ctx.setTransform(1, 0, 0, 1, 0, 0);
+    if (follow) {
+      // Zoomed in, the painted yard numbers are usually off screen: pin a yard-line ruler to the bottom edge.
+      const band = 22 * dpr;
+      ctx.fillStyle = 'rgba(16,24,18,0.85)';
+      ctx.fillRect(0, H - band, W, band);
+      ctx.font = `700 ${12 * dpr}px system-ui, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      for (let x = -80; x <= 80; x += 8) {
+        const sx = toScreen(v, { x, y: 0 }).x, at = state!.facingFront ? W - sx : sx;
+        if (at < -40 * dpr || at > W + 40 * dpr) continue;
+        ctx.fillStyle = 'rgba(255,255,255,0.35)';
+        ctx.fillRect(at - dpr, H - band, 2 * dpr, 5 * dpr); // tick where the line meets the ruler
+        ctx.fillStyle = '#fff';
+        ctx.fillText(yardLabel(x), at, H - band / 2 + 2 * dpr);
+      }
+    }
   }, [show, size, positions, me, state, onSet, myPath, dpr, around]);
 
   if (!show) {
