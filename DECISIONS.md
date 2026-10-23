@@ -317,3 +317,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 ## 2026-10-23 11:10 EDT — Selected performer shows the current set's coordinate only
 - **Who:** Jason Tiller
 - **Decision:** Clicking a performer shows its coordinate on the current set, plus its exact spot at the current count when mid-move. The full list of coordinates for every set is folded into a closed "All sets" section. "Place exactly" is folded into a closed section too.
+
+## 2026-10-23 11:20 EDT — "Ensemble notes" and "Performer notes"
+- **Who:** Jason Tiller
+- **Context:** "Page note" and "Cue for set X" looked like duplicates.
+- **Options:** clearer labels, kept separate; one box whose meaning changes with the selection.
+- **Decision:** Kept separate, renamed, with help text under each. **Ensemble notes** (the set's page note) are for everyone and print under the set's drill chart. **Performer notes** (cues) are only for the selected performers and print on their dot sheets under that set. The help text names the set and how many performers are selected. The show file fields are unchanged (`note`, `cues`).
