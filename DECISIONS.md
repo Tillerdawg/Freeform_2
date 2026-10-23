@@ -243,3 +243,13 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Who:** Jason Tiller
 - **Context:** Work autosaves in the browser, so a Save button was confusing.
 - **Decision:** The button that downloads the show file is now "Export". Its tooltip says what it's for: a backup, or a copy to share or open in another browser. Autosave lives only in that one browser, so Export is the real backup. "Open…" became "Import…" to match (Jason). It replaces the current show, which Undo brings back.
+
+## 2026-10-23 08:30 EDT — Dot sheets and drill charts
+- **Who:** Jason Tiller (layout, columns, chart contents, who to include); rendering approach by Claude
+- **Decisions:**
+  - **Dot sheets:** 4 cards per letter page, with dashed cut lines for flip folders and lanyards. Each card has the performer's label, section, and show title, and one row per set: Set, Counts (into the set), Side to side, Front to back. Coordinates use the same wording as the editor, with phrases like "Side 2 45" and "Front Hash" kept on one line. A card holds 24 sets; longer shows continue on another card ("card 2 of 2"). Performers are in section order, then number.
+  - **Who:** everyone, one section, or the current selection.
+  - **Drill charts:** one landscape letter page per set, with the whole field, labeled dots, and a header with the show title, set number and counts (e.g. "Set 3 · 8 counts (counts 16–24)"). Charts always show every performer.
+  - **Paper style:** black on white, not green turf, to save toner and stay readable on copiers. Labels get a white halo so lines don't run through them.
+  - **How:** a Print… button lays out the pages and opens the browser's print dialog; "Save as PDF" there gives the PDF. That works in every browser, including iPhone Safari, with no PDF library to add. The editor's keyboard shortcuts are off while the dialog is open.
+- **Other options:** a PDF library (bigger download, more code); green charts; 1 performer per page; 2 charts per page; a notes column; paths on charts (left for later).

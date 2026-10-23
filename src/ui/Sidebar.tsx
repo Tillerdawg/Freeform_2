@@ -27,6 +27,7 @@ interface Props {
   onNew: () => void;
   onOpen: () => void;
   onSave: () => void;
+  onPrint: () => void;
   fileError: string;
   shape: Shape | null;
   startShape: (k: ShapeKind) => void;
@@ -74,6 +75,7 @@ export function Sidebar(p: Props) {
         <button onClick={p.onNew}>New</button>
         <button onClick={p.onOpen} title="Load a .freeform.json show file (replaces the current show; Undo brings it back)">Import…</button>
         <button onClick={p.onSave} title="Download this show as a .freeform.json file: a backup, or a copy to share or open in another browser">Export</button>
+        <button onClick={p.onPrint} disabled={!show.performers.length} title="Dot sheets and drill charts (print or save as PDF)">Print…</button>
       </div>
       {p.fileError && <div role="alert" style={{ color: '#ff8080', marginTop: 6 }}>{p.fileError}</div>}
       <div style={{ ...row, marginBottom: 10 }}>

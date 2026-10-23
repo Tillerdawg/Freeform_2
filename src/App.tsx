@@ -9,6 +9,7 @@ import {
 import { HANDLE_PX, drawField, drawPerformers, drawShape, fitView, toScreen, toWorld, type Path, type View } from './field/drawField';
 import { Sidebar, type Snap, type Tool } from './ui/Sidebar';
 import { Timeline } from './ui/Timeline';
+import { PrintDialog } from './print/Print';
 
 export const AUTOSAVE = 'freeform:autosave';
 
@@ -50,6 +51,7 @@ export function App() {
   // Shape being edited: performers in slot order (order[k] takes slot k), in the set it was started in.
   const [shapeEdit, setShapeEdit] = useState<{ shape: Shape; order: string[]; set: number } | null>(null);
   const [fileError, setFileError] = useState('');
+  const [printing, setPrinting] = useState(false);
   const [box, setBox] = useState<[Point, Point]>();
   const drag = useRef<Drag | null>(null);
   const [hist, setHist] = useState(emptyHistory<Show>);
@@ -210,7 +212,7 @@ export function App() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const el = e.target as HTMLElement;
-      if (el.closest('input, select, textarea')) return; // text fields keep the browser's own undo
+      if (printing || el.closest('input, select, textarea')) return; // text fields keep the browser's own undo
       boundary.current = true;
       const mod = e.metaKey || e.ctrlKey;
       if (mod && (e.key === 'z' || e.key === 'Z')) { e.preventDefault(); step(e.shiftKey ? 'redo' : 'undo'); }
@@ -227,7 +229,7 @@ export function App() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [selected, total, hist, show, shapeEdit]);
+  }, [selected, total, hist, show, shapeEdit, printing]);
 
   const world = (e: React.PointerEvent) => toWorld(view!, e.nativeEvent.offsetX * dpr, e.nativeEvent.offsetY * dpr);
 
@@ -378,9 +380,10 @@ export function App() {
         show={show} setShow={setShow} t={t} setT={(x) => { setPlaying(false); setT(x); }} onSet={onSet}
         selected={selected} setSelected={setSelected} tool={tool} setTool={setTool}
         section={section} setSection={setSection} snap={snap} setSnap={setSnap} starts={starts}
-        onNew={fresh} onOpen={() => fileRef.current?.click()} onSave={save} fileError={fileError}
+        onNew={fresh} onOpen={() => fileRef.current?.click()} onSave={save} onPrint={() => setPrinting(true)} fileError={fileError}
         shape={shapeEdit?.shape ?? null} startShape={startShape} updateShape={updateShape} endShape={() => setShapeEdit(null)}
       />
+      {printing && <PrintDialog show={show} selected={selected} onClose={() => setPrinting(false)} />}
       <input ref={fileRef} type="file" accept=".json,application/json" hidden
         onChange={(e) => { const f = e.target.files?.[0]; if (f) open(f); e.target.value = ''; }} />
     </div>

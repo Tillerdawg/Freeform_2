@@ -6,10 +6,29 @@
     <title>Freeform</title>
     <style>
       html, body, #root { margin: 0; height: 100%; background: #1d2a1f; color: #eee; font-family: system-ui, sans-serif; }
+      @media screen { #print-root { display: none; } }
+      @media print {
+        html, body { height: auto; background: #fff; color: #000; }
+        #root { display: none !important; }
+        .dot-page { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; height: 10.15in; break-after: page; }
+        .dot-card { border: 1px dashed #999; padding: 0.15in; overflow: hidden; font-size: 8pt; }
+        .dot-card header { display: flex; gap: 6px; align-items: baseline; margin-bottom: 4px; }
+        .dot-card header strong { font-size: 14pt; }
+        .dot-card .dot-show { margin-left: auto; color: #555; font-size: 7.5pt; }
+        .dot-card table { width: 100%; border-collapse: collapse; }
+        .dot-card th { text-align: left; border-bottom: 1px solid #000; font-size: 7.5pt; }
+        .dot-card td { padding: 1px 3px 1px 0; border-bottom: 1px solid #ddd; vertical-align: top; }
+        .dot-card td:nth-child(-n+2), .dot-card th:nth-child(-n+2) { width: 1.6em; white-space: nowrap; }
+        .dot-card td:nth-child(3) { width: 52%; }
+        .chart-page { break-after: page; }
+        .chart-page header { display: flex; justify-content: space-between; font-size: 13pt; margin-bottom: 6px; }
+        .chart-page img { width: 100%; display: block; }
+      }
     </style>
   </head>
   <body>
     <div id="root"></div>
+    <div id="print-root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
