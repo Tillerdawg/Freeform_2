@@ -29,6 +29,11 @@ interface Props {
   onSave: () => void;
   onPrint: () => void;
   fileError: string;
+  onUndo: () => void;
+  onRedo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
+  onFit: () => void;
   selectedMark: string | null;
   setSelectedMark: (id: string | null) => void;
   shape: Shape | null;
@@ -73,7 +78,7 @@ export function Sidebar(p: Props) {
   };
 
   return (
-    <aside style={{ width: 300, padding: '8px 14px', overflowY: 'auto', borderLeft: '1px solid #33443a', fontSize: 14 }}>
+    <aside style={{ width: 300, padding: '8px 14px 0', overflowY: 'auto', borderLeft: '1px solid #33443a', fontSize: 14, display: 'flex', flexDirection: 'column' }}>
       <div style={row}>
         <button onClick={p.onNew}>New</button>
         <button onClick={p.onOpen} title="Load a .freeform.json show file (replaces the current show; Undo brings it back)">Import…</button>
@@ -275,6 +280,12 @@ export function Sidebar(p: Props) {
           <button onClick={() => setShow((sh) => ({ ...sh, sections: [...sh.sections, { id: newId('s'), name: 'New section', letter: '?' }] }))}>+ Section</button>
         </div>
       </details>
+      {/* Pinned to the bottom of the panel, however long the sections above get. */}
+      <div style={{ ...row, marginTop: 'auto', position: 'sticky', bottom: 0, background: '#1d2a1f', borderTop: '1px solid #33443a', padding: '8px 0', zIndex: 1 }}>
+        <button onClick={p.onUndo} disabled={!p.canUndo} title="Undo (⌘Z / Ctrl+Z)">Undo</button>
+        <button onClick={p.onRedo} disabled={!p.canRedo} title="Redo (⇧⌘Z / Ctrl+Y)">Redo</button>
+        <button onClick={p.onFit} title="Zoom out to the whole field">Fit field</button>
+      </div>
     </aside>
   );
 }

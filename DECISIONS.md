@@ -337,3 +337,7 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Who:** Jason Tiller (draggable set buttons; neighbors stay pinned, per the earlier count-first decision); details by Claude
 - **Decision:** Dragging a set's button on the timeline moves the count that set lands on. The move into it and the move out of it trade counts, and every other set stays put. It snaps to whole counts, each move keeps at least 1 count, and dragging the last set just lengthens or shortens the final move. Set 1 stays at count 0. A plain click (less than a few pixels of movement) still jumps to the set, and the playhead follows a dragged set. Each drag is one undo step.
 - **Note:** typed measure numbers don't update when counts change.
+
+## 2026-10-23 12:10 EDT — Top bar holds the set controls; Undo/Redo/Fit at the bottom of the sidebar
+- **Who:** Jason Tiller; layout details by Claude
+- **Decision:** "Set X · Counts · Measures · + Add set · Delete set" moved from the bottom panel into the top bar, on the same line as "Freeform" and centered over the field. When space is short, the scroll/zoom hint shrinks away first and the controls slide left toward "Freeform"; at 900 px wide they just fit. Undo, Redo and Fit field moved to the bottom of the sidebar, pinned there however long the sidebar gets. "+ Set after" is now "+ Add set" (it still adds the new set right after the current one, 16 counts). The top bar keeps its fixed height and no-wrap rule, so the field never resizes from it.

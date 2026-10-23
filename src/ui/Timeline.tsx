@@ -34,27 +34,12 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
     ? `Set ${show.sets[onSet].name}`
     : `Set ${show.sets[to - 1].name} → ${show.sets[to].name} · count ${Math.floor(count)} of ${show.sets[to].counts}`;
 
-  const cur = onSet >= 0 ? onSet : to; // the set being edited (mid-move: the one being moved into)
   const strip = useRef<HTMLDivElement>(null);
   const setDrag = useRef<{ i: number; x0: number; from: number; perCount: number; moved: boolean } | null>(null);
   const fixedRow: React.CSSProperties = { display: 'flex', gap: 8, alignItems: 'center', height: 30, whiteSpace: 'nowrap', overflow: 'hidden' };
   return (
     <div style={{ padding: '8px 16px 12px', borderTop: '1px solid #33443a' }}>
       {/* Every row has a fixed height: a panel that grows or shrinks would resize (and flash) the field. */}
-      <div style={{ ...fixedRow, marginBottom: 4 }}>
-        <strong>Set {show.sets[cur].name}</strong>
-        <label>Counts{' '}
-          <input type="number" min={1} aria-label="Counts" disabled={cur === 0} title={cur === 0 ? 'The opening set has no move into it' : undefined}
-            value={cur === 0 ? '' : show.sets[cur].counts} style={{ width: 56 }}
-            onChange={(e) => setShow((s) => setCounts(s, cur, Number(e.target.value)))} />
-        </label>
-        <label>Measures{' '}
-          <input aria-label="Measures" placeholder={cur > 0 ? 'e.g. 9–12' : 'e.g. 0 or 1'} value={show.sets[cur].measures ?? ''} style={{ width: 72 }}
-            onChange={(e) => setShow((s) => setMeasures(s, cur, e.target.value))} />
-        </label>
-        <button onClick={() => { setShow((s) => addSetAfter(s, cur)); setT(starts[cur] + 16); }}>+ Set after</button>
-        <button disabled={show.sets.length < 2} onClick={() => { setShow((s) => removeSet(s, cur)); setT(starts[Math.max(0, cur - 1)]); }}>Delete set</button>
-      </div>
       <div style={{ ...fixedRow, marginBottom: 4 }}>
         <button aria-label="Back to start" onClick={() => setT(0)}>⏮</button>
         <button aria-label="Previous count" onClick={() => setT(Math.max(0, Math.ceil(t) - 1))}>◀</button>
@@ -151,6 +136,29 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
           <div style={{ position: 'absolute', top: -4, bottom: -4, width: 2, background: '#fff', left: `${(t / total) * 100}%`, pointerEvents: 'none' }} />
         </div>
       )}
+    </div>
+  );
+}
+
+/** The current set's controls (shown in the top bar). Mid-move, "current" is the set being moved into. */
+export function SetControls({ show, setShow, t, setT }: { show: Show; setShow: (f: (s: Show) => Show) => void; t: number; setT: (t: number) => void }) {
+  const starts = setStarts(show);
+  const onSet = setAt(show, t);
+  const cur = onSet >= 0 ? onSet : locate(show, t).to;
+  return (
+    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+      <strong>Set {show.sets[cur].name}</strong>
+      <label>Counts{' '}
+        <input type="number" min={1} aria-label="Counts" disabled={cur === 0} title={cur === 0 ? 'The opening set has no move into it' : undefined}
+          value={cur === 0 ? '' : show.sets[cur].counts} style={{ width: 46 }}
+          onChange={(e) => setShow((s) => setCounts(s, cur, Number(e.target.value)))} />
+      </label>
+      <label>Measures{' '}
+        <input aria-label="Measures" placeholder={cur > 0 ? 'e.g. 9–12' : 'e.g. 0 or 1'} value={show.sets[cur].measures ?? ''} style={{ width: 64 }}
+          onChange={(e) => setShow((s) => setMeasures(s, cur, e.target.value))} />
+      </label>
+      <button onClick={() => { setShow((s) => addSetAfter(s, cur)); setT(starts[cur] + 16); }} title="Add a new set after this one (16 counts)">+ Add set</button>
+      <button disabled={show.sets.length < 2} onClick={() => { setShow((s) => removeSet(s, cur)); setT(starts[Math.max(0, cur - 1)]); }}>Delete set</button>
     </div>
   );
 }

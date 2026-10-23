@@ -9,7 +9,7 @@ import {
 } from './engine/show';
 import { HANDLE_PX, drawField, drawMarks, drawPerformers, drawShape, fitView, toScreen, toWorld, type Path, type View } from './field/drawField';
 import { Sidebar, type Snap, type Tool } from './ui/Sidebar';
-import { Timeline } from './ui/Timeline';
+import { SetControls, Timeline } from './ui/Timeline';
 import { PrintDialog } from './print/Print';
 
 export const AUTOSAVE = 'freeform:autosave';
@@ -418,12 +418,11 @@ export function App() {
     <div style={{ display: 'flex', height: '100%' }}>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         {/* Fixed height, no wrapping: nothing up here may resize the field (a canvas resize clears it, which flashes). */}
-        <div style={{ display: 'flex', gap: 16, alignItems: 'center', padding: '0 16px', height: 40, flexShrink: 0, whiteSpace: 'nowrap', overflow: 'hidden' }}>
-          <strong>Freeform</strong>
-          <button onClick={() => step('undo')} disabled={!hist.past.length} title="Undo (⌘Z / Ctrl+Z)">Undo</button>
-          <button onClick={() => step('redo')} disabled={!hist.future.length} title="Redo (⇧⌘Z / Ctrl+Y)">Redo</button>
-          <button onClick={() => { const c = canvasRef.current!; setView(fitView(c.width, c.height)); }}>Fit field</button>
-          <span style={{ fontSize: 12, opacity: 0.7, minWidth: 0, flex: '0 1 auto', overflow: 'hidden', textOverflow: 'ellipsis' }}>Scroll to pan · pinch or ⌘/Ctrl+scroll to zoom · right-drag pans</span>
+        {/* Equal-flex sides center the set controls when there's room; when there isn't, the hint gives up space first. */}
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '0 16px', height: 40, flexShrink: 0, whiteSpace: 'nowrap', overflow: 'hidden' }}>
+          <strong style={{ flex: '1 1 0' }}>Freeform</strong>
+          <div style={{ flex: 'none' }}><SetControls show={show} setShow={setShow} t={t} setT={(x) => { setPlaying(false); setT(x); }} /></div>
+          <span style={{ flex: '1 1 0', fontSize: 12, opacity: 0.7, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'right' }}>Scroll to pan · pinch or ⌘/Ctrl+scroll to zoom · right-drag pans</span>
         </div>
         <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
         <canvas
@@ -449,7 +448,9 @@ export function App() {
         selected={selected} setSelected={setSelected} tool={tool} setTool={setTool}
         section={section} setSection={setSection} snap={snap} setSnap={setSnap} starts={starts}
         onNew={fresh} onOpen={() => fileRef.current?.click()} onSave={save} onPrint={() => setPrinting(true)} fileError={fileError}
-        selectedMark={selectedMark} setSelectedMark={setSelectedMark} shape={shapeEdit?.shape ?? null} startShape={startShape} updateShape={updateShape} endShape={() => setShapeEdit(null)}
+        selectedMark={selectedMark} setSelectedMark={setSelectedMark}
+        onUndo={() => step('undo')} onRedo={() => step('redo')} canUndo={!!hist.past.length} canRedo={!!hist.future.length}
+        onFit={() => { const c = canvasRef.current!; setView(fitView(c.width, c.height)); }} shape={shapeEdit?.shape ?? null} startShape={startShape} updateShape={updateShape} endShape={() => setShapeEdit(null)}
       />
       {printing && <PrintDialog show={show} selected={selected} onClose={() => setPrinting(false)} />}
       <input ref={fileRef} type="file" accept=".json,application/json" hidden
