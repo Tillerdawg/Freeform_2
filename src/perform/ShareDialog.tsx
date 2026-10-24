@@ -1,7 +1,12 @@
 import { useEffect, useState } from 'react';
-import { encodeShow, hostedLink, SHARE_PREFIX } from '../engine/share';
+import { encodeShow, fetchShow, hostedLink, linkHash, lockShow, newKey, parseHosted, SHARE_PREFIX } from '../engine/share';
 import { qrSvg } from '../engine/qr';
 import type { Show } from '../engine/show';
+
+// shortcut: hosted links are remembered per show title in this browser; a renamed show starts fresh. Upgrade if shows get ids.
+const LINKS = 'freeform:hosted-links';
+const loadLinks = (): Record<string, string> => { try { return JSON.parse(localStorage.getItem(LINKS) ?? '{}') ?? {}; } catch { return {}; } };
+const saveLink = (title: string, link: string) => { try { localStorage.setItem(LINKS, JSON.stringify({ ...loadLinks(), [title]: link })); } catch { /* not remembered */ } };
 
 /** Make a link that opens this show in the performer view. The show travels inside the link. */
 export function ShareDialog({ show, onClose }: { show: Show; onClose: () => void }) {
@@ -15,10 +20,40 @@ export function ShareDialog({ show, onClose }: { show: Show; onClose: () => void
   }, [onClose]);
   const kb = Math.ceil(url.length / 1024);
   const qr = url ? qrSvg(url) : null;
-  const [fileUrl, setFileUrl] = useState('');
+  // Hosted link. The field takes a file address, or an existing hosted link (whose key then locks the updated file).
+  const [field, setField] = useState(() => loadLinks()[show.title] ?? '');
+  const [madeKey, setMadeKey] = useState<string | null>(null);
+  const [startOpen] = useState(!!field); // opened once if this show already has a hosted link; then the user's toggle rules
+  const pasted = (() => { const h = linkHash(field); return h ? parseHosted(h) : null; })();
+  const fileUrl = pasted ? pasted.url : field.trim();
+  const key = pasted ? pasted.key : madeKey;
   const base = location.origin + location.pathname;
-  const hosted = (() => { try { return fileUrl.trim() ? hostedLink(base, fileUrl) : ''; } catch { return ''; } })();
+  const hosted = (() => { try { return fileUrl && key ? hostedLink(base, fileUrl, key) : ''; } catch { return ''; } })();
+  const badUrl = !!fileUrl && (() => { try { return new URL(fileUrl).protocol !== 'https:'; } catch { return true; } })();
   const hostedQr = hosted ? qrSvg(hosted) : null;
+  const [check, setCheck] = useState('');
+  useEffect(() => {
+    setCheck('');
+    if (!hosted) return;
+    saveLink(show.title, hosted);
+    const t = setTimeout(() => {
+      setCheck('Checking the link…');
+      fetchShow(hosted.slice(hosted.indexOf('#')))
+        .then((s) => setCheck(`✓ Checked: this link opens “${s.title}”.`))
+        .catch((e: Error) => setCheck(`✗ ${e.message}`));
+    }, 600);
+    return () => clearTimeout(t);
+  }, [hosted, show.title]);
+  const download = async () => {
+    const k = key ?? newKey();
+    if (!pasted) setMadeKey(k);
+    const blob = new Blob([await lockShow(show, k)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${show.title.replace(/[^\w\- ]+/g, '').trim() || 'show'}.locked.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
   const copy = async (text: string) => {
     try { await navigator.clipboard.writeText(text); setNote('Link copied.'); } catch { setNote('Copy failed: select the link and copy it.'); }
   };
@@ -37,19 +72,28 @@ export function ShareDialog({ show, onClose }: { show: Show; onClose: () => void
           {url && !qr && ' Too big for a QR code: use a hosted link below.'}
         </p>
         {qr && <div aria-label="QR code for the share link" style={{ background: '#fff', width: 200, margin: '0 auto 10px' }} dangerouslySetInnerHTML={{ __html: qr }} />}
-        <details style={{ margin: '0 0 10px' }}>
-          <summary>Hosted link (short, scannable, updates itself)</summary>
-          <p style={{ margin: '6px 0', fontSize: 12 }}>
-            Put the exported show file online and paste its address here. Phones download it when the link is opened and pick up your changes
-            whenever they're online. For testing: Export, paste the file into a <em>secret</em> gist at gist.github.com, then copy the <em>Raw</em> link
-            and remove the long code after <code>/raw/</code> so it always serves the latest version.
-          </p>
-          <input aria-label="Show file address" placeholder="https://gist.githubusercontent.com/…/raw/show.json" value={fileUrl}
-            onChange={(e) => setFileUrl(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', font: 'inherit', fontSize: 12 }} />
-          {fileUrl.trim() && !hosted && <p role="alert" style={{ fontSize: 12 }}>That isn't a web address starting with https://</p>}
+        <details style={{ margin: '0 0 10px' }} open={startOpen}>
+          <summary>Hosted link (short, scannable, locked, updates itself)</summary>
+          <ol style={{ margin: '6px 0', paddingLeft: 20, fontSize: 12 }}>
+            <li><button onClick={download}>Download locked show file</button> It's encrypted: without your link, the file is unreadable.</li>
+            <li>Put it online. For testing: drag the file onto a new <em>secret</em> gist at gist.github.com, then copy the
+              gist's <em>Raw</em> link and remove the long code after <code>/raw/</code> so it always serves the newest version.</li>
+            <li>Paste that address here.</li>
+          </ol>
+          <input aria-label="Show file address" placeholder="https://gist.githubusercontent.com/…/raw/show.locked.json" value={field}
+            onChange={(e) => { setField(e.target.value); if (!e.target.value.trim()) setMadeKey(null); /* cleared = start over with a new key */ }} style={{ width: '100%', boxSizing: 'border-box', font: 'inherit', fontSize: 12 }} />
+          {badUrl && <p role="alert" style={{ fontSize: 12 }}>That isn't a web address starting with https://</p>}
+          {!badUrl && fileUrl && !key && <p role="alert" style={{ fontSize: 12 }}>
+            {pasted ? "That link isn't locked. Download a locked file (step 1), upload it, and paste its address." : 'Download the locked file first (step 1), then upload that file and paste its address.'}</p>}
           {hosted && <>
             {hostedQr && <div aria-label="QR code for the hosted link" style={{ background: '#fff', width: 200, margin: '8px auto' }} dangerouslySetInnerHTML={{ __html: hostedQr }} />}
+            <p role="status" style={{ fontSize: 12, margin: '4px 0' }}>{check}</p>
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}><button onClick={() => copy(hosted)}>Copy hosted link</button></div>
+            <p style={{ fontSize: 12, opacity: 0.75, margin: '6px 0 0' }}>
+              The link is the password: anyone who has it can open the show, so share it only with your band. <strong>To update</strong> after
+              edits, download the locked file again (it reuses this link's key), replace the gist's contents, and phones pick it up. To cut off
+              old links, clear this box and start over with a new file.
+            </p>
           </>}
         </details>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>

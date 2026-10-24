@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { decodeShow, encodeShow, fetchShow, hostedLink, linkHash, loadUrl } from './share';
+import { decodeShow, encodeShow, fetchShow, hostedLink, linkHash, lockShow, newKey, parseHosted } from './share';
 import { qrSvg } from './qr';
 import { addPerformer, addSetAfter, newShow, placeInSet, setCue } from './show';
 
@@ -40,25 +40,44 @@ describe('share links', () => {
 
 describe('hosted links', () => {
   const gist = 'https://gist.githubusercontent.com/someone/abc123/raw/opener.freeform.json';
+  const key = newKey();
+  const hashOf = (link: string) => link.slice(link.indexOf('#'));
+  const serve = (body: string, status = 200) => (async () => new Response(body, { status })) as unknown as typeof fetch;
   it('builds a short link to a hosted file and reads it back', () => {
-    const link = hostedLink('https://example.org/Freeform_2/', gist);
-    expect(link.length).toBeLessThan(200);
-    expect(loadUrl(link.slice(link.indexOf('#')))).toBe(gist);
+    const link = hostedLink('https://example.org/Freeform_2/', gist, key);
+    expect(link.length).toBeLessThan(250);
+    expect(parseHosted(hashOf(link))).toEqual({ url: gist, key });
+    expect(parseHosted('#load=' + encodeURIComponent(gist))).toEqual({ url: gist, key: null });
   });
-  it('only accepts https addresses', () => {
-    expect(() => hostedLink('x/', 'http://example.org/show.json')).toThrow(/https/);
-    expect(() => hostedLink('x/', 'not a url')).toThrow();
-    expect(loadUrl('#load=' + encodeURIComponent('javascript:alert(1)'))).toBeNull();
-    expect(loadUrl('#show=abc')).toBeNull();
+  it('only accepts https addresses and real keys', () => {
+    expect(() => hostedLink('x/', 'http://example.org/show.json', key)).toThrow(/https/);
+    expect(() => hostedLink('x/', 'not a url', key)).toThrow();
+    expect(() => hostedLink('x/', gist, 'short')).toThrow();
+    expect(parseHosted('#load=' + encodeURIComponent('javascript:alert(1)'))).toBeNull();
+    expect(parseHosted('#load=' + encodeURIComponent(gist) + '&key=nope')).toBeNull();
+    expect(parseHosted('#show=abc')).toBeNull();
+  });
+  it('locks the show so the file alone reveals nothing, and the link opens it', async () => {
+    const show = band(4, 2).s;
+    const file = await lockShow(show, key);
+    expect(file).not.toContain(show.title);
+    expect(file).not.toContain('performers');
+    const link = hashOf(hostedLink('x/', gist, key));
+    expect((await fetchShow(link, serve(file))).performers).toEqual(show.performers);
+    expect(await lockShow(show, key)).not.toBe(file); // fresh nonce every time, same key
+    await expect(fetchShow(hashOf(hostedLink('x/', gist, newKey())), serve(file))).rejects.toThrow(/key doesn't open/);
+    await expect(fetchShow('#load=' + encodeURIComponent(gist), serve(file))).rejects.toThrow(/missing its key/);
+    const tampered = JSON.stringify({ ...JSON.parse(file), data: JSON.parse(file).data.replace(/^./, (c: string) => (c === 'A' ? 'B' : 'A')) });
+    await expect(fetchShow(link, serve(tampered))).rejects.toThrow(/key doesn't open/);
   });
   it('downloads and checks the file', async () => {
     const show = band(4, 2).s;
-    const ok = (body: string, status = 200) => (async () => new Response(body, { status })) as unknown as typeof fetch;
-    expect((await fetchShow(gist, ok(JSON.stringify(show)))).show.performers).toEqual(show.performers);
-    await expect(fetchShow(gist, ok('{"not":"a show"}'))).rejects.toThrow(/Not a valid Freeform show/);
-    await expect(fetchShow(gist, ok('', 404))).rejects.toThrow(/404/);
+    const link = '#load=' + encodeURIComponent(gist);
+    expect((await fetchShow(link, serve(JSON.stringify(show)))).performers).toEqual(show.performers); // unlocked files still open
+    await expect(fetchShow(link, serve('{"not":"a show"}'))).rejects.toThrow(/Not a valid Freeform show/);
+    await expect(fetchShow(link, serve('', 404))).rejects.toThrow(/404/);
     const down = (async () => { throw new TypeError('Failed to fetch'); }) as unknown as typeof fetch;
-    await expect(fetchShow(gist, down)).rejects.toThrow(/allows other sites/);
+    await expect(fetchShow(link, down)).rejects.toThrow(/allows other sites/);
   });
 });
 
