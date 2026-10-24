@@ -1,7 +1,7 @@
 // Performer / staff view: read-only playback of a shared show, centered on "my" dot. Built for phones (portrait).
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { readout, type Point } from '../engine/coords';
-import { decodeShow, fetchShow, LOAD_PREFIX, linkHash, loadUrl, SHARE_PREFIX } from '../engine/share';
+import { decodeShow, fetchShow, LOAD_PREFIX, linkHash, parseHosted, SHARE_PREFIX } from '../engine/share';
 import { Scanner } from './Scanner';
 import { isPhone } from './device';
 import { label, locate, moveSteps, parseShow, positionsAt, setAt, setStarts, type Show } from '../engine/show';
@@ -16,7 +16,7 @@ const STORE = 'freeform:performer'; // separate from the editor's autosave, so o
 const STAFF = 'staff';
 const FOLLOW_STEPS = 36; // how much field fits across the screen when following a performer
 
-/** `source`: where a hosted show came from, so the phone can pick up updates whenever it's online. */
+/** `source`: the hosted link ("#load=…", with its key) a show came from, so the phone can pick up updates when online. */
 interface Saved { show: Show; me: string | null; facingFront: boolean; follow: boolean; source?: string }
 
 function loadSaved(): Saved | null {
@@ -24,7 +24,7 @@ function loadSaved(): Saved | null {
     const raw = localStorage.getItem(STORE);
     if (!raw) return null;
     const s = JSON.parse(raw);
-    return { show: parseShow(JSON.stringify(s.show)), me: s.me ?? null, facingFront: !!s.facingFront, follow: s.follow !== false, source: typeof s.source === 'string' && s.source.startsWith('https://') ? s.source : undefined };
+    return { show: parseShow(JSON.stringify(s.show)), me: s.me ?? null, facingFront: !!s.facingFront, follow: s.follow !== false, source: typeof s.source === 'string' && parseHosted(s.source) ? s.source : undefined };
   } catch { return null; }
 }
 const save = (s: Saved) => { try { localStorage.setItem(STORE, JSON.stringify(s)); } catch { /* private mode: nothing kept */ } };
@@ -57,13 +57,15 @@ export function Perform() {
       decodeShow(location.hash.slice(SHARE_PREFIX.length)).then((show) => { adopt(show, undefined, true); done(); }).catch(fail);
       return;
     }
-    const url = loadUrl(location.hash);
-    if (location.hash.startsWith(LOAD_PREFIX) && !url) { fail(new Error('This link is damaged or incomplete. Ask for the link again.')); return; }
-    if (url) { fetchShow(url).then(({ show }) => { adopt(show, url, true); done(); }).catch(fail); return; }
+    if (location.hash.startsWith(LOAD_PREFIX)) {
+      const hash = location.hash;
+      fetchShow(hash).then((show) => { adopt(show, hash, true); done(); }).catch(fail);
+      return;
+    }
     // Reopening a hosted show: quietly check for a newer version when online. Offline, the saved copy is used.
     const saved = loadSaved();
     if (saved?.source && navigator.onLine) {
-      fetchShow(saved.source).then(({ show }) => {
+      fetchShow(saved.source).then((show) => {
         if (JSON.stringify(show) !== JSON.stringify(saved.show)) { adopt(show, saved.source, false); setNotice('Show updated.'); }
       }).catch(() => { /* keep the saved copy */ });
     }

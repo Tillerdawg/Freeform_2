@@ -444,3 +444,12 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Decision:** In both the editor and the performer view, Play starts at the playhead and moves forward. Inside a play range, it stops (or loops) at the range's end. From outside the range, it plays on to the end of the show and doesn't loop. At the end of the show Play is grayed out; tap a set (or Back to start) to play again.
 - **Also:** the performer view's row of set buttons fades whichever edge has more sets past it, and keeps the current set centered.
 - **Other options:** from outside the range, jump into the range (the old behavior); at the show's end, restart from set 1 (the usual media-player habit, but it's the surprise Jason hit).
+
+## 2026-10-24 13:30 EDT — Locked (encrypted) hosted show files
+- **Who:** Jason Tiller (go-ahead on encrypted hosted links); details by Claude *(Jason can veto)*
+- **Context:** A secret gist is unlisted, not private: anyone with its address can read the drill.
+- **Decision:** The Share dialog's hosted link now starts with **Download locked show file**: the show is compressed, then encrypted with AES-GCM (a random 256-bit key, a fresh nonce for every file) using the browser's built-in Web Crypto. The file is `{"format":"freeform-locked","version":1,"iv","data"}`. The hosted link is `#load=<file address>&key=<key>`. The key lives only in the `#` part, which browsers never send to servers, so the host stores only ciphertext. The phone decrypts after downloading; a wrong key or a tampered file fails with "this link's key doesn't open the show file" (GCM detects tampering). The dialog checks the finished link by actually downloading and opening it.
+  - **Updating** reuses the key, so the same link keeps working: the dialog remembers each show's hosted link in that browser (by show title) and locks new files with its key. Pasting an existing hosted link into the box does the same.
+  - **Cutting off old links:** clear the box and start over with a new key and file. Phones that already opened the show keep their saved copy (nothing can unsend it) but stop getting updates.
+  - Unlocked show files at a `#load=` address still open, for compatibility; the dialog only builds locked links.
+- **Other options:** a Freeform-run server with accounts (cost and upkeep); a password typed by each performer (extra step for students, and passwords get reused); band-owned cloud storage via Google Drive or Dropbox APIs (sign-in and API setup for every director).
