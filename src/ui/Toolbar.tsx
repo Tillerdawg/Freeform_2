@@ -1,3 +1,4 @@
+import { IconFit, IconRedo, IconUndo } from './icons';
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { addBezierSegment, addCurvePoint, type Shape, type ShapeKind } from '../engine/shapes';
 import {
@@ -156,9 +157,9 @@ export function Toolbar(p: ToolbarProps) {
         title="Delete the selected performers from the whole show">Delete</button>
 
       <span style={{ marginLeft: 'auto' }} />
-      <button onClick={p.onUndo} disabled={!p.canUndo} title="Undo (⌘Z / Ctrl+Z)">Undo</button>
-      <button onClick={p.onRedo} disabled={!p.canRedo} title="Redo (⇧⌘Z / Ctrl+Y)">Redo</button>
-      <button onClick={p.onFit} title="Zoom out to the whole field">Fit</button>
+      <button onClick={p.onUndo} disabled={!p.canUndo} title="Undo (⌘Z / Ctrl+Z)" aria-label="Undo" className="icon"><IconUndo /></button>
+      <button onClick={p.onRedo} disabled={!p.canRedo} title="Redo (⇧⌘Z / Ctrl+Y)" aria-label="Redo" className="icon"><IconRedo /></button>
+      <button onClick={p.onFit} title="Fit: zoom out to the whole field" aria-label="Fit field" className="icon"><IconFit /></button>
     </div>
   );
 }

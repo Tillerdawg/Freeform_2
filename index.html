@@ -21,6 +21,7 @@
       button:disabled { opacity: .45; cursor: default; }
       button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid #ffd166; outline-offset: 1px; }
       button[aria-pressed=true], button[aria-checked=true] { background: #ffd166; border-color: #ffd166; color: #1a2419; font-weight: 600; }
+      button.icon { padding: 4px 7px; }
       button.primary { background: #3d6b4a; border-color: #5d9b6c; }
       button.danger:hover:not(:disabled) { background: #5a2b2b; border-color: #a04848; }
       select, input:not([type=radio]):not([type=checkbox]):not([type=range]), textarea { font: inherit; font-size: 13px; color: #e9f0ea; background: #142017;
@@ -35,6 +36,7 @@
       .toolbar .seg > :first-child { border-radius: 6px 0 0 6px; margin-left: 0; }
       .toolbar .seg > :last-child, .toolbar .seg > .tb-menu:last-child > button { border-radius: 0 6px 6px 0; }
       .tb-field { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; opacity: .9; }
+      .tb-field select { max-width: 130px; }
       .tb-sep { width: 1px; height: 22px; background: #2f4034; margin: 0 2px; }
       .tb-menu { position: relative; display: inline-block; }
       .tb-menu .caret { font-size: 10px; opacity: .7; }
