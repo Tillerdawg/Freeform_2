@@ -549,3 +549,11 @@ Each entry: timestamp, who decided, context, options considered, decision.
   - In the Sections list, **Use as my starting list** saves the current show's section names and letters as the list new shows start with; **Back to Freeform's list** clears it. The panel says which list new shows will use.
   - The saved list lives in that browser (like the autosave). It isn't in exported show files or shared links, and it's checked when read back, so bad stored data falls back to Freeform's list.
 - **Other options:** store the starting list in an account (no accounts yet); ask for a template on every New (an extra step each time).
+
+## 2026-10-26 17:00 EDT — Section colors
+- **Who:** Jason Tiller (let directors color-code sections); details by Claude *(Jason can veto)*
+- **Decisions:**
+  - Each section can have a color (a swatch on its Sections row, stored as `color: "#rrggbb"` and checked on import). No colors by default; **Clear colors** removes them all.
+  - Colored dots are drawn in the editor, the phone's staff view and printed drill charts. On screen a colored dot gets a dark ring; on paper, a thin black outline, so pale colors still show. Labels stay white on screen and black on paper. Selected dots still turn gold. The performer's own "My view" keeps its gold-me / dim-others look.
+  - Colors are saved with "Use as my starting list".
+- **Other options:** a preset palette instead of a free color picker; coloring the labels instead of the dots (harder to read).

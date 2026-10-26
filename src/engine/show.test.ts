@@ -372,3 +372,18 @@ describe('starting section lists', () => {
     for (const bad of [null, [], 'x', [{ name: '', letter: 'A' }], [{ name: 'A' }], [{ name: 'A', letter: 3 }]]) expect(validSectionList(bad)).toBeNull();
   });
 });
+
+describe('section colors', () => {
+  it('saves a section color, checks it on load, and carries it in starting lists', async () => {
+    const { colorOf, validSectionList } = await import('./show');
+    let s = newShow();
+    const a = addPerformer(s, s.sections[0].id, { x: 0, y: 10 }); s = a.show;
+    s = { ...s, sections: s.sections.map((x, i) => (i === 0 ? { ...x, color: '#3a7bd5' } : x)) };
+    const back = parseShow(JSON.stringify(s));
+    expect(colorOf(back, back.performers[0])).toBe('#3a7bd5');
+    const bad = JSON.parse(JSON.stringify(s)); bad.sections[0].color = 'red; background:url(x)';
+    expect(() => parseShow(JSON.stringify(bad))).toThrow(/section/);
+    expect(newShow([{ name: 'Flute', letter: 'F', color: '#ff0000' }]).sections[0].color).toBe('#ff0000');
+    expect(validSectionList([{ name: 'Flute', letter: 'F', color: 'nope' }])).toBeNull();
+  });
+});

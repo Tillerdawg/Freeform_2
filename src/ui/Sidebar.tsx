@@ -248,19 +248,22 @@ function SectionsEditor({ show, setShow, cur }: { show: Show; setShow: (f: (s: S
   const panel = useRef<HTMLDetailsElement>(null);
   useEffect(() => { if (dupes.size && panel.current) panel.current.open = true; }, [dupes.size]); // show a clash; never close on the user
   const count = (id: string) => show.performers.filter((p) => p.section === id).length;
-  const edit = (i: number, patch: { letter?: string; name?: string }) =>
+  const edit = (i: number, patch: { letter?: string; name?: string; color?: string }) =>
     setShow((sh) => ({ ...sh, sections: sh.sections.map((x, j) => (j === i ? { ...x, ...patch } : x)) }));
   return (
     <details style={box} ref={panel}>
       <summary><strong>Sections</strong> <span style={{ fontSize: 12, opacity: 0.7 }}>({show.sections.length})</span></summary>
       <p style={{ margin: '6px 0 0', fontSize: 12, opacity: 0.75 }}>
-        The letter starts each label (A1, X1). To split a section, add one here, then select its performers and change their Section.
+        The swatch colors the section's dots. The letter starts each label (A1, X1). To split a section, add one here, then select its performers and change their Section.
       </p>
       {show.sections.map((s, i) => {
         const n = count(s.id), dup = dupes.has(s.letter.trim().toUpperCase());
         return (
           <div key={s.id}>
             <div style={row}>
+              <input type="color" aria-label={`Color for ${s.name}`} title={s.color ? `Dot color for ${s.name}` : `Pick a dot color for ${s.name} (none yet)`}
+                value={s.color ?? '#111111'} onChange={(e) => edit(i, { color: e.target.value })}
+                style={{ width: 24, height: 24, padding: 0, border: s.color ? '1px solid #44594a' : '1px dashed #6b8270', borderRadius: 6, background: 'none', cursor: 'pointer', opacity: s.color ? 1 : 0.6 }} />
               <input aria-label={`Letter for ${s.name}`} value={s.letter} maxLength={3} style={{ width: 36, textAlign: 'center', borderColor: dup ? '#ff8080' : undefined }}
                 onChange={(e) => edit(i, { letter: e.target.value })} />
               <input aria-label={`Name of section ${s.letter}`} value={s.name} style={{ flex: 1, minWidth: 0 }} onChange={(e) => edit(i, { name: e.target.value })} />
@@ -298,6 +301,9 @@ function SectionsEditor({ show, setShow, cur }: { show: Show; setShow: (f: (s: S
       })}
       <div style={row}>
         <button onClick={() => setShow((sh) => ({ ...sh, sections: [...sh.sections, { id: newId('s'), name: 'New section', letter: '?' }] }))}>+ Section</button>
+        {show.sections.some((s) => s.color) && (
+          <button onClick={() => setShow((sh) => ({ ...sh, sections: sh.sections.map(({ color: _, ...x }) => x) }))} title="Back to plain dots for every section">Clear colors</button>
+        )}
       </div>
       <div style={{ ...row, marginTop: 10 }}>
         <button onClick={() => { setStartNote(saveStartingSections(show) ? 'New shows will start with this list.' : "This browser won't save it."); setOwn(hasOwnStartingSections()); }}

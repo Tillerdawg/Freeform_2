@@ -3,7 +3,9 @@ import { HASHES, FIELD_WIDTH, distance, ftlPositions, stepSize, type HashPreset,
 import { assign } from './shapes';
 import { validMark, type Mark } from './marks';
 
-export interface Section { id: string; name: string; letter: string }
+/** `color`: optional #rrggbb the section's dots are drawn in. */
+export interface Section { id: string; name: string; letter: string; color?: string }
+export const COLOR_RE = /^#[0-9a-f]{6}$/i;
 export interface Performer { id: string; section: string; number: number }
 /** A set ("page"). `counts` = counts of the move INTO this set; ignored for the first set. */
 export interface DrillSet {
@@ -44,7 +46,7 @@ export interface Show {
 let seq = 0;
 export const newId = (prefix: string) => `${prefix}${Date.now().toString(36)}${(seq++).toString(36)}`;
 
-export type SectionList = { name: string; letter: string }[];
+export type SectionList = { name: string; letter: string; color?: string }[];
 
 /** Freeform's starting sections (Jason's lettering). No front ensemble: they're stationary, so they need no drill spots. */
 export const DEFAULT_SECTIONS: SectionList = ([
@@ -56,8 +58,9 @@ export const DEFAULT_SECTIONS: SectionList = ([
 /** A starting list saved from a file or storage: kept only if it's a non-empty list of names and letters. */
 export function validSectionList(x: unknown): SectionList | null {
   if (!Array.isArray(x) || !x.length || x.length > 100) return null;
-  return x.every((s) => typeof s?.name === 'string' && typeof s?.letter === 'string' && s.name.trim() && s.letter.trim())
-    ? x.map((s) => ({ name: s.name, letter: s.letter })) : null;
+  return x.every((s) => typeof s?.name === 'string' && typeof s?.letter === 'string' && s.name.trim() && s.letter.trim()
+    && (s.color === undefined || (typeof s.color === 'string' && COLOR_RE.test(s.color))))
+    ? x.map((s) => ({ name: s.name, letter: s.letter, ...(s.color ? { color: s.color } : {}) })) : null;
 }
 
 export function newShow(sections: SectionList = DEFAULT_SECTIONS): Show {
@@ -66,11 +69,14 @@ export function newShow(sections: SectionList = DEFAULT_SECTIONS): Show {
     version: 1,
     title: 'Untitled show',
     hash: 'highSchool',
-    sections: sections.map(({ name, letter }) => ({ id: newId('s'), name, letter })),
+    sections: sections.map(({ name, letter, color }) => ({ id: newId('s'), name, letter, ...(color ? { color } : {}) })),
     performers: [],
     sets: [{ id: newId('set'), name: '1', counts: 0, pos: {} }],
   };
 }
+
+/** The color a performer's section is drawn in, if it has one. */
+export const colorOf = (show: Show, p: Performer) => show.sections.find((s) => s.id === p.section)?.color;
 
 export function label(show: Show, p: Performer) {
   return `${show.sections.find((s) => s.id === p.section)?.letter ?? '?'}${p.number}`;
@@ -321,7 +327,7 @@ export function parseShow(text: string): Show {
   if (!Array.isArray(s.sections) || !Array.isArray(s.performers) || !Array.isArray(s.sets) || !s.sets.length) bad('missing lists');
   const str = (v: unknown) => typeof v === 'string';
   if (typeof s.title !== 'string') bad('title');
-  for (const x of s.sections) if (!str(x?.id) || !str(x.name) || !str(x.letter)) bad('section');
+  for (const x of s.sections) if (!str(x?.id) || !str(x.name) || !str(x.letter) || (x.color !== undefined && !COLOR_RE.test(x.color))) bad('section');
   for (const x of s.performers) if (!str(x?.id) || !str(x.section) || !Number.isFinite(x.number)) bad('performer');
   for (const set of s.sets) {
     if (!str(set?.id) || !str(set.name) || !Number.isFinite(set.counts) || typeof set.pos !== 'object' || !set.pos) bad('set');

@@ -115,7 +115,7 @@ export function drawField(ctx: CanvasRenderingContext2D, v: View, hash: HashPres
 
 export const TIER_COLOR = { ok: 'rgba(255,255,255,0.55)', yellow: '#f5c518', red: '#ff4d4d' } as const;
 
-export interface Dot { id: string; label: string; at: Point; pin?: LabelSide }
+export interface Dot { id: string; label: string; at: Point; pin?: LabelSide; color?: string }
 export interface Path { from: Point; to: Point; tier: keyof typeof TIER_COLOR }
 
 /**
@@ -167,10 +167,10 @@ export function drawPerformers(
     const c = toScreen(v, d.at);
     const sel = selected.has(d.id);
     ctx.beginPath(); ctx.arc(c.x, c.y, r, 0, Math.PI * 2);
-    ctx.fillStyle = sel ? '#ffd166' : '#111';
+    ctx.fillStyle = sel ? '#ffd166' : d.color ?? '#111';
     ctx.fill();
     ctx.lineWidth = Math.max(1.5, r * 0.25);
-    ctx.strokeStyle = sel ? '#fff' : '#ffd166';
+    ctx.strokeStyle = sel ? '#fff' : d.color ? '#111' : '#ffd166'; // a colored dot gets a dark ring so light colors show on the turf
     ctx.stroke();
   }
   drawLabels(ctx, dots.map((d) => ({ ...d, first: selected.has(d.id) })), v, r, Math.max(10 * dpr, s * 0.8), '#fff'); // at least 10 CSS px: smaller isn't readable
