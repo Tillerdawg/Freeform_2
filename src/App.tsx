@@ -11,6 +11,7 @@ import {
 import { HANDLE_PX, drawField, drawMarks, drawPerformers, drawShape, fitView, toScreen, toWorld, type Path, type View } from './field/drawField';
 import { Sidebar, type Snap, type Tool } from './ui/Sidebar';
 import { SetControls, Timeline } from './ui/Timeline';
+import { parse3dj } from './engine/pyware';
 import { usePlayback } from './ui/usePlayback';
 import { PrintDialog } from './print/Print';
 import { ShareDialog } from './perform/ShareDialog';
@@ -386,7 +387,7 @@ export function App() {
 
   const open = async (f: File) => {
     try {
-      const s = parseShow(await f.text());
+      const s = /\.3dj$/i.test(f.name) ? parse3dj(await f.arrayBuffer(), f.name.replace(/\.3dj$/i, '')) : parseShow(await f.text());
       setShow(s); setT(0); setSelected(new Set()); setFileError('');
       setSection(s.sections[0]?.id ?? '');
     } catch (err) {
@@ -440,7 +441,7 @@ export function App() {
       />
       {sharing && <ShareDialog show={show} onClose={() => setSharing(false)} />}
       {printing && <PrintDialog show={show} selected={selected} onClose={() => setPrinting(false)} />}
-      <input ref={fileRef} type="file" accept=".json,application/json" hidden
+      <input ref={fileRef} type="file" accept=".json,application/json,.3dj" hidden
         onChange={(e) => { const f = e.target.files?.[0]; if (f) open(f); e.target.value = ''; }} />
     </div>
   );

@@ -33,5 +33,5 @@
 - Count-first layout (Jason): ✅ drag a set's button on the timeline to place it at a specific count (neighbors stay pinned). Still to do: enter the total counts for a musical selection (movement) or the whole show up front. Fits the current model, since a set at count N just means counts-into-set = N − previous set's count. When a set moves, later sets keep their absolute counts (Jason): moving set 3 from count 24 to 28 lengthens the move into set 3 and shortens the move out of it; set 4 stays at 48.
 - Music sync (mp3; MIDI tempo map). Pairs with count-first layout: counts → measures → audio time.
 - Basketball court and custom surfaces.
-- Pyware .3dj import (from Jason's own sample files; behavior-only RE, see DECISIONS.md).
+- ✅ Pyware 3D .3dj import (sets, counts, notes, measures, sections from symbols/figures, hashes). Follow-ups: carry Pyware's per-count positions as a path inside the move; names (Freeform has no roster yet); .3dj files with no sets (backups/drafts); the CaneRidge Part 2/3 variant with no PAGE blocks.
 - Optional cloud sync; store-wrapped mobile apps.

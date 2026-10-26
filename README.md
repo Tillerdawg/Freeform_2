@@ -74,6 +74,7 @@ Every spot reads in standard drill language, e.g. *"2 steps outside the Side 2 4
 ### Saving
 - **Autosave:** your show saves in this browser automatically.
 - **Export / Import** a `.freeform.json` file to back up a show, share it, or move it to another browser or device. *Export is your real backup:* the autosave lives only in that one browser.
+- **Import Pyware 3D drills (`.3dj`):** Import… also opens Pyware 3D files (tested with 2008–2010 shows). You get every set with its counts, the set's notes (as ensemble notes), and measure numbers when the notes say "mm. 5-8". Sections come from Pyware's dot symbols, named after the 3D figure (Trumpet, Clarinet…) when the file has figures, otherwise "Symbol P" and so on, ready to rename. Labels are symbol plus Pyware's number (P1, P2…). Not brought over: performer names, per-count paths inside a move (Freeform moves in straight lines), drawn markup, and the 3D figures and colors. Backup or draft copies that have no sets saved are reported as such.
 
 ## Using it
 
@@ -95,8 +96,7 @@ The editor has the field in the middle, the current set's controls across the to
 Roughly in order (details in [PLAN.md](PLAN.md)):
 
 1. **Music sync:** play the drill against an mp3, compute measures from the meter, and lay out sets by musical selection.
-2. **Pyware `.3dj` import.**
-3. Follow-the-leader paths with turns, markup that spans several sets, basketball courts and custom surfaces, and optional cloud sync and app-store versions.
+2. Follow-the-leader paths with turns, markup that spans several sets, basketball courts and custom surfaces, and optional cloud sync and app-store versions.
 
 ## Running it yourself
 
