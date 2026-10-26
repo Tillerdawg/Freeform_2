@@ -28,8 +28,9 @@ export interface DrillSet {
   labels?: Record<string, LabelSide>;
 }
 
-export type LabelSide = 'above' | 'below' | 'left' | 'right' | 'hidden';
-export const LABEL_SIDES: LabelSide[] = ['above', 'below', 'left', 'right', 'hidden'];
+/** Sides are on the field: "above" = toward the back sideline (up on the editor's screen). */
+export type LabelSide = 'above' | 'above-right' | 'right' | 'below-right' | 'below' | 'below-left' | 'left' | 'above-left' | 'hidden';
+export const LABEL_SIDES: LabelSide[] = ['above', 'above-right', 'right', 'below-right', 'below', 'below-left', 'left', 'above-left', 'hidden'];
 export interface Show {
   format: 'freeform-show';
   version: 1;

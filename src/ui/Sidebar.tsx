@@ -1,3 +1,4 @@
+import { curveSides } from '../field/labels';
 import { useEffect, useState } from 'react';
 import { readout, type HashPreset } from '../engine/coords';
 import { addBezierSegment, addCurvePoint, type Shape, type ShapeKind } from '../engine/shapes';
@@ -59,6 +60,14 @@ export function Sidebar(p: Props) {
   useEffect(() => setMirrorError(''), [selected]);
   const [deg, setDeg] = useState(15);
   const [pct, setPct] = useState(110);
+  const [labelNote, setLabelNote] = useState('');
+  const pinLabels = (side: LabelSide) => { setShow((s) => setLabelSide(s, onSet, ids, side)); setLabelNote(''); };
+  const pinCurve = (outside: boolean) => {
+    const sides = curveSides(ids.map((id) => show.sets[onSet].pos[id]), outside);
+    if (sides.every((x) => !x)) { setLabelNote("These dots are in a straight line: use Above, Below or 45°."); return; }
+    setShow((s) => ids.reduce((acc, id, k) => (sides[k] ? setLabelSide(acc, onSet, [id], sides[k]) : acc), s));
+    setLabelNote(sides.some((x) => !x) ? 'Dots on a straight stretch were left as they were.' : '');
+  };
   const turn = (d: number, k: number) => setShow((s) => rotateScale(s, onSet, ids, d, k));
   const [snapNote, setSnapNote] = useState('');
   useEffect(() => setSnapNote(''), [selected]);
@@ -166,16 +175,26 @@ export function Sidebar(p: Props) {
         {selected.size > 0 && onSet >= 0 && (() => {
           const sides = new Set(ids.map((id) => show.sets[onSet].labels?.[id] ?? ''));
           return (
-            <label style={{ display: 'block', marginTop: 8 }} title="Where the label sits in this set. Automatic moves it to a free side and hides it when there's no room; zoom in to see it.">
+            <div style={{ marginTop: 8 }} title="Where the label sits in this set. Automatic moves it to a free side and hides it when there's no room; zoom in to see it.">
               Label{' '}
               <select aria-label="Label position" value={sides.size === 1 ? [...sides][0] : 'mixed'}
                 onChange={(e) => setShow((s) => setLabelSide(s, onSet, ids, (e.target.value || null) as LabelSide | null))}>
                 {sides.size > 1 && <option value="mixed" disabled>Mixed</option>}
                 <option value="">Automatic</option>
-                {LABEL_SIDES.map((x) => <option key={x} value={x}>{x[0].toUpperCase() + x.slice(1)}</option>)}
+                {LABEL_SIDES.map((x) => <option key={x} value={x}>{x[0].toUpperCase() + x.slice(1).replace('-', ' ')}</option>)}
               </select>
               <span style={{ opacity: 0.7, fontSize: 12 }}> in set {show.sets[onSet].name}</span>
-            </label>
+              <div style={row}>
+                <button onClick={() => pinLabels('above')} title="Labels above the dots">Above</button>
+                <button onClick={() => pinLabels('below')} title="Labels below the dots">Below</button>
+                <button onClick={() => pinLabels('above-right')} title="Labels at 45°, up and to the right (other diagonals are in the list)">45°</button>
+                {ids.length > 2 && <>
+                  <button onClick={() => pinCurve(false)} title="Labels on the inside of the curve the dots form">Inside curve</button>
+                  <button onClick={() => pinCurve(true)} title="Labels on the outside of the curve the dots form">Outside curve</button>
+                </>}
+              </div>
+              {labelNote && <div role="status" style={{ fontSize: 12, marginTop: 4 }}>{labelNote}</div>}
+            </div>
           );
         })()}
         {selected.size > 0 && onSet >= 0 && (
