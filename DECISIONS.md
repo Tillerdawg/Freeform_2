@@ -477,7 +477,7 @@ Each entry: timestamp, who decided, context, options considered, decision.
   - Inside/outside: each dot takes the circle through itself and its two nearest selected neighbors, so every part of an S-curve bends its own way. Where those three are in a straight line, it uses the circle best fitting the whole selection. The direction to that circle's center (inside) or away from it (outside) is snapped to the nearest of the 8 sides. Dots on straight stretches keep their label, and an all-straight selection gets "use Above, Below or 45°".
   - Sides are on the field ("above" = toward the back sideline), so in the phone's Facing front they turn with the field and an "outside" label stays outside.
 - **Other options:** 45° meaning another diagonal by default; free angles instead of 8 sides (finer, but labels would need rotating text or more collision shapes).
-- **Known gap:** Flip and Mirror move dots but don't swap their pinned sides; re-press the quick button after flipping.
+- **Known gap (fixed 2026-10-26):** Flip and Mirror move dots but didn't swap their pinned sides; now they do.
 
 ## 2026-10-26 13:10 EDT — Label compass replaces the label list and quick buttons
 - **Who:** Jason Tiller (a small unit-circle/compass to click instead of separate buttons; keep inside/outside curve); details by Claude *(Jason can veto)*
@@ -566,3 +566,7 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Who:** Jason Tiller
 - **Decision:** Export saves `<title>.freeform`; the Share dialog's locked copy for hosted links saves `<title>.freeform-locked`. The contents are unchanged (the same JSON as before), so older `.freeform.json` files still import, and hosted links to old `.locked.json` files keep working. Downloads use a generic file type so browsers don't add ".json". Importing a locked copy says what it is and to import the `.freeform` file instead.
 - **Note:** on iPhone and iPad, the file picker may grey out file types it doesn't recognize; if `.freeform` files can't be picked there, the import button needs to accept any file.
+
+## 2026-10-26 17:45 EDT — Flip and Mirror reflect pinned label sides
+- **Who:** Jason Tiller (fix it); details by Claude
+- **Decision:** Flip across the 50 swaps a pinned label's left and right (up-left → up-right); Flip front ↔ back swaps above and below. Copy Side 1 → 2 (or 2 → 1) gives each copied performer its partner's label side, mirrored, or automatic if the partner had none. Rotate & scale leaves pins alone (re-press Inside/Outside curve after a turn if needed).

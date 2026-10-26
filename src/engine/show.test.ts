@@ -403,3 +403,19 @@ describe('importing the wrong kind of file', () => {
     expect(() => parseShow('{"format":"freeform-locked","version":1,"iv":"x","data":"y"}')).toThrow(/locked copy made for a hosted link/);
   });
 });
+
+describe('flips and mirrors carry pinned label sides', () => {
+  it('reflects pins with their dots', async () => {
+    const { setLabelSide, mirrorSide } = await import('./show');
+    expect(['above-left', 'right', 'below', 'hidden'].map((x) => mirrorSide(x as never, 'x'))).toEqual(['above-right', 'left', 'below', 'hidden']);
+    expect(['above-left', 'right', 'below'].map((x) => mirrorSide(x as never, 'y'))).toEqual(['below-left', 'right', 'above']);
+    let s = newShow();
+    const a = addPerformer(s, s.sections[0].id, { x: -6, y: 10 }); s = a.show;
+    const b = addPerformer(s, s.sections[0].id, { x: 6, y: 10 }); s = b.show;
+    s = setLabelSide(s, 0, [a.id], 'above-left');
+    expect(flip(s, 0, [a.id], 'x').sets[0].labels).toEqual({ [a.id]: 'above-right' });
+    expect(flip(s, 0, [a.id], 'y').sets[0].labels).toEqual({ [a.id]: 'below-left' });
+    const m = mirrorSides(s, 0, [a.id, b.id], 1);
+    expect(m.sets[0].labels).toEqual({ [a.id]: 'above-left', [b.id]: 'above-right' }); // the Side 2 copy faces the other way
+  });
+});

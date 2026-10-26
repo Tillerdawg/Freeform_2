@@ -383,9 +383,19 @@ export function advance(t: number, counts: number, [lo, hi]: [number, number], l
 
 /** Flip performers in set i across the 50 ('x') or across the field's front-to-back center ('y'). */
 export function flip(show: Show, i: number, ids: string[], axis: 'x' | 'y'): Show {
-  const pos = show.sets[i].pos;
-  return placeInSet(show, i, Object.fromEntries(ids.map((id) => [id, axis === 'x' ? { x: -pos[id].x, y: pos[id].y } : { x: pos[id].x, y: FIELD_WIDTH - pos[id].y }])));
+  const pos = show.sets[i].pos, pins = show.sets[i].labels;
+  const moved = placeInSet(show, i, Object.fromEntries(ids.map((id) => [id, axis === 'x' ? { x: -pos[id].x, y: pos[id].y } : { x: pos[id].x, y: FIELD_WIDTH - pos[id].y }])));
+  return withPins(moved, i, Object.fromEntries(ids.filter((id) => pins?.[id]).map((id) => [id, mirrorSide(pins![id], axis)])));
 }
+
+/** A pinned label side reflected with its dot: across the 50, left ↔ right; front to back, above ↔ below. */
+export function mirrorSide(side: LabelSide, axis: 'x' | 'y'): LabelSide {
+  const swap: Record<string, string> = axis === 'x' ? { left: 'right', right: 'left' } : { above: 'below', below: 'above' };
+  return side.split('-').map((w) => swap[w] ?? w).join('-') as LabelSide;
+}
+
+const withPins = (show: Show, i: number, pins: Record<string, LabelSide | null>) =>
+  Object.entries(pins).reduce((s, [id, side]) => setLabelSide(s, i, [id], side), show);
 
 /**
  * The selected performers on side `from` keep their spots; those on the other side take the mirror image across the 50.
@@ -402,7 +412,10 @@ export function mirrorSides(show: Show, i: number, ids: string[], from: 1 | 2): 
   const targets = src.map((id) => ({ x: -pos[id].x, y: pos[id].y }));
   const origin = show.sets[Math.max(0, i - 1)].pos;
   const slotOf = assign(dst.map((id) => origin[id] ?? pos[id]), targets);
-  return placeInSet(show, i, Object.fromEntries(dst.map((id, k) => [id, targets[slotOf[k]]])));
+  const moved = placeInSet(show, i, Object.fromEntries(dst.map((id, k) => [id, targets[slotOf[k]]])));
+  // Each copy takes its partner's label side, mirrored (or automatic if the partner has none).
+  const pins = show.sets[i].labels;
+  return withPins(moved, i, Object.fromEntries(dst.map((id, k) => { const p = pins?.[src[slotOf[k]]]; return [id, p ? mirrorSide(p, 'x') : null]; })));
 }
 
 /**
