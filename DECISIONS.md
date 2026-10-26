@@ -557,3 +557,7 @@ Each entry: timestamp, who decided, context, options considered, decision.
   - Colored dots are drawn in the editor, the phone's staff view and printed drill charts. On screen a colored dot gets a dark ring; on paper, a thin black outline, so pale colors still show. Labels stay white on screen and black on paper. Selected dots still turn gold. The performer's own "My view" keeps its gold-me / dim-others look.
   - Colors are saved with "Use as my starting list".
 - **Other options:** a preset palette instead of a free color picker; coloring the labels instead of the dots (harder to read).
+
+## 2026-10-26 17:15 EDT — Labels hide while moves play
+- **Who:** Jason Tiller (hide labels during transitions; show them on a set's first count; show them when stopped between sets); details by Claude *(Jason can veto)*
+- **Decision:** While playing, labels show only on a set and for the first count after it, then hide until the next set. Paused (anywhere), they always show. Selected performers keep their labels in the editor, and the phone's My view keeps your own label (it follows your dot); neighbors' labels hide mid-move. Hidden labels' dots still count as dots for the labels that do show. Same in the editor and the phone's staff view.

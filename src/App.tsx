@@ -3,7 +3,7 @@ import { readout, type Point } from './engine/coords';
 import { emptyHistory, record, redo, undo } from './engine/history';
 import { addInk, hitMark, moveMark, type Mark } from './engine/marks';
 import { assign, fitShape, isControl, moveHandle, samplePath, slots, type Shape, type ShapeKind } from './engine/shapes';
-import { colorOf,
+import { labelsWhilePlaying, colorOf,
   addPerformer, ftlTrail, label, newId, setMarks, moveSteps, normalizeFtl, snapPoint, playRange, newShow, parseShow, placeInSet, positionsAt, removePerformers,
   setAt, setStarts, type Show,
   totalCounts,
@@ -152,7 +152,8 @@ export function App() {
     const ctx = canvasRef.current!.getContext('2d')!;
     drawField(ctx, view, show.hash);
     const pins = onSet >= 0 ? show.sets[onSet].labels : undefined;
-    const dots = show.performers.filter((p) => positions[p.id]).map((p) => ({ id: p.id, label: label(show, p), at: positions[p.id], pin: pins?.[p.id], color: colorOf(show, p) }));
+    const shown = !playing || labelsWhilePlaying(show, t); // selected performers keep theirs either way
+    const dots = show.performers.filter((p) => positions[p.id]).map((p) => ({ id: p.id, label: shown || selected.has(p.id) ? label(show, p) : '', at: positions[p.id], pin: pins?.[p.id], color: colorOf(show, p) }));
     if (onSet >= 0) drawMarks(ctx, view, show.sets[onSet].marks ?? [], 'screen', selectedMark);
     drawPerformers(ctx, view, dots, selected, paths, box, dpr);
     if (shapeEdit) {
@@ -167,7 +168,7 @@ export function App() {
         : [];
       drawShape(ctx, view, guide.pts, guide.closed, h, h.map((_, k) => isControl(sh, k)), arms);
     }
-  }, [view, show, positions, selected, paths, box, shapeEdit, onSet, selectedMark]);
+  }, [view, show, positions, selected, paths, box, shapeEdit, onSet, selectedMark, playing, t]);
 
   // Empty text notes are removed as soon as they're not the one being edited (no timing to get wrong).
   useEffect(() => {

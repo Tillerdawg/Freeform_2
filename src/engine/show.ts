@@ -207,6 +207,9 @@ export function locate(show: Show, t: number): { to: number; f: number; count: n
   return { to: starts.length - 1, f: 1, count: show.sets.at(-1)!.counts };
 }
 
+/** Labels jump around as dots move, so while playing they show only on a set and for the first count after it. */
+export const labelsWhilePlaying = (show: Show, t: number) => setAt(show, t) >= 0 || locate(show, t).count < 1;
+
 /** Index of the set exactly at time t, or -1 if t is mid-move. */
 export function setAt(show: Show, t: number): number {
   return setStarts(show).findIndex((s) => Math.abs(s - t) < 1e-9);

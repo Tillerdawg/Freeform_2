@@ -136,7 +136,7 @@ export function drawLabels(
   const items = dots.map((d) => {
     const c = m.transformPoint(toScreen(v, d.at));
     font(d);
-    return { x: c.x, y: c.y, w: ctx.measureText(d.label).width + 2, h: d.px ?? px, r: r * k, pin: d.pin && flipped ? turned(d.pin) : d.pin, first: d.first };
+    return { x: c.x, y: c.y, w: ctx.measureText(d.label).width + 2, h: d.px ?? px, r: r * k, pin: !d.label ? 'hidden' as const : d.pin && flipped ? turned(d.pin) : d.pin, first: d.first }; // no label: still a dot to dodge
   });
   placeLabels(items, Math.max(1, px * 0.15)).forEach((spot, i) => {
     if (!spot || !dots[i].label) return;
