@@ -9,6 +9,6 @@ export function startingSections(): SectionList {
 export const hasOwnStartingSections = () => { try { return localStorage.getItem(KEY) !== null; } catch { return false; } };
 /** Returns false if the browser won't store it. */
 export function saveStartingSections(show: Show): boolean {
-  try { localStorage.setItem(KEY, JSON.stringify(show.sections.map(({ name, letter }) => ({ name, letter })))); return true; } catch { return false; }
+  try { localStorage.setItem(KEY, JSON.stringify(show.sections.map(({ name, letter, color }) => ({ name, letter, ...(color ? { color } : {}) })))); return true; } catch { return false; }
 }
 export function clearStartingSections() { try { localStorage.removeItem(KEY); } catch { /* nothing stored */ } }

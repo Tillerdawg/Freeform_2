@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { label, type Show } from '../engine/show';
+import { colorOf, label, type Show } from '../engine/show';
 import { drawField, drawLabels, drawMarks, fitView, toScreen } from '../field/drawField';
 import { chartTitle, chunk, dotCards, hasMeasures, sortedPerformers } from './docs';
 
@@ -20,8 +20,10 @@ function chartImage(show: Show, i: number): string {
   const here = show.performers.filter((p) => pos[p.id]);
   for (const p of here) {
     const q = toScreen(v, pos[p.id]);
-    ctx.fillStyle = '#000';
+    const color = colorOf(show, p);
+    ctx.fillStyle = color ?? '#000';
     ctx.beginPath(); ctx.arc(q.x, q.y, 0.5 * s, 0, Math.PI * 2); ctx.fill();
+    if (color) { ctx.lineWidth = 0.12 * s; ctx.strokeStyle = '#000'; ctx.stroke(); } // outlined, so pale colors still show on white
   }
   // White halo so yard lines and grid don't run through the labels.
   drawLabels(ctx, here.map((p) => ({ id: p.id, label: label(show, p), at: pos[p.id], pin: show.sets[i].labels?.[p.id] })), v, 0.5 * s, 1.5 * s, '#000', '#fff');
