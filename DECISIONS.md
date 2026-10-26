@@ -511,3 +511,7 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Who:** Jason Tiller (add a renumber button); details by Claude *(Jason can veto)*
 - **Decision:** A **#** button on each Sections row offers **Close the gaps** (keep the order, number from 1) or **Left to right** (Side 1 → Side 2 as they stand in the current set, front to back where they share a spot). Labels change everywhere for the whole show; Undo reverses it.
 - **Other options:** front-to-back first, or by rank and file; numbering by a chosen set other than the current one.
+
+## 2026-10-26 15:20 EDT — Renumber front to back
+- **Who:** Jason Tiller
+- **Decision:** A third renumber option, **Front to back**: the front rank first, each rank numbered from Side 1 to Side 2, using the current set. Performers count as one rank when they're within half a step of the same distance from the front sideline, so a slightly ragged rank still numbers as one.
