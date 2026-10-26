@@ -76,13 +76,18 @@ export function Toolbar(p: ToolbarProps) {
     <div className="toolbar" role="toolbar" aria-label="Drill tools">
       <div className="seg" role="radiogroup" aria-label="Performer tool">
         <button role="radio" aria-checked={p.tool === 'select'} onClick={() => p.setTool('select')} title="Select and move performers (V)">Select Performer(s)</button>
-        <button role="radio" aria-checked={p.tool === 'add'} onClick={() => p.setTool('add')} title="Click the field to add performers (A)">Add Performer(s)</button>
+        <Menu label={p.tool === 'add' ? `Add Performer(s) · ${show.sections.find((s) => s.id === p.section)?.letter ?? '?'}` : 'Add Performer(s)'}
+          pressed={p.tool === 'add'} title="Pick a section, then click the field to place its performers (A)">
+          {(close) => <>
+            <strong style={{ fontSize: 12, opacity: 0.8 }}>Add which section?</strong>
+            {show.sections.map((s) => (
+              <button key={s.id} role="menuitemradio" aria-checked={p.tool === 'add' && p.section === s.id}
+                onClick={() => { p.setSection(s.id); p.setTool('add'); close(); }}>{s.letter} · {s.name}</button>
+            ))}
+            <p style={help}>Then click the field to place each one. Sections are edited in the sidebar.</p>
+          </>}
+        </Menu>
       </div>
-      <label className="tb-field" title="Section for new performers">Section
-        <select value={p.section} onChange={(e) => p.setSection(e.target.value)}>
-          {show.sections.map((s) => <option key={s.id} value={s.id}>{s.letter} · {s.name}</option>)}
-        </select>
-      </label>
       <label className="tb-field" title="Grid that dragged and added performers snap to">Snap
         <select value={p.snap} onChange={(e) => p.setSnap(Number(e.target.value) as Snap)}>
           <option value={1}>Whole</option>
