@@ -275,6 +275,8 @@ function SectionsEditor({ show, setShow, cur }: { show: Show; setShow: (f: (s: S
                   title="Keep their order and close the gaps (e.g. X4 X5 X6 become X1 X2 X3)">Close the gaps</button>
                 <button onClick={() => { setShow((sh) => renumberSection(sh, s.id, 'field', cur)); setRenumbering(null); }}
                   title={`From Side 1 to Side 2 as they stand in set ${show.sets[cur].name}, front to back where they line up`}>Left to right (set {show.sets[cur].name})</button>
+                <button onClick={() => { setShow((sh) => renumberSection(sh, s.id, 'ranks', cur)); setRenumbering(null); }}
+                  title={`Front rank first, each rank from Side 1 to Side 2, as they stand in set ${show.sets[cur].name}`}>Front to back (set {show.sets[cur].name})</button>
                 <button onClick={() => setRenumbering(null)}>Cancel</button>
               </div>
             )}

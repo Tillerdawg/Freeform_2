@@ -100,13 +100,15 @@ export function moveToSection(show: Show, ids: string[], section: string): Show 
 
 /**
  * Number a section's performers 1…n: 'number' keeps their order and closes the gaps (X4 X5 X6 → X1 X2 X3);
- * 'field' goes from Side 1 to Side 2 as they stand in set `setIndex`, front to back where they line up.
+ * 'field' goes from Side 1 to Side 2 as they stand in set `setIndex`, front to back where they line up;
+ * 'ranks' goes front to back, rank by rank, each rank from Side 1 to Side 2.
  */
-export function renumberSection(show: Show, section: string, by: 'number' | 'field', setIndex = 0): Show {
+export function renumberSection(show: Show, section: string, by: 'number' | 'field' | 'ranks', setIndex = 0): Show {
   const pos = show.sets[setIndex]?.pos ?? {};
   const members = show.performers.filter((p) => p.section === section);
   const at = (p: Performer) => pos[p.id] ?? { x: Infinity, y: Infinity };
   const order = by === 'number' ? [...members].sort((a, b) => a.number - b.number)
+    : by === 'ranks' ? [...members].sort((a, b) => Math.round(at(a).y) - Math.round(at(b).y) || at(a).x - at(b).x || a.number - b.number) // a rank = same step from the front, within half a step
     : [...members].sort((a, b) => at(a).x - at(b).x || at(a).y - at(b).y || a.number - b.number);
   const n = new Map(order.map((p, i) => [p.id, i + 1]));
   return { ...show, performers: show.performers.map((p) => (n.has(p.id) ? { ...p, number: n.get(p.id)! } : p)) };

@@ -350,12 +350,13 @@ describe('renumbering a section', () => {
     const { renumberSection } = await import('./show');
     let s = newShow();
     const x = s.sections.find((q) => q.letter === 'X')!.id;
-    const spots = [{ x: 6, y: 10 }, { x: -4, y: 12 }, { x: -4, y: 8 }, { x: 0, y: 10 }];
+    const spots = [{ x: 6, y: 10 }, { x: -4, y: 12 }, { x: -4, y: 8 }, { x: 0, y: 10.25 }]; // a slightly ragged rank at 10
     const ids: string[] = [];
     for (const at of spots) { const r = addPerformer(s, x, at); s = r.show; ids.push(r.id); }
     s = { ...s, performers: s.performers.map((p, i) => ({ ...p, number: [4, 9, 5, 7][i] })) };
     const num = (sh: typeof s) => ids.map((id) => sh.performers.find((p) => p.id === id)!.number);
     expect(num(renumberSection(s, x, 'number'))).toEqual([1, 4, 2, 3]); // 4,9,5,7 → order kept, gaps closed
     expect(num(renumberSection(s, x, 'field', 0))).toEqual([4, 2, 1, 3]); // x -4 (front one first), -4, 0, 6
+    expect(num(renumberSection(s, x, 'ranks', 0))).toEqual([3, 4, 1, 2]); // y 8; then y 10 from Side 1 (x 0, 6); then y 12
   });
 });
