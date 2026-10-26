@@ -23,7 +23,7 @@ export function fitView(w: number, h: number): View {
 
 /** Colors for the screen (green turf) and for paper (black on white, easy on toner and copiers). */
 export const THEMES = {
-  screen: { bg: '#1d2a1f', turf: '#2f6b3a', gridMinor: 'rgba(255,255,255,0.09)', gridMajor: 'rgba(255,255,255,0.22)', line: '#fff', number: 'rgba(255,255,255,0.9)' },
+  screen: { bg: '#1d2a1f', turf: '#357842', gridMinor: 'rgba(255,255,255,0.15)', gridMajor: 'rgba(255,255,255,0.32)', line: '#fff', number: 'rgba(255,255,255,0.9)' },
   print: { bg: '#fff', turf: '#fff', gridMinor: 'rgba(0,0,0,0.07)', gridMajor: 'rgba(0,0,0,0.2)', line: '#000', number: '#555' },
 };
 export type Theme = keyof typeof THEMES;
