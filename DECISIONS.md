@@ -541,3 +541,11 @@ Each entry: timestamp, who decided, context, options considered, decision.
 ## 2026-10-26 16:30 EDT — No Front Ensemble section by default
 - **Who:** Jason Tiller
 - **Decision:** New shows no longer start with a Front Ensemble section: those performers are stationary and don't need drill spots. A band that wants them on the chart can still add a section.
+
+## 2026-10-26 16:45 EDT — Jason's lettering as the starting sections; directors can save their own
+- **Who:** Jason Tiller (start with his convention; let directors make their edited list the default for new files); details by Claude *(Jason can veto)*
+- **Decisions:**
+  - New shows start with F Flute, K Clarinet, A Alto Saxophone, X Tenor Saxophone, P Trumpet, H Mellophone, N Trombone, E Baritone, T Tuba, S Snare Drum, B Bass Drum, Q Quads, C Cymbals, G Color Guard. Cymbals is added by Claude to match the import scheme. Adding performers starts on the first section.
+  - In the Sections list, **Use as my starting list** saves the current show's section names and letters as the list new shows start with; **Back to Freeform's list** clears it. The panel says which list new shows will use.
+  - The saved list lives in that browser (like the autosave). It isn't in exported show files or shared links, and it's checked when read back, so bad stored data falls back to Freeform's list.
+- **Other options:** store the starting list in an account (no accounts yet); ask for a template on every New (an extra step each time).
