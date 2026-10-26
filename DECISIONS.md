@@ -527,3 +527,8 @@ Each entry: timestamp, who decided, context, options considered, decision.
 ## 2026-10-26 15:55 EDT — Reset to the previous set
 - **Who:** Jason Tiller
 - **Decision:** A toolbar button, **Reset to set N** (N = the set before the current one), puts the selected performers back on their spots from that set, so an experiment can be started over. It only changes the current set, it's disabled on set 1 and mid-move, and Undo reverses it.
+
+## 2026-10-26 16:05 EDT — One place for snap to grid
+- **Who:** Jason Tiller (snap to grid in one place, beside Add Performer(s), labeled "Snap to grid"); keeping the "round existing dots" action by Claude *(Jason can veto)*
+- **Context:** The toolbar's Snap setting (the grid for dragging and adding) and Transform's "Snap to grid" (round selected dots onto the grid) looked like the same thing in two places.
+- **Decision:** Both live together after Add Performer(s): **Snap to grid [Whole / Half / Free]**, then **Apply**, which rounds the selected performers onto that grid (needed after a rotate, a shape or a Pyware import leaves dots between steps). It's gone from Transform. A "now sharing a spot" warning shows beside the button.

@@ -88,13 +88,16 @@ export function Toolbar(p: ToolbarProps) {
           </>}
         </Menu>
       </div>
-      <label className="tb-field" title="Grid that dragged and added performers snap to">Snap
+      <label className="tb-field" title="Grid that performers stick to as you drag or add them">Snap to grid
         <select value={p.snap} onChange={(e) => p.setSnap(Number(e.target.value) as Snap)}>
           <option value={1}>Whole</option>
           <option value={0.5}>Half</option>
           <option value={0}>Free</option>
         </select>
       </label>
+      <button disabled={!any} onClick={snapSel}
+        title={any ? `Round the selected performers onto ${snapUnit === 1 ? 'whole' : 'half'} steps (for dots left off the grid by a rotate, a shape or an import)` : `Rounds selected performers onto the grid (${pick.toLowerCase()})`} aria-label="Apply the grid to selected performers">Apply</button>
+      {snapNote && <span role="alert" className="tb-note" title={snapNote}>{snapNote}</span>}
       <span className="tb-sep" />
       {/* Markup (instructions on the page) is a separate kind of tool from placing performers. */}
       <Menu label={markup ? markup[1].replace(' (T)', '') : 'Markup'} pressed={!!markup} title="Notes, arrows and drawing on this set's page">
@@ -108,7 +111,7 @@ export function Toolbar(p: ToolbarProps) {
         title="Shape the selection into a line, arc, curve, Bézier, circle or block">
         {() => <ShapePanel {...p} />}
       </Menu>
-      <Menu label="Transform" disabled={needs(any, pick)} title="Flip, mirror, rotate, scale or snap the selection">
+      <Menu label="Transform" disabled={needs(any, pick)} title="Flip, mirror, rotate or scale the selection">
         {() => <>
           <strong style={{ fontSize: 12, opacity: 0.8 }}>Mirror</strong>
           <button onClick={() => { setShow((s) => flip(s, onSet, ids, 'x')); setNote(''); }} title="Swap sides: Side 1 ↔ Side 2">Flip across the 50</button>
@@ -132,9 +135,7 @@ export function Toolbar(p: ToolbarProps) {
               <button onClick={() => turn(0, 100 / pct)}>Contract</button>
             </div>
           </>}
-          <strong style={{ fontSize: 12, opacity: 0.8, marginTop: 6 }}>Grid</strong>
-          <button onClick={snapSel} title={`Round the selected performers to ${snapUnit === 1 ? 'whole' : 'half'} steps (the Snap setting)`}>Snap to grid ({snapUnit === 1 ? 'whole' : 'half'} steps)</button>
-          {(note || snapNote) && <p role="alert" style={{ ...help, color: note ? '#ff8080' : '#f5c518', opacity: 1 }}>{note || snapNote}</p>}
+          {note && <p role="alert" style={{ ...help, color: '#ff8080', opacity: 1 }}>{note}</p>}
         </>}
       </Menu>
       <Menu label="FTL" disabled={needs(ids.length > 1 && onSet > 0, onSet === 0 ? 'Set 1 has no move into it' : ids.length === 1 ? 'Select 2 or more performers' : pick)}
