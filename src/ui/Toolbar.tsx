@@ -2,7 +2,7 @@ import { IconFit, IconRedo, IconUndo } from './icons';
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { addBezierSegment, addCurvePoint, type Shape, type ShapeKind } from '../engine/shapes';
 import {
-  chainOrder, clearFtl, flip, label, mirrorSides, removePerformers, rotateScale, setFtl, setLabelSide, snapSelection,
+  chainOrder, clearFtl, flip, label, mirrorSides, placeInSet, removePerformers, rotateScale, setFtl, setLabelSide, snapSelection,
   type LabelSide, type Show,
 } from '../engine/show';
 import { curveSides } from '../field/labels';
@@ -158,6 +158,10 @@ export function Toolbar(p: ToolbarProps) {
           {note && <p role="status" style={help}>{note}</p>}
         </>}
       </Menu>
+      <button disabled={!(any && onSet > 0)} onClick={() => setShow((s) => placeInSet(s, onSet, Object.fromEntries(ids.map((id) => [id, s.sets[onSet - 1].pos[id]]))))}
+        title={onSet > 0 ? `Put the selected performers back where they were in set ${show.sets[onSet - 1].name} (Undo reverses it)` : onSet === 0 ? 'Set 1 has no set before it' : pick}>
+        Reset to set {onSet > 0 ? show.sets[onSet - 1].name : '…'}
+      </button>
       <button disabled={!ids.length} className="danger" onClick={() => { setShow((s) => removePerformers(s, selected)); p.setSelected(new Set()); }}
         title="Delete the selected performers from the whole show">Delete</button>
 
