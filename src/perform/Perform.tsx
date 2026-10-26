@@ -4,7 +4,7 @@ import { readout, type Point } from '../engine/coords';
 import { decodeShow, fetchShow, LOAD_PREFIX, linkHash, parseHosted, SHARE_PREFIX } from '../engine/share';
 import { Scanner } from './Scanner';
 import { isPhone } from './device';
-import { colorOf, label, locate, moveSteps, parseShow, positionsAt, setAt, setStarts, type Show } from '../engine/show';
+import { labelsWhilePlaying, colorOf, label, locate, moveSteps, parseShow, positionsAt, setAt, setStarts, type Show } from '../engine/show';
 import { drawField, drawLabels, drawMarks, drawPerformers, fitView, TIER_COLOR, toScreen, type View } from '../field/drawField';
 import { fmtStep } from '../ui/format';
 import { usePlayback } from '../ui/usePlayback';
@@ -166,7 +166,8 @@ export function Perform() {
     drawField(ctx, v, show.hash);
     if (onSet >= 0) drawMarks(ctx, v, show.sets[onSet].marks ?? [], 'screen');
     if (!me) {
-      drawPerformers(ctx, v, show.performers.filter((p) => positions[p.id]).map((p) => ({ id: p.id, label: label(show, p), at: positions[p.id], pin: onSet >= 0 ? show.sets[onSet].labels?.[p.id] : undefined, color: colorOf(show, p) })), new Set(), [], undefined, dpr);
+      const shown = !playing || labelsWhilePlaying(show, t); // labels would jump around mid-move
+      drawPerformers(ctx, v, show.performers.filter((p) => positions[p.id]).map((p) => ({ id: p.id, label: shown ? label(show, p) : '', at: positions[p.id], pin: onSet >= 0 ? show.sets[onSet].labels?.[p.id] : undefined, color: colorOf(show, p) })), new Set(), [], undefined, dpr);
     } else {
       const s = v.scale;
       for (const p of show.performers) {
@@ -196,7 +197,7 @@ export function Perform() {
       // Labels (upright either way, placed so they don't collide): mine first, then my nearest neighbors'.
       drawLabels(ctx, [
         { id: me.id, label: label(show, me), at: positions[me.id], first: true, px: 14 * dpr, color: '#fff' },
-        ...around.map((n) => ({ id: n.id, label: label(show, show.performers.find((x) => x.id === n.id)!), at: positions[n.id] })),
+        ...(!playing || labelsWhilePlaying(show, t) ? around : []).map((n) => ({ id: n.id, label: label(show, show.performers.find((x) => x.id === n.id)!), at: positions[n.id] })),
       ], v, Math.max(7, s * 0.6), 12 * dpr, '#e8f1ff', 'rgba(0,0,0,0.65)');
     }
     ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -215,7 +216,7 @@ export function Perform() {
         ctx.fillText(yardLabel(x), at, H - band / 2 + 2 * dpr);
       }
     }
-  }, [show, size, positions, me, state, onSet, myPath, dpr, around, zoom, center]);
+  }, [show, size, positions, me, state, onSet, myPath, dpr, around, zoom, center, playing, t]);
 
   if (!show) {
     return (

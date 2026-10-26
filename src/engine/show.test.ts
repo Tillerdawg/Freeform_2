@@ -387,3 +387,13 @@ describe('section colors', () => {
     expect(validSectionList([{ name: 'Flute', letter: 'F', color: 'nope' }])).toBeNull();
   });
 });
+
+describe('labels during playback', () => {
+  it('show on a set and for the first count after it, hide for the rest of the move', async () => {
+    const { labelsWhilePlaying } = await import('./show');
+    let s = newShow();
+    const a = addPerformer(s, s.sections[0].id, { x: 0, y: 10 }); s = a.show;
+    s = addSetAfter(s, 0, 8); // set 2 at count 8
+    expect([0, 0.5, 1, 4, 7.9, 8].map((t) => labelsWhilePlaying(s, t))).toEqual([true, true, false, false, false, true]);
+  });
+});
