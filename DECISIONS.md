@@ -561,3 +561,8 @@ Each entry: timestamp, who decided, context, options considered, decision.
 ## 2026-10-26 17:15 EDT — Labels hide while moves play
 - **Who:** Jason Tiller (hide labels during transitions; show them on a set's first count; show them when stopped between sets); details by Claude *(Jason can veto)*
 - **Decision:** While playing, labels show only on a set and for the first count after it, then hide until the next set. Paused (anywhere), they always show. Selected performers keep their labels in the editor, and the phone's My view keeps your own label (it follows your dot); neighbors' labels hide mid-move. Hidden labels' dots still count as dots for the labels that do show. Same in the editor and the phone's staff view.
+
+## 2026-10-26 17:30 EDT — File extensions: .freeform and .freeform-locked
+- **Who:** Jason Tiller
+- **Decision:** Export saves `<title>.freeform`; the Share dialog's locked copy for hosted links saves `<title>.freeform-locked`. The contents are unchanged (the same JSON as before), so older `.freeform.json` files still import, and hosted links to old `.locked.json` files keep working. Downloads use a generic file type so browsers don't add ".json". Importing a locked copy says what it is and to import the `.freeform` file instead.
+- **Note:** on iPhone and iPad, the file picker may grey out file types it doesn't recognize; if `.freeform` files can't be picked there, the import button needs to accept any file.

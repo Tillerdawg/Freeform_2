@@ -60,8 +60,8 @@ export function Sidebar(p: Props) {
     <aside style={{ width: 300, padding: '8px 14px 0', overflowY: 'auto', borderLeft: '1px solid #33443a', fontSize: 14, display: 'flex', flexDirection: 'column' }}>
       <div style={row}>
         <button onClick={p.onNew}>New</button>
-        <button onClick={p.onOpen} title="Load a .freeform.json show file or a Pyware 3D .3dj drill (replaces the current show; Undo brings it back)">Import…</button>
-        <button onClick={p.onSave} title="Download this show as a .freeform.json file: a backup, or a copy to share or open in another browser">Export</button>
+        <button onClick={p.onOpen} title="Load a .freeform show file (or an older .freeform.json) or a Pyware 3D .3dj drill (replaces the current show; Undo brings it back)">Import…</button>
+        <button onClick={p.onSave} title="Download this show as a .freeform file: a backup, or a copy to share or open in another browser">Export</button>
         <button onClick={p.onPrint} disabled={!show.performers.length} title="Dot sheets and drill charts (print or save as PDF)">Print…</button>
         <button onClick={p.onShare} disabled={!show.performers.length} title="A link that opens this show on performers' and staff phones">Share…</button>
         <button onClick={() => { location.hash = '#perform'; }} title="Open the performer view: your saved show, or scan / paste a show link">Performer view</button>

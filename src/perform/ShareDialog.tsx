@@ -47,10 +47,10 @@ export function ShareDialog({ show, onClose }: { show: Show; onClose: () => void
   const download = async () => {
     const k = key ?? newKey();
     if (!pasted) setMadeKey(k);
-    const blob = new Blob([await lockShow(show, k)], { type: 'application/json' });
+    const blob = new Blob([await lockShow(show, k)], { type: 'application/octet-stream' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `${show.title.replace(/[^\w\- ]+/g, '').trim() || 'show'}.locked.json`;
+    a.download = `${show.title.replace(/[^\w\- ]+/g, '').trim() || 'show'}.freeform-locked`;
     a.click();
     URL.revokeObjectURL(a.href);
   };
@@ -80,7 +80,7 @@ export function ShareDialog({ show, onClose }: { show: Show; onClose: () => void
               gist's <em>Raw</em> link and remove the long code after <code>/raw/</code> so it always serves the newest version.</li>
             <li>Paste that address here.</li>
           </ol>
-          <input aria-label="Show file address" placeholder="https://gist.githubusercontent.com/…/raw/show.locked.json" value={field}
+          <input aria-label="Show file address" placeholder="https://gist.githubusercontent.com/…/raw/show.freeform-locked" value={field}
             onChange={(e) => { setField(e.target.value); if (!e.target.value.trim()) setMadeKey(null); /* cleared = start over with a new key */ }} style={{ width: '100%', boxSizing: 'border-box', font: 'inherit', fontSize: 12 }} />
           {badUrl && <p role="alert" style={{ fontSize: 12 }}>That isn't a web address starting with https://</p>}
           {!badUrl && fileUrl && !key && <p role="alert" style={{ fontSize: 12 }}>

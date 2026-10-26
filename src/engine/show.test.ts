@@ -397,3 +397,9 @@ describe('labels during playback', () => {
     expect([0, 0.5, 1, 4, 7.9, 8].map((t) => labelsWhilePlaying(s, t))).toEqual([true, true, false, false, false, true]);
   });
 });
+
+describe('importing the wrong kind of file', () => {
+  it('explains a locked copy instead of calling it invalid', () => {
+    expect(() => parseShow('{"format":"freeform-locked","version":1,"iv":"x","data":"y"}')).toThrow(/locked copy made for a hosted link/);
+  });
+});

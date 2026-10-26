@@ -14,8 +14,8 @@ class Crash extends Component<{ children: ReactNode }, { error?: Error }> {
     const saved = (() => { try { return localStorage.getItem(AUTOSAVE); } catch { return null; } })();
     const download = () => {
       const a = document.createElement('a');
-      a.href = URL.createObjectURL(new Blob([saved ?? ''], { type: 'application/json' }));
-      a.download = 'recovered.freeform.json';
+      a.href = URL.createObjectURL(new Blob([saved ?? ''], { type: 'application/octet-stream' }));
+      a.download = 'recovered.freeform';
       a.click();
     };
     const reset = () => {
