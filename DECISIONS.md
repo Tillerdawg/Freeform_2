@@ -523,3 +523,7 @@ Each entry: timestamp, who decided, context, options considered, decision.
 ## 2026-10-26 15:40 EDT — Section choice moves into Add Performer(s)
 - **Who:** Jason Tiller
 - **Decision:** The toolbar's Section dropdown is gone. **Add Performer(s) ▾** opens a list of sections; picking one turns on the Add tool for it, and the button then reads "Add Performer(s) · T". The **A** key still turns Add on with the last section picked.
+
+## 2026-10-26 15:55 EDT — Reset to the previous set
+- **Who:** Jason Tiller
+- **Decision:** A toolbar button, **Reset to set N** (N = the set before the current one), puts the selected performers back on their spots from that set, so an experiment can be started over. It only changes the current set, it's disabled on set 1 and mid-move, and Undo reverses it.

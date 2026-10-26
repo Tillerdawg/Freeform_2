@@ -79,7 +79,7 @@ Every spot reads in standard drill language, e.g. *"2 steps outside the Side 2 4
 
 ## Using it
 
-The editor has the current set's controls across the top, and under them the **drill toolbar**: **Select Performer(s)** and **Add Performer(s) ▾** (pick the section, then click the field to place each performer), then the snap setting; **Markup ▾** (text notes, arrows, drawing) on its own; then **Shape ▾**, **Transform ▾** (mirror, rotate and scale, snap to grid), **FTL ▾**, **Labels ▾** and Delete for the selection, with Undo, Redo and Fit (icons) at the end. The field is in the middle and the timeline across the bottom. The sidebar holds the show (file buttons, title, hashes), the set's ensemble notes, the selected performers' notes and coordinates, and sections.
+The editor has the current set's controls across the top, and under them the **drill toolbar**: **Select Performer(s)** and **Add Performer(s) ▾** (pick the section, then click the field to place each performer), then the snap setting; **Markup ▾** (text notes, arrows, drawing) on its own; then **Shape ▾**, **Transform ▾** (mirror, rotate and scale, snap to grid), **FTL ▾**, **Labels ▾**, **Reset to set N** (puts the selected performers back where they were in the set before, to start the set over) and Delete for the selection, with Undo, Redo and Fit (icons) at the end. The field is in the middle and the timeline across the bottom. The sidebar holds the show (file buttons, title, hashes), the set's ensemble notes, the selected performers' notes and coordinates, and sections.
 
 | Action | How |
 |---|---|
