@@ -515,3 +515,7 @@ Each entry: timestamp, who decided, context, options considered, decision.
 ## 2026-10-26 15:20 EDT — Renumber front to back
 - **Who:** Jason Tiller
 - **Decision:** A third renumber option, **Front to back**: the front rank first, each rank numbered from Side 1 to Side 2, using the current set. Performers count as one rank when they're within half a step of the same distance from the front sideline, so a slightly ragged rank still numbers as one.
+
+## 2026-10-26 15:30 EDT — Brighter field on screen
+- **Who:** Jason Tiller
+- **Decision:** The on-screen turf is a little lighter (#357842, was #2f6b3a), and the grid lines are brighter (step lines 15% white, was 9%; 4-step lines 32%, was 22%). Printed charts are unchanged.
