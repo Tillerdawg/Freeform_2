@@ -324,6 +324,7 @@ export function yFrom(ref: FrontRef, steps: number, dir: FrontDir, hash: HashPre
 export function parseShow(text: string): Show {
   const s = JSON.parse(text);
   const bad = (why: string) => { throw new Error(`Not a valid Freeform show: ${why}`); };
+  if (s?.format === 'freeform-locked') throw new Error('That is a locked copy made for a hosted link, and only the link can open it. Import the .freeform file instead.');
   if (s?.format !== 'freeform-show') bad('missing format marker');
   if (s.version !== 1) bad(`unsupported version ${s.version}`);
   if (!(s.hash in HASHES)) bad('unknown hash preset');

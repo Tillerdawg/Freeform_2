@@ -383,10 +383,10 @@ export function App() {
   };
 
   const save = () => {
-    const blob = new Blob([JSON.stringify(show, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify(show, null, 2)], { type: 'application/octet-stream' }); // not JSON's type: Safari would add ".json"
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `${show.title.replace(/[^\w\- ]+/g, '').trim() || 'show'}.freeform.json`;
+    a.download = `${show.title.replace(/[^\w\- ]+/g, '').trim() || 'show'}.freeform`;
     a.click();
     URL.revokeObjectURL(a.href);
   };
@@ -454,7 +454,7 @@ export function App() {
       </div>
       {sharing && <ShareDialog show={show} onClose={() => setSharing(false)} />}
       {printing && <PrintDialog show={show} selected={selected} onClose={() => setPrinting(false)} />}
-      <input ref={fileRef} type="file" accept=".json,application/json,.3dj" hidden
+      <input ref={fileRef} type="file" accept=".freeform,.json,application/json,.3dj" hidden
         onChange={(e) => { const f = e.target.files?.[0]; if (f) open(f); e.target.value = ''; }} />
     </div>
   );
