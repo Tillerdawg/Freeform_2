@@ -11,6 +11,7 @@
 ## Milestone 1 follow-ups
 - ✅ Undo/redo.
 - ✅ Play a range of sets (IDEA.md: individual set, sub-collection, whole show); a loop toggle.
+- ✅ Drill toolbar under the top bar (dropdown menus for markup, shape, transform, FTL, labels) and app-wide button styling.
 - Touch support pass (tablets).
 
 ## Later milestones (rough order)

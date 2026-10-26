@@ -13,6 +13,35 @@
     <meta name="apple-mobile-web-app-title" content="Freeform" />
     <style>
       html, body, #root { margin: 0; height: 100%; background: #1d2a1f; color: #eee; font-family: system-ui, sans-serif; }
+      /* Buttons and fields: one calm style everywhere. Heights stay within the fixed rows (top bar 40, toolbar 44, timeline 30). */
+      button { font: inherit; font-size: 13px; line-height: 18px; color: #e9f0ea; background: #2b3b2f; border: 1px solid #44594a; border-radius: 6px;
+        padding: 3px 10px; cursor: pointer; transition: background .12s, border-color .12s, box-shadow .12s; }
+      button:hover:not(:disabled) { background: #354a3a; border-color: #5d7a63; }
+      button:active:not(:disabled) { background: #22302a; }
+      button:disabled { opacity: .45; cursor: default; }
+      button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid #ffd166; outline-offset: 1px; }
+      button[aria-pressed=true], button[aria-checked=true] { background: #ffd166; border-color: #ffd166; color: #1a2419; font-weight: 600; }
+      button.primary { background: #3d6b4a; border-color: #5d9b6c; }
+      button.danger:hover:not(:disabled) { background: #5a2b2b; border-color: #a04848; }
+      select, input:not([type=radio]):not([type=checkbox]):not([type=range]), textarea { font: inherit; font-size: 13px; color: #e9f0ea; background: #142017;
+        border: 1px solid #44594a; border-radius: 6px; padding: 3px 6px; }
+      select { padding-right: 4px; }
+      /* Drill toolbar under the top bar: fixed height, never wraps (see CLAUDE.md). */
+      .toolbar { display: flex; align-items: center; gap: 5px; height: 44px; box-sizing: border-box; flex-shrink: 0; padding: 0 10px; white-space: nowrap; overflow-x: auto; scrollbar-width: none;
+        border-top: 1px solid #2c3b30; border-bottom: 1px solid #2c3b30; background: #182419; position: relative; z-index: 5; }
+      .toolbar .seg { display: inline-flex; }
+      .toolbar > * { flex: none; }
+      .toolbar .seg > button, .toolbar .seg > .tb-menu > button { border-radius: 0; margin-left: -1px; }
+      .toolbar .seg > :first-child { border-radius: 6px 0 0 6px; margin-left: 0; }
+      .toolbar .seg > :last-child, .toolbar .seg > .tb-menu:last-child > button { border-radius: 0 6px 6px 0; }
+      .tb-field { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; opacity: .9; }
+      .tb-sep { width: 1px; height: 22px; background: #2f4034; margin: 0 2px; }
+      .tb-menu { position: relative; display: inline-block; }
+      .tb-menu .caret { font-size: 10px; opacity: .7; }
+      .tb-menu-panel { position: fixed; min-width: 180px; max-width: 340px; padding: 8px; display: flex; flex-direction: column;
+        gap: 4px; align-items: stretch; background: #1f2d22; border: 1px solid #44594a; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.45);
+        white-space: normal; font-size: 13px; z-index: 20; }
+      .tb-menu-panel > button { text-align: left; }
       @media screen { #print-root { display: none; } }
       /* Performer view: portrait-first phone layout; side by side in landscape. */
       .perform { display: flex; flex-direction: column; height: 100%; }

@@ -30,7 +30,7 @@ Every spot reads in standard drill language, e.g. *"2 steps outside the Side 2 4
 
 ### Performers and sets
 - **Sections and labels:** add performers by section (T1, T2… for trumpets). Section letters and names can be edited.
-- **Readable dot labels:** labels never overlap each other or cover another dot. Each one sits above its dot, or below, right or left when that's taken; when a block is too tight for every label, some hide until you zoom in. Selected performers' labels get first pick. To choose yourself, select performers and click a direction on the **Labels** compass for the current set (8 directions; the center **A** goes back to automatic), or **Hide**. For 3 or more dots, **Inside curve** / **Outside curve** point each label toward or away from the center of the curve its dot sits on (arcs, circles and S-curves). The compass lights the current direction when the selection shares one. Sides are on the field, so they turn with it in Facing front. A chosen side is still skipped rather than drawn over another label. The same placement is used on printed drill charts and in the phone's staff view, where labels stay upright in Facing front.
+- **Readable dot labels:** labels never overlap each other or cover another dot. Each one sits above its dot, or below, right or left when that's taken; when a block is too tight for every label, some hide until you zoom in. Selected performers' labels get first pick. To choose yourself, select performers, open **Labels ▾** in the toolbar and click a direction on the compass for the current set (8 directions; the center **A** goes back to automatic), or **Hide**. For 3 or more dots, **Inside curve** / **Outside curve** point each label toward or away from the center of the curve its dot sits on (arcs, circles and S-curves). The compass lights the current direction when the selection shares one. Sides are on the field, so they turn with it in Facing front. A chosen side is still skipped rather than drawn over another label. The same placement is used on printed drill charts and in the phone's staff view, where labels stay upright in Facing front.
 - **Selecting:** click, shift-click, or drag a box; drag to move, with whole-step, half-step, or free snapping.
 - **Exact placement:** type a coordinate ("2 steps outside the Side 2 45…") to place a performer precisely.
 - **Sets:** add, delete, and set counts and measure numbers (pickups are measure 0). Drag a set's button on the timeline to change which count it lands on; its neighbors stay put.
@@ -79,11 +79,11 @@ Every spot reads in standard drill language, e.g. *"2 steps outside the Side 2 4
 
 ## Using it
 
-The editor has the field in the middle, the current set's controls across the top, the timeline across the bottom, and tools in the sidebar.
+The editor has the current set's controls across the top, and under them the **drill toolbar**: Select, Add, **Markup ▾** (text, arrows, drawing), the section and snap settings, then **Shape ▾**, **Transform ▾** (mirror, rotate and scale, snap to grid), **FTL ▾**, **Labels ▾** and Delete for the selection, with Undo, Redo and Fit at the end. The field is in the middle and the timeline across the bottom. The sidebar holds the show (file buttons, title, hashes), the set's ensemble notes, the selected performers' notes and coordinates, and sections.
 
 | Action | How |
 |---|---|
-| Pan / zoom | Scroll / pinch (or ⌘/Ctrl + scroll); right-drag also pans; **Fit field** resets |
+| Pan / zoom | Scroll / pinch (or ⌘/Ctrl + scroll); right-drag also pans; **Fit** resets |
 | Select / move tool | **V** |
 | Add performer tool | **A** |
 | Text note tool | **T** |
@@ -91,6 +91,7 @@ The editor has the field in the middle, the current set's controls across the to
 | Step one count | **← / →** |
 | Delete selection | **Delete** |
 | Undo / redo | **⌘Z / ⇧⌘Z** (Ctrl+Z / Ctrl+Y) |
+| Close a toolbar menu | **Esc** (a second Esc clears the selection) |
 
 ## Roadmap
 
@@ -118,7 +119,7 @@ Every push to `main` runs the tests and publishes to GitHub Pages ([`.github/wor
 |---|---|
 | `src/engine/` | All the drill logic, with no UI: coordinates and readouts, show model, shapes, markup, undo history. Unit-tested. |
 | `src/field/` | Drawing the field, performers, shapes and markup on a canvas |
-| `src/ui/` | Sidebar, timeline, and top-bar controls |
+| `src/ui/` | Drill toolbar, sidebar, timeline, and top-bar controls |
 | `src/print/` | Dot sheets and drill charts |
 | `src/perform/` | Performer/staff view and the Share dialog |
 | `public/` | App icons, manifest, offline service worker |
