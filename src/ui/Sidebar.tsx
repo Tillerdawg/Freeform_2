@@ -1,9 +1,10 @@
+import { LabelCompass } from './LabelCompass';
 import { curveSides } from '../field/labels';
 import { useEffect, useState } from 'react';
 import { readout, type HashPreset } from '../engine/coords';
 import { addBezierSegment, addCurvePoint, type Shape, type ShapeKind } from '../engine/shapes';
 import {
-  chainOrder, setCue, setLabelSide, LABEL_SIDES, type LabelSide, setMarks, setNote, clearFtl, flip, label, locate, mirrorSides, newId, placeInSet, remapHash, rotateScale, setFtl, snapSelection, positionsAt, removePerformers, xFrom, yFrom,
+  chainOrder, setCue, setLabelSide, type LabelSide, setMarks, setNote, clearFtl, flip, label, locate, mirrorSides, newId, placeInSet, remapHash, rotateScale, setFtl, snapSelection, positionsAt, removePerformers, xFrom, yFrom,
   type FrontDir, type FrontRef, type Show, type SideDir,
 } from '../engine/show';
 
@@ -61,10 +62,9 @@ export function Sidebar(p: Props) {
   const [deg, setDeg] = useState(15);
   const [pct, setPct] = useState(110);
   const [labelNote, setLabelNote] = useState('');
-  const pinLabels = (side: LabelSide) => { setShow((s) => setLabelSide(s, onSet, ids, side)); setLabelNote(''); };
   const pinCurve = (outside: boolean) => {
     const sides = curveSides(ids.map((id) => show.sets[onSet].pos[id]), outside);
-    if (sides.every((x) => !x)) { setLabelNote("These dots are in a straight line: use Above, Below or 45°."); return; }
+    if (sides.every((x) => !x)) { setLabelNote('These dots are in a straight line: pick a direction on the compass.'); return; }
     setShow((s) => ids.reduce((acc, id, k) => (sides[k] ? setLabelSide(acc, onSet, [id], sides[k]) : acc), s));
     setLabelNote(sides.some((x) => !x) ? 'Dots on a straight stretch were left as they were.' : '');
   };
@@ -175,23 +175,18 @@ export function Sidebar(p: Props) {
         {selected.size > 0 && onSet >= 0 && (() => {
           const sides = new Set(ids.map((id) => show.sets[onSet].labels?.[id] ?? ''));
           return (
-            <div style={{ marginTop: 8 }} title="Where the label sits in this set. Automatic moves it to a free side and hides it when there's no room; zoom in to see it.">
-              Label{' '}
-              <select aria-label="Label position" value={sides.size === 1 ? [...sides][0] : 'mixed'}
-                onChange={(e) => setShow((s) => setLabelSide(s, onSet, ids, (e.target.value || null) as LabelSide | null))}>
-                {sides.size > 1 && <option value="mixed" disabled>Mixed</option>}
-                <option value="">Automatic</option>
-                {LABEL_SIDES.map((x) => <option key={x} value={x}>{x[0].toUpperCase() + x.slice(1).replace('-', ' ')}</option>)}
-              </select>
-              <span style={{ opacity: 0.7, fontSize: 12 }}> in set {show.sets[onSet].name}</span>
-              <div style={row}>
-                <button onClick={() => pinLabels('above')} title="Labels above the dots">Above</button>
-                <button onClick={() => pinLabels('below')} title="Labels below the dots">Below</button>
-                <button onClick={() => pinLabels('above-right')} title="Labels at 45°, up and to the right (other diagonals are in the list)">45°</button>
-                {ids.length > 2 && <>
-                  <button onClick={() => pinCurve(false)} title="Labels on the inside of the curve the dots form">Inside curve</button>
-                  <button onClick={() => pinCurve(true)} title="Labels on the outside of the curve the dots form">Outside curve</button>
-                </>}
+            <div style={{ marginTop: 8 }}>
+              Labels <span style={{ opacity: 0.7, fontSize: 12 }}>in set {show.sets[onSet].name}</span>
+              <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginTop: 4 }}>
+                <LabelCompass value={sides.size === 1 ? ([...sides][0] as LabelSide | '') : 'mixed'} onPick={(side) => { setShow((s) => setLabelSide(s, onSet, ids, side)); setLabelNote(''); }} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-start' }}>
+                  {ids.length > 2 && <>
+                    <button onClick={() => pinCurve(false)} title="Labels on the inside of the curve the dots form">Inside curve</button>
+                    <button onClick={() => pinCurve(true)} title="Labels on the outside of the curve the dots form">Outside curve</button>
+                  </>}
+                  <button aria-pressed={sides.size === 1 && sides.has('hidden')} onClick={() => { setShow((s) => setLabelSide(s, onSet, ids, 'hidden')); setLabelNote(''); }}
+                    title="No label for these dots in this set">Hide</button>
+                </div>
               </div>
               {labelNote && <div role="status" style={{ fontSize: 12, marginTop: 4 }}>{labelNote}</div>}
             </div>

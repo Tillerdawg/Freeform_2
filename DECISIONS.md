@@ -478,3 +478,8 @@ Each entry: timestamp, who decided, context, options considered, decision.
   - Sides are on the field ("above" = toward the back sideline), so in the phone's Facing front they turn with the field and an "outside" label stays outside.
 - **Other options:** 45° meaning another diagonal by default; free angles instead of 8 sides (finer, but labels would need rotating text or more collision shapes).
 - **Known gap:** Flip and Mirror move dots but don't swap their pinned sides; re-press the quick button after flipping.
+
+## 2026-10-26 13:10 EDT — Label compass replaces the label list and quick buttons
+- **Who:** Jason Tiller (a small unit-circle/compass to click instead of separate buttons; keep inside/outside curve); details by Claude *(Jason can veto)*
+- **Decision:** The Selection panel's **Labels** control is a compass: 8 round buttons on a ring (up = toward the back sideline), the center **A** = automatic, plus **Hide**, **Inside curve** and **Outside curve** beside it. The current direction is filled in when all selected dots share it. Each point is a real button with a spoken name ("Label up and right"). The Label list and the Above/Below/45° buttons are gone.
+- **Other options:** any angle (click anywhere on the circle). Not done: 8 directions cover what the old buttons did and keep the saved show format and the collision checks simple. Easy to add if 45° steps feel coarse.
