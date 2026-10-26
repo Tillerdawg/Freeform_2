@@ -13,6 +13,17 @@ import type { HashPreset } from './coords';
 import { newId, parseShow, type DrillSet, type Performer, type Section, type Show } from './show';
 
 const UNIT = 120; // file units per step
+/**
+ * Section letters as Jason wrote his Pyware shows, with the 3D figure names each one fits. Used to name sections:
+ * this tells Alto from Tenor Saxophone, which the figures can't, and names files that have no figures at all.
+ */
+const LETTERS: Record<string, [string, RegExp]> = {
+  F: ['Flute', /flute|piccolo/i], K: ['Clarinet', /clarinet/i], A: ['Alto Saxophone', /sax/i], X: ['Tenor Saxophone', /sax/i],
+  P: ['Trumpet', /trumpet/i], H: ['Mellophone', /mellophone|horn/i], N: ['Trombone', /trombone/i], E: ['Baritone', /baritone|euphonium/i],
+  T: ['Tuba', /tuba|sousaphone/i], S: ['Snare Drum', /snare/i], B: ['Bass Drum', /bass drum/i], Q: ['Quads', /quad|tenor drum/i],
+  G: ['Color Guard', /flag|rifle|sabre|saber|guard/i],
+  C: ['Cymbals', /cymbal/i], // not in Jason's list, but his files give C cymbal figures
+};
 const MAX_BYTES = 50_000_000;
 
 const fail = (msg: string): never => { throw new Error(msg); };
@@ -84,7 +95,11 @@ export function parse3dj(data: ArrayBuffer, title = 'Imported show'): Show {
     for (const [id, r] of firstSeen) if (r.sym === sym) { const f = (figures.get(id) ?? '').replace(/\s*Figure$/i, '').trim(); if (f) counts.set(f, (counts.get(f) ?? 0) + 1); }
     return [...counts].sort((a, c) => c[1] - a[1])[0]?.[0] ?? '';
   };
-  const names = symbols.map(figureOf);
+  // A symbol's name: the letter scheme below when the file's 3D figure agrees with it (or there is no figure), else the figure.
+  const names = symbols.map((sym) => {
+    const fig = figureOf(sym), known = LETTERS[sym];
+    return known && (!fig || known[1].test(fig)) ? known[0] : fig;
+  });
   const sections: Section[] = symbols.map((sym, i) => {
     const base = names[i] || `Symbol ${sym}`;
     const shared = names[i] && names.filter((x) => x === names[i]).length > 1;
