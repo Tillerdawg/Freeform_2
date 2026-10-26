@@ -1,4 +1,4 @@
-import { placeLabels } from './labels';
+import { placeLabels, turned } from './labels';
 import type { LabelSide } from '../engine/show';
 import { FIELD_WIDTH, GOAL_LINE_X, HASHES, STEP_IN, type HashPreset, type Point } from '../engine/coords';
 import { TEXT_STEPS, type Mark } from '../engine/marks';
@@ -132,10 +132,11 @@ export function drawLabels(
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   const k = Math.hypot(m.a, m.b); // the transform's scale, so sizes match what's on screen
+  const flipped = m.a < 0; // field turned around (Facing front): pinned sides turn with it
   const items = dots.map((d) => {
     const c = m.transformPoint(toScreen(v, d.at));
     font(d);
-    return { x: c.x, y: c.y, w: ctx.measureText(d.label).width + 2, h: d.px ?? px, r: r * k, pin: d.pin, first: d.first };
+    return { x: c.x, y: c.y, w: ctx.measureText(d.label).width + 2, h: d.px ?? px, r: r * k, pin: d.pin && flipped ? turned(d.pin) : d.pin, first: d.first };
   });
   placeLabels(items, Math.max(1, px * 0.15)).forEach((spot, i) => {
     if (!spot || !dots[i].label) return;

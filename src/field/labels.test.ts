@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { placeLabels, type LabelItem } from './labels';
+import { curveSides, placeLabels, type LabelItem } from './labels';
 
 const dot = (x: number, y: number, extra: Partial<LabelItem> = {}): LabelItem => ({ x, y, w: 16, h: 10, r: 3, ...extra });
 const rects = (items: LabelItem[], spots: ReturnType<typeof placeLabels>) =>
@@ -41,5 +41,30 @@ describe('placeLabels', () => {
     const items = [dot(0, 0), dot(0, -12, { first: true })];
     const spots = placeLabels(items);
     expect(spots[1]).toEqual({ x: 0, y: -12 - 10 }); // the preferred one keeps its spot above
+  });
+});
+
+describe('curveSides', () => {
+  const arc = (cx: number, cy: number, r: number, from: number, to: number, n: number) =>
+    Array.from({ length: n }, (_, i) => { const a = from + ((to - from) * i) / (n - 1); return { x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) }; });
+  it('points labels into and out of a company front arc (center toward the front)', () => {
+    const pts = arc(0, 10, 16, Math.PI / 4, (3 * Math.PI) / 4, 7); // arc bowing toward the back, center below it
+    expect(curveSides(pts, false)[3]).toBe('below'); // the middle dot's inside is toward the center
+    expect(curveSides(pts, true)[3]).toBe('above');
+    expect(curveSides(pts, false)[0]).toBe('below-left'); // the Side 2 end of the arc: center is down and to Side 1
+    expect(curveSides(pts, true)[6]).toBe('above-left');
+  });
+  it('works around a full circle', () => {
+    const pts = arc(0, 40, 10, 0, (2 * Math.PI * 7) / 8, 8);
+    expect(curveSides(pts, false)).toEqual(['left', 'below-left', 'below', 'below-right', 'right', 'above-right', 'above', 'above-left']);
+  });
+  it('follows each half of an S-curve', () => {
+    const pts = [...arc(0, 0, 8, Math.PI, 0, 7), ...arc(16, 0, 8, Math.PI, 2 * Math.PI, 7).slice(1)]; // hump up, then dip down
+    const sides = curveSides(pts, false);
+    expect(sides[3]).toBe('below'); // top of the first hump: center below
+    expect(sides[9]).toBe('above'); // bottom of the dip: center above
+  });
+  it('gives null for a straight line', () => {
+    expect(curveSides([0, 2, 4, 6].map((x) => ({ x, y: 10 })), false)).toEqual([null, null, null, null]);
   });
 });
