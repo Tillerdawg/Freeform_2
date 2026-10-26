@@ -73,14 +73,9 @@ export function Toolbar(p: ToolbarProps) {
 
   return (
     <div className="toolbar" role="toolbar" aria-label="Drill tools">
-      <div className="seg" role="radiogroup" aria-label="Tool">
-        <button role="radio" aria-checked={p.tool === 'select'} onClick={() => p.setTool('select')} title="Select and move (V)">Select</button>
-        <button role="radio" aria-checked={p.tool === 'add'} onClick={() => p.setTool('add')} title="Click the field to add a performer (A)">Add</button>
-        <Menu label={markup ? markup[1].replace(' (T)', '') : 'Markup'} pressed={!!markup} title="Notes, arrows and drawing on this set's page">
-          {(close) => MARKUP.map(([t, l]) => (
-            <button key={t} role="menuitemradio" aria-checked={p.tool === t} onClick={() => { p.setTool(t); close(); }}>{l}</button>
-          ))}
-        </Menu>
+      <div className="seg" role="radiogroup" aria-label="Performer tool">
+        <button role="radio" aria-checked={p.tool === 'select'} onClick={() => p.setTool('select')} title="Select and move performers (V)">Select Performer(s)</button>
+        <button role="radio" aria-checked={p.tool === 'add'} onClick={() => p.setTool('add')} title="Click the field to add performers (A)">Add Performer(s)</button>
       </div>
       <label className="tb-field" title="Section for new performers">Section
         <select value={p.section} onChange={(e) => p.setSection(e.target.value)}>
@@ -94,6 +89,13 @@ export function Toolbar(p: ToolbarProps) {
           <option value={0}>Free</option>
         </select>
       </label>
+      <span className="tb-sep" />
+      {/* Markup (instructions on the page) is a separate kind of tool from placing performers. */}
+      <Menu label={markup ? markup[1].replace(' (T)', '') : 'Markup'} pressed={!!markup} title="Notes, arrows and drawing on this set's page">
+        {(close) => MARKUP.map(([t, l]) => (
+          <button key={t} role="menuitemradio" aria-checked={p.tool === t} onClick={() => { p.setTool(t); close(); }}>{l}</button>
+        ))}
+      </Menu>
       <span className="tb-sep" />
 
       <Menu label="Shape" disabled={needs(many, ids.length === 1 ? 'Select 2 or more performers' : pick)} keepOpen={!!p.shape} pressed={!!p.shape}

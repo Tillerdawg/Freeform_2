@@ -493,3 +493,7 @@ Each entry: timestamp, who decided, context, options considered, decision.
   - The sidebar keeps show-level and per-performer things: file buttons, title and hashes, ensemble notes, the selection's performer notes, coordinates, Place exactly, markup editing, and sections.
   - One button style app-wide: rounded, quiet green-grey, a hover state, a gold "on" state (`aria-pressed` / `aria-checked`), a gold keyboard focus ring, dimmed when disabled; fields and selects match. Sized to stay inside the fixed rows.
 - **Other options:** keep the toolbar in the field column only (it didn't fit next to the sidebar); icons instead of words (more compact, but less clear for new users).
+
+## 2026-10-26 14:00 EDT — Performer tools and markup split in the toolbar
+- **Who:** Jason Tiller
+- **Decision:** "Select" and "Add" become **Select Performer(s)** and **Add Performer(s)**, a pair followed by Section and Snap (which only apply to performers). **Markup ▾** stands apart after a divider, since it adds instructions and arrows rather than performers.
