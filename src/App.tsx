@@ -12,6 +12,8 @@ import { HANDLE_PX, drawField, drawMarks, drawPerformers, drawShape, fitView, to
 import { Sidebar, type Snap, type Tool } from './ui/Sidebar';
 import { SetControls, Timeline } from './ui/Timeline';
 import { startingSections } from './ui/startingSections';
+import { MusicMenu } from './ui/Music';
+import { getAudio } from './ui/audioStore';
 import { Toolbar } from './ui/Toolbar';
 import { parse3dj } from './engine/pyware';
 import { usePlayback } from './ui/usePlayback';
@@ -117,7 +119,25 @@ export function App() {
   };
 
   const span = useMemo(() => playRange(show, range.from, range.to), [show, range.from, range.to]);
-  usePlayback(playing, setPlaying, t, setT, bpm, span, range.loop, totalCounts(show));
+  // The show's recording, from this browser's store; playback follows it once counts are tapped.
+  const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
+  const [audioTick, setAudioTick] = useState(0); // bumped when a recording is (re)loaded
+  const [useMusic, setUseMusic] = useState(true);
+  const audioId = show.music?.audioId;
+  useEffect(() => {
+    if (!audioId) { setAudio(null); return; }
+    let url = '', gone = false;
+    getAudio(audioId).then((blob) => {
+      if (gone) return;
+      if (!blob) { setAudio(null); return; }
+      url = URL.createObjectURL(blob);
+      setAudio(new Audio(url));
+    });
+    return () => { gone = true; if (url) URL.revokeObjectURL(url); };
+  }, [audioId, audioTick]);
+  const taps = show.music?.taps;
+  const clock = useMemo(() => (audio && useMusic && taps && taps.length >= 2 ? { audio, taps } : null), [audio, useMusic, taps]);
+  usePlayback(playing, setPlaying, t, setT, bpm, span, range.loop, totalCounts(show), clock);
 
   useEffect(() => {
     const c = canvasRef.current!;
@@ -440,7 +460,8 @@ export function App() {
         )}
         </div>
         <Timeline show={show} setShow={setShow} t={t} setT={(x) => { setPlaying(false); setT(x); }} playing={playing} setPlaying={setPlaying} bpm={bpm} setBpm={setBpm}
-          range={range} setRange={setRange} span={span} />
+          range={range} setRange={setRange} span={span}
+          music={<MusicMenu show={show} setShow={setShow} audio={audio} onAudio={() => setAudioTick((n) => n + 1)} useMusic={useMusic} setUseMusic={setUseMusic} />} />
       </div>
       <Sidebar
         show={show} setShow={setShow} t={t} setT={(x) => { setPlaying(false); setT(x); }} onSet={onSet}

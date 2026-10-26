@@ -1,6 +1,7 @@
 // Show data model and the pure operations on it. All positions are in steps (see coords.ts).
 import { HASHES, FIELD_WIDTH, distance, ftlPositions, stepSize, type HashPreset, type Point, type StepTier } from './coords';
 import { assign } from './shapes';
+import { validMusic, type Music } from './music';
 import { validMark, type Mark } from './marks';
 
 /** `color`: optional #rrggbb the section's dots are drawn in. */
@@ -41,6 +42,8 @@ export interface Show {
   sections: Section[];
   performers: Performer[];
   sets: DrillSet[];
+  /** The show's recording and the tapped count timings (the audio itself stays in the browser). */
+  music?: Music;
 }
 
 let seq = 0;
@@ -331,6 +334,7 @@ export function parseShow(text: string): Show {
   if (!Array.isArray(s.sections) || !Array.isArray(s.performers) || !Array.isArray(s.sets) || !s.sets.length) bad('missing lists');
   const str = (v: unknown) => typeof v === 'string';
   if (typeof s.title !== 'string') bad('title');
+  if (s.music !== undefined && !validMusic(s.music)) bad('music');
   for (const x of s.sections) if (!str(x?.id) || !str(x.name) || !str(x.letter) || (x.color !== undefined && !COLOR_RE.test(x.color))) bad('section');
   for (const x of s.performers) if (!str(x?.id) || !str(x.section) || !Number.isFinite(x.number)) bad('performer');
   for (const set of s.sets) {

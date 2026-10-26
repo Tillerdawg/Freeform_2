@@ -6,7 +6,7 @@ Freeform is a browser-based drill writer: put performers on a football field, bu
 
 **Use it:** <https://tillerdawg.github.io/Freeform_2/>. No account and no install. It also works offline and can be added to your phone or tablet's home screen. Write drill on a computer or tablet. Phones open only the performer view (with Staff and Director view for directors); there's no editor on a phone.
 
-> **Status:** early, actively developed. The drill writer's core workflow and a performer view for phones work today; music sync is next (see [Roadmap](#roadmap)). Shows are saved in your browser, in files you export, and in share links. There are no accounts or cloud sync.
+> **Status:** early, actively developed. The drill writer's core workflow, music sync in the editor, and a performer view for phones work today; music on phones is next (see [Roadmap](#roadmap)). Shows are saved in your browser, in files you export, and in share links. There are no accounts or cloud sync.
 
 ---
 
@@ -46,6 +46,7 @@ Every spot reads in standard drill language, e.g. *"2 steps outside the Side 2 4
 ### Moves and playback
 - **Timeline:** one segment per move with a tick for every count. Click any count to see exactly where everyone is.
 - **Playback** at any tempo. Play always starts where you are (pick a set, then Play) and goes forward. Set a range of sets to stop, or loop, at the range's end; from outside the range it plays on to the end of the show.
+- **Music:** **Music ▾** (beside Tempo) loads the show's recording (mp3, m4a or wav). Then **Tap counts…** plays it from the top while you press Space on every count, starting with count 0 (set 1); undo a tap, pause and resume, or start over. After that, Play runs the drill with the music, following it exactly (rubato and fermatas included); counts past your last tap keep its pace. Uncheck **Play with music** to go back to Tempo. The recording stays in that browser and isn't put in the `.freeform` file (the taps are); on another computer, load the same file again and your taps still apply.
 - **Step-size warnings:** moves bigger than 6-to-5 turn **yellow**, and bigger than 4-to-5 turn **red**, on both the paths and the timeline.
 - **Follow-the-leader:** pick a leader and an order; the followers march the leader's trail automatically.
 
@@ -97,7 +98,7 @@ The editor has the current set's controls across the top, and under them the **d
 
 Roughly in order (details in [PLAN.md](PLAN.md)):
 
-1. **Music sync:** play the drill against an mp3, compute measures from the meter, and lay out sets by musical selection.
+1. **Music on performers' phones:** the hosted-link file will carry the recording (encrypted like the show), so the phone view plays along. Then: laying out sets by musical selection (total counts up front).
 2. Follow-the-leader paths with turns, markup that spans several sets, basketball courts and custom surfaces, and optional cloud sync and app-store versions.
 
 ## Running it yourself
