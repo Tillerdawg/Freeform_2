@@ -483,3 +483,13 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Who:** Jason Tiller (a small unit-circle/compass to click instead of separate buttons; keep inside/outside curve); details by Claude *(Jason can veto)*
 - **Decision:** The Selection panel's **Labels** control is a compass: 8 round buttons on a ring (up = toward the back sideline), the center **A** = automatic, plus **Hide**, **Inside curve** and **Outside curve** beside it. The current direction is filled in when all selected dots share it. Each point is a real button with a spoken name ("Label up and right"). The Label list and the Above/Below/45° buttons are gone.
 - **Other options:** any angle (click anywhere on the circle). Not done: 8 directions cover what the old buttons did and keep the saved show format and the collision checks simple. Easy to add if 45° steps feel coarse.
+
+## 2026-10-26 13:40 EDT — Drill toolbar under the top bar; button styling
+- **Who:** Jason Tiller (move the drill tools to a toolbar under the Freeform line, combine tools into dropdowns where possible, nicer buttons); layout details by Claude *(Jason can veto)*
+- **Decisions:**
+  - The top bar and a new **drill toolbar** span the whole window, with the field, timeline and sidebar below. The toolbar holds: Select | Add | **Markup ▾** (Text, Arrow, Draw; the button shows the one in use), Section, Snap, then for the selection **Shape ▾**, **Transform ▾** (Mirror: flips and side copies; Rotate & scale; Snap to grid), **FTL ▾**, **Labels ▾** (the compass, inside/outside curve, hide) and Delete, then Undo, Redo, Fit.
+  - Menus that don't apply are greyed out, and their tooltip says why ("Select 2 or more performers", "Scrub to a set first", "Set 1 has no move into it"). Panels close on a click elsewhere or Esc; that Esc doesn't also clear the selection. The Shape panel stays open while a shape is being edited.
+  - The house rule holds: the toolbar has a fixed 44 px height and never wraps. In narrow windows it scrolls sideways (everything fits at 1024 px), and panels are placed against the window, so the scrolling can't clip them.
+  - The sidebar keeps show-level and per-performer things: file buttons, title and hashes, ensemble notes, the selection's performer notes, coordinates, Place exactly, markup editing, and sections.
+  - One button style app-wide: rounded, quiet green-grey, a hover state, a gold "on" state (`aria-pressed` / `aria-checked`), a gold keyboard focus ring, dimmed when disabled; fields and selects match. Sized to stay inside the fixed rows.
+- **Other options:** keep the toolbar in the field column only (it didn't fit next to the sidebar); icons instead of words (more compact, but less clear for new users).

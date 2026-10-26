@@ -11,6 +11,7 @@ import {
 import { HANDLE_PX, drawField, drawMarks, drawPerformers, drawShape, fitView, toScreen, toWorld, type Path, type View } from './field/drawField';
 import { Sidebar, type Snap, type Tool } from './ui/Sidebar';
 import { SetControls, Timeline } from './ui/Timeline';
+import { Toolbar } from './ui/Toolbar';
 import { parse3dj } from './engine/pyware';
 import { usePlayback } from './ui/usePlayback';
 import { PrintDialog } from './print/Print';
@@ -403,15 +404,21 @@ export function App() {
   };
 
   return (
-    <div style={{ display: 'flex', height: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      {/* Fixed height, no wrapping: nothing up here may resize the field (a canvas resize clears it, which flashes). */}
+      {/* Equal-flex sides center the set controls when there's room; when there isn't, the hint gives up space first. */}
+      <div style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '0 16px', height: 40, flexShrink: 0, whiteSpace: 'nowrap', overflow: 'hidden' }}>
+        <strong style={{ flex: '1 1 0' }}>Freeform</strong>
+        <div style={{ flex: 'none' }}><SetControls show={show} setShow={setShow} t={t} setT={(x) => { setPlaying(false); setT(x); }} /></div>
+        <span style={{ flex: '1 1 0', fontSize: 12, opacity: 0.7, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'right' }}>Scroll to pan · pinch or ⌘/Ctrl+scroll to zoom · right-drag pans</span>
+      </div>
+      <Toolbar show={show} setShow={setShow} onSet={onSet} selected={selected} setSelected={setSelected} tool={tool} setTool={setTool}
+        section={section} setSection={setSection} snap={snap} setSnap={setSnap}
+        onUndo={() => step('undo')} onRedo={() => step('redo')} canUndo={!!hist.past.length} canRedo={!!hist.future.length}
+        onFit={() => { const c = canvasRef.current!; setView(fitView(c.width, c.height)); }}
+        shape={shapeEdit?.shape ?? null} startShape={startShape} updateShape={updateShape} endShape={() => setShapeEdit(null)} />
+      <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-        {/* Fixed height, no wrapping: nothing up here may resize the field (a canvas resize clears it, which flashes). */}
-        {/* Equal-flex sides center the set controls when there's room; when there isn't, the hint gives up space first. */}
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '0 16px', height: 40, flexShrink: 0, whiteSpace: 'nowrap', overflow: 'hidden' }}>
-          <strong style={{ flex: '1 1 0' }}>Freeform</strong>
-          <div style={{ flex: 'none' }}><SetControls show={show} setShow={setShow} t={t} setT={(x) => { setPlaying(false); setT(x); }} /></div>
-          <span style={{ flex: '1 1 0', fontSize: 12, opacity: 0.7, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'right' }}>Scroll to pan · pinch or ⌘/Ctrl+scroll to zoom · right-drag pans</span>
-        </div>
         <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
         <canvas
           ref={canvasRef}
@@ -440,6 +447,7 @@ export function App() {
         onUndo={() => step('undo')} onRedo={() => step('redo')} canUndo={!!hist.past.length} canRedo={!!hist.future.length}
         onFit={() => { const c = canvasRef.current!; setView(fitView(c.width, c.height)); }} shape={shapeEdit?.shape ?? null} startShape={startShape} updateShape={updateShape} endShape={() => setShapeEdit(null)}
       />
+      </div>
       {sharing && <ShareDialog show={show} onClose={() => setSharing(false)} />}
       {printing && <PrintDialog show={show} selected={selected} onClose={() => setPrinting(false)} />}
       <input ref={fileRef} type="file" accept=".json,application/json,.3dj" hidden
