@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { readout, type HashPreset } from '../engine/coords';
 import type { Shape, ShapeKind } from '../engine/shapes';
 import {
-  setCue, setMarks, setNote, label, locate, newId, moveToSection, removeSection, duplicateLetters, placeInSet, remapHash, positionsAt, xFrom, yFrom,
+  setCue, setMarks, setNote, label, locate, newId, moveToSection, removeSection, duplicateLetters, renumberSection, placeInSet, remapHash, positionsAt, xFrom, yFrom,
   type FrontDir, type FrontRef, type Show, type SideDir,
 } from '../engine/show';
 
@@ -188,7 +188,7 @@ export function Sidebar(p: Props) {
         )}
       </section>
 
-      <SectionsEditor show={show} setShow={setShow} />
+      <SectionsEditor show={show} setShow={setShow} cur={cur} />
     </aside>
   );
 }
@@ -237,8 +237,9 @@ function CoordEntry({ onPlace }: { onPlace: (x: number, y: (h: HashPreset) => nu
 }
 
 /** Rename, re-letter, add and delete sections. Letters two sections share are flagged (their labels would clash). */
-function SectionsEditor({ show, setShow }: { show: Show; setShow: (f: (s: Show) => Show) => void }) {
+function SectionsEditor({ show, setShow, cur }: { show: Show; setShow: (f: (s: Show) => Show) => void; cur: number }) {
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [renumbering, setRenumbering] = useState<string | null>(null);
   const [moveTo, setMoveTo] = useState('');
   const dupes = duplicateLetters(show);
   const panel = useRef<HTMLDetailsElement>(null);
@@ -261,10 +262,22 @@ function SectionsEditor({ show, setShow }: { show: Show; setShow: (f: (s: Show) 
                 onChange={(e) => edit(i, { letter: e.target.value })} />
               <input aria-label={`Name of section ${s.letter}`} value={s.name} style={{ flex: 1, minWidth: 0 }} onChange={(e) => edit(i, { name: e.target.value })} />
               <span style={{ fontSize: 12, opacity: 0.7, minWidth: 18, textAlign: 'right' }} title={`${n} performer${n === 1 ? '' : 's'}`}>{n}</span>
+              <button aria-label={`Renumber section ${s.name}`} title="Renumber this section 1, 2, 3…" className="icon" disabled={n < 1}
+                onClick={() => { setRenumbering(renumbering === s.id ? null : s.id); setDeleting(null); }}>#</button>
               <button aria-label={`Delete section ${s.name}`} title="Delete this section" className="icon danger" disabled={show.sections.length < 2}
-                onClick={() => { if (n) { setDeleting(s.id); setMoveTo(show.sections.find((x) => x.id !== s.id)!.id); } else setShow((sh) => removeSection(sh, s.id)); }}>×</button>
+                onClick={() => { setRenumbering(null); if (n) { setDeleting(s.id); setMoveTo(show.sections.find((x) => x.id !== s.id)!.id); } else setShow((sh) => removeSection(sh, s.id)); }}>×</button>
             </div>
             {dup && <div role="alert" style={{ color: '#ff8080', fontSize: 12, marginTop: 2 }}>Another section also uses "{s.letter}": their labels would clash.</div>}
+            {renumbering === s.id && (
+              <div style={{ ...row, fontSize: 12, background: '#22302a', padding: 6, borderRadius: 6 }}>
+                Renumber {s.letter}1–{s.letter}{n}:
+                <button onClick={() => { setShow((sh) => renumberSection(sh, s.id, 'number')); setRenumbering(null); }}
+                  title="Keep their order and close the gaps (e.g. X4 X5 X6 become X1 X2 X3)">Close the gaps</button>
+                <button onClick={() => { setShow((sh) => renumberSection(sh, s.id, 'field', cur)); setRenumbering(null); }}
+                  title={`From Side 1 to Side 2 as they stand in set ${show.sets[cur].name}, front to back where they line up`}>Left to right (set {show.sets[cur].name})</button>
+                <button onClick={() => setRenumbering(null)}>Cancel</button>
+              </div>
+            )}
             {deleting === s.id && (
               <div style={{ ...row, fontSize: 12, background: '#22302a', padding: 6, borderRadius: 6 }}>
                 Move its {n} performer{n === 1 ? '' : 's'} to

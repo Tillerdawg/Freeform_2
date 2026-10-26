@@ -344,3 +344,18 @@ describe('editing sections', () => {
     expect([...duplicateLetters({ ...s, sections: [...s.sections, { id: 'z', name: 'Tenor', letter: 'x' }] })]).toEqual(['X']);
   });
 });
+
+describe('renumbering a section', () => {
+  it('closes gaps, or numbers Side 1 to Side 2 (front to back on a tie) in a set', async () => {
+    const { renumberSection } = await import('./show');
+    let s = newShow();
+    const x = s.sections.find((q) => q.letter === 'X')!.id;
+    const spots = [{ x: 6, y: 10 }, { x: -4, y: 12 }, { x: -4, y: 8 }, { x: 0, y: 10 }];
+    const ids: string[] = [];
+    for (const at of spots) { const r = addPerformer(s, x, at); s = r.show; ids.push(r.id); }
+    s = { ...s, performers: s.performers.map((p, i) => ({ ...p, number: [4, 9, 5, 7][i] })) };
+    const num = (sh: typeof s) => ids.map((id) => sh.performers.find((p) => p.id === id)!.number);
+    expect(num(renumberSection(s, x, 'number'))).toEqual([1, 4, 2, 3]); // 4,9,5,7 → order kept, gaps closed
+    expect(num(renumberSection(s, x, 'field', 0))).toEqual([4, 2, 1, 3]); // x -4 (front one first), -4, 0, 6
+  });
+});

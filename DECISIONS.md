@@ -506,3 +506,8 @@ Each entry: timestamp, who decided, context, options considered, decision.
   - Letters shared by two sections are outlined in red with "their labels would clash", and the Sections panel opens to show it.
   - Each row shows how many performers are in the section. If the section chosen for adding performers is deleted, adding falls back to the first section.
 - **Other options:** dot shapes per section (not wanted now); renumbering a whole section after a split (possible follow-up).
+
+## 2026-10-26 14:35 EDT — Renumber a section
+- **Who:** Jason Tiller (add a renumber button); details by Claude *(Jason can veto)*
+- **Decision:** A **#** button on each Sections row offers **Close the gaps** (keep the order, number from 1) or **Left to right** (Side 1 → Side 2 as they stand in the current set, front to back where they share a spot). Labels change everywhere for the whole show; Undo reverses it.
+- **Other options:** front-to-back first, or by rank and file; numbering by a chosen set other than the current one.
