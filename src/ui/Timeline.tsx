@@ -16,10 +16,11 @@ interface Props {
   range: { from: string | null; to: string | null; loop: boolean };
   setRange: (r: { from: string | null; to: string | null; loop: boolean }) => void;
   span: [number, number];
+  music?: React.ReactNode; // the Music menu, beside Tempo
 }
 
 /** One segment per move, width proportional to its counts; click or drag to scrub by whole counts. */
-export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, setBpm, range, setRange, span }: Props) {
+export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, setBpm, range, setRange, span, music }: Props) {
   const total = totalCounts(show);
   const starts = setStarts(show);
   const { to, count } = locate(show, t);
@@ -50,6 +51,7 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
         <label>
           Tempo <input type="number" min={20} max={300} value={bpm} onChange={(e) => setBpm(Number(e.target.value) || 120)} style={{ width: 56 }} /> bpm
         </label>
+        {music}
         {show.sets.length > 1 && (
           <>
             <label>

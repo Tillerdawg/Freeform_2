@@ -175,18 +175,19 @@ export function Toolbar(p: ToolbarProps) {
 }
 
 /** A toolbar button that opens a small panel below it. Closes on a click elsewhere or Esc (unless `keepOpen`). */
-function Menu({ label, title, disabled, keepOpen, pressed, children }: {
+export function Menu({ label, title, disabled, keepOpen, pressed, children }: {
   label: string; title: string; disabled?: string; keepOpen?: boolean; pressed?: boolean; children: (close: () => void) => ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const shown = !disabled && (open || !!keepOpen);
   // Placed against the window, so the toolbar's sideways scrolling (narrow windows) can't clip the panel.
-  const [at, setAt] = useState<{ left: number; top: number } | null>(null);
+  const [at, setAt] = useState<React.CSSProperties | null>(null);
   useLayoutEffect(() => {
     if (!shown) return;
-    const r = ref.current!.getBoundingClientRect();
-    setAt({ left: Math.max(8, Math.min(r.left, innerWidth - 352)), top: r.bottom + 6 });
+    const r = ref.current!.getBoundingClientRect(), left = Math.max(8, Math.min(r.left, innerWidth - 352));
+    // Near the bottom of the window (the timeline), open upward.
+    setAt(r.bottom > innerHeight * 0.6 ? { left, bottom: innerHeight - r.top + 6 } : { left, top: r.bottom + 6 });
   }, [shown]);
   useEffect(() => {
     if (!open) return;

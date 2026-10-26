@@ -570,3 +570,13 @@ Each entry: timestamp, who decided, context, options considered, decision.
 ## 2026-10-26 17:45 EDT — Flip and Mirror reflect pinned label sides
 - **Who:** Jason Tiller (fix it); details by Claude
 - **Decision:** Flip across the 50 swaps a pinned label's left and right (up-left → up-right); Flip front ↔ back swaps above and below. Copy Side 1 → 2 (or 2 → 1) gives each copied performer its partner's label side, mirrored, or automatic if the partner had none. Rotate & scale leaves pins alone (re-press Inside/Outside curve after a turn if needed).
+
+## 2026-10-26 18:15 EDT — Music sync, part 1: tap along in the editor
+- **Who:** Jason Tiller (timing by tapping along; counts set by the meter; music on performers' phones too; measures stay typed by hand); details by Claude *(Jason can veto)*
+- **Decisions:**
+  - **Timing = taps.** Tap counts plays the recording from the top; each Space (or the big button) records the audio time of the next count, starting at count 0 (set 1). Undo last tap, Pause / Resume (backs up 2 s), Start over, Done. The show stores `music: { name, audioId, taps }` (seconds), checked on import (strictly increasing, capped). Between taps a count is linear in time; past the last tap counts keep the last four taps' pace. Because a tap is a count, the meter isn't needed for timing (the counts-per-meter choice matters once Freeform computes measures, which isn't planned, since measures stay typed).
+  - **Playback with music** seeks the audio to the current count and drives the drill from the audio clock, so rubato and fermatas line up; range stops and loops work (a loop seeks back). **Play with music** can be turned off to use Tempo.
+  - **The recording stays in the browser** (IndexedDB), not in the `.freeform` file, the autosave or share links (size and copyright). The menu says when a show's recording isn't in this browser; loading a file with the same name again keeps the taps.
+  - **Next (part 2):** carry the recording to phones inside the locked hosted file, encrypted with the show's key, so the performer view plays along.
+- **Other options:** a typed tempo map, or importing a MIDI tempo map from notation software (not chosen now; possible later); embedding the audio in the `.freeform` file (big files, and the file is what gets shared around).
+- **Known limits:** re-tapping starts from the top; a replaced or removed show's audio is cleaned up, but a show replaced by New or Import leaves its recording stored in the browser.

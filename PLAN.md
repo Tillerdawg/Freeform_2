@@ -33,7 +33,9 @@
 - ✅ QR codes for share links that fit; hosted links (`#load=` + a show file's https address) that phones re-check and update in place. Tested with GitHub gists. ✅ In-app QR scanner (camera) so scans land in the home-screen app, not Safari. ✅ Phones get only the performer/director views (no editor).
 - ✅ Protected hosting: hosted show files are encrypted in the browser (AES-GCM); the key rides only in the link's `#` part, so any plain file host (a secret gist) only ever stores ciphertext. Re-keying cuts off old links for future updates. Later, if needed: a Freeform-run upload service so directors needn't touch gists; per-performer links.
 - Count-first layout (Jason): ✅ drag a set's button on the timeline to place it at a specific count (neighbors stay pinned). Still to do: enter the total counts for a musical selection (movement) or the whole show up front. Fits the current model, since a set at count N just means counts-into-set = N − previous set's count. When a set moves, later sets keep their absolute counts (Jason): moving set 3 from count 24 to 28 lengthens the move into set 3 and shortens the move out of it; set 4 stays at 48.
-- Music sync (mp3; MIDI tempo map). Pairs with count-first layout: counts → measures → audio time.
+- ✅ Music sync in the editor: load the recording (kept in the browser), tap every count, playback follows the audio.
+- Music on phones (Jason: yes): carry the recording inside the locked hosted file, encrypted with the show's key; the phone view plays along. Share links can't carry audio.
+- Music follow-ups: re-tap from a given count (not only from the top); a waveform on the timeline; MIDI tempo-map import (not chosen for now); count-first layout (total counts per selection).
 - Basketball court and custom surfaces.
 - ✅ Pyware 3D .3dj import (sets, counts, notes, measures, sections from symbols/figures, hashes). Follow-ups: carry Pyware's per-count positions as a path inside the move; names (Freeform has no roster yet); .3dj files with no sets (backups/drafts); the CaneRidge Part 2/3 variant with no PAGE blocks.
 - Optional cloud sync; store-wrapped mobile apps.
