@@ -1,3 +1,4 @@
+import { clearStartingSections, hasOwnStartingSections, saveStartingSections } from './startingSections';
 import { useEffect, useRef, useState } from 'react';
 import { readout, type HashPreset } from '../engine/coords';
 import type { Shape, ShapeKind } from '../engine/shapes';
@@ -240,6 +241,8 @@ function CoordEntry({ onPlace }: { onPlace: (x: number, y: (h: HashPreset) => nu
 function SectionsEditor({ show, setShow, cur }: { show: Show; setShow: (f: (s: Show) => Show) => void; cur: number }) {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [renumbering, setRenumbering] = useState<string | null>(null);
+  const [own, setOwn] = useState(hasOwnStartingSections);
+  const [startNote, setStartNote] = useState('');
   const [moveTo, setMoveTo] = useState('');
   const dupes = duplicateLetters(show);
   const panel = useRef<HTMLDetailsElement>(null);
@@ -296,6 +299,15 @@ function SectionsEditor({ show, setShow, cur }: { show: Show; setShow: (f: (s: S
       <div style={row}>
         <button onClick={() => setShow((sh) => ({ ...sh, sections: [...sh.sections, { id: newId('s'), name: 'New section', letter: '?' }] }))}>+ Section</button>
       </div>
+      <div style={{ ...row, marginTop: 10 }}>
+        <button onClick={() => { setStartNote(saveStartingSections(show) ? 'New shows will start with this list.' : "This browser won't save it."); setOwn(hasOwnStartingSections()); }}
+          title="New shows you start in this browser get these sections and letters">Use as my starting list</button>
+        {own && <button onClick={() => { clearStartingSections(); setOwn(false); setStartNote("New shows will start with Freeform's list."); }}
+          title="New shows go back to Freeform's starting sections">Back to Freeform's list</button>}
+      </div>
+      <p style={{ margin: '4px 0 0', fontSize: 12, opacity: 0.75 }} role="status">
+        {startNote || (own ? 'New shows start with your own list (in this browser).' : "New shows start with Freeform's list.")}
+      </p>
     </details>
   );
 }

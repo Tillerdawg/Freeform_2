@@ -11,6 +11,7 @@ import {
 import { HANDLE_PX, drawField, drawMarks, drawPerformers, drawShape, fitView, toScreen, toWorld, type Path, type View } from './field/drawField';
 import { Sidebar, type Snap, type Tool } from './ui/Sidebar';
 import { SetControls, Timeline } from './ui/Timeline';
+import { startingSections } from './ui/startingSections';
 import { Toolbar } from './ui/Toolbar';
 import { parse3dj } from './engine/pyware';
 import { usePlayback } from './ui/usePlayback';
@@ -28,7 +29,7 @@ function loadAutosave(): Show {
     // Bad data: keep a copy before the fresh show's autosave overwrites it.
     try { if (raw) localStorage.setItem(`${AUTOSAVE}:unreadable`, raw); } catch { /* storage blocked */ }
   }
-  return newShow();
+  return newShow(startingSections());
 }
 
 type Drag =
@@ -53,7 +54,7 @@ export function App() {
   const [hover, setHover] = useState('');
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [tool, setTool] = useState<Tool>('select');
-  const [section, setSection] = useState(() => show.sections.find((s) => s.letter === 'T')?.id ?? show.sections[0]?.id);
+  const [section, setSection] = useState(() => show.sections[0]?.id);
   // A deleted section can't take new performers: fall back to one that exists.
   useEffect(() => { if (!show.sections.some((x) => x.id === section)) setSection(show.sections[0]?.id ?? ''); }, [show.sections, section]);
   const [snap, setSnap] = useState<Snap>(1);
@@ -401,8 +402,8 @@ export function App() {
 
   const fresh = () => {
     if (show.performers.length && !confirm('Start a new show? (You can Undo this.)')) return;
-    const s = newShow();
-    setShow(s); setT(0); setSelected(new Set()); setSection(s.sections.find((x) => x.letter === 'T')?.id ?? s.sections[0].id);
+    const s = newShow(startingSections());
+    setShow(s); setT(0); setSelected(new Set()); setSection(s.sections[0].id);
   };
 
   return (

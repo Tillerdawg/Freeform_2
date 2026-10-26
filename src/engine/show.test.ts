@@ -320,7 +320,7 @@ describe('editing sections', () => {
     const ids: string[] = [];
     for (let i = 0; i < 3; i++) { const r = addPerformer(s, sax, { x: i * 2, y: 10 }); s = r.show; ids.push(r.id); }
     const t = addPerformer(s, tpt, { x: 0, y: 20 }); s = t.show;
-    s = { ...s, sections: [...s.sections, { id: 'alto', name: 'Alto Saxophone', letter: 'A' }] };
+    s = { ...s, sections: [...s.sections, { id: 'alto', name: 'Soprano Saxophone', letter: 'Z' }] };
     return { s, sax, tpt, ids, tptId: t.id, moveToSection, removeSection, duplicateLetters };
   };
   it('moves performers to a section, numbering them after its members', async () => {
@@ -358,5 +358,17 @@ describe('renumbering a section', () => {
     expect(num(renumberSection(s, x, 'number'))).toEqual([1, 4, 2, 3]); // 4,9,5,7 → order kept, gaps closed
     expect(num(renumberSection(s, x, 'field', 0))).toEqual([4, 2, 1, 3]); // x -4 (front one first), -4, 0, 6
     expect(num(renumberSection(s, x, 'ranks', 0))).toEqual([3, 4, 1, 2]); // y 8; then y 10 from Side 1 (x 0, 6); then y 12
+  });
+});
+
+describe('starting section lists', () => {
+  it("starts new shows with Freeform's list or a saved one, and rejects junk", async () => {
+    const { validSectionList, DEFAULT_SECTIONS } = await import('./show');
+    expect(newShow().sections.map((s) => s.letter).join('')).toBe(DEFAULT_SECTIONS.map((s) => s.letter).join(''));
+    expect(newShow().sections.some((s) => /front ensemble/i.test(s.name))).toBe(false);
+    const mine = [{ name: 'Piccolo', letter: 'Pc' }, { name: 'Horn', letter: 'H' }];
+    expect(newShow(mine).sections.map((s) => s.name)).toEqual(['Piccolo', 'Horn']);
+    expect(validSectionList(mine)).toEqual(mine);
+    for (const bad of [null, [], 'x', [{ name: '', letter: 'A' }], [{ name: 'A' }], [{ name: 'A', letter: 3 }]]) expect(validSectionList(bad)).toBeNull();
   });
 });

@@ -44,19 +44,29 @@ export interface Show {
 let seq = 0;
 export const newId = (prefix: string) => `${prefix}${Date.now().toString(36)}${(seq++).toString(36)}`;
 
-const DEFAULT_SECTIONS: [string, string][] = [
-  ['Flute', 'F'], ['Clarinet', 'C'], ['Saxophone', 'X'], ['Trumpet', 'T'], ['Mellophone', 'M'],
-  ['Low Brass', 'B'], ['Tuba', 'U'], ['Snare', 'S'], ['Tenors', 'Q'], ['Bass Drum', 'D'],
-  ['Cymbals', 'Y'], ['Color Guard', 'G'], // no front ensemble: they're stationary, so they don't need drill spots
-];
+export type SectionList = { name: string; letter: string }[];
 
-export function newShow(): Show {
+/** Freeform's starting sections (Jason's lettering). No front ensemble: they're stationary, so they need no drill spots. */
+export const DEFAULT_SECTIONS: SectionList = ([
+  ['Flute', 'F'], ['Clarinet', 'K'], ['Alto Saxophone', 'A'], ['Tenor Saxophone', 'X'], ['Trumpet', 'P'], ['Mellophone', 'H'],
+  ['Trombone', 'N'], ['Baritone', 'E'], ['Tuba', 'T'], ['Snare Drum', 'S'], ['Bass Drum', 'B'], ['Quads', 'Q'], ['Cymbals', 'C'],
+  ['Color Guard', 'G'],
+] as const).map(([name, letter]) => ({ name, letter }));
+
+/** A starting list saved from a file or storage: kept only if it's a non-empty list of names and letters. */
+export function validSectionList(x: unknown): SectionList | null {
+  if (!Array.isArray(x) || !x.length || x.length > 100) return null;
+  return x.every((s) => typeof s?.name === 'string' && typeof s?.letter === 'string' && s.name.trim() && s.letter.trim())
+    ? x.map((s) => ({ name: s.name, letter: s.letter })) : null;
+}
+
+export function newShow(sections: SectionList = DEFAULT_SECTIONS): Show {
   return {
     format: 'freeform-show',
     version: 1,
     title: 'Untitled show',
     hash: 'highSchool',
-    sections: DEFAULT_SECTIONS.map(([name, letter]) => ({ id: newId('s'), name, letter })),
+    sections: sections.map(({ name, letter }) => ({ id: newId('s'), name, letter })),
     performers: [],
     sets: [{ id: newId('set'), name: '1', counts: 0, pos: {} }],
   };
