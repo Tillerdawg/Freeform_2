@@ -497,3 +497,12 @@ Each entry: timestamp, who decided, context, options considered, decision.
 ## 2026-10-26 14:00 EDT — Performer tools and markup split in the toolbar
 - **Who:** Jason Tiller
 - **Decision:** "Select" and "Add" become **Select Performer(s)** and **Add Performer(s)**, a pair followed by Section and Snap (which only apply to performers). **Markup ▾** stands apart after a divider, since it adds instructions and arrows rather than performers.
+
+## 2026-10-26 14:20 EDT — Editing sections: move performers, delete, duplicate letters
+- **Who:** Jason Tiller (letters only, not dot shapes; move selected, delete, warn on duplicate letters); details by Claude *(Jason can veto)*
+- **Decisions:**
+  - **Section of selected performers** in the sidebar's Selection area moves them to another section for the whole show. Moved performers are numbered after the section's current members, in their old label order; nobody already in either section changes label (the ones left behind keep their numbers, e.g. X4–X6).
+  - **Delete section** (× per row): an empty section goes at once; one with performers asks which section takes them first. The last section can't be deleted. Undo works for all of it.
+  - Letters shared by two sections are outlined in red with "their labels would clash", and the Sections panel opens to show it.
+  - Each row shows how many performers are in the section. If the section chosen for adding performers is deleted, adding falls back to the first section.
+- **Other options:** dot shapes per section (not wanted now); renumbering a whole section after a split (possible follow-up).
