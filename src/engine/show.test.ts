@@ -311,3 +311,36 @@ describe('pinned label sides', () => {
     expect(() => parseShow(JSON.stringify(bad))).toThrow(/label/);
   });
 });
+
+describe('editing sections', () => {
+  const setup = async () => {
+    const { moveToSection, removeSection, duplicateLetters } = await import('./show');
+    let s = newShow();
+    const sax = s.sections.find((x) => x.letter === 'X')!.id, tpt = s.sections.find((x) => x.letter === 'T')!.id;
+    const ids: string[] = [];
+    for (let i = 0; i < 3; i++) { const r = addPerformer(s, sax, { x: i * 2, y: 10 }); s = r.show; ids.push(r.id); }
+    const t = addPerformer(s, tpt, { x: 0, y: 20 }); s = t.show;
+    s = { ...s, sections: [...s.sections, { id: 'alto', name: 'Alto Saxophone', letter: 'A' }] };
+    return { s, sax, tpt, ids, tptId: t.id, moveToSection, removeSection, duplicateLetters };
+  };
+  it('moves performers to a section, numbering them after its members', async () => {
+    const { s, ids, tpt, tptId, moveToSection } = await setup();
+    const m = moveToSection(s, [ids[2], ids[0]], tpt);
+    const lab = (id: string) => label(m, m.performers.find((p) => p.id === id)!);
+    expect([lab(tptId), lab(ids[0]), lab(ids[2]), lab(ids[1])]).toEqual(['T1', 'T2', 'T3', 'X2']); // old order X1, X3 → T2, T3
+    expect(m.sets[0].pos[ids[0]]).toEqual(s.sets[0].pos[ids[0]]); // positions untouched
+  });
+  it('deletes a section, moving its performers or refusing', async () => {
+    const { s, sax, removeSection } = await setup();
+    expect(() => removeSection(s, sax)).toThrow(/Choose a section/);
+    const r = removeSection(s, sax, 'alto');
+    expect(r.sections.some((x) => x.id === sax)).toBe(false);
+    expect(r.performers.filter((p) => p.section === 'alto').map((p) => p.number)).toEqual([1, 2, 3]);
+    expect(removeSection(r, 'alto', sax === 'alto' ? undefined : r.sections[0].id).sections.length).toBe(r.sections.length - 1);
+  });
+  it('flags letters two sections share', async () => {
+    const { s, duplicateLetters } = await setup();
+    expect(duplicateLetters(s).size).toBe(0);
+    expect([...duplicateLetters({ ...s, sections: [...s.sections, { id: 'z', name: 'Tenor', letter: 'x' }] })]).toEqual(['X']);
+  });
+});

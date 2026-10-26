@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { readout, type HashPreset } from '../engine/coords';
 import type { Shape, ShapeKind } from '../engine/shapes';
 import {
-  setCue, setMarks, setNote, label, locate, newId, placeInSet, remapHash, positionsAt, xFrom, yFrom,
+  setCue, setMarks, setNote, label, locate, newId, moveToSection, removeSection, duplicateLetters, placeInSet, remapHash, positionsAt, xFrom, yFrom,
   type FrontDir, type FrontRef, type Show, type SideDir,
 } from '../engine/show';
 
@@ -112,6 +112,18 @@ export function Sidebar(p: Props) {
         {selected.size === 0 && <p style={{ opacity: 0.7, margin: '6px 0 0' }}>Click a performer, shift-click to add, or drag a box.</p>}
         {selected.size > 1 && <p style={{ margin: '6px 0 0' }}>{selected.size} performers selected</p>}
         {onSet < 0 && <p style={{ color: '#f5c518', margin: '6px 0 0' }}>Mid-move: you can select, but scrub to a set to move or add.</p>}
+        {selected.size > 0 && (() => {
+          const secs = new Set(show.performers.filter((x) => selected.has(x.id)).map((x) => x.section));
+          return (
+            <label style={{ display: 'block', marginTop: 8 }} title="Moves them into that section for the whole show; they're numbered after its current members">Section{' '}
+              <select aria-label="Section of selected performers" value={secs.size === 1 ? [...secs][0] : ''}
+                onChange={(e) => e.target.value && setShow((s) => moveToSection(s, [...selected], e.target.value))}>
+                {secs.size > 1 && <option value="" disabled>Mixed</option>}
+                {show.sections.map((s) => <option key={s.id} value={s.id}>{s.letter} · {s.name}</option>)}
+              </select>
+            </label>
+          );
+        })()}
         {selected.size > 0 && onSet >= 0 && (() => {
           const cues = ids.map((id) => show.sets[onSet].cues?.[id] ?? '');
           const same = cues.every((c) => c === cues[0]);
@@ -176,20 +188,7 @@ export function Sidebar(p: Props) {
         )}
       </section>
 
-      <details style={box}>
-        <summary><strong>Sections</strong></summary>
-        {show.sections.map((s, i) => (
-          <div key={s.id} style={row}>
-            <input aria-label="Section letter" value={s.letter} style={{ width: 36 }}
-              onChange={(e) => setShow((sh) => ({ ...sh, sections: sh.sections.map((x, j) => (j === i ? { ...x, letter: e.target.value } : x)) }))} />
-            <input aria-label="Section name" value={s.name} style={{ flex: 1 }}
-              onChange={(e) => setShow((sh) => ({ ...sh, sections: sh.sections.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)) }))} />
-          </div>
-        ))}
-        <div style={row}>
-          <button onClick={() => setShow((sh) => ({ ...sh, sections: [...sh.sections, { id: newId('s'), name: 'New section', letter: '?' }] }))}>+ Section</button>
-        </div>
-      </details>
+      <SectionsEditor show={show} setShow={setShow} />
     </aside>
   );
 }
@@ -233,6 +232,55 @@ function CoordEntry({ onPlace }: { onPlace: (x: number, y: (h: HashPreset) => nu
         <button onClick={() => onPlace(xFrom(side, line, xs, xd), (h) => yFrom(ref, ys, yd, h))}>Place</button>
       </div>
     </fieldset>
+    </details>
+  );
+}
+
+/** Rename, re-letter, add and delete sections. Letters two sections share are flagged (their labels would clash). */
+function SectionsEditor({ show, setShow }: { show: Show; setShow: (f: (s: Show) => Show) => void }) {
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [moveTo, setMoveTo] = useState('');
+  const dupes = duplicateLetters(show);
+  const panel = useRef<HTMLDetailsElement>(null);
+  useEffect(() => { if (dupes.size && panel.current) panel.current.open = true; }, [dupes.size]); // show a clash; never close on the user
+  const count = (id: string) => show.performers.filter((p) => p.section === id).length;
+  const edit = (i: number, patch: { letter?: string; name?: string }) =>
+    setShow((sh) => ({ ...sh, sections: sh.sections.map((x, j) => (j === i ? { ...x, ...patch } : x)) }));
+  return (
+    <details style={box} ref={panel}>
+      <summary><strong>Sections</strong> <span style={{ fontSize: 12, opacity: 0.7 }}>({show.sections.length})</span></summary>
+      <p style={{ margin: '6px 0 0', fontSize: 12, opacity: 0.75 }}>
+        The letter starts each label (A1, X1). To split a section, add one here, then select its performers and change their Section.
+      </p>
+      {show.sections.map((s, i) => {
+        const n = count(s.id), dup = dupes.has(s.letter.trim().toUpperCase());
+        return (
+          <div key={s.id}>
+            <div style={row}>
+              <input aria-label={`Letter for ${s.name}`} value={s.letter} maxLength={3} style={{ width: 36, textAlign: 'center', borderColor: dup ? '#ff8080' : undefined }}
+                onChange={(e) => edit(i, { letter: e.target.value })} />
+              <input aria-label={`Name of section ${s.letter}`} value={s.name} style={{ flex: 1, minWidth: 0 }} onChange={(e) => edit(i, { name: e.target.value })} />
+              <span style={{ fontSize: 12, opacity: 0.7, minWidth: 18, textAlign: 'right' }} title={`${n} performer${n === 1 ? '' : 's'}`}>{n}</span>
+              <button aria-label={`Delete section ${s.name}`} title="Delete this section" className="icon danger" disabled={show.sections.length < 2}
+                onClick={() => { if (n) { setDeleting(s.id); setMoveTo(show.sections.find((x) => x.id !== s.id)!.id); } else setShow((sh) => removeSection(sh, s.id)); }}>×</button>
+            </div>
+            {dup && <div role="alert" style={{ color: '#ff8080', fontSize: 12, marginTop: 2 }}>Another section also uses "{s.letter}": their labels would clash.</div>}
+            {deleting === s.id && (
+              <div style={{ ...row, fontSize: 12, background: '#22302a', padding: 6, borderRadius: 6 }}>
+                Move its {n} performer{n === 1 ? '' : 's'} to
+                <select aria-label="Move performers to" value={moveTo} onChange={(e) => setMoveTo(e.target.value)}>
+                  {show.sections.filter((x) => x.id !== s.id).map((x) => <option key={x.id} value={x.id}>{x.letter} · {x.name}</option>)}
+                </select>
+                <button className="danger" onClick={() => { setShow((sh) => removeSection(sh, s.id, moveTo)); setDeleting(null); }}>Delete section</button>
+                <button onClick={() => setDeleting(null)}>Cancel</button>
+              </div>
+            )}
+          </div>
+        );
+      })}
+      <div style={row}>
+        <button onClick={() => setShow((sh) => ({ ...sh, sections: [...sh.sections, { id: newId('s'), name: 'New section', letter: '?' }] }))}>+ Section</button>
+      </div>
     </details>
   );
 }

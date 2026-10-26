@@ -54,6 +54,8 @@ export function App() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [tool, setTool] = useState<Tool>('select');
   const [section, setSection] = useState(() => show.sections.find((s) => s.letter === 'T')?.id ?? show.sections[0]?.id);
+  // A deleted section can't take new performers: fall back to one that exists.
+  useEffect(() => { if (!show.sections.some((x) => x.id === section)) setSection(show.sections[0]?.id ?? ''); }, [show.sections, section]);
   const [snap, setSnap] = useState<Snap>(1);
   const [playing, setPlaying] = useState(false);
   const [bpm, setBpm] = useState(120);

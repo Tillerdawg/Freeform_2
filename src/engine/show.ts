@@ -85,6 +85,35 @@ export function addPerformer(show: Show, section: string, at: Point): { show: Sh
   };
 }
 
+/**
+ * Move performers to another section. They're numbered after the section's current members, in their old label
+ * order (B1, B2… become T4, T5… when T1–T3 exist), so nobody in the section changes label.
+ */
+export function moveToSection(show: Show, ids: string[], section: string): Show {
+  if (!show.sections.some((s) => s.id === section)) return show;
+  const moving = show.performers.filter((p) => ids.includes(p.id) && p.section !== section)
+    .sort((a, b) => show.sections.findIndex((s) => s.id === a.section) - show.sections.findIndex((s) => s.id === b.section) || a.number - b.number);
+  let next = Math.max(0, ...show.performers.filter((p) => p.section === section).map((p) => p.number));
+  const renumber = new Map(moving.map((p) => [p.id, ++next]));
+  return { ...show, performers: show.performers.map((p) => (renumber.has(p.id) ? { ...p, section, number: renumber.get(p.id)! } : p)) };
+}
+
+/** Remove a section. Its performers move to `moveTo` first; with no `moveTo`, only an empty section can go. */
+export function removeSection(show: Show, id: string, moveTo?: string): Show {
+  const members = show.performers.filter((p) => p.section === id).map((p) => p.id);
+  if (members.length && (!moveTo || moveTo === id)) throw new Error('Choose a section for its performers first.');
+  if (show.sections.length < 2) throw new Error('A show needs at least one section.');
+  const moved = members.length ? moveToSection(show, members, moveTo!) : show;
+  return { ...moved, sections: moved.sections.filter((s) => s.id !== id) };
+}
+
+/** Section letters used by more than one section (their labels would clash: two "A1"s). */
+export const duplicateLetters = (show: Show) => {
+  const seen = new Map<string, number>();
+  for (const s of show.sections) { const k = s.letter.trim().toUpperCase(); seen.set(k, (seen.get(k) ?? 0) + 1); }
+  return new Set([...seen].filter(([, n]) => n > 1).map(([k]) => k));
+};
+
 export function removePerformers(show: Show, ids: Set<string>): Show {
   return {
     ...show,
