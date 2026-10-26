@@ -519,3 +519,7 @@ Each entry: timestamp, who decided, context, options considered, decision.
 ## 2026-10-26 15:30 EDT — Brighter field on screen
 - **Who:** Jason Tiller
 - **Decision:** The on-screen turf is a little lighter (#357842, was #2f6b3a), and the grid lines are brighter (step lines 15% white, was 9%; 4-step lines 32%, was 22%). Printed charts are unchanged.
+
+## 2026-10-26 15:40 EDT — Section choice moves into Add Performer(s)
+- **Who:** Jason Tiller
+- **Decision:** The toolbar's Section dropdown is gone. **Add Performer(s) ▾** opens a list of sections; picking one turns on the Add tool for it, and the button then reads "Add Performer(s) · T". The **A** key still turns Add on with the last section picked.
