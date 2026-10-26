@@ -24,7 +24,12 @@ export interface DrillSet {
   note?: string;
   /** Per-performer cue for this set ("Slide L, horns 45"), printed on their dot sheet. */
   cues?: Record<string, string>;
+  /** Label sides pinned by the drill writer for this set's picture; everyone else's label is placed automatically. */
+  labels?: Record<string, LabelSide>;
 }
+
+export type LabelSide = 'above' | 'below' | 'left' | 'right' | 'hidden';
+export const LABEL_SIDES: LabelSide[] = ['above', 'below', 'left', 'right', 'hidden'];
 export interface Show {
   format: 'freeform-show';
   version: 1;
@@ -87,6 +92,7 @@ export function removePerformers(show: Show, ids: Set<string>): Show {
       ...s,
       pos: Object.fromEntries(Object.entries(s.pos).filter(([k]) => !ids.has(k))),
       cues: s.cues && Object.fromEntries(Object.entries(s.cues).filter(([k]) => !ids.has(k))),
+      labels: s.labels && Object.fromEntries(Object.entries(s.labels).filter(([k]) => !ids.has(k))),
     })),
   };
 }
@@ -270,6 +276,8 @@ export function parseShow(text: string): Show {
     if (set.note !== undefined && !str(set.note)) bad('set note');
     if (set.cues !== undefined && (typeof set.cues !== 'object' || !set.cues ||
       !Object.entries(set.cues).every(([id, c]) => id in set.pos && str(c)))) bad('set cues');
+    if (set.labels !== undefined && (typeof set.labels !== 'object' || !set.labels ||
+      !Object.entries(set.labels).every(([id, side]) => id in set.pos && LABEL_SIDES.includes(side as LabelSide)))) bad('set label sides');
     for (const p of Object.values(set.pos) as Point[]) if (!Number.isFinite(p?.x) || !Number.isFinite(p?.y)) bad(`position in set ${set.name}`);
   }
   return normalizeFtl(s as Show);
@@ -402,6 +410,15 @@ export function setCue(show: Show, i: number, ids: string[], cue: string): Show 
     const cues = { ...s.cues };
     for (const id of ids) { if (cue) cues[id] = cue; else delete cues[id]; }
     return { ...s, cues: Object.keys(cues).length ? cues : undefined };
+  });
+}
+
+/** Pin these performers' label side in set i, or (null) go back to automatic placement. */
+export function setLabelSide(show: Show, i: number, ids: string[], side: LabelSide | null): Show {
+  return mapSet(show, i, (s) => {
+    const labels = { ...s.labels };
+    for (const id of ids) { if (side) labels[id] = side; else delete labels[id]; }
+    return { ...s, labels: Object.keys(labels).length ? labels : undefined };
   });
 }
 

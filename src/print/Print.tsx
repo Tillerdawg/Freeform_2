@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import type { Show } from '../engine/show';
-import { drawField, drawMarks, fitView, toScreen } from '../field/drawField';
+import { label, type Show } from '../engine/show';
+import { drawField, drawLabels, drawMarks, fitView, toScreen } from '../field/drawField';
 import { chartTitle, chunk, dotCards, hasMeasures, sortedPerformers } from './docs';
 
 type Kind = 'dots' | 'charts';
@@ -17,23 +17,14 @@ function chartImage(show: Show, i: number): string {
   const v = fitView(c.width, c.height);
   drawField(ctx, v, show.hash, 'print');
   const s = v.scale, pos = show.sets[i].pos;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'bottom';
-  ctx.font = `700 ${1.5 * s}px system-ui, sans-serif`;
-  for (const p of show.performers) {
-    const at = pos[p.id];
-    if (!at) continue;
-    const q = toScreen(v, at);
+  const here = show.performers.filter((p) => pos[p.id]);
+  for (const p of here) {
+    const q = toScreen(v, pos[p.id]);
     ctx.fillStyle = '#000';
     ctx.beginPath(); ctx.arc(q.x, q.y, 0.5 * s, 0, Math.PI * 2); ctx.fill();
-    const letter = show.sections.find((x) => x.id === p.section)?.letter ?? '?';
-    // White halo so yard lines and grid don't run through the label.
-    ctx.lineWidth = 0.45 * s;
-    ctx.lineJoin = 'round';
-    ctx.strokeStyle = '#fff';
-    ctx.strokeText(`${letter}${p.number}`, q.x, q.y - 0.65 * s);
-    ctx.fillText(`${letter}${p.number}`, q.x, q.y - 0.65 * s);
   }
+  // White halo so yard lines and grid don't run through the labels.
+  drawLabels(ctx, here.map((p) => ({ id: p.id, label: label(show, p), at: pos[p.id], pin: show.sets[i].labels?.[p.id] })), v, 0.5 * s, 1.5 * s, '#000', '#fff');
   drawMarks(ctx, v, show.sets[i].marks ?? [], 'print');
   return c.toDataURL('image/png');
 }

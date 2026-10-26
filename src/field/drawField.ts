@@ -1,3 +1,5 @@
+import { placeLabels } from './labels';
+import type { LabelSide } from '../engine/show';
 import { FIELD_WIDTH, GOAL_LINE_X, HASHES, STEP_IN, type HashPreset, type Point } from '../engine/coords';
 import { TEXT_STEPS, type Mark } from '../engine/marks';
 
@@ -113,12 +115,41 @@ export function drawField(ctx: CanvasRenderingContext2D, v: View, hash: HashPres
 
 export const TIER_COLOR = { ok: 'rgba(255,255,255,0.55)', yellow: '#f5c518', red: '#ff4d4d' } as const;
 
-export interface Dot { id: string; label: string; at: Point }
+export interface Dot { id: string; label: string; at: Point; pin?: LabelSide }
 export interface Path { from: Point; to: Point; tier: keyof typeof TIER_COLOR }
+
+/**
+ * Dot labels, placed so they don't cover other dots or each other (see placeLabels). Drawn upright on screen even when
+ * the field is turned around (Facing front), so the canvas's current transform only moves where they go.
+ */
+export function drawLabels(
+  ctx: CanvasRenderingContext2D, dots: (Dot & { first?: boolean; px?: number; color?: string })[], v: View, r: number, px: number, color: string, halo?: string,
+) {
+  const m = ctx.getTransform();
+  ctx.save();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  const font = (d: { px?: number }) => { ctx.font = `600 ${d.px ?? px}px system-ui, sans-serif`; };
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  const k = Math.hypot(m.a, m.b); // the transform's scale, so sizes match what's on screen
+  const items = dots.map((d) => {
+    const c = m.transformPoint(toScreen(v, d.at));
+    font(d);
+    return { x: c.x, y: c.y, w: ctx.measureText(d.label).width + 2, h: d.px ?? px, r: r * k, pin: d.pin, first: d.first };
+  });
+  placeLabels(items, Math.max(1, px * 0.15)).forEach((spot, i) => {
+    if (!spot || !dots[i].label) return;
+    font(dots[i]);
+    if (halo) { ctx.lineWidth = (dots[i].px ?? px) * 0.3; ctx.lineJoin = 'round'; ctx.strokeStyle = halo; ctx.strokeText(dots[i].label, spot.x, spot.y); }
+    ctx.fillStyle = dots[i].color ?? color;
+    ctx.fillText(dots[i].label, spot.x, spot.y);
+  });
+  ctx.restore();
+}
 
 /** Performers, their incoming paths, and an optional selection box. */
 export function drawPerformers(
-  ctx: CanvasRenderingContext2D, v: View, dots: Dot[], selected: Set<string>, paths: Path[], box?: [Point, Point],
+  ctx: CanvasRenderingContext2D, v: View, dots: Dot[], selected: Set<string>, paths: Path[], box?: [Point, Point], dpr = 1,
 ) {
   const s = v.scale;
   ctx.setLineDash([s * 0.4, s * 0.3]);
@@ -131,9 +162,6 @@ export function drawPerformers(
   ctx.setLineDash([]);
 
   const r = Math.max(4, s * 0.45);
-  ctx.font = `600 ${Math.max(10, s * 0.8)}px system-ui, sans-serif`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'bottom';
   for (const d of dots) {
     const c = toScreen(v, d.at);
     const sel = selected.has(d.id);
@@ -143,11 +171,8 @@ export function drawPerformers(
     ctx.lineWidth = Math.max(1.5, r * 0.25);
     ctx.strokeStyle = sel ? '#fff' : '#ffd166';
     ctx.stroke();
-    if (s >= 5) {
-      ctx.fillStyle = '#fff';
-      ctx.fillText(d.label, c.x, c.y - r - 2);
-    }
   }
+  drawLabels(ctx, dots.map((d) => ({ ...d, first: selected.has(d.id) })), v, r, Math.max(10 * dpr, s * 0.8), '#fff'); // at least 10 CSS px: smaller isn't readable
 
   if (box) {
     const a = toScreen(v, box[0]), b = toScreen(v, box[1]);
