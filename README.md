@@ -41,7 +41,7 @@ Every spot reads in standard drill language, e.g. *"2 steps outside the Side 2 4
 - **Who goes where:** each performer is assigned the spot that minimizes total travel from the previous set, so paths never cross.
 - **Bézier joints** stay smooth unless you hold Option/Alt.
 - **Mirror** across the 50 or front to back, or copy one side onto the other.
-- **Rotate and scale** a selection around its center, and **snap a selection to the grid** (with a warning if two performers land on the same spot).
+- **Rotate and scale** a selection around its center (Transform ▾), and round a selection back onto the grid with **Snap to grid → Apply** (with a warning if two performers land on the same spot).
 
 ### Moves and playback
 - **Timeline:** one segment per move with a tick for every count. Click any count to see exactly where everyone is.
@@ -55,7 +55,7 @@ Every spot reads in standard drill language, e.g. *"2 steps outside the Side 2 4
 
 ### Printing
 - **Dot sheets:** 4 cards per page, with set, counts, measures, and coordinates, plus that performer's notes. Print for everyone, one section, or a selection.
-- **Drill charts:** one page per set, with labeled dots, markup, and notes. Black on white, for copiers.
+- **Drill charts:** one page per set, with labeled dots, markup, and notes. Black on white, for copiers; sections with a color print as colored dots (shades of gray on a black-and-white printer).
 - **PDFs:** use your browser's print dialog and choose **Save as PDF**.
 
 ### Performer view (phones)
@@ -68,7 +68,7 @@ Every spot reads in standard drill language, e.g. *"2 steps outside the Side 2 4
 - **Screen stays awake** while the show is playing, where the browser allows it (on iPhone, recent iOS versions).
 - **My dot:** highlighted, with **My view** following me through each move, my path into the next set (including follow-the-leader trails), and where I end up.
 - **Facing front:** turns the field around to match what I see facing the audience: front sideline at the top, Side 1 on my right. **Director view** is the editor's orientation.
-- **Who's around me:** my nearest neighbors (up to 4, within 10 steps) are labeled on the field, and an **Around you** list says where each one is, e.g. "T5 · 4 steps toward Side 1", "T2 · 4 steps in front". Directions are in field terms, so they mean the same in either view.
+- **Who's around me:** my nearest neighbors (up to 4, within 10 steps) are labeled on the field, and an **Around you** list says where each one is, e.g. "P5 · 4 steps toward Side 1", "P2 · 4 steps in front". Directions are in field terms, so they mean the same in either view.
 - **Readouts:** my coordinate now and in the next set, with counts, measures and step size (colored like the editor's warnings), plus my performer notes and the ensemble notes.
 - **Controls:** play at any tempo, step count by count, scrub, or tap a set number to jump to it (the row of set buttons scrolls sideways in long shows, with faded edges showing there's more, and keeps the current set centered); Play starts from where you are. Works in portrait and landscape.
 
@@ -117,8 +117,8 @@ Every push to `main` runs the tests and publishes to GitHub Pages ([`.github/wor
 ### Code map
 | Path | What's there |
 |---|---|
-| `src/engine/` | All the drill logic, with no UI: coordinates and readouts, show model, shapes, markup, undo history. Unit-tested. |
-| `src/field/` | Drawing the field, performers, shapes and markup on a canvas |
+| `src/engine/` | All the drill logic, with no UI: coordinates and readouts, show model, shapes, markup, undo history, share links and encrypted hosted files, QR codes, and the Pyware `.3dj` reader. Unit-tested. |
+| `src/field/` | Drawing the field, performers, shapes and markup on a canvas, and dot-label placement |
 | `src/ui/` | Drill toolbar, sidebar, timeline, and top-bar controls |
 | `src/print/` | Dot sheets and drill charts |
 | `src/perform/` | Performer/staff view and the Share dialog |
