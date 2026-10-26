@@ -98,6 +98,20 @@ export function moveToSection(show: Show, ids: string[], section: string): Show 
   return { ...show, performers: show.performers.map((p) => (renumber.has(p.id) ? { ...p, section, number: renumber.get(p.id)! } : p)) };
 }
 
+/**
+ * Number a section's performers 1…n: 'number' keeps their order and closes the gaps (X4 X5 X6 → X1 X2 X3);
+ * 'field' goes from Side 1 to Side 2 as they stand in set `setIndex`, front to back where they line up.
+ */
+export function renumberSection(show: Show, section: string, by: 'number' | 'field', setIndex = 0): Show {
+  const pos = show.sets[setIndex]?.pos ?? {};
+  const members = show.performers.filter((p) => p.section === section);
+  const at = (p: Performer) => pos[p.id] ?? { x: Infinity, y: Infinity };
+  const order = by === 'number' ? [...members].sort((a, b) => a.number - b.number)
+    : [...members].sort((a, b) => at(a).x - at(b).x || at(a).y - at(b).y || a.number - b.number);
+  const n = new Map(order.map((p, i) => [p.id, i + 1]));
+  return { ...show, performers: show.performers.map((p) => (n.has(p.id) ? { ...p, number: n.get(p.id)! } : p)) };
+}
+
 /** Remove a section. Its performers move to `moveTo` first; with no `moveTo`, only an empty section can go. */
 export function removeSection(show: Show, id: string, moveTo?: string): Show {
   const members = show.performers.filter((p) => p.section === id).map((p) => p.id);
