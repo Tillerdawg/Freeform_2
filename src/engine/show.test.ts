@@ -297,3 +297,17 @@ describe('dragging a set to a new count', () => {
     expect(moveSetTo(show, 0, 5)).toBe(show);
   });
 });
+
+describe('pinned label sides', () => {
+  it('pins, clears, survives a save, and rejects bad values from files', async () => {
+    const { setLabelSide } = await import('./show');
+    let s = newShow();
+    const a = addPerformer(s, s.sections[0].id, { x: 0, y: 10 }); s = a.show;
+    s = setLabelSide(s, 0, [a.id], 'left');
+    expect(s.sets[0].labels).toEqual({ [a.id]: 'left' });
+    expect(parseShow(JSON.stringify(s)).sets[0].labels).toEqual({ [a.id]: 'left' });
+    expect(setLabelSide(s, 0, [a.id], null).sets[0].labels).toBeUndefined();
+    const bad = JSON.parse(JSON.stringify(s)); bad.sets[0].labels[a.id] = 'sideways';
+    expect(() => parseShow(JSON.stringify(bad))).toThrow(/label/);
+  });
+});

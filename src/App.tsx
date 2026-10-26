@@ -147,9 +147,10 @@ export function App() {
     if (!view) return;
     const ctx = canvasRef.current!.getContext('2d')!;
     drawField(ctx, view, show.hash);
-    const dots = show.performers.filter((p) => positions[p.id]).map((p) => ({ id: p.id, label: label(show, p), at: positions[p.id] }));
+    const pins = onSet >= 0 ? show.sets[onSet].labels : undefined;
+    const dots = show.performers.filter((p) => positions[p.id]).map((p) => ({ id: p.id, label: label(show, p), at: positions[p.id], pin: pins?.[p.id] }));
     if (onSet >= 0) drawMarks(ctx, view, show.sets[onSet].marks ?? [], 'screen', selectedMark);
-    drawPerformers(ctx, view, dots, selected, paths, box);
+    drawPerformers(ctx, view, dots, selected, paths, box, dpr);
     if (shapeEdit) {
       const sh = shapeEdit.shape;
       const [a, b] = sh.handles;

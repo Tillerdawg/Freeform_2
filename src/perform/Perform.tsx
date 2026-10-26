@@ -5,7 +5,7 @@ import { decodeShow, fetchShow, LOAD_PREFIX, linkHash, parseHosted, SHARE_PREFIX
 import { Scanner } from './Scanner';
 import { isPhone } from './device';
 import { label, locate, moveSteps, parseShow, positionsAt, setAt, setStarts, type Show } from '../engine/show';
-import { drawField, drawMarks, drawPerformers, fitView, TIER_COLOR, toScreen, type View } from '../field/drawField';
+import { drawField, drawLabels, drawMarks, drawPerformers, fitView, TIER_COLOR, toScreen, type View } from '../field/drawField';
 import { fmtStep } from '../ui/format';
 import { usePlayback } from '../ui/usePlayback';
 import { IconNext, IconPause, IconPlay, IconPrev } from '../ui/icons';
@@ -166,7 +166,7 @@ export function Perform() {
     drawField(ctx, v, show.hash);
     if (onSet >= 0) drawMarks(ctx, v, show.sets[onSet].marks ?? [], 'screen');
     if (!me) {
-      drawPerformers(ctx, v, show.performers.filter((p) => positions[p.id]).map((p) => ({ id: p.id, label: state!.facingFront ? '' : label(show, p), at: positions[p.id] })), new Set(), []);
+      drawPerformers(ctx, v, show.performers.filter((p) => positions[p.id]).map((p) => ({ id: p.id, label: label(show, p), at: positions[p.id], pin: onSet >= 0 ? show.sets[onSet].labels?.[p.id] : undefined })), new Set(), [], undefined, dpr);
     } else {
       const s = v.scale;
       for (const p of show.performers) {
@@ -193,19 +193,11 @@ export function Perform() {
         ctx.fillStyle = '#e8f1ff';
         ctx.beginPath(); ctx.arc(nq.x, nq.y, Math.max(4, s * 0.38), 0, Math.PI * 2); ctx.fill();
       }
-      // Labels stay upright either way: mine, plus my nearest neighbors'.
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      const flip = (pt: { x: number; y: number }) => (state!.facingFront ? { x: W - pt.x, y: H - pt.y } : pt);
-      const tag = (text: string, at: { x: number; y: number }, px: number, color: string) => {
-        ctx.font = `700 ${px * dpr}px system-ui, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
-        ctx.lineWidth = 4 * dpr; ctx.strokeStyle = 'rgba(0,0,0,0.65)'; ctx.strokeText(text, at.x, at.y - 10 * dpr);
-        ctx.fillStyle = color; ctx.fillText(text, at.x, at.y - 10 * dpr);
-      };
-      for (const n of around) {
-        const nq = flip(toScreen(v, positions[n.id]));
-        tag(label(show, show.performers.find((x) => x.id === n.id)!), nq, 12, '#e8f1ff');
-      }
-      tag(label(show, me), flip(q), 14, '#fff');
+      // Labels (upright either way, placed so they don't collide): mine first, then my nearest neighbors'.
+      drawLabels(ctx, [
+        { id: me.id, label: label(show, me), at: positions[me.id], first: true, px: 14 * dpr, color: '#fff' },
+        ...around.map((n) => ({ id: n.id, label: label(show, show.performers.find((x) => x.id === n.id)!), at: positions[n.id] })),
+      ], v, Math.max(7, s * 0.6), 12 * dpr, '#e8f1ff', 'rgba(0,0,0,0.65)');
     }
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     if (follow || zoom > 1) {

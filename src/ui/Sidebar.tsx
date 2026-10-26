@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { readout, type HashPreset } from '../engine/coords';
 import { addBezierSegment, addCurvePoint, type Shape, type ShapeKind } from '../engine/shapes';
 import {
-  chainOrder, setCue, setMarks, setNote, clearFtl, flip, label, locate, mirrorSides, newId, placeInSet, remapHash, rotateScale, setFtl, snapSelection, positionsAt, removePerformers, xFrom, yFrom,
+  chainOrder, setCue, setLabelSide, LABEL_SIDES, type LabelSide, setMarks, setNote, clearFtl, flip, label, locate, mirrorSides, newId, placeInSet, remapHash, rotateScale, setFtl, snapSelection, positionsAt, removePerformers, xFrom, yFrom,
   type FrontDir, type FrontRef, type Show, type SideDir,
 } from '../engine/show';
 
@@ -163,6 +163,21 @@ export function Sidebar(p: Props) {
         <strong>Selection</strong>
         {selected.size === 0 && <p style={{ opacity: 0.7, margin: '6px 0 0' }}>Click a performer, shift-click to add, or drag a box.</p>}
         {selected.size > 1 && <p style={{ margin: '6px 0 0' }}>{selected.size} performers selected</p>}
+        {selected.size > 0 && onSet >= 0 && (() => {
+          const sides = new Set(ids.map((id) => show.sets[onSet].labels?.[id] ?? ''));
+          return (
+            <label style={{ display: 'block', marginTop: 8 }} title="Where the label sits in this set. Automatic moves it to a free side and hides it when there's no room; zoom in to see it.">
+              Label{' '}
+              <select aria-label="Label position" value={sides.size === 1 ? [...sides][0] : 'mixed'}
+                onChange={(e) => setShow((s) => setLabelSide(s, onSet, ids, (e.target.value || null) as LabelSide | null))}>
+                {sides.size > 1 && <option value="mixed" disabled>Mixed</option>}
+                <option value="">Automatic</option>
+                {LABEL_SIDES.map((x) => <option key={x} value={x}>{x[0].toUpperCase() + x.slice(1)}</option>)}
+              </select>
+              <span style={{ opacity: 0.7, fontSize: 12 }}> in set {show.sets[onSet].name}</span>
+            </label>
+          );
+        })()}
         {selected.size > 0 && onSet >= 0 && (
           <fieldset style={{ marginTop: 10, border: '1px solid #33443a' }}>
             <legend>Mirror</legend>

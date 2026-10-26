@@ -30,6 +30,7 @@ Every spot reads in standard drill language, e.g. *"2 steps outside the Side 2 4
 
 ### Performers and sets
 - **Sections and labels:** add performers by section (T1, T2… for trumpets). Section letters and names can be edited.
+- **Readable dot labels:** labels never overlap each other or cover another dot. Each one sits above its dot, or below, right or left when that's taken; when a block is too tight for every label, some hide until you zoom in. Selected performers' labels get first pick. To choose a side yourself, select performers and set **Label** (Automatic, Above, Below, Left, Right or Hidden) for the current set; a chosen side is still skipped rather than drawn over another label. The same placement is used on printed drill charts and in the phone's staff view, where labels stay upright in Facing front.
 - **Selecting:** click, shift-click, or drag a box; drag to move, with whole-step, half-step, or free snapping.
 - **Exact placement:** type a coordinate ("2 steps outside the Side 2 45…") to place a performer precisely.
 - **Sets:** add, delete, and set counts and measure numbers (pickups are measure 0). Drag a set's button on the timeline to change which count it lands on; its neighbors stay put.
