@@ -532,3 +532,8 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Who:** Jason Tiller (snap to grid in one place, beside Add Performer(s), labeled "Snap to grid"); keeping the "round existing dots" action by Claude *(Jason can veto)*
 - **Context:** The toolbar's Snap setting (the grid for dragging and adding) and Transform's "Snap to grid" (round selected dots onto the grid) looked like the same thing in two places.
 - **Decision:** Both live together after Add Performer(s): **Snap to grid [Whole / Half / Free]**, then **Apply**, which rounds the selected performers onto that grid (needed after a rotate, a shape or a Pyware import leaves dots between steps). It's gone from Transform. A "now sharing a spot" warning shows beside the button.
+
+## 2026-10-26 16:20 EDT — Pyware import names sections by Jason's letter scheme
+- **Who:** Jason Tiller (his letters: F Flute, K Clarinet, A Alto Sax, X Tenor Sax, P Trumpet, H Mellophone, N Trombone, E Baritone, T Tuba, S Snare, B Bass Drum, Q Quads, G Color Guard); C = Cymbals added by Claude from the cymbal figures in his files *(Jason can veto)*
+- **Decision:** On import, a symbol takes the scheme's name when the file's 3D figure fits it (e.g. a saxophone figure for A or X), or when the file has no figures. If the figure disagrees (another writer's file where P is a flag), the figure's name wins, then "Symbol P". This names Alto and Tenor Saxophone apart, which the figures alone couldn't, and names the 2008–09 files that have no figures.
+- **Other options:** use only figures (no alto/tenor split, no names for older files); ask on every import (an extra step).

@@ -57,7 +57,8 @@ describe('Pyware .3dj import', () => {
     expect(show.sets[2].pos[t1.id]).toEqual({ x: 8, y: 32 });
   });
   it('names sections after their figures, telling apart symbols that share one', () => {
-    expect(show.sections.map((s) => [s.letter, s.name])).toEqual([['A', 'Saxophone (A)'], ['T', 'Trumpet'], ['X', 'Saxophone (X)']]);
+    // A and X use the letter scheme (alto/tenor); T has a Trumpet figure, which doesn't fit T = Tuba, so the figure wins.
+    expect(show.sections.map((s) => [s.letter, s.name])).toEqual([['A', 'Alto Saxophone'], ['T', 'Trumpet'], ['X', 'Tenor Saxophone']]);
     const labels = show.performers.map((p) => show.sections.find((s) => s.id === p.section)!.letter + p.number).sort();
     expect(labels).toEqual(['A1', 'T1', 'T2', 'X1']);
   });
@@ -66,9 +67,9 @@ describe('Pyware .3dj import', () => {
     expect(show.sets[1].note).toBe('Set 2\n\nmm. 1-2, 4 count MOVE');
     expect(show.sets.map((s) => s.measures)).toEqual([undefined, '1–2', '3']);
   });
-  it('falls back to symbol names, and reads the hash from the field description', () => {
+  it('names figure-less files from the letter scheme, and reads the hash from the field description', () => {
     const s = parse3dj(file([page(at(0, 0)), prop('')], { figures: false, hash: 6.25 }));
-    expect(s.sections.map((x) => x.name)).toEqual(['Symbol A', 'Symbol T', 'Symbol X']);
+    expect(s.sections.map((x) => x.name)).toEqual(['Alto Saxophone', 'Tuba', 'Tenor Saxophone']);
     expect(s.hash).toBe('college');
     expect(parse3dj(file([page(at(0, 0)), prop('')], { hash: 3.75 })).hash).toBe('nfl');
   });
