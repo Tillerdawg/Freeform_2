@@ -537,3 +537,7 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Who:** Jason Tiller (his letters: F Flute, K Clarinet, A Alto Sax, X Tenor Sax, P Trumpet, H Mellophone, N Trombone, E Baritone, T Tuba, S Snare, B Bass Drum, Q Quads, G Color Guard); C = Cymbals added by Claude from the cymbal figures in his files *(Jason can veto)*
 - **Decision:** On import, a symbol takes the scheme's name when the file's 3D figure fits it (e.g. a saxophone figure for A or X), or when the file has no figures. If the figure disagrees (another writer's file where P is a flag), the figure's name wins, then "Symbol P". This names Alto and Tenor Saxophone apart, which the figures alone couldn't, and names the 2008–09 files that have no figures.
 - **Other options:** use only figures (no alto/tenor split, no names for older files); ask on every import (an extra step).
+
+## 2026-10-26 16:30 EDT — No Front Ensemble section by default
+- **Who:** Jason Tiller
+- **Decision:** New shows no longer start with a Front Ensemble section: those performers are stationary and don't need drill spots. A band that wants them on the chart can still add a section.

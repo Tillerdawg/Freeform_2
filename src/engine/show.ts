@@ -47,7 +47,7 @@ export const newId = (prefix: string) => `${prefix}${Date.now().toString(36)}${(
 const DEFAULT_SECTIONS: [string, string][] = [
   ['Flute', 'F'], ['Clarinet', 'C'], ['Saxophone', 'X'], ['Trumpet', 'T'], ['Mellophone', 'M'],
   ['Low Brass', 'B'], ['Tuba', 'U'], ['Snare', 'S'], ['Tenors', 'Q'], ['Bass Drum', 'D'],
-  ['Cymbals', 'Y'], ['Front Ensemble', 'P'], ['Color Guard', 'G'],
+  ['Cymbals', 'Y'], ['Color Guard', 'G'], // no front ensemble: they're stationary, so they don't need drill spots
 ];
 
 export function newShow(): Show {
