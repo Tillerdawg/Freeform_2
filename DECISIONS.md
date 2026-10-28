@@ -580,3 +580,8 @@ Each entry: timestamp, who decided, context, options considered, decision.
   - **Next (part 2):** carry the recording to phones inside the locked hosted file, encrypted with the show's key, so the performer view plays along.
 - **Other options:** a typed tempo map, or importing a MIDI tempo map from notation software (not chosen now; possible later); embedding the audio in the `.freeform` file (big files, and the file is what gets shared around).
 - **Known limits:** re-tapping starts from the top; a replaced or removed show's audio is cleaned up, but a show replaced by New or Import leaves its recording stored in the browser.
+
+## 2026-10-28 16:30 EDT — Automatic count finding: our own beat tracker
+- **Who:** Jason Tiller (yes, try automatic beat mapping on the 2008 recordings); approach by Claude *(Jason can veto)*
+- **Decision:** Write a small beat tracker in Freeform (clean-room, after Ellis 2007, "Beat tracking by dynamic programming"): spectral-flux onset strength, a sliding-window tempo estimate that can follow tempo changes, then dynamic-programming beat placement. It runs in the browser in 1–2 s per show. Not yet in the app: first it's measured against Jason's recordings (click-track copies for listening; the scores as an answer key if he agrees to building the Finale reader).
+- **Other options:** Essentia.js (AGPL) or aubio (GPL), which are stronger but don't fit Freeform's MIT license; tempo-only libraries (no beat positions).
