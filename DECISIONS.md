@@ -660,3 +660,7 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Who:** Jason Tiller (picked Option A from mockups of Halo set 9: dark paths vs. black letters with a white outline)
 - **Decision:** Normal-step move paths draw dark green-black (rgba(8,28,14,0.6)) instead of light white, so the white letters and numbers stay the brightest thing on the field where many paths cross. Yellow and red step-size warnings are unchanged. Printed charts have no paths.
 - **Other options:** black letters with a white outline (helped letters, not numbers); both.
+
+## 2026-10-29 11:45 EDT — Field colors settled
+- **Who:** Jason Tiller (after mockups of Halo set 9)
+- **Decision:** Keep white letters and white numbers, both with black outlines, and dark path lines. Rejected after mockups: black letters with a white outline; black numbers with a white outline; plain black numbers.
