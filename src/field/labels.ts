@@ -2,6 +2,8 @@
 // and no label already placed; if every side is taken it's hidden (zooming in spreads the dots and brings it back).
 // A side pinned by the drill writer is the only side that label tries; it may cover a dot (a deliberate choice), but
 // never another label, so text stays readable: if it would, it's hidden like any other.
+// With `always` (printed charts, where you can't zoom), nobody's label is dropped: a label that doesn't fit beside its
+// dot moves out, one label-height at a time (its own side first), and gets a leader line back to the dot, as in Pyware.
 
 import type { Point } from '../engine/coords';
 import type { LabelSide } from '../engine/show';
@@ -28,10 +30,13 @@ const TURNED: Record<Side, Side> = {
 /** A side as it appears on a field turned around (Facing front): above becomes below, left becomes right. */
 export const turned = (s: LabelSide): LabelSide => (s === 'hidden' ? s : TURNED[s]);
 
-/** Center of each label's box, or null when it's hidden. Same order as `items`. */
-export function placeLabels(items: LabelItem[], gap = 2): ({ x: number; y: number } | null)[] {
-  const spot = (it: LabelItem, side: Side) => {
-    const [sx, sy] = DIR[side], d = (it.r + gap) * (sx && sy ? Math.SQRT1_2 : 1);
+export type LabelSpot = { x: number; y: number; leader?: true };
+const REACH = 8; // in always mode, how many label-heights out a label may move before it's drawn where it overlaps
+
+/** Center of each label's box (leader: moved out, so draw a line to the dot), or null when it's hidden. Same order as `items`. */
+export function placeLabels(items: LabelItem[], gap = 2, always = false): (LabelSpot | null)[] {
+  const spot = (it: LabelItem, side: Side, out = 0) => {
+    const [sx, sy] = DIR[side], d = (it.r + gap + out) * (sx && sy ? Math.SQRT1_2 : 1);
     return { x: it.x + sx * (d + it.w / 2), y: it.y + sy * (d + it.h / 2) };
   };
   const placed: { x: number; y: number; w: number; h: number }[] = [];
@@ -43,11 +48,20 @@ export function placeLabels(items: LabelItem[], gap = 2): ({ x: number; y: numbe
     placed.every((p) => Math.abs(p.x - c.x) >= (p.w + it.w) / 2 || Math.abs(p.y - c.y) >= (p.h + it.h) / 2);
 
   const order = items.map((_, i) => i).sort((a, b) => rank(items[a]) - rank(items[b]) || a - b);
-  const out: ({ x: number; y: number } | null)[] = items.map(() => null);
+  const out: (LabelSpot | null)[] = items.map(() => null);
   for (const i of order) {
     const it = items[i];
     if (it.pin === 'hidden') continue;
-    const c = it.pin ? [spot(it, it.pin)].find((c) => clearOfLabels(c, it)) : AUTO.map((s) => spot(it, s)).find((c) => clear(c, it, i));
+    let c: LabelSpot | undefined = it.pin ? [spot(it, it.pin)].find((c) => clearOfLabels(c, it)) : AUTO.map((s) => spot(it, s)).find((c) => clear(c, it, i));
+    if (!c && always) {
+      const sides = it.pin ? [it.pin, ...AUTO.filter((s) => s !== it.pin)] : AUTO;
+      c = sides.map((s) => spot(it, s)).find((q) => clear(q, it, i)); // another side, right beside the dot
+      for (let k = 1; !c && k <= REACH; k++) {
+        const far = sides.map((s) => spot(it, s, k * it.h)).find((q) => clear(q, it, i));
+        if (far) c = { ...far, leader: true };
+      }
+      c ??= spot(it, it.pin ?? 'above'); // nowhere free: still shown, overlapping
+    }
     if (!c) continue;
     out[i] = c;
     placed.push({ ...c, w: it.w, h: it.h });

@@ -124,6 +124,7 @@ export interface Path { from: Point; to: Point; tier: keyof typeof TIER_COLOR }
  */
 export function drawLabels(
   ctx: CanvasRenderingContext2D, dots: (Dot & { first?: boolean; px?: number; color?: string })[], v: View, r: number, px: number, color: string, halo?: string,
+  always = false, // printed charts: every label shows (moved out with a leader line if needed)
 ) {
   const m = ctx.getTransform();
   ctx.save();
@@ -138,7 +139,18 @@ export function drawLabels(
     font(d);
     return { x: c.x, y: c.y, w: ctx.measureText(d.label).width + 2, h: d.px ?? px, r: r * k, pin: !d.label ? 'hidden' as const : d.pin && flipped ? turned(d.pin) : d.pin, first: d.first }; // no label: still a dot to dodge
   });
-  placeLabels(items, Math.max(1, px * 0.15)).forEach((spot, i) => {
+  const spots = placeLabels(items, Math.max(1, px * 0.15), always);
+  // Leader lines first, under the text: from the dot's edge to the edge of its label's box.
+  spots.forEach((spot, i) => {
+    if (!spot?.leader || !dots[i].label) return;
+    const it = items[i], dx = spot.x - it.x, dy = spot.y - it.y, len = Math.hypot(dx, dy);
+    const box = Math.min(Math.abs(dx) > 1e-9 ? it.w / 2 / Math.abs(dx) : Infinity, Math.abs(dy) > 1e-9 ? it.h / 2 / Math.abs(dy) : Infinity); // fraction of the way inside the box
+    ctx.beginPath();
+    ctx.moveTo(it.x + (dx / len) * it.r, it.y + (dy / len) * it.r);
+    ctx.lineTo(spot.x - dx * box, spot.y - dy * box);
+    ctx.lineWidth = Math.max(1, px * 0.07); ctx.strokeStyle = dots[i].color ?? color; ctx.stroke();
+  });
+  spots.forEach((spot, i) => {
     if (!spot || !dots[i].label) return;
     font(dots[i]);
     if (halo) { ctx.lineWidth = (dots[i].px ?? px) * 0.3; ctx.lineJoin = 'round'; ctx.strokeStyle = halo; ctx.strokeText(dots[i].label, spot.x, spot.y); }
