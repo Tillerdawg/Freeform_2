@@ -4,7 +4,8 @@
 //   CAST  performers: u16 count, then per performer u16 id, a short string (label number), a short string (the
 //         person's name, which becomes the roster).
 //   CST2  (newer files) per performer u16 id + short string naming the 3D figure, e.g. "Trumpet Figure".
-//   PAGE  one per count: u16 count, then 20-byte records: u16 id … byte 8 = dot symbol … u16 x at 13, u16 y at 15.
+//   PAGE  one per count: u16 count, then 20-byte records: u16 id … byte 8 = dot symbol, byte 10's top 3 bits = label
+//         side (eighths of a turn from the front, toward Side 2; worked out from where Jason's labels sit), u16 x at 13, u16 y at 15.
 //         x, y are offset by 0x8000 from the field's center; 120 units = one 8-to-5 step; +x = Side 2, +y = front.
 //   PROP  ends a set: the PAGEs since the previous PROP are that set's counts (the last one is the set itself), one
 //         spot per count, so curved, follow-the-leader and delayed moves come through as drawn.
@@ -12,7 +13,7 @@
 // Files keep 300+ PAGEs; the ones after the last PROP are unused.
 import { FIELD_WIDTH } from './coords';
 import type { HashPreset } from './coords';
-import { MAX_NAME, newId, parseShow, type DrillSet, type Performer, type Section, type Show } from './show';
+import { MAX_NAME, newId, parseShow, type DrillSet, type LabelSide, type Performer, type Section, type Show } from './show';
 
 const UNIT = 120; // file units per step
 /**
@@ -27,6 +28,8 @@ const LETTERS: Record<string, [string, RegExp]> = {
   C: ['Cymbals', /cymbal/i], // not in Jason's list, but his files give C cymbal figures
 };
 const MAX_BYTES = 50_000_000;
+/** Pyware label codes 0–7, from the front around toward Side 2, as Freeform's sides (above = toward the back, right = Side 2). */
+const PY_SIDES: LabelSide[] = ['below', 'below-right', 'right', 'above-right', 'above', 'above-left', 'left', 'below-left'];
 
 const fail = (msg: string): never => { throw new Error(msg); };
 
@@ -64,13 +67,13 @@ export function parse3dj(data: ArrayBuffer, title = 'Imported show'): Show {
   if (c2) readList(b, v, c2, (id, strs) => figures.set(id, strs[0] ?? ''), 1);
 
   // Sets: the PAGEs between PROPs.
-  type Rec = { x: number; y: number; sym: string };
+  type Rec = { x: number; y: number; sym: string; lab: number };
   const readPage = (blk: { at: number; len: number }) => {
     const n = v.getUint16(blk.at), recs = new Map<number, Rec>();
     if (2 + n * 20 !== blk.len) return null;
     for (let i = 0; i < n; i++) {
       const r = blk.at + 2 + i * 20;
-      recs.set(v.getUint16(r), { x: v.getUint16(r + 13) - 0x8000, y: v.getUint16(r + 15) - 0x8000, sym: String.fromCharCode(b[r + 8]) });
+      recs.set(v.getUint16(r), { x: v.getUint16(r + 13) - 0x8000, y: v.getUint16(r + 15) - 0x8000, sym: String.fromCharCode(b[r + 8]), lab: b[r + 10] >> 5 });
     }
     return recs;
   };
@@ -139,6 +142,11 @@ export function parse3dj(data: ArrayBuffer, title = 'Imported show'): Show {
     const mm = r.note.match(/\bmm?\.?\s*(\d+(?:\s*[-–]\s*\d+)?)/i);
     if (mm) set.measures = mm[1].replace(/\s+/g, '').replace('-', '–');
     if (r.note) set.note = r.note;
+    // Label sides the drill writer chose in Pyware. Code 1 (below-right) is where Pyware leaves a label nobody moved,
+    // so those stay automatic (readable) in Freeform.
+    const sides: Record<string, LabelSide> = {};
+    for (const [id, rec] of r.last) if (rec.lab !== 1) sides[pid.get(id)!] = PY_SIDES[rec.lab];
+    if (Object.keys(sides).length) set.labels = sides;
     // Count-by-count spots, kept only for performers who leave the straight line (more than 1/50 of a step).
     if (i > 0 && r.pages.length === r.counts) {
       const paths: Record<string, { x: number; y: number }[]> = {};
