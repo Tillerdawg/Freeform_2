@@ -6,7 +6,7 @@ import { decodeShow, fetchShow, LOAD_PREFIX, linkHash, parseHosted, SHARE_PREFIX
 import { Scanner } from './Scanner';
 import { isPhone } from './device';
 import { colorOf, label, locate, mark, moveSteps, parseShow, positionsAt, setAt, setStarts, type Show } from '../engine/show';
-import { drawField, drawLabels, drawMarks, drawPerformers, fitView, TIER_COLOR, toScreen, type View } from '../field/drawField';
+import { drawField, drawLabels, drawMarks, drawPerformers, fitView, STEP_TEXT, toScreen, type View } from '../field/drawField';
 import { fmtStep } from '../ui/format';
 import { usePlayback } from '../ui/usePlayback';
 import { IconNext, IconPause, IconPlay, IconPrev } from '../ui/icons';
@@ -298,7 +298,7 @@ export function Perform() {
               <p className="perform-coord">
                 <span className="perform-k">Next: set {nx.name} in {nx.counts} cts{nx.measures ? ` (m. ${nx.measures})` : ''}</span>{' '}
                 {readout(nx.pos[me.id], show.hash)}
-                {steps && <span style={{ color: steps.tier === 'ok' ? 'var(--text)' : TIER_COLOR[steps.tier] }}> · {fmtStep(steps.per5)}</span>}
+                {steps && <span style={{ color: STEP_TEXT[steps.tier] }}> · {fmtStep(steps.per5)}</span>}
               </p>
             )}
             {around.length > 0 && (

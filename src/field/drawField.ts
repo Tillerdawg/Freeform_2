@@ -114,8 +114,11 @@ export function drawField(ctx: CanvasRenderingContext2D, v: View, hash: HashPres
   }
 }
 
-// Normal-step paths in the interface's own dark green, so white letters and numbers stay readable where paths cross (Jason); yellow/red still warn.
-export const TIER_COLOR = { ok: PALETTE.bg, yellow: PALETTE.warn, red: '#ff4d4d' } as const;
+// Normal-step paths in the interface's darkest green (3:1 on the turf), so white letters and numbers stay readable where paths cross;
+// yellow/red warnings get a dark casing, since bright colors alone barely stand out from mid-green turf (red is 1.6:1).
+export const TIER_COLOR = { ok: PALETTE['bg-deep'], yellow: PALETTE.warn, red: PALETTE['step-red'] } as const;
+/** The same tiers as text on the dark panels (the field's bright red is too dim for text there). */
+export const STEP_TEXT = { ok: 'var(--text)', yellow: 'var(--warn)', red: 'var(--danger)' } as const;
 
 export interface Dot { id: string; label: string; at: Point; pin?: LabelSide; color?: string; glyph?: string } // glyph: draw this letter instead of a dot
 export interface Path { from: Point; to: Point; tier: keyof typeof TIER_COLOR }
@@ -187,8 +190,14 @@ export function drawPerformers(
   const s = v.scale;
   ctx.setLineDash([s * 0.4, s * 0.3]);
   ctx.lineWidth = Math.max(1.5, s * 0.12);
+  const w = ctx.lineWidth;
   for (const p of paths) {
     const a = toScreen(v, p.from), b = toScreen(v, p.to);
+    if (p.tier !== 'ok') { // dark casing under a warning color
+      ctx.setLineDash([]); ctx.strokeStyle = PALETTE['bg-deep']; ctx.lineWidth = w + Math.max(2, s * 0.1);
+      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+      ctx.setLineDash([s * 0.4, s * 0.3]); ctx.lineWidth = w;
+    }
     ctx.strokeStyle = TIER_COLOR[p.tier];
     ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
   }

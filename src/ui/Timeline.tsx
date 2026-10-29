@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { addSetAfter, biggestStep, locate, moveSetTo, removeSet, setAt, setCounts, setMeasures, playPlan, setStarts, totalCounts, type Show } from '../engine/show';
-import { TIER_COLOR } from '../field/drawField';
+import { STEP_TEXT } from '../field/drawField';
 import { fmtStep } from './format';
 import { IconNext, IconPause, IconPlay, IconPrev, IconStart } from './icons';
 
@@ -118,9 +118,9 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
             const i = k + 1;
             const big = biggestStep(show, i);
             return (
-              <div key={s.id} style={{ flex: `0 0 ${(s.counts / total) * 100}%`, boxSizing: 'border-box', minWidth: 0, borderLeft: '2px solid var(--gold)', background: i === to && onSet < 0 ? 'var(--green)' : 'var(--surface)', overflow: 'hidden', padding: '2px 6px', fontSize: 12, whiteSpace: 'nowrap' }}>
+              <div key={s.id} style={{ flex: `0 0 ${(s.counts / total) * 100}%`, boxSizing: 'border-box', minWidth: 0, borderLeft: '2px solid var(--gold)', background: i === to && onSet < 0 ? 'var(--surface-2)' : 'var(--surface)', boxShadow: i === to && onSet < 0 ? 'inset 0 -3px 0 var(--gold)' : undefined, overflow: 'hidden', padding: '2px 6px', fontSize: 12, whiteSpace: 'nowrap' }}>
                 <div>{show.sets[i - 1].name} → {s.name} · {s.counts} cts{s.measures ? ` · m. ${s.measures}` : ''}{s.ftl?.length ? ' · FTL' : ''}</div>
-                {big && <div style={{ color: TIER_COLOR[big.tier] === TIER_COLOR.ok ? 'var(--text)' : TIER_COLOR[big.tier] }}>max {fmtStep(big.per5)}</div>}
+                {big && <div style={{ color: STEP_TEXT[big.tier] }}>max {fmtStep(big.per5)}</div>}
               </div>
             );
           })}
