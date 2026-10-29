@@ -631,3 +631,8 @@ Each entry: timestamp, who decided, context, options considered, decision.
   - Instrument matching: section letter, exact name, a list of common roster abbreviations, then an unambiguous word-prefix match.
   - **Dot sheets** show the performer's name beside the label.
 - **Other options:** read .xlsx directly (needs a spreadsheet library in the app; copy-paste and CSV cover it); create a new section for an unknown instrument (could make stray sections from typos).
+
+## 2026-10-29 10:45 EDT — Roster import: unknown instruments are the drill writer's call
+- **Who:** Jason Tiller (don't skip a player whose instrument has no section; let the director add them to a section or leave them off: a bassoonist may march baritone)
+- **Decision:** Each instrument in the list that matches no section (or is ambiguous) gets a picker in the preview: "March with <section>" or "Leave them off", one choice for all its rows. Its rows show "waiting" and **Apply** stays disabled until every such instrument has a choice. Rows with a dot code don't ask (the code decides). Changing the pasted list resets the choices.
+- **Other options:** skip them (the old behavior); create a section named after the instrument.
