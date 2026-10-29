@@ -4,7 +4,7 @@ import { emptyHistory, record, redo, undo } from './engine/history';
 import { addInk, hitMark, moveMark, type Mark } from './engine/marks';
 import { assign, fitShape, isControl, moveHandle, samplePath, slots, type Shape, type ShapeKind } from './engine/shapes';
 import { colorOf,
-  addPerformer, ftlTrail, label, mark, newId, setMarks, moveSteps, normalizeFtl, snapPoint, playRange, newShow, parseShow, placeInSet, positionsAt, removePerformers,
+  addPerformer, ftlTrail, label, mark, newId, pathFits, setMarks, moveSteps, normalizeFtl, snapPoint, playRange, newShow, parseShow, placeInSet, positionsAt, removePerformers,
   setAt, setStarts, type Show,
   totalCounts,
 } from './engine/show';
@@ -157,8 +157,15 @@ export function App() {
     const a = show.sets[onSet - 1].pos, b = show.sets[onSet].pos;
     const groups = show.sets[onSet].ftl ?? [];
     const inFtl = new Set(groups.flatMap((g) => g.order));
-    const straight = Object.keys(b).filter((id) => !inFtl.has(id) && a[id] && (a[id].x !== b[id].x || a[id].y !== b[id].y))
-      .map((id) => ({ from: a[id], to: b[id], tier: steps[id].tier }));
+    const own = show.sets[onSet].paths ?? {}, n = show.sets[onSet].counts;
+    const straight = Object.keys(b).filter((id) => !inFtl.has(id) && a[id] && (a[id].x !== b[id].x || a[id].y !== b[id].y || own[id]))
+      .flatMap((id) => {
+        const path = own[id];
+        // A count-by-count move (from Pyware) is drawn along its real route; still counts (holds) add nothing.
+        if (path && pathFits(path, a[id], b[id], n))
+          return path.slice(1).flatMap((q, k) => (q.x !== path[k].x || q.y !== path[k].y ? [{ from: path[k], to: q, tier: steps[id].tier }] : []));
+        return [{ from: a[id], to: b[id], tier: steps[id].tier }];
+      });
     // A follow-the-leader group draws its trail once, in the leader's step-size color.
     const trails = groups.flatMap((g) => {
       const t = ftlTrail(show, onSet, g.order);
