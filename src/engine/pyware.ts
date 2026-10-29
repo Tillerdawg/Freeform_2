@@ -13,7 +13,7 @@
 // Files keep 300+ PAGEs; the ones after the last PROP are unused.
 import { FIELD_WIDTH } from './coords';
 import type { HashPreset } from './coords';
-import { MAX_NAME, newId, parseShow, type DrillSet, type LabelSide, type Performer, type Section, type Show } from './show';
+import { MAX_NAME, evenPath, newId, parseShow, type DrillSet, type LabelSide, type Performer, type Section, type Show } from './show';
 
 const UNIT = 120; // file units per step
 /**
@@ -147,13 +147,15 @@ export function parse3dj(data: ArrayBuffer, title = 'Imported show'): Show {
     const sides: Record<string, LabelSide> = {};
     for (const [id, rec] of r.last) if (rec.lab !== 1) sides[pid.get(id)!] = PY_SIDES[rec.lab];
     if (Object.keys(sides).length) set.labels = sides;
-    // Count-by-count spots, kept only for performers who leave the straight line (more than 1/50 of a step).
+    // Count-by-count spots, with even steps while moving (Pyware's pages sometimes jump on one count), kept only for
+    // performers who leave the straight line (more than 1/50 of a step).
     if (i > 0 && r.pages.length === r.counts) {
       const paths: Record<string, { x: number; y: number }[]> = {};
       for (const [id, rec] of r.last) {
         const p = pid.get(id)!, from = prev[p] ?? pos[p], to = spot(rec);
-        const path = [from, ...r.pages.map((pg) => (pg.get(id) ? spot(pg.get(id)!) : null))];
-        if (path.some((q) => !q)) continue;
+        const raw = [from, ...r.pages.map((pg) => (pg.get(id) ? spot(pg.get(id)!) : null))];
+        if (raw.some((q) => !q)) continue;
+        const path = evenPath(raw as { x: number; y: number }[]);
         const n = r.counts;
         if (path.some((q, k) => Math.hypot(q!.x - (from.x + ((to.x - from.x) * k) / n), q!.y - (from.y + ((to.y - from.y) * k) / n)) > 0.02)) paths[p] = path as { x: number; y: number }[];
       }

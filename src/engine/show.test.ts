@@ -438,3 +438,16 @@ describe('letters or dots', () => {
     expect(() => parseShow(JSON.stringify({ ...s, symbols: 'stars' }))).toThrow(/symbols/);
   });
 });
+
+describe('even steps on count-by-count paths', () => {
+  it('re-spaces each moving stretch evenly along its route, keeping holds and corners', async () => {
+    const { evenPath } = await import('./show');
+    const xs = (pts: { x: number; y: number }[]) => pts.map((p) => Math.round(p.x * 1000) / 1000);
+    expect(xs(evenPath([0, 7, 7.5, 8].map((x) => ({ x, y: 0 }))))).toEqual([0, 2.667, 5.333, 8]); // a jump on count 1, evened out
+    expect(xs(evenPath([0, 0, 6, 7, 8].map((x) => ({ x, y: 0 }))))).toEqual([0, 0, 2.667, 5.333, 8]); // hold 1 count, then even
+    expect(xs(evenPath([0, 2, 4, 4, 4].map((x) => ({ x, y: 0 }))))).toEqual([0, 2, 4, 4, 4]); // move, then hold: unchanged
+    // a corner (4 steps east, 4 steps north) with uneven counts: even 2-step counts that still turn the corner
+    const corner = evenPath([{ x: 0, y: 0 }, { x: 3, y: 0 }, { x: 4, y: 0 }, { x: 4, y: 1 }, { x: 4, y: 4 }]);
+    expect(corner).toEqual([{ x: 0, y: 0 }, { x: 2, y: 0 }, { x: 4, y: 0 }, { x: 4, y: 2 }, { x: 4, y: 4 }]);
+  });
+});
