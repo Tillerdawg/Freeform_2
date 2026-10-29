@@ -68,3 +68,17 @@ describe('curveSides', () => {
     expect(curveSides([0, 2, 4, 6].map((x) => ({ x, y: 10 })), false)).toEqual([null, null, null, null]);
   });
 });
+
+describe('labels on printed charts (always shown)', () => {
+  it('moves a label that cannot fit out from its dot, with a leader, instead of hiding it', () => {
+    // A tight 3×3 block: the middle dot has no free side right beside it.
+    const block = [-1, 0, 1].flatMap((gx) => [-1, 0, 1].map((gy) => ({ x: gx * 20, y: gy * 20, w: 30, h: 12, r: 5 })));
+    const screen = placeLabels(block, 2);
+    expect(screen.some((s) => s === null)).toBe(true); // on screen, some hide (zoom brings them back)
+    const paper = placeLabels(block, 2, true);
+    expect(paper.every((s) => s !== null)).toBe(true);
+    expect(paper.some((s) => s?.leader)).toBe(true);
+    // a label that fits beside its dot has no leader, and a pinned side still wins when it fits
+    expect(placeLabels([{ x: 0, y: 0, w: 30, h: 12, r: 5, pin: 'below' }], 2, true)[0]).toEqual({ x: 0, y: 13 });
+  });
+});

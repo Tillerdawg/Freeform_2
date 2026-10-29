@@ -643,3 +643,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Decision:** import each set's sides as label pins (0 below, 1 below-right, 2 right, 3 above-right, 4 above, 5 above-left, 6 left, 7 below-left in Freeform's terms). **Code 1 is treated as Pyware's untouched default and left automatic.** Pins still give way (hide) where they'd overlap another label, as with any pin; zooming in shows them.
 - **Other options:** pin code 1 too (below-right everywhere it wasn't moved); ignore Pyware's sides.
 - **Unknown:** the low 5 bits of byte 10 (almost always 0) and bytes 9 and 11 (per section / per show).
+
+## 2026-10-29 11:05 EDT — Every label shows on printed drill charts (leader lines)
+- **Who:** Jason Tiller (labels must always be visible on printed charts; as in Pyware, move the label out and connect it with a bar whose length fits the distance); placement order by Claude *(Jason can veto)*
+- **Context:** Halo's printed charts dropped 88 labels over 14 sets (28 on set 1): pinned Pyware sides that would overlap hid instead of moving, and Freeform's print labels are large next to 2-step spacing.
+- **Decision:** On printed charts only: a label that doesn't fit beside its dot tries its chosen side, then the other sides, beside the dot; then moves out one label-height at a time (chosen side first, then the others) up to 8 label-heights, and gets a thin leader line from the dot's edge to the label's edge; if there's still no room it's drawn at its usual spot, overlapping. On screen, labels keep the old rule (hidden until you zoom in). Halo: 0 hidden on any chart; at most 9 leader lines on a set.
+- **Other options:** shrink crowded labels (smaller than the rest of the page); allow overlaps everywhere; leader lines on screen too.

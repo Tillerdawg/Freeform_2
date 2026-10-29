@@ -26,7 +26,7 @@ function chartImage(show: Show, i: number): string {
     if (color) { ctx.lineWidth = 0.12 * s; ctx.strokeStyle = '#000'; ctx.stroke(); } // outlined, so pale colors still show on white
   }
   // White halo so yard lines and grid don't run through the labels.
-  drawLabels(ctx, here.map((p) => ({ id: p.id, label: label(show, p), at: pos[p.id], pin: show.sets[i].labels?.[p.id] })), v, 0.5 * s, 1.5 * s, '#000', '#fff');
+  drawLabels(ctx, here.map((p) => ({ id: p.id, label: label(show, p), at: pos[p.id], pin: show.sets[i].labels?.[p.id] })), v, 0.5 * s, 1.5 * s, '#000', '#fff', true); // on paper every label shows
   drawMarks(ctx, v, show.sets[i].marks ?? [], 'print');
   return c.toDataURL('image/png');
 }
