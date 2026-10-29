@@ -688,8 +688,15 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Known limit:** a stretch that moves, holds, then moves again is even within each stretch, but the two stretches can have different step sizes (as written).
 - **Other options:** even the whole move including holds (would erase holds); leave Pyware's spacing.
 
-## 2026-10-29 13:40 EDT — Pickups are m. 0 when matching a MIDI to the drill
+## 2026-10-29 13:40 EDT — Pickups are m. 0 when matching a MIDI to the drill *(pickup part superseded at 13:55; widening kept)*
 - **Who:** Jason Tiller (Dream On: the band starts set 1 → 2 on count 1 of m. 1, not on the pickup); detection by Claude *(Jason can veto)*
 - **Decision:** A MIDI whose first sound starts after the first bar's downbeat (a pickup at the end of the bar, as the score conversion now renders it) is numbered from m. 0, so drill measures line up (m. 1 = first full bar). Count 0 falls on the pickup beat. Also: when a set's counts fit exactly once the uncovered bars right before it are included, the set is widened instead of getting a hold, with a note (Dream On set 7: "mm. 35-37, 12 Counts" in the note but 16 counts → m. 34–37).
 - **Known limit:** a score whose first full bar begins with rests in every part would be read as having a pickup.
 - **Other options:** a "score has a pickup" checkbox; number MIDI bars from 1 and expect "0–" ranges in the drill.
+
+## 2026-10-29 13:55 EDT — A MIDI's first bar is m. 1, pickup or not
+- **Who:** Jason Tiller (the drill still lagged two beats; the score numbers the pickup m. 1); fix by Claude *(Jason can veto)*
+- **Context:** the 13:40 pickup detection guessed m. 0 from a padded first bar, which was a conversion artifact: MuseScore padded the one-beat pickup to a full 3/4 bar, putting two dead beats before m. 2. That padding was the two-beat lag.
+- **Decision:** Freeform no longer guesses: the MIDI's first bar is m. 1, as in the score. The score conversion gives the pickup its own short meter (1/4), so the MIDI and the recording have no dead beats. Dream On now fits every move (set 1A: the pickup + 7 bars of 3/4 = 22 counts).
+- **Other options:** keep detecting padded pickups as m. 0 (wrong for this score's numbering); trim the MIDI afterward.
+- **Open:** this goes against the 2026-10-23 "pickups are measure 0" convention for typed measures. A show typed that way would need its measures renumbered to match the MIDI.

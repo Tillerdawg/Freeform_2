@@ -8,7 +8,6 @@ export interface Midi {
   ppq: number; // ticks per quarter note
   tempos: [tick: number, usPerQuarter: number][];
   measures: { start: number; beats: number; den: number; sounding: boolean }[]; // in order; starts in ticks; sounding = some note is heard in it
-  first: 0 | 1; // the number of measures[0]: 0 when the music opens with a pickup (m. 1 = the first full bar), else 1
   end: number; // last event tick
 }
 
@@ -62,15 +61,12 @@ export function parseMidi(buf: ArrayBuffer): Midi {
     tick = next;
   }
   if (!measures.length) measures.push({ start: 0, beats, den, sounding: false });
-  // A pickup isn't marked in MIDI, but it shows: the first bar's music starts after its downbeat (the pickup sits at the
-  // end of the bar). Then that bar is m. 0 and m. 1 is the first full bar, as drill counts it.
-  const firstNote = Math.min(...heard.map(([on]) => on));
-  const pickup = measures.length > 1 && firstNote > 0 && firstNote < measures[1].start;
-  return { ppq: div, tempos, measures, end, first: pickup ? 0 : 1 };
+  // measures[0] is m. 1, as the score numbers it (a pickup bar is m. 1 too)
+  return { ppq: div, tempos, measures, end };
 }
 
 /** The last measure's number. */
-const lastBar = (m: Midi) => m.measures.length - 1 + m.first;
+const lastBar = (m: Midi) => m.measures.length;
 
 /** Seconds at a tick, through the tempo map. */
 export function secondsAt(m: Midi, tick: number): number {
@@ -90,7 +86,7 @@ function beatAt(m: Midi, tick: number) {
 /** Count ticks for n counts over these bars by one rule (each beat, a steady number per bar, every other beat), or null. */
 function place(m: Midi, bars: number[], n: number, bar: (k: number) => number, how: 'beat' | 'bar' | 'half'): number[] | null {
   if (!bars.length || n < 1) return null;
-  const beats = bars.flatMap((k) => { const a = bar(k), b = bar(k + 1), c = m.measures[k - m.first].beats; return Array.from({ length: c }, (_, j) => a + ((b - a) * j) / c); });
+  const beats = bars.flatMap((k) => { const a = bar(k), b = bar(k + 1), c = m.measures[k - 1].beats; return Array.from({ length: c }, (_, j) => a + ((b - a) * j) / c); });
   if (how === 'beat') return n === beats.length ? beats : null;
   if (how === 'half') return n * 2 === beats.length ? beats.filter((_, j) => j % 2 === 0) : null;
   if (n % bars.length) return null;
@@ -105,11 +101,11 @@ function place(m: Midi, bars: number[], n: number, bar: (k: number) => number, h
  */
 export function withHolds(show: Show, m: Midi): { show: Show; added: string[]; widened: string[] } {
   const sets = [...show.sets], added: string[] = [], widened: string[] = [], names = new Set(sets.map((x) => x.name));
-  const beatsIn = (a: number, b: number) => m.measures.slice(a - m.first, b - m.first + 1).reduce((sum, x) => sum + x.beats, 0);
+  const beatsIn = (a: number, b: number) => m.measures.slice(a - 1, b - 1 + 1).reduce((sum, x) => sum + x.beats, 0);
   let end = 0; // last bar covered so far
   for (let i = 1; i < sets.length; i++) {
     const r = range(sets[i].measures);
-    if (!r || r[0] < m.first || r[1] > lastBar(m)) { end = 0; continue; } // unknown measures: don't guess a gap
+    if (!r || r[0] < 1 || r[1] > lastBar(m)) { end = 0; continue; } // unknown measures: don't guess a gap
     if ((end || i === 1) && r[0] > end + 1 && sets[i].counts === beatsIn(end + 1, r[1]) && sets[i].counts !== beatsIn(r[0], r[1])) {
       // The set's counts fit exactly once the uncovered bars before it are included: its notes' measures are out of
       // date (Dream On set 7: "mm. 35-37, 12 Counts" but 16 counts, with m. 34 in no set). Widen it instead of a hold.
@@ -146,7 +142,7 @@ export function oddBars(m: Midi): string[] {
     const beat = 4 / near[0].den, here = len(k);
     const same = near.every((x) => x.beats === near[0].beats && x.den === near[0].den);
     if (same && (here !== (near[0].beats * 4) / near[0].den) && Math.abs(here / beat - Math.round(here / beat)) > 1e-9)
-      out.push(`m. ${k + m.first} is ${m.measures[k].beats}/${m.measures[k].den} between ${near[0].beats}/${near[0].den} bars, a fraction of a beat off: usually a glitch from converting the score (an extra or missing rest in one part), which puts a hitch in the music. Check that bar in the score and export again.`);
+      out.push(`m. ${k + 1} is ${m.measures[k].beats}/${m.measures[k].den} between ${near[0].beats}/${near[0].den} bars, a fraction of a beat off: usually a glitch from converting the score (an extra or missing rest in one part), which puts a hitch in the music. Check that bar in the score and export again.`);
   }
   return out;
 }
@@ -165,15 +161,15 @@ const range = (s?: string): [number, number] | null => {
 export function countsFromMidi(m: Midi, sets: { name: string; counts: number; measures?: string }[]): { taps: number[]; matched: number; notes: string[] } {
   const ticks: number[] = [NaN], notes: string[] = [];
   let matched = 0;
-  const bar = (k: number) => m.measures[k - m.first]?.start ?? m.measures[m.measures.length - 1].start + (k - lastBar(m)) * beatAt(m, m.end) * 4;
+  const bar = (k: number) => m.measures[k - 1]?.start ?? m.measures[m.measures.length - 1].start + (k - lastBar(m)) * beatAt(m, m.end) * 4;
   for (let i = 1; i < sets.length; i++) {
     const { counts: n, name } = sets[i], r = range(sets[i].measures), prev = ticks[ticks.length - 1];
-    if (r && r[0] >= m.first && r[1] >= r[0] && r[1] <= lastBar(m) && (Number.isNaN(prev) || bar(r[0]) > prev)) {
+    if (r && r[0] >= 1 && r[1] >= r[0] && r[1] <= lastBar(m) && (Number.isNaN(prev) || bar(r[0]) > prev)) {
       const all = Array.from({ length: r[1] - r[0] + 1 }, (_, k) => r[0] + k);
-      const beats = all.reduce((s, k) => s + m.measures[k - m.first].beats, 0);
+      const beats = all.reduce((s, k) => s + m.measures[k - 1].beats, 0);
       // A count on each beat; or on each beat of the bars that sound (a G.P. inside the set, where the band holds);
       // or a steady number per bar (in one, in 2); or every other beat.
-      const sounding = all.filter((k) => m.measures[k - m.first].sounding);
+      const sounding = all.filter((k) => m.measures[k - 1].sounding);
       const placed = place(m, all, n, bar, 'beat') ?? place(m, sounding, n, bar, 'beat') ?? place(m, all, n, bar, 'bar') ?? place(m, all, n, bar, 'half');
       const a = bar(r[0]), step = (bar(r[1] + 1) - a) / n;
       const got = placed ?? Array.from({ length: n }, (_, j) => a + j * step);
