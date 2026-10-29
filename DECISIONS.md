@@ -677,3 +677,7 @@ Each entry: timestamp, who decided, context, options considered, decision.
 ## 2026-10-29 12:20 EDT — Letters in the phone's own-spot view too
 - **Who:** Jason Tiller (yes, do it); look by Claude *(Jason can veto)*
 - **Decision:** In a performer's own view on the phone, with Letters on: their own spot is their letter on a gold badge (larger), their nearest neighbors are bright letters labeled with their numbers, the rest of the band are quieter letters (60% white, outlined) without numbers. With Dots, it's unchanged.
+
+## 2026-10-29 12:30 EDT — Path lines follow count-by-count routes
+- **Who:** Jason Tiller (yes); by Claude
+- **Decision:** In the editor, a move that has a count-by-count path (imported from Pyware) draws its path line through every count's spot, skipping counts where the performer stands still; color = the move's step-size tier (its biggest single count). Plain moves are unchanged. The phone's own-path line already sampled count by count. Checked on Duel of the Fates set 9 (follow-the-leader corners) and Indiana Jones set 18 (rotations draw as circles).
