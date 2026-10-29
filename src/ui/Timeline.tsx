@@ -113,11 +113,12 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
           onPointerMove={(e) => e.buttons && scrub(e)}
           style={{ position: 'relative', display: 'flex', height: 56, cursor: 'pointer', userSelect: 'none' }}
         >
+          {/* Each move's box is exactly its share of the counts, so its yellow line (the set it starts from) sits under that set's button. */}
           {show.sets.slice(1).map((s, k) => {
             const i = k + 1;
             const big = biggestStep(show, i);
             return (
-              <div key={s.id} style={{ flex: s.counts, borderLeft: '2px solid #ffd166', background: i === to && onSet < 0 ? '#2c4a35' : '#24382b', overflow: 'hidden', padding: '2px 6px', fontSize: 12, whiteSpace: 'nowrap' }}>
+              <div key={s.id} style={{ flex: `0 0 ${(s.counts / total) * 100}%`, boxSizing: 'border-box', minWidth: 0, borderLeft: '2px solid #ffd166', background: i === to && onSet < 0 ? '#2c4a35' : '#24382b', overflow: 'hidden', padding: '2px 6px', fontSize: 12, whiteSpace: 'nowrap' }}>
                 <div>{show.sets[i - 1].name} → {s.name} · {s.counts} cts{s.measures ? ` · m. ${s.measures}` : ''}{s.ftl?.length ? ' · FTL' : ''}</div>
                 {big && <div style={{ color: TIER_COLOR[big.tier] === TIER_COLOR.ok ? '#cfe' : TIER_COLOR[big.tier] }}>max {fmtStep(big.per5)}</div>}
               </div>
