@@ -585,3 +585,13 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Who:** Jason Tiller (yes, try automatic beat mapping on the 2008 recordings); approach by Claude *(Jason can veto)*
 - **Decision:** Write a small beat tracker in Freeform (clean-room, after Ellis 2007, "Beat tracking by dynamic programming"): spectral-flux onset strength, a sliding-window tempo estimate that can follow tempo changes, then dynamic-programming beat placement. It runs in the browser in 1–2 s per show. Not yet in the app: first it's measured against Jason's recordings (click-track copies for listening; the scores as an answer key if he agrees to building the Finale reader).
 - **Other options:** Essentia.js (AGPL) or aubio (GPL), which are stronger but don't fit Freeform's MIT license; tempo-only libraries (no beat positions).
+
+## 2026-10-29 09:20 EDT — Counts from the score's MIDI, matched to the drill's measures
+- **Who:** Jason Tiller (import the MIDI rendered from the score, map the beats, match them to the written drill); rules by Claude *(Jason can veto)*
+- **Context:** On the 2008 recordings, finding counts from the audio alone was unreliable (beat slips, a section missing from the mp3). Audio rendered from the score (MuseScore → MIDI → audio) has exactly known timing, and Pyware drills already carry each set's measures in their notes.
+- **Decision:** Music ▾ → **Counts from the score's MIDI…** reads the MIDI's tempo map and meters and fills the taps:
+  - A set's counts go in the measures typed for it. Rules, in order: one count per beat; per beat of the bars that sound (a G.P. bar inside the set is skipped); a steady number per bar (in one, in 2); every other beat. If none fits, the counts are spread evenly and the menu names the set.
+  - **Count 1 of a set = the downbeat of its first measure; the set is hit on its last count** (Mario Set 2, mm. 1–4, 12 counts: hit on beat 3 of m. 4). Count 0 is one count before that, clamped to the start of the audio.
+  - Bars between sets (the Mario G.P.s, m. 33 and 45) belong to no set, so the first count after them stretches across the G.P. (dots creep instead of holding).
+  - Sets without measures count plain beats (the bottom note; dotted quarter in 6/8, 9/8, 12/8). Measure 1 is assumed to start at the top of the MIDI.
+- **Other options:** match by counts alone (needs a counts-per-meter setting; fails on in-one and G.P.s); MusicXML instead of MIDI (more work; MIDI already carries MuseScore's fermatas and tempo changes); render audio in the browser from the MIDI (needs a sound font in the app).
