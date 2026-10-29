@@ -22,6 +22,7 @@ describe('dot sheets', () => {
     const { s, t1 } = show3();
     const [card] = dotCards(s, s.performers.filter((p) => p.id === t1));
     expect(card.label).toBe('T1');
+    expect(card.name).toBe('');
     expect(card.section).toBe('Tuba');
     expect(card.rows).toEqual([
       { set: '1', counts: '—', measures: '', side: '2 steps outside the Side 2 45', front: '2 steps in front of Front Hash', cue: '' },

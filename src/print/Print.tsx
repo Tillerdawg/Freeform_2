@@ -109,7 +109,7 @@ function Pages({ show, job }: { show: Show; job: Job }) {
             {page.map((c, j) => (
               <section className="dot-card" key={j}>
                 <header>
-                  <strong>{c.label}</strong> <span>{c.section}</span>
+                  <strong>{c.label}</strong> {c.name && <span className="dot-name">{c.name}</span>} <span>{c.section}</span>
                   <span className="dot-show">{show.title}{c.parts > 1 ? ` · card ${c.part} of ${c.parts}` : ''}</span>
                 </header>
                 <table className={meas ? "with-meas" : undefined}>

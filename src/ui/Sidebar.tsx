@@ -1,5 +1,6 @@
 import { clearStartingSections, hasOwnStartingSections, saveStartingSections } from './startingSections';
 import { Fragment, useEffect, useRef, useState } from 'react';
+import { RosterImport } from './RosterImport';
 import { readout, type HashPreset } from '../engine/coords';
 import type { Shape, ShapeKind } from '../engine/shapes';
 import {
@@ -207,12 +208,15 @@ function Roster({ show, setShow, selected, setSelected }: { show: Show; setShow:
   const order = new Map(show.sections.map((s, i) => [s.id, i]));
   const rows = [...show.performers].sort((a, b) => (order.get(a.section) ?? 0) - (order.get(b.section) ?? 0) || a.number - b.number);
   const named = show.performers.filter((x) => x.name).length;
+  const [importing, setImporting] = useState(false);
   return (
     <details style={box}>
       <summary><strong>Roster</strong> <span style={{ fontSize: 12, opacity: 0.7 }}>({named} of {show.performers.length} named)</span></summary>
       <p style={{ margin: '6px 0 0', fontSize: 12, opacity: 0.75 }}>
         Who marches each dot. Names are saved with the show and in encrypted hosted links, but not in plain share links.
       </p>
+      <button onClick={() => setImporting(true)} style={{ marginTop: 6 }} title="Paste a list from Excel or load a CSV: names, instruments, dot codes">Import a list…</button>
+      {importing && <RosterImport show={show} setShow={setShow} onClose={() => setImporting(false)} />}
       {!rows.length && <p style={{ margin: '6px 0 0', opacity: 0.7 }}>No performers yet.</p>}
       <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '4px 6px', alignItems: 'center', marginTop: 6 }}>
         {rows.map((x) => (

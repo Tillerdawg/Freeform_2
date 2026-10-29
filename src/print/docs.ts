@@ -5,7 +5,7 @@ import { label, setStarts, type Performer, type Show } from '../engine/show';
 export const ROWS_PER_CARD = 24; // what fits a quarter-letter card at a readable size
 
 export interface CardRow { set: string; counts: string; measures: string; side: string; front: string; cue: string }
-export interface Card { label: string; section: string; part: number; parts: number; rows: CardRow[] }
+export interface Card { label: string; name: string; section: string; part: number; parts: number; rows: CardRow[] }
 
 /** Performers in section order, then by number. */
 export function sortedPerformers(show: Show, ids?: Set<string>): Performer[] {
@@ -30,7 +30,7 @@ export function dotCards(show: Show, performers: Performer[]): Card[] {
     const parts = Math.max(1, Math.ceil(rows.length / ROWS_PER_CARD));
     const section = show.sections.find((s) => s.id === p.section)?.name ?? '';
     for (let k = 0; k < parts; k++) {
-      cards.push({ label: label(show, p), section, part: k + 1, parts, rows: rows.slice(k * ROWS_PER_CARD, (k + 1) * ROWS_PER_CARD) });
+      cards.push({ label: label(show, p), name: p.name ?? '', section, part: k + 1, parts, rows: rows.slice(k * ROWS_PER_CARD, (k + 1) * ROWS_PER_CARD) });
     }
   }
   return cards;
