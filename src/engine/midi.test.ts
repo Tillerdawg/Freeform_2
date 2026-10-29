@@ -72,14 +72,13 @@ describe('counts from a MIDI file', () => {
     expect(oddBars(real)).toEqual([]); // a 6/4 bar is whole beats
     expect(oddBars(parseMidi(file))).toEqual([]); // 3/4 to 4/4 isn't a lone odd bar
   });
-  it('reads a bar whose music starts after its downbeat as a pickup (m. 0), so m. 1 is the first full bar', () => {
-    // 3/4 at 120: a one-beat pickup on beat 3 of the first bar, then full bars
-    const m = parseMidi(midi([[0, ...tempo(120)], [0, ...meter(3, 4)], [960, 0x90, 60, 100], [480, 60, 0], [480 * 9, 0x80, 61, 0]]));
-    expect(m.first).toBe(0);
-    const r = countsFromMidi(m, [{ name: '1', counts: 0 }, { name: '2', counts: 6, measures: '1–2' }]);
-    expect(r.notes).toEqual([]);
-    expect(r.taps.slice(0, 3)).toEqual([1, 1.5, 2]); // count 0 on the pickup beat; set 2's count 1 on m. 1's downbeat
-    expect(parseMidi(file).first).toBe(1); // music from the first downbeat: no pickup
+  it('numbers a one-beat pickup bar m. 1, as the score does', () => {
+    // a 1/4 pickup bar, then 3/4 bars, at 120
+    const m = parseMidi(midi([[0, ...tempo(120)], [0, ...meter(1, 4)], [0, 0x90, 60, 100], [480, ...meter(3, 4)], [480 * 9, 0x80, 60, 0]]));
+    expect(m.measures.slice(0, 2).map((x) => `${x.beats}/${x.den}@${x.start}`)).toEqual(['1/4@0', '3/4@480']);
+    const r = countsFromMidi(m, [{ name: '1', counts: 0 }, { name: '2', counts: 7, measures: '1–3' }]);
+    expect(r.notes).toEqual([]); // 1 + 3 + 3 beats
+    expect(r.taps.slice(2, 8)).toEqual([0.5, 1, 1.5, 2, 2.5, 3]); // count 2 is m. 2's downbeat
   });
   it("widens a set whose notes' measures are out of date, when its counts fit exactly with the uncovered bars before it", () => {
     const m = parseMidi(file), base = newShow(); // 4 bars of 3/4, then 4/4 bars (m. 5 is silent)
