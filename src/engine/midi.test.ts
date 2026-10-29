@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { countsFromMidi, parseMidi, secondsAt, withHolds } from './midi';
+import { countsFromMidi, oddBars, parseMidi, secondsAt, withHolds } from './midi';
 import { newShow } from './show';
 
 /** A one-track MIDI: 480 ticks per quarter, events as [delta, ...bytes]. */
@@ -63,6 +63,14 @@ describe('counts from a MIDI file', () => {
     expect(t.notes).toEqual([]);
     expect(t.taps.slice(9, 14)).toEqual([6, 7, 8, 9, 10]); // the hold's 4 counts fill the G.P. bar; set 3 steps off on m. 6
     expect(withHolds(r.show, m).added).toEqual([]); // running it again adds nothing
+  });
+  it('warns about a lone bar a fraction of a beat off (a conversion glitch), not a real meter change', () => {
+    const glitch = parseMidi(midi([[0, ...tempo(120)], [0, ...meter(4, 4)], [0, 0x90, 60, 100], [480 * 8, ...meter(9, 8)], [480 * 4.5, ...meter(4, 4)], [480 * 8, 0x80, 60, 0]]));
+    expect(oddBars(glitch)).toEqual([expect.stringMatching(/^m\. 3 is 9\/8 between 4\/4 bars/)]);
+    expect(countsFromMidi(glitch, [{ name: '1', counts: 0 }, { name: '2', counts: 8, measures: '1–2' }]).notes).toHaveLength(1);
+    const real = parseMidi(midi([[0, ...tempo(120)], [0, ...meter(4, 4)], [0, 0x90, 60, 100], [480 * 8, ...meter(6, 4)], [480 * 6, ...meter(4, 4)], [480 * 8, 0x80, 60, 0]]));
+    expect(oddBars(real)).toEqual([]); // a 6/4 bar is whole beats
+    expect(oddBars(parseMidi(file))).toEqual([]); // 3/4 to 4/4 isn't a lone odd bar
   });
   it('rejects files that are not MIDI', () => {
     expect(() => parseMidi(new TextEncoder().encode('hello there, not midi').buffer)).toThrow(/isn't a MIDI file/);

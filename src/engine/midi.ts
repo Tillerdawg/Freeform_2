@@ -118,6 +118,25 @@ export function withHolds(show: Show, m: Midi): { show: Show; added: string[] } 
   return { show: added.length ? { ...show, sets } : show, added };
 }
 
+/**
+ * A lone bar that's a fraction of a beat longer or shorter than the bars around it (9/8 between 4/4 bars) is almost
+ * always a glitch from converting the score (one part had an extra or missing rest), not the music: it puts a hitch in
+ * the audio and moves every count after it. A real meter change (a 6/4 or 2/4 bar) is a whole number of beats.
+ */
+export function oddBars(m: Midi): string[] {
+  const len = (k: number) => (m.measures[k].beats * 4) / m.measures[k].den; // in quarters
+  const out: string[] = [];
+  for (let k = 0; k < m.measures.length; k++) {
+    const near = [m.measures[k - 1], m.measures[k + 1]].filter(Boolean);
+    if (!near.length) continue;
+    const beat = 4 / near[0].den, here = len(k);
+    const same = near.every((x) => x.beats === near[0].beats && x.den === near[0].den);
+    if (same && (here !== (near[0].beats * 4) / near[0].den) && Math.abs(here / beat - Math.round(here / beat)) > 1e-9)
+      out.push(`m. ${k + 1} is ${m.measures[k].beats}/${m.measures[k].den} between ${near[0].beats}/${near[0].den} bars, a fraction of a beat off: usually a glitch from converting the score (an extra or missing rest in one part), which puts a hitch in the music. Check that bar in the score and export again.`);
+  }
+  return out;
+}
+
 /** "5–20", "5-20" or "69" → [5, 20]; anything else (pickups, notes) → null. */
 const range = (s?: string): [number, number] | null => {
   const r = s?.trim().match(/^(\d+)\s*(?:[–-]\s*(\d+))?$/);
@@ -158,6 +177,7 @@ export function countsFromMidi(m: Midi, sets: { name: string; counts: number; me
   }
   if (ticks.length === 1) ticks.push(beatAt(m, 0)); // a one-set show: still two taps, so playback has a pace
   if (ticks[0] < 0) ticks[0] = 0; // count 0 before the music starts: the move into count 1 is just a little shorter
+  notes.push(...oddBars(m));
   const taps = ticks.map((t) => secondsAt(m, t));
   for (let i = 1; i < taps.length; i++) if (!(taps[i] > taps[i - 1])) taps[i] = taps[i - 1] + 0.001; // keep strictly increasing
   return { taps, matched, notes };
