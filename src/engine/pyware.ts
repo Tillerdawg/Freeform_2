@@ -1,7 +1,8 @@
 // Import Pyware 3D ".3dj" drill files. Clean-room: written from the behavior of Jason's own files (see DECISIONS.md),
 // no Pyware code. A .3dj is a chain of blocks: a 4-letter tag, a 4-byte big-endian length, then the data.
 //   GRID  plain-text field description (yards from the field's center); HZHS lines are the hashes.
-//   CAST  performers: u16 count, then per performer u16 id, a short string (label number), a short string (name).
+//   CAST  performers: u16 count, then per performer u16 id, a short string (label number), a short string (the
+//         person's name, which becomes the roster).
 //   CST2  (newer files) per performer u16 id + short string naming the 3D figure, e.g. "Trumpet Figure".
 //   PAGE  one per count: u16 count, then 20-byte records: u16 id … byte 8 = dot symbol … u16 x at 13, u16 y at 15.
 //         x, y are offset by 0x8000 from the field's center; 120 units = one 8-to-5 step; +x = Side 2, +y = front.
@@ -11,7 +12,7 @@
 // Files keep 300+ PAGEs; the ones after the last PROP are unused.
 import { FIELD_WIDTH } from './coords';
 import type { HashPreset } from './coords';
-import { newId, parseShow, type DrillSet, type Performer, type Section, type Show } from './show';
+import { MAX_NAME, newId, parseShow, type DrillSet, type Performer, type Section, type Show } from './show';
 
 const UNIT = 120; // file units per step
 /**
@@ -56,8 +57,8 @@ export function parse3dj(data: ArrayBuffer, title = 'Imported show'): Show {
   const cast = first('CAST') ?? fail('That Pyware file has no performers.');
 
   // Performers: label numbers from CAST, figure names from CST2 (when present).
-  const labels = new Map<number, string>();
-  readList(b, v, cast, (id, strs) => labels.set(id, strs[0] ?? ''), 2);
+  const labels = new Map<number, string>(), people = new Map<number, string>();
+  readList(b, v, cast, (id, strs) => { labels.set(id, strs[0] ?? ''); people.set(id, (strs[1] ?? '').trim()); }, 2);
   const figures = new Map<number, string>();
   const c2 = first('CST2');
   if (c2) readList(b, v, c2, (id, strs) => figures.set(id, strs[0] ?? ''), 1);
@@ -117,7 +118,7 @@ export function parse3dj(data: ArrayBuffer, title = 'Imported show'): Show {
     let number = parseInt(labels.get(id) ?? '', 10);
     if (!Number.isFinite(number) || number < 1 || taken.has(number)) { number = 1; while (taken.has(number)) number++; }
     taken.add(number); used.set(section, taken);
-    const p: Performer = { id: newId('p'), section, number };
+    const p: Performer = { id: newId('p'), section, number, ...(people.get(id) ? { name: people.get(id)!.slice(0, MAX_NAME) } : {}) };
     performers.push(p); pid.set(id, p.id);
   }
 

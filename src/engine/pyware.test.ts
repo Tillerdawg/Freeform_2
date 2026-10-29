@@ -26,7 +26,7 @@ function file(parts: number[][], { figures = true, hash = 8.75 } = {}) {
     ...enc.encode('PRPT'), ...u32(12), ...Array(9).fill(0), // real files store a wrong length here
     ...block('PREF', [0]),
     ...grid(hash),
-    ...block('CAST', [...u16(cast.length), ...cast.flatMap(([id, , n]) => [...u16(id), ...str(n), ...str('Name Withheld')])]),
+    ...block('CAST', [...u16(cast.length), ...cast.flatMap(([id, , n]) => [...u16(id), ...str(n), ...str(id === 4 ? ' ' : `Student ${id}`)])]),
     ...(figures ? block('CST2', [...u16(4), ...u16(1), ...str('Trumpet Figure'), ...u16(2), ...str('Trumpet Figure'), ...u16(3), ...str('Saxophone Figure'), ...u16(4), ...str('Saxophone Figure')]) : []),
     ...parts.flat(),
     ...block('SYNC', [0, 0, 0, 0]),
@@ -60,6 +60,10 @@ describe('Pyware .3dj import', () => {
     expect(positionsAt(show, 5)[t1.id]).toEqual({ x: 8, y: 32 }); // count 1 of the move: already there
     expect(positionsAt(show, 4.5)[t1.id]).toEqual({ x: 4, y: 24 });
     expect(moveSteps(show, 2)[t1.id].per5).toBeCloseTo(8 / Math.hypot(8, 16), 6); // the jump on count 1, not the 2-count average
+  });
+  it('fills the roster from the names Pyware keeps for each dot (blank stays unassigned)', () => {
+    const byLabel = Object.fromEntries(show.performers.map((p) => [show.sections.find((s) => s.id === p.section)!.letter + p.number, p.name]));
+    expect(byLabel).toEqual({ T1: 'Student 1', T2: 'Student 2', A1: 'Student 3', X1: undefined });
   });
   it('drops back to a straight move once an end of the path is edited', () => {
     const t1 = show.performers.find((p) => p.number === 1 && show.sections.find((s) => s.id === p.section)!.letter === 'T')!;

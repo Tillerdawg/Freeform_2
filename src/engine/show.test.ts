@@ -409,3 +409,19 @@ describe('flips and mirrors carry pinned label sides', () => {
     expect(m.sets[0].labels).toEqual({ [a.id]: 'above-left', [b.id]: 'above-right' }); // the Side 2 copy faces the other way
   });
 });
+
+describe('roster', () => {
+  it('assigns, edits and clears the person on a dot, and checks names from files', async () => {
+    const { setNames, parseShow, MAX_NAME } = await import('./show');
+    let s = newShow();
+    const a = addPerformer(s, s.sections[0].id, { x: 0, y: 10 }); s = a.show;
+    s = setNames(s, { [a.id]: 'Pat Example' });
+    expect(s.performers[0].name).toBe('Pat Example');
+    expect(parseShow(JSON.stringify(s)).performers[0].name).toBe('Pat Example');
+    s = setNames(s, { [a.id]: '  ' });
+    expect('name' in s.performers[0]).toBe(false); // blank = no one
+    const bad = { ...s, performers: [{ ...s.performers[0], name: 'x'.repeat(MAX_NAME + 1) }] };
+    expect(() => parseShow(JSON.stringify(bad))).toThrow(/performer/);
+    expect(() => parseShow(JSON.stringify({ ...s, performers: [{ ...s.performers[0], name: 7 }] }))).toThrow(/performer/);
+  });
+});
