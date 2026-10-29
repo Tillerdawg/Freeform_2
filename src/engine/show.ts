@@ -29,6 +29,13 @@ export interface DrillSet {
   cues?: Record<string, string>;
   /** Label sides pinned by the drill writer for this set's picture; everyone else's label is placed automatically. */
   labels?: Record<string, LabelSide>;
+  /**
+   * Count-by-count spots for performers whose move into this set isn't a straight line (imported from Pyware's
+   * per-count pages: follow-the-leader, delayed step-offs, rotations). path[k] = spot on count k, from the previous
+   * set (k = 0) to this one (k = counts). Used only while both ends still match, so editing either set or the counts
+   * quietly falls back to a straight line.
+   */
+  paths?: Record<string, Point[]>;
 }
 
 /** Sides are on the field: "above" = toward the back sideline (up on the editor's screen). */
@@ -210,9 +217,6 @@ export function locate(show: Show, t: number): { to: number; f: number; count: n
   return { to: starts.length - 1, f: 1, count: show.sets.at(-1)!.counts };
 }
 
-/** Labels jump around as dots move, so while playing they show only on a set and for the first count after it. */
-export const labelsWhilePlaying = (show: Show, t: number) => setAt(show, t) >= 0 || locate(show, t).count < 1;
-
 /** Index of the set exactly at time t, or -1 if t is mid-move. */
 export function setAt(show: Show, t: number): number {
   return setStarts(show).findIndex((s) => Math.abs(s - t) < 1e-9);
@@ -233,8 +237,19 @@ export function positionsAt(show: Show, t: number): Record<string, Point> {
     const at = ftlPositions(g.order.map((id) => a[id] ?? b[id]), b[g.order[0]], f);
     g.order.forEach((id, k) => { out[id] = at[k]; });
   }
+  const n = show.sets[to].counts;
+  for (const [id, path] of Object.entries(show.sets[to].paths ?? {})) {
+    if (!pathFits(path, a[id] ?? b[id], b[id], n)) continue;
+    const c = f * n, k = Math.min(n - 1, Math.floor(c)), g = c - k;
+    out[id] = { x: path[k].x + (path[k + 1].x - path[k].x) * g, y: path[k].y + (path[k + 1].y - path[k].y) * g };
+  }
   return out;
 }
+
+/** A count-by-count path still belongs to its move: one spot per count, ends on the two sets' spots. */
+const pathFits = (path: Point[], from: Point | undefined, to: Point | undefined, counts: number) =>
+  !!from && !!to && path.length === counts + 1 && near(path[0], from) && near(path[counts], to);
+const near = (p: Point, q: Point) => Math.abs(p.x - q.x) < 1e-6 && Math.abs(p.y - q.y) < 1e-6;
 
 /** The trail a follow-the-leader group marches along in the move into set i: leader's end, leader's start, then each follower's start. */
 export function ftlTrail(show: Show, i: number, order: string[]): Point[] {
@@ -294,6 +309,10 @@ export function moveSteps(show: Show, i: number): Record<string, { per5: number;
   const dist: Record<string, number> = Object.fromEntries(Object.keys(b).map((id) => [id, distance(a[id] ?? b[id], b[id])]));
   // In follow-the-leader everyone marches the leader's distance, whatever the straight line says.
   for (const g of show.sets[i].ftl ?? []) for (const id of g.order) dist[id] = dist[g.order[0]];
+  // On a count-by-count path, the step size that matters is its biggest single count.
+  const n = show.sets[i].counts;
+  for (const [id, path] of Object.entries(show.sets[i].paths ?? {}))
+    if (pathFits(path, a[id] ?? b[id], b[id], n)) dist[id] = n * Math.max(...path.slice(1).map((p, k) => distance(path[k], p)));
   return Object.fromEntries(Object.entries(dist).map(([id, d]) => [id, stepSize(d, show.sets[i].counts)]));
 }
 
@@ -349,6 +368,8 @@ export function parseShow(text: string): Show {
     if (set.labels !== undefined && (typeof set.labels !== 'object' || !set.labels ||
       !Object.entries(set.labels).every(([id, side]) => id in set.pos && LABEL_SIDES.includes(side as LabelSide)))) bad('set label sides');
     for (const p of Object.values(set.pos) as Point[]) if (!Number.isFinite(p?.x) || !Number.isFinite(p?.y)) bad(`position in set ${set.name}`);
+    if (set.paths !== undefined && (typeof set.paths !== 'object' || !set.paths || !Object.entries(set.paths).every(([id, path]) =>
+      id in set.pos && Array.isArray(path) && path.length <= 2001 && path.every((p) => Number.isFinite(p?.x) && Number.isFinite(p?.y))))) bad('set paths');
   }
   return normalizeFtl(s as Show);
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { parse3dj } from './pyware';
-import { setStarts } from './show';
+import { moveSteps, positionsAt, setStarts } from './show';
 
 // A tiny synthetic .3dj built from the layout parse3dj documents (no real show files in the repo).
 const enc = new TextEncoder();
@@ -49,6 +49,22 @@ describe('Pyware .3dj import', () => {
     expect(show.title).toBe('My Show');
     expect(show.sets.map((s) => s.counts)).toEqual([0, 4, 2]);
     expect(setStarts(show).at(-1)).toBe(6);
+  });
+  it("names sets as the notes do, and keeps count-by-count spots only for moves that aren't straight", () => {
+    expect(show.sets.map((s) => s.name)).toEqual(['1', '2', '3']); // set 1's note has no number
+    expect(show.sets[1].paths).toBeUndefined(); // set 2's pages lie on the straight line
+    // Into set 3 everyone jumps on count 1 and then holds (2 pages, both at set 3); performer 4 never moves.
+    const t1 = show.performers.find((p) => p.number === 1 && show.sections.find((s) => s.id === p.section)!.letter === 'T')!;
+    expect(Object.keys(show.sets[2].paths!).length).toBe(3);
+    expect(show.sets[2].paths![t1.id]).toEqual([{ x: 0, y: 16 }, { x: 8, y: 32 }, { x: 8, y: 32 }]);
+    expect(positionsAt(show, 5)[t1.id]).toEqual({ x: 8, y: 32 }); // count 1 of the move: already there
+    expect(positionsAt(show, 4.5)[t1.id]).toEqual({ x: 4, y: 24 });
+    expect(moveSteps(show, 2)[t1.id].per5).toBeCloseTo(8 / Math.hypot(8, 16), 6); // the jump on count 1, not the 2-count average
+  });
+  it('drops back to a straight move once an end of the path is edited', () => {
+    const t1 = show.performers.find((p) => p.number === 1 && show.sections.find((s) => s.id === p.section)!.letter === 'T')!;
+    const moved = { ...show, sets: show.sets.map((s, i) => (i === 2 ? { ...s, pos: { ...s.pos, [t1.id]: { x: 10, y: 32 } } } : s)) };
+    expect(positionsAt(moved, 5)[t1.id]).toEqual({ x: 5, y: 24 }); // halfway along the straight line
   });
   it('places dots in Freeform steps: x from the 50 (+ Side 2), y from the front sideline', () => {
     const t1 = show.performers.find((p) => p.number === 1 && show.sections.find((s) => s.id === p.section)!.letter === 'T')!;
