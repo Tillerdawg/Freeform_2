@@ -36,9 +36,8 @@
 - ✅ Music sync in the editor: load the recording (kept in the browser), tap every count, playback follows the audio.
 - Music on phones (Jason: yes): carry the recording inside the locked hosted file, encrypted with the show's key; the phone view plays along. Share links can't carry audio.
 - ✅ Counts from the score's MIDI (for audio rendered from the score): each set's counts placed in its typed measures. Bars no set covers get a hold sub-set (4A). Checked on the 2008 Mario drill + its MuseScore render (14 of 14 sets, with hold 4A for the m. 33 G.P.).
-- Pyware import: name sets as the drill does (its notes say "Set 4A"; Freeform numbers them 1, 2, 3…), so added holds read the same way as the printed drill.
 - Automatic count finding from a recording alone (`src/engine/beats.ts`, not in the app): on the 2008 Finale-playback mp3s it agreed with the score only ~half the time (half/double-time slips, unrendered sections), so it stays out until it's better; a hybrid (tap a few downbeats, fill from the score, nudge ±60 ms) is the likely next step for real recordings.
 - Music follow-ups: re-tap from a given count (not only from the top); a waveform on the timeline; MusicXML import (same matching, without a separate MIDI); a pickup bar in the MIDI (measure 1 is assumed to start at the top); count-first layout (total counts per selection).
 - Basketball court and custom surfaces.
-- ✅ Pyware 3D .3dj import (sets, counts, notes, measures, sections from symbols/figures, hashes). Follow-ups: carry Pyware's per-count positions as a path inside the move; names (Freeform has no roster yet); .3dj files with no sets (backups/drafts); the CaneRidge Part 2/3 variant with no PAGE blocks.
+- ✅ Pyware 3D .3dj import (sets, counts, notes, measures, sections from symbols/figures, hashes). ✅ Set names from the notes (2A, 3A…) and count-by-count paths for moves that aren't straight. Follow-ups: draw curved paths on the field and printed charts (the move line is still straight); names (Freeform has no roster yet); .3dj files with no sets (backups/drafts); the CaneRidge Part 2/3 variant with no PAGE blocks.
 - Optional cloud sync; store-wrapped mobile apps.

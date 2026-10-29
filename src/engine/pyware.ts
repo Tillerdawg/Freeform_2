@@ -5,7 +5,8 @@
 //   CST2  (newer files) per performer u16 id + short string naming the 3D figure, e.g. "Trumpet Figure".
 //   PAGE  one per count: u16 count, then 20-byte records: u16 id … byte 8 = dot symbol … u16 x at 13, u16 y at 15.
 //         x, y are offset by 0x8000 from the field's center; 120 units = one 8-to-5 step; +x = Side 2, +y = front.
-//   PROP  ends a set: the PAGEs since the previous PROP are that set's counts (the last one is the set itself).
+//   PROP  ends a set: the PAGEs since the previous PROP are that set's counts (the last one is the set itself), one
+//         spot per count, so curved, follow-the-leader and delayed moves come through as drawn.
 //         Byte 25 starts a u16 length and the set's note text.
 // Files keep 300+ PAGEs; the ones after the last PROP are unused.
 import { FIELD_WIDTH } from './coords';
@@ -72,14 +73,14 @@ export function parse3dj(data: ArrayBuffer, title = 'Imported show'): Show {
     }
     return recs;
   };
-  const runs: { last: Map<number, Rec>; counts: number; note: string }[] = [];
+  const runs: { last: Map<number, Rec>; pages: Map<number, Rec>[]; counts: number; note: string }[] = [];
   let pages: Map<number, Rec>[] = [];
   for (const blk of blocks) {
     if (blk.tag === 'PAGE') { const p = readPage(blk); if (p) pages.push(p); }
     if (blk.tag === 'PROP') {
       const textLen = blk.len >= 27 ? v.getUint16(blk.at + 25) : 0;
       const note = latin1(b.subarray(blk.at + 27, Math.min(blk.at + 27 + textLen, blk.at + blk.len))).replace(/\r\n?/g, '\n').trim();
-      if (pages.length) runs.push({ last: pages[pages.length - 1], counts: runs.length ? pages.length : 0, note });
+      if (pages.length) runs.push({ last: pages[pages.length - 1], pages, counts: runs.length ? pages.length : 0, note });
       else if (runs.length && note) runs[runs.length - 1].note += '\n' + note;
       pages = [];
     }
@@ -122,15 +123,33 @@ export function parse3dj(data: ArrayBuffer, title = 'Imported show'): Show {
 
   // Field position: Freeform measures x in steps from the 50 (+ = Side 2) and y in steps from the front sideline.
   const sets: DrillSet[] = [];
+  const spot = (rec: Rec) => ({ x: rec.x / UNIT, y: FIELD_WIDTH / 2 - rec.y / UNIT });
+  const taken = new Set<string>();
   let prev: Record<string, { x: number; y: number }> = {};
   runs.forEach((r, i) => {
     const pos: Record<string, { x: number; y: number }> = { ...prev };
-    for (const [id, rec] of r.last) pos[pid.get(id)!] = { x: rec.x / UNIT, y: FIELD_WIDTH / 2 - rec.y / UNIT };
+    for (const [id, rec] of r.last) pos[pid.get(id)!] = spot(rec);
     for (const p of performers) pos[p.id] ??= { x: 0, y: FIELD_WIDTH / 2 };
-    const set: DrillSet = { id: newId('set'), name: String(i + 1), counts: r.counts, pos };
+    // The set's name as the drill writer wrote it in the note ("Mario, Set 2A", "Set:  3A", "Page: 2"), else its number.
+    const named = r.note.split('\n').slice(0, 3).join(' ').match(/\b(?:set|page)\s*:?\s*(\d+[A-Za-z]?)\b/i)?.[1].toUpperCase();
+    const name = named && !taken.has(named) ? named : !taken.has(String(i + 1)) ? String(i + 1) : `${i + 1}′`;
+    taken.add(name);
+    const set: DrillSet = { id: newId('set'), name, counts: r.counts, pos };
     const mm = r.note.match(/\bmm?\.?\s*(\d+(?:\s*[-–]\s*\d+)?)/i);
     if (mm) set.measures = mm[1].replace(/\s+/g, '').replace('-', '–');
     if (r.note) set.note = r.note;
+    // Count-by-count spots, kept only for performers who leave the straight line (more than 1/50 of a step).
+    if (i > 0 && r.pages.length === r.counts) {
+      const paths: Record<string, { x: number; y: number }[]> = {};
+      for (const [id, rec] of r.last) {
+        const p = pid.get(id)!, from = prev[p] ?? pos[p], to = spot(rec);
+        const path = [from, ...r.pages.map((pg) => (pg.get(id) ? spot(pg.get(id)!) : null))];
+        if (path.some((q) => !q)) continue;
+        const n = r.counts;
+        if (path.some((q, k) => Math.hypot(q!.x - (from.x + ((to.x - from.x) * k) / n), q!.y - (from.y + ((to.y - from.y) * k) / n)) > 0.02)) paths[p] = path as { x: number; y: number }[];
+      }
+      if (Object.keys(paths).length) set.paths = paths;
+    }
     sets.push(set); prev = pos;
   });
 
