@@ -10,6 +10,7 @@ Instructions for anyone (person or AI agent) changing this repo. IDEA.md is the 
 
 ## House rules learned the hard way
 - **Nothing in the top bar or bottom panel may change height** as you move the mouse, switch sets, or play. A canvas resize clears and refits the field, which flashes. Use fixed heights and no wrapping.
+- **Legible beats pretty (Jason).** Keep strong contrast between everything on screen and paper; when in doubt, choose the more readable option. Targets: text at least 4.5:1 against what's behind it, lines and shapes at least 3:1 (WCAG). `palette.test.ts` checks the main pairs; check new color pairs the same way.
 - **One palette.** Colors come from `src/ui/palette.ts` (canvas) and the matching `--name` CSS variables in `index.html` (`var(--surface)` in inline styles). Don't add loose hex colors; add to the palette if a new one is truly needed. `palette.test.ts` checks the two match. Print styles (black on white) are the exception.
 - **Shows from files are untrusted.** Validate new fields in `parseShow`.
 - **Clean-room:** no decompiled or copied code from Pyware/UDB, and no third-party show files in the repo (`Examples_Drill/` is git-ignored).
