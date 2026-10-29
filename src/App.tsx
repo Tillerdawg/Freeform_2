@@ -35,11 +35,11 @@ function loadAutosave(): Show {
 }
 
 type Drag =
-  | { kind: 'move'; start: Point; anchor: string; orig: Record<string, Point> }
+  | { kind: 'move'; start: Point; anchor: string; orig: Record<string, Point>; at: [number, number]; moved?: boolean }
   | { kind: 'box'; a: Point; b: Point; add: boolean }
   | { kind: 'pan'; x: number; y: number }
   | { kind: 'handle'; i: number }
-  | { kind: 'mark'; id: string; start: Point; orig: Mark }
+  | { kind: 'mark'; id: string; start: Point; orig: Mark; at: [number, number]; moved?: boolean }
   | { kind: 'arrow'; id: string }
   | { kind: 'ink'; id: string };
 
@@ -335,14 +335,14 @@ export function App() {
       setSelected(sel);
       if (sel.has(id) && onSet >= 0) {
         const orig = Object.fromEntries([...sel].map((k) => [k, show.sets[onSet].pos[k]]));
-        drag.current = { kind: 'move', start: p, anchor: id, orig };
+        drag.current = { kind: 'move', start: p, anchor: id, orig, at: [e.clientX, e.clientY] };
       }
     } else {
       const m = onSet >= 0 ? hitMark(show.sets[onSet].marks ?? [], p, Math.max(0.5, (6 * dpr) / view.scale)) : undefined;
       if (m) {
         setSelected(new Set());
         setSelectedMark(m.id);
-        drag.current = { kind: 'mark', id: m.id, start: p, orig: m };
+        drag.current = { kind: 'mark', id: m.id, start: p, orig: m, at: [e.clientX, e.clientY] };
         return;
       }
       setSelectedMark(null);
@@ -357,6 +357,11 @@ export function App() {
     setHover(readout(p, show.hash));
     const d = drag.current;
     if (!d) return;
+    // A click isn't a drag: nothing moves (or snaps to the grid) until the pointer has really traveled.
+    if ((d.kind === 'move' || d.kind === 'mark') && !d.moved) {
+      if (Math.hypot(e.clientX - d.at[0], e.clientY - d.at[1]) < 4) return;
+      d.moved = true;
+    }
     if (d.kind === 'pan') {
       const dx = (e.clientX - d.x) * dpr, dy = (e.clientY - d.y) * dpr;
       drag.current = { ...d, x: e.clientX, y: e.clientY };
