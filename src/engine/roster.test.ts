@@ -48,7 +48,7 @@ describe('roster import', () => {
     expect(plan.header).toBe(true);
     expect(plan.steps.map((x) => [x.row, x.kind, x.label ?? '', x.note ?? ''])).toEqual([
       [2, 'name', 'P2', 'replaces Old Name'], [3, 'name', 'P1', ''], [4, 'name', 'P3', ''], [5, 'new', 'P4', ''], [6, 'new', 'A7', ''],
-      [7, 'skip', '', 'no section for "Bassoon"'], [8, 'skip', 'P2', 'P2 is on an earlier row'], [9, 'skip', '', 'no name'],
+      [7, 'skip', '', 'no section for "Bassoon": choose a section for Bassoon players, or leave them off'], [8, 'skip', 'P2', 'P2 is on an earlier row'], [9, 'skip', '', 'no name'],
     ]);
     const after = applyRoster(named, plan);
     expect(labels(after)).toEqual({ P1: 'Sam Lee', P2: 'Pat Example', P3: 'Avery Kim', A1: '', A2: '', P4: 'Ro Diaz', A7: 'Jo Ng' });
@@ -63,5 +63,17 @@ describe('roster import', () => {
     expect(plan.header).toBe(false);
     expect(plan.roles).toEqual(['name', 'code']);
     expect(plan.steps.map((x) => x.label)).toEqual(['P1', 'P3']);
+  });
+  it('asks what to do with an instrument that has no section, and follows the choice for all its rows', () => {
+    const { s, sec } = band();
+    const rows = parseTable('Name,Instrument,Dot\nBlake Example,Bassoon,\nRi Example,bassoon,\nJo Code,Bassoon,P9');
+    const ask = planRoster(s, rows);
+    expect(ask.unknown).toEqual([{ key: 'bassoon', instrument: 'Bassoon', rows: 2, note: 'no section for "Bassoon"' }]); // the coded row needs no choice
+    expect(ask.steps.filter((x) => x.kind === 'skip').length).toBe(2);
+    const baritone = planRoster(s, rows, undefined, { bassoon: sec('E') });
+    expect(baritone.unknown[0].choice).toBe(sec('E'));
+    expect(baritone.steps.slice(0, 2).map((x) => [x.kind, x.label])).toEqual([['new', 'E1'], ['new', 'E2']]);
+    const off = planRoster(s, rows, undefined, { bassoon: 'skip' });
+    expect(off.steps.slice(0, 2).map((x) => [x.kind, x.note])).toEqual([['skip', 'left off (your choice)'], ['skip', 'left off (your choice)']]);
   });
 });

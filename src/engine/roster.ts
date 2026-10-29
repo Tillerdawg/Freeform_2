@@ -14,8 +14,16 @@ export interface Step {
   number?: number;
   performer?: string; // existing performer id, for 'name'
   note?: string; // why it's skipped, or what it replaces
+  waiting?: boolean; // skipped only until the drill writer picks a section for its instrument
 }
-export interface Plan { roles: Role[]; header: boolean; steps: Step[] }
+/**
+ * `unknown`: instruments that match no section (Bassoon), for the drill writer to decide: put those players in a
+ * section (a bassoonist who marches baritone) or leave them off. Choices come back in `choices` (key → section id or
+ * 'skip'); rows waiting on a choice are skipped until then.
+ */
+export interface Plan { roles: Role[]; header: boolean; steps: Step[]; unknown: { key: string; instrument: string; rows: number; note: string; choice?: string }[] }
+export type Choices = Record<string, string>; // instrument key → section id, or 'skip' to leave those rows off
+export const instrumentKey = (cell: string) => norm(cell);
 
 const MAX_ROWS = 2000;
 
@@ -104,8 +112,9 @@ function roles(show: Show, rows: string[][]): { roles: Role[]; header: boolean }
 
 /** What importing these rows would do. Codes name or create that exact dot; rows without a code fill the section's
  * unnamed dots in order, then get new dots. */
-export function planRoster(show: Show, rows: string[][], given?: Role[]): Plan {
-  if (!rows.length) return { roles: [], header: false, steps: [] };
+export function planRoster(show: Show, rows: string[][], given?: Role[], choices: Choices = {}): Plan {
+  if (!rows.length) return { roles: [], header: false, steps: [], unknown: [] };
+  const unknown = new Map<string, Plan['unknown'][number]>();
   const detected = roles(show, rows);
   const r = given ?? detected.roles, header = detected.header; // a header row stays a header when columns are re-chosen
   const body = header ? rows.slice(1) : rows;
@@ -123,7 +132,15 @@ export function planRoster(show: Show, rows: string[][], given?: Role[]): Plan {
     const name = (col('name') || [col('first'), col('last')].filter(Boolean).join(' ')).slice(0, MAX_NAME);
     const inst = col('instrument'), c = code(col('code'));
     if (!name) { steps.push({ row, name, kind: 'skip', note: 'no name' }); return; }
-    const sec = inst ? sectionFor(show, inst) : {};
+    let sec = inst ? sectionFor(show, inst) : {}, waiting = false;
+    if (inst && !sec.id && !c) { // with a dot code the code decides, so the instrument needs no choice
+      const key = norm(inst), choice = choices[key];
+      const u = unknown.get(key) ?? { key, instrument: inst, rows: 0, note: sec.note ?? '' };
+      u.rows++; unknown.set(key, u);
+      if (choice && show.sections.some((s) => s.id === choice)) { u.choice = choice; sec = { id: choice }; }
+      else if (choice === 'skip') { u.choice = 'skip'; sec = { note: 'left off (your choice)' }; }
+      else sec = { note: `${sec.note}: choose a section for ${inst} players, or leave them off` }, waiting = true;
+    }
     if (c) {
       const key = `${c[0]}${c[1]}`;
       if (taken.has(key)) { steps.push({ row, name, kind: 'skip', label: key, note: `${key} is on an earlier row` }); return; }
@@ -141,7 +158,7 @@ export function planRoster(show: Show, rows: string[][], given?: Role[]): Plan {
       steps.push({ row, name, kind: 'new', label: key, section: s.id, number: c[1] });
       return;
     }
-    if (!sec.id) { steps.push({ row, name, kind: 'skip', note: inst ? sec.note : 'no instrument or dot code' }); return; }
+    if (!sec.id) { steps.push({ row, name, kind: 'skip', note: inst ? sec.note : 'no instrument or dot code', ...(waiting ? { waiting } : {}) }); return; }
     pending.push({ row, name, kind: 'new', section: sec.id });
     steps.push(pending[pending.length - 1]);
   });
@@ -156,7 +173,7 @@ export function planRoster(show: Show, rows: string[][], given?: Role[]): Plan {
     taken.add(`${letter}${n}`);
     Object.assign(st, { number: n, label: `${letter}${n}` });
   }
-  return { roles: r, header, steps };
+  return { roles: r, header, steps, unknown: [...unknown.values()] };
 }
 
 /**
