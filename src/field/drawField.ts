@@ -113,7 +113,8 @@ export function drawField(ctx: CanvasRenderingContext2D, v: View, hash: HashPres
   }
 }
 
-export const TIER_COLOR = { ok: 'rgba(255,255,255,0.55)', yellow: '#f5c518', red: '#ff4d4d' } as const;
+// Normal-step paths are dark so white letters and numbers stay readable where many paths cross (Jason, Option A); yellow/red still warn.
+export const TIER_COLOR = { ok: 'rgba(8,28,14,0.6)', yellow: '#f5c518', red: '#ff4d4d' } as const;
 
 export interface Dot { id: string; label: string; at: Point; pin?: LabelSide; color?: string; glyph?: string } // glyph: draw this letter instead of a dot
 export interface Path { from: Point; to: Point; tier: keyof typeof TIER_COLOR }

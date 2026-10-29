@@ -655,3 +655,8 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Decision:** `show.symbols` (absent = letters, `'dots'` = the old look), saved with the show and checked on import; picker beside the hash marks. Letters: bold, upright even in Facing front, dark outline on the field, white edge on paper so yard lines don't cut through; selected = letter on a gold badge; section colors color the letter. Labels become just the number. On printed charts the letter is a bit larger than the number. Applies to the editor, printed charts and the phone's staff view; the phone's own-dot (performer) view keeps its highlighted dot.
 - **Effect:** Halo's densest set prints with every letter and number beside its spot and no leader lines.
 - **Other options:** printed charts only; letters only (no dots option).
+
+## 2026-10-29 11:30 EDT — Dark path lines in the editor
+- **Who:** Jason Tiller (picked Option A from mockups of Halo set 9: dark paths vs. black letters with a white outline)
+- **Decision:** Normal-step move paths draw dark green-black (rgba(8,28,14,0.6)) instead of light white, so the white letters and numbers stay the brightest thing on the field where many paths cross. Yellow and red step-size warnings are unchanged. Printed charts have no paths.
+- **Other options:** black letters with a white outline (helped letters, not numbers); both.
