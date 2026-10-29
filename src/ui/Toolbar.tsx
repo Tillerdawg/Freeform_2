@@ -135,7 +135,7 @@ export function Toolbar(p: ToolbarProps) {
               <button onClick={() => turn(0, 100 / pct)}>Contract</button>
             </div>
           </>}
-          {note && <p role="alert" style={{ ...help, color: '#ff8080', opacity: 1 }}>{note}</p>}
+          {note && <p role="alert" style={{ ...help, color: 'var(--danger)', opacity: 1 }}>{note}</p>}
         </>}
       </Menu>
       <Menu label="FTL" disabled={needs(ids.length > 1 && onSet > 0, onSet === 0 ? 'Set 1 has no move into it' : ids.length === 1 ? 'Select 2 or more performers' : pick)}
@@ -271,7 +271,7 @@ function FtlPanel({ show, setShow, onSet, ids }: ToolbarProps & { ids: string[] 
             <button className="primary" onClick={() => make(byLabel[0])}>Make FTL</button>
             <span style={{ opacity: 0.75, fontSize: 12 }}>Leader: {name(byLabel[0])}; you can change it after.</span>
           </div>
-          {inOther && <p style={{ ...help, color: '#f5c518', opacity: 1 }}>Some of these are in another FTL group; they'll move to this one.</p>}
+          {inOther && <p style={{ ...help, color: 'var(--warn)', opacity: 1 }}>Some of these are in another FTL group; they'll move to this one.</p>}
         </>
       ) : (
         <>

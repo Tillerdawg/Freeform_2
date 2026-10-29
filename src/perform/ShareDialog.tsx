@@ -59,7 +59,7 @@ export function ShareDialog({ show, onClose }: { show: Show; onClose: () => void
   };
   return (
     <div role="dialog" aria-modal="true" aria-label="Share with performers" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'grid', placeItems: 'center', zIndex: 10 }}>
-      <div style={{ background: '#1d2a1f', border: '1px solid #33443a', padding: 20, width: 460, maxWidth: 'calc(100vw - 32px)', maxHeight: 'calc(100vh - 32px)', overflowY: 'auto', fontSize: 14 }}>
+      <div style={{ background: 'var(--bg)', border: '1px solid var(--line)', padding: 20, width: 460, maxWidth: 'calc(100vw - 32px)', maxHeight: 'calc(100vh - 32px)', overflowY: 'auto', fontSize: 14 }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 18 }}>Share with performers</h2>
         <p style={{ margin: '0 0 10px' }}>
           Send this link to performers and staff (text, email, a team app). It opens <strong>{show.title}</strong> on their phone, where they pick who they are.

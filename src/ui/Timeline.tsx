@@ -40,7 +40,7 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
   const setDrag = useRef<{ i: number; x0: number; from: number; perCount: number; moved: boolean } | null>(null);
   const fixedRow: React.CSSProperties = { display: 'flex', gap: 8, alignItems: 'center', height: 30, whiteSpace: 'nowrap', overflow: 'hidden' };
   return (
-    <div style={{ padding: '8px 16px 12px', borderTop: '1px solid #33443a' }}>
+    <div style={{ padding: '8px 16px 12px', borderTop: '1px solid var(--line)' }}>
       {/* Every row has a fixed height: a panel that grows or shrinks would resize (and flash) the field. */}
       <div style={{ ...fixedRow, marginBottom: 4 }}>
         <button aria-label="Back to start" onClick={() => setT(0)}><IconStart /></button>
@@ -98,7 +98,7 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
               if (d && !d.moved) setT(starts[i]);
             }}
             style={{ position: 'absolute', left: total ? `${(starts[i] / total) * 100}%` : 0, transform: total ? 'translateX(-50%)' : undefined,
-              fontWeight: i === onSet ? 700 : 400, outline: i === onSet ? '2px solid #ffd166' : undefined, padding: '0 6px', minWidth: 24,
+              fontWeight: i === onSet ? 700 : 400, outline: i === onSet ? '2px solid var(--gold)' : undefined, padding: '0 6px', minWidth: 24,
               cursor: i ? 'ew-resize' : 'pointer', touchAction: 'none' }}>
             {s.name}
           </button>
@@ -118,9 +118,9 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
             const i = k + 1;
             const big = biggestStep(show, i);
             return (
-              <div key={s.id} style={{ flex: `0 0 ${(s.counts / total) * 100}%`, boxSizing: 'border-box', minWidth: 0, borderLeft: '2px solid #ffd166', background: i === to && onSet < 0 ? '#2c4a35' : '#24382b', overflow: 'hidden', padding: '2px 6px', fontSize: 12, whiteSpace: 'nowrap' }}>
+              <div key={s.id} style={{ flex: `0 0 ${(s.counts / total) * 100}%`, boxSizing: 'border-box', minWidth: 0, borderLeft: '2px solid var(--gold)', background: i === to && onSet < 0 ? 'var(--green)' : 'var(--surface)', overflow: 'hidden', padding: '2px 6px', fontSize: 12, whiteSpace: 'nowrap' }}>
                 <div>{show.sets[i - 1].name} → {s.name} · {s.counts} cts{s.measures ? ` · m. ${s.measures}` : ''}{s.ftl?.length ? ' · FTL' : ''}</div>
-                {big && <div style={{ color: TIER_COLOR[big.tier] === TIER_COLOR.ok ? '#cfe' : TIER_COLOR[big.tier] }}>max {fmtStep(big.per5)}</div>}
+                {big && <div style={{ color: TIER_COLOR[big.tier] === TIER_COLOR.ok ? 'var(--text)' : TIER_COLOR[big.tier] }}>max {fmtStep(big.per5)}</div>}
               </div>
             );
           })}

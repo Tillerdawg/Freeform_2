@@ -1,3 +1,4 @@
+import { PALETTE } from '../ui/palette';
 // Performer / staff view: read-only playback of a shared show, centered on "my" dot. Built for phones (portrait).
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { readout, type Point } from '../engine/coords';
@@ -178,33 +179,33 @@ export function Perform() {
       }
       if (myPath.length) {
         ctx.setLineDash([s * 0.5, s * 0.35]);
-        ctx.strokeStyle = '#ffd166'; ctx.lineWidth = Math.max(2, s * 0.15);
+        ctx.strokeStyle = PALETTE.gold; ctx.lineWidth = Math.max(2, s * 0.15);
         ctx.beginPath(); myPath.forEach((p, k) => { const q = toScreen(v, p); if (k) ctx.lineTo(q.x, q.y); else ctx.moveTo(q.x, q.y); }); ctx.stroke();
         ctx.setLineDash([]);
         const end = toScreen(v, myPath.at(-1)!);
-        ctx.strokeStyle = '#ffd166'; ctx.lineWidth = Math.max(2, s * 0.12);
+        ctx.strokeStyle = PALETTE.gold; ctx.lineWidth = Math.max(2, s * 0.12);
         ctx.beginPath(); ctx.arc(end.x, end.y, Math.max(6, s * 0.55), 0, Math.PI * 2); ctx.stroke();
       }
       const q = toScreen(v, positions[me.id]);
-      ctx.fillStyle = '#ffd166'; ctx.strokeStyle = '#fff'; ctx.lineWidth = Math.max(2, s * 0.15);
+      ctx.fillStyle = PALETTE.gold; ctx.strokeStyle = '#fff'; ctx.lineWidth = Math.max(2, s * 0.15);
       ctx.beginPath(); ctx.arc(q.x, q.y, Math.max(7, s * 0.6), 0, Math.PI * 2); ctx.fill(); ctx.stroke();
       // Neighbors: a brighter dot each, so "who I'm next to" stands out from the rest of the band.
       for (const n of around) {
         const nq = toScreen(v, positions[n.id]);
-        ctx.fillStyle = '#e8f1ff';
+        ctx.fillStyle = PALETTE.text;
         ctx.beginPath(); ctx.arc(nq.x, nq.y, Math.max(4, s * 0.38), 0, Math.PI * 2); ctx.fill();
       }
       // Labels (upright either way, placed so they don't collide): mine first, then my nearest neighbors'.
       drawLabels(ctx, [
         { id: me.id, label: label(show, me), at: positions[me.id], first: true, px: 14 * dpr, color: '#fff' },
         ...(!playing ? around : []).map((n) => ({ id: n.id, label: label(show, show.performers.find((x) => x.id === n.id)!), at: positions[n.id] })),
-      ], v, Math.max(7, s * 0.6), 12 * dpr, '#e8f1ff', 'rgba(0,0,0,0.65)');
+      ], v, Math.max(7, s * 0.6), 12 * dpr, PALETTE.text, 'rgba(0,0,0,0.65)');
     }
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     if (follow || zoom > 1) {
       // Zoomed in, the painted yard numbers are usually off screen: pin a yard-line ruler to the bottom edge.
       const band = 22 * dpr;
-      ctx.fillStyle = 'rgba(16,24,18,0.85)';
+      ctx.fillStyle = 'rgba(24,36,25,0.85)';
       ctx.fillRect(0, H - band, W, band);
       ctx.font = `700 ${12 * dpr}px system-ui, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       for (let x = -80; x <= 80; x += 8) {
@@ -226,7 +227,7 @@ export function Perform() {
           : location.hash.startsWith(LOAD_PREFIX) ? <p>Downloading the show…</p>
           : <p>Open the show link your director sent you. It will be saved on this phone and work offline after that.</p>}
         <PasteLink />
-        {!isPhone() && <p><a href="#" style={{ color: '#9cf' }} onClick={(e) => { e.preventDefault(); toEditor(); }}>← Editor</a></p>}
+        {!isPhone() && <p><a href="#" style={{ color: 'var(--blue)' }} onClick={(e) => { e.preventDefault(); toEditor(); }}>← Editor</a></p>}
       </main>
     );
   }
@@ -247,8 +248,8 @@ export function Perform() {
             return ps.length ? <optgroup key={sec.id} label={sec.name}>{ps.map((p) => <option key={p.id} value={p.id}>{label(show, p)}{p.name ? ` · ${p.name}` : ''}</option>)}</optgroup> : null;
           })}
         </select>
-        <span className="perform-title">{error ? <span role="alert" title={error} style={{ color: '#f99' }}>{error} Showing your saved copy. </span>
-          : notice ? <span role="status" style={{ color: '#9f9' }}>{notice} </span> : null}{show.title}</span>
+        <span className="perform-title">{error ? <span role="alert" title={error} style={{ color: 'var(--danger)' }}>{error} Showing your saved copy. </span>
+          : notice ? <span role="status" style={{ color: 'var(--green-line)' }}>{notice} </span> : null}{show.title}</span>
         {!isPhone() && <button onClick={toEditor} title="Back to the drill editor" style={{ fontSize: 14 }}>← Editor</button>}
       </header>
       <div className="perform-field">
@@ -297,7 +298,7 @@ export function Perform() {
               <p className="perform-coord">
                 <span className="perform-k">Next: set {nx.name} in {nx.counts} cts{nx.measures ? ` (m. ${nx.measures})` : ''}</span>{' '}
                 {readout(nx.pos[me.id], show.hash)}
-                {steps && <span style={{ color: steps.tier === 'ok' ? '#cfe' : TIER_COLOR[steps.tier] }}> · {fmtStep(steps.per5)}</span>}
+                {steps && <span style={{ color: steps.tier === 'ok' ? 'var(--text)' : TIER_COLOR[steps.tier] }}> · {fmtStep(steps.per5)}</span>}
               </p>
             )}
             {around.length > 0 && (
@@ -358,7 +359,7 @@ function PasteLink() {
       <button onClick={open} disabled={!text.trim()} style={{ fontSize: 16 }}>Open</button>
       {'mediaDevices' in navigator && <button onClick={() => setScan(true)} style={{ fontSize: 16 }}>Scan QR code</button>}
       {scan && <Scanner onClose={() => setScan(false)} />}
-      {bad && <span role="alert" style={{ width: '100%', color: '#ff8080' }}>That doesn't look like a Freeform share link.</span>}
+      {bad && <span role="alert" style={{ width: '100%', color: 'var(--danger)' }}>That doesn't look like a Freeform share link.</span>}
     </div>
   );
 }

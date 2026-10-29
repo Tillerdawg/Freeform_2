@@ -10,6 +10,7 @@ Instructions for anyone (person or AI agent) changing this repo. IDEA.md is the 
 
 ## House rules learned the hard way
 - **Nothing in the top bar or bottom panel may change height** as you move the mouse, switch sets, or play. A canvas resize clears and refits the field, which flashes. Use fixed heights and no wrapping.
+- **One palette.** Colors come from `src/ui/palette.ts` (canvas) and the matching `--name` CSS variables in `index.html` (`var(--surface)` in inline styles). Don't add loose hex colors; add to the palette if a new one is truly needed. `palette.test.ts` checks the two match. Print styles (black on white) are the exception.
 - **Shows from files are untrusted.** Validate new fields in `parseShow`.
 - **Clean-room:** no decompiled or copied code from Pyware/UDB, and no third-party show files in the repo (`Examples_Drill/` is git-ignored).
 - **Commits** are authored as Jason Tiller <49928484+Tillerdawg@users.noreply.github.com>.

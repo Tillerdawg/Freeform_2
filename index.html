@@ -12,25 +12,26 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Freeform" />
     <style>
-      html, body, #root { margin: 0; height: 100%; background: #1d2a1f; color: #eee; font-family: system-ui, sans-serif; }
+      :root { --bg: #1d2a1f; --bg-deep: #182419; --surface: #22302a; --surface-2: #2b3b2f; --line: #33443a; --line-strong: #44594a; --muted: #6b8270; --green: #3d6b4a; --green-line: #5d9b6c; --text: #e9f0ea; --gold: #ffd166; --warn: #f5c518; --warn-line: #5a4a1a; --danger: #ff8080; --danger-bg: #5a2b2b; --danger-line: #a04848; --blue: #5ad1ff; --turf: #357842; } /* = src/ui/palette.ts */
+      html, body, #root { margin: 0; height: 100%; background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; }
       /* Buttons and fields: one calm style everywhere. Heights stay within the fixed rows (top bar 40, toolbar 44, timeline 30). */
-      button { font: inherit; font-size: 13px; line-height: 18px; color: #e9f0ea; background: #2b3b2f; border: 1px solid #44594a; border-radius: 6px;
+      button { font: inherit; font-size: 13px; line-height: 18px; color: var(--text); background: var(--surface-2); border: 1px solid var(--line-strong); border-radius: 6px;
         padding: 3px 10px; cursor: pointer; transition: background .12s, border-color .12s, box-shadow .12s; }
-      button:hover:not(:disabled) { background: #354a3a; border-color: #5d7a63; }
-      button:active:not(:disabled) { background: #22302a; }
+      button:hover:not(:disabled) { background: var(--line); border-color: var(--muted); }
+      button:active:not(:disabled) { background: var(--surface); }
       button:disabled { opacity: .45; cursor: default; }
-      button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid #ffd166; outline-offset: 1px; }
-      button[aria-pressed=true], button[aria-checked=true] { background: #ffd166; border-color: #ffd166; color: #1a2419; font-weight: 600; }
+      button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+      button[aria-pressed=true], button[aria-checked=true] { background: var(--gold); border-color: var(--gold); color: var(--bg-deep); font-weight: 600; }
       button.icon { padding: 4px 7px; }
-      button.primary { background: #3d6b4a; border-color: #5d9b6c; }
-      button.danger:hover:not(:disabled) { background: #5a2b2b; border-color: #a04848; }
-      select, input:not([type=radio]):not([type=checkbox]):not([type=range]), textarea { font: inherit; font-size: 13px; color: #e9f0ea; background: #142017;
-        border: 1px solid #44594a; border-radius: 6px; padding: 3px 6px; }
+      button.primary { background: var(--green); border-color: var(--green-line); }
+      button.danger:hover:not(:disabled) { background: var(--danger-bg); border-color: var(--danger-line); }
+      select, input:not([type=radio]):not([type=checkbox]):not([type=range]), textarea { font: inherit; font-size: 13px; color: var(--text); background: var(--bg-deep);
+        border: 1px solid var(--line-strong); border-radius: 6px; padding: 3px 6px; }
       select { padding-right: 4px; }
       /* Drill toolbar under the top bar: fixed height, never wraps (see CLAUDE.md). */
       .toolbar button { padding-left: 8px; padding-right: 8px; }
       .toolbar { display: flex; align-items: center; gap: 4px; height: 44px; box-sizing: border-box; flex-shrink: 0; padding: 0 10px; white-space: nowrap; overflow-x: auto; scrollbar-width: none;
-        border-top: 1px solid #2c3b30; border-bottom: 1px solid #2c3b30; background: #182419; position: relative; z-index: 5; }
+        border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--bg-deep); position: relative; z-index: 5; }
       .toolbar .seg { display: inline-flex; }
       .toolbar > * { flex: none; }
       .toolbar .seg > button, .toolbar .seg > .tb-menu > button { border-radius: 0; margin-left: -1px; }
@@ -38,12 +39,12 @@
       .toolbar .seg > :last-child, .toolbar .seg > .tb-menu:last-child > button { border-radius: 0 6px 6px 0; }
       .tb-field { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; opacity: .9; }
       .tb-field select { max-width: 130px; }
-      .tb-sep { width: 1px; height: 22px; background: #2f4034; margin: 0 2px; }
-      .tb-note { font-size: 12px; color: #f5c518; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
+      .tb-sep { width: 1px; height: 22px; background: var(--line); margin: 0 2px; }
+      .tb-note { font-size: 12px; color: var(--warn); overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
       .tb-menu { position: relative; display: inline-block; }
       .tb-menu .caret { font-size: 10px; opacity: .7; }
       .tb-menu-panel { position: fixed; min-width: 180px; max-width: 340px; padding: 8px; display: flex; flex-direction: column;
-        gap: 4px; align-items: stretch; background: #1f2d22; border: 1px solid #44594a; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.45);
+        gap: 4px; align-items: stretch; background: var(--surface); border: 1px solid var(--line-strong); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.45);
         white-space: normal; font-size: 13px; z-index: 20; max-height: 70vh; overflow-y: auto; }
       .tb-menu-panel > button { text-align: left; }
       @media screen { #print-root { display: none; } }
@@ -59,14 +60,14 @@
       .perform-info p { margin: 4px 0; }
       .perform-k { display: block; font-size: 12px; opacity: 0.7; }
       .perform-set { font-size: 16px; }
-      .perform-controls { padding: 6px 12px calc(10px + env(safe-area-inset-bottom)); flex-shrink: 0; border-top: 1px solid #33443a; }
+      .perform-controls { padding: 6px 12px calc(10px + env(safe-area-inset-bottom)); flex-shrink: 0; border-top: 1px solid var(--line); }
       .perform-controls input[type=range] { width: 100%; height: 32px; }
       .perform-sets { display: flex; gap: 6px; overflow-x: auto; white-space: nowrap; height: 44px; align-items: center; scrollbar-width: none; }
       .perform-sets[data-more=right] { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 48px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 48px), transparent); }
       .perform-sets[data-more=left] { -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 48px), transparent); mask-image: linear-gradient(to left, #000 calc(100% - 48px), transparent); }
       .perform-sets[data-more=both] { -webkit-mask-image: linear-gradient(to right, transparent, #000 48px, #000 calc(100% - 48px), transparent); mask-image: linear-gradient(to right, transparent, #000 48px, #000 calc(100% - 48px), transparent); }
       .perform-sets button { flex: none; min-width: 40px; height: 36px; font-size: 16px; border: 2px solid transparent; }
-      .perform-sets button[aria-pressed=true] { border-color: #e8c547; font-weight: bold; }
+      .perform-sets button[aria-pressed=true] { border-color: var(--gold); font-weight: bold; }
       .perform-buttons { display: flex; gap: 8px; align-items: center; justify-content: space-between; }
       .perform-empty { padding: 24px; max-width: 32em; margin: auto; }
       .perform-around { margin: 2px 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 2px 12px; font-size: 14px; }
