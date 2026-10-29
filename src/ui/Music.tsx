@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { countsFromMidi, parseMidi } from '../engine/midi';
+import { countsFromMidi, parseMidi, withHolds } from '../engine/midi';
 import { synced } from '../engine/music';
 import { newId, totalCounts, type Show } from '../engine/show';
 import { deleteAudio, putAudio } from './audioStore';
@@ -34,9 +34,12 @@ export function MusicMenu({ show, setShow, audio, onAudio, useMusic, setUseMusic
   // Counts from the score's MIDI: exact when the loaded music was rendered from that same MIDI.
   const fromMidi = async (f: File) => {
     try {
-      const r = countsFromMidi(parseMidi(await f.arrayBuffer()), show.sets);
-      setShow((s) => (s.music ? { ...s, music: { ...s.music, taps: r.taps } } : s));
-      setNote([`Counts from ${f.name}: ${r.matched} of ${show.sets.length - 1} sets placed by their measures${r.matched < show.sets.length - 1 ? '; the rest count plain beats' : ''}.`, ...r.notes].join(' '));
+      const midi = parseMidi(await f.arrayBuffer());
+      const held = withHolds(show, midi), r = countsFromMidi(midi, held.show.sets), sets = held.show.sets.length - 1;
+      setShow((s) => (s.music ? { ...s, sets: held.show.sets, music: { ...s.music, taps: r.taps } } : s));
+      setNote([`Counts from ${f.name}: ${r.matched} of ${sets} sets placed by their measures${r.matched < sets ? '; the rest count plain beats' : ''}.`,
+        ...(held.added.length ? [`Added hold set${held.added.length > 1 ? 's' : ''} ${held.added.join(', ')} for bars no set covered (undo removes ${held.added.length > 1 ? 'them' : 'it'}).`] : []),
+        ...r.notes].join(' '));
     } catch (e) { setNote(e instanceof Error ? e.message : "That MIDI file couldn't be read."); }
   };
   const label = !m ? 'Music' : synced(m) && useMusic && audio ? '♪ Music' : 'Music';

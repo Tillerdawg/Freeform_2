@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { countsFromMidi, parseMidi, secondsAt } from './midi';
+import { countsFromMidi, parseMidi, secondsAt, withHolds } from './midi';
+import { newShow } from './show';
 
 /** A one-track MIDI: 480 ticks per quarter, events as [delta, ...bytes]. */
 function midi(events: number[][]) {
@@ -49,6 +50,19 @@ describe('counts from a MIDI file', () => {
     expect(r.notes[0]).toMatch(/Set 2: 5 counts over m\. 1–2/);
     expect(r.taps.length).toBe(8);
     expect(r.taps[7] - r.taps[6]).toBeCloseTo(0.5, 9); // plain quarter beats at 120
+  });
+  it('adds a hold sub-set for bars no set covers (a G.P.), standing on the set before it', () => {
+    const m = parseMidi(file), base = newShow();
+    const show = { ...base, sets: [{ ...base.sets[0], pos: { p1: { x: 0, y: 0 } } }, { id: 's2', name: '2', counts: 6, measures: '1–2', pos: { p1: { x: 4, y: 0 } } },
+      { id: 's2a', name: '2A', counts: 2, measures: '3–4', pos: { p1: { x: 4, y: 0 } } }, { id: 's3', name: '3', counts: 8, measures: '6–7', pos: { p1: { x: 8, y: 0 } } }] };
+    const r = withHolds(show, m);
+    expect(r.added).toEqual(['2B']); // after set 2A comes 2B
+    const hold = r.show.sets[3];
+    expect([hold.name, hold.counts, hold.measures, hold.pos.p1]).toEqual(['2B', 4, '5', { x: 4, y: 0 }]);
+    const t = countsFromMidi(m, r.show.sets);
+    expect(t.notes).toEqual([]);
+    expect(t.taps.slice(9, 14)).toEqual([6, 7, 8, 9, 10]); // the hold's 4 counts fill the G.P. bar; set 3 steps off on m. 6
+    expect(withHolds(r.show, m).added).toEqual([]); // running it again adds nothing
   });
   it('rejects files that are not MIDI', () => {
     expect(() => parseMidi(new TextEncoder().encode('hello there, not midi').buffer)).toThrow(/isn't a MIDI file/);
