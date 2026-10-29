@@ -636,3 +636,10 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Who:** Jason Tiller (don't skip a player whose instrument has no section; let the director add them to a section or leave them off: a bassoonist may march baritone)
 - **Decision:** Each instrument in the list that matches no section (or is ambiguous) gets a picker in the preview: "March with <section>" or "Leave them off", one choice for all its rows. Its rows show "waiting" and **Apply** stays disabled until every such instrument has a choice. Rows with a dot code don't ask (the code decides). Changing the pasted list resets the choices.
 - **Other options:** skip them (the old behavior); create a section named after the instrument.
+
+## 2026-10-29 10:55 EDT — Pyware label sides imported
+- **Who:** Jason Tiller (spotted that the per-set value in each PAGE record is the label direction, not facing: facing has its own FACE block); decoding by Claude *(Jason can veto the code-1 rule)*
+- **Evidence:** byte 10's top 3 bits, in Halo, Mario and Nightmare: dots in side-to-side lines get 0/4, dots in front-to-back lines get 2/6; at the edges of blocks and arcs, 0 points to the front, 2 to Side 2, 4 to the back, 6 to Side 1 (eighths of a turn from the front toward Side 2). Code 1 has no relation to the open space around a dot. On the field, imported sides point out of circles and arcs and away from lines.
+- **Decision:** import each set's sides as label pins (0 below, 1 below-right, 2 right, 3 above-right, 4 above, 5 above-left, 6 left, 7 below-left in Freeform's terms). **Code 1 is treated as Pyware's untouched default and left automatic.** Pins still give way (hide) where they'd overlap another label, as with any pin; zooming in shows them.
+- **Other options:** pin code 1 too (below-right everywhere it wasn't moved); ignore Pyware's sides.
+- **Unknown:** the low 5 bits of byte 10 (almost always 0) and bytes 9 and 11 (per section / per show).

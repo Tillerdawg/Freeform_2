@@ -9,10 +9,10 @@ const u32 = (n: number) => [n >>> 24, (n >> 16) & 255, (n >> 8) & 255, n & 255];
 const str = (s: string) => [s.length, ...enc.encode(s)];
 const block = (tag: string, data: number[], len = data.length) => [...enc.encode(tag), ...u32(len), ...data];
 
-type Dot = { id: number; sym: string; x: number; y: number }; // x, y in steps, Pyware's way: from center, +y = front
+type Dot = { id: number; sym: string; x: number; y: number; lab?: number }; // x, y in steps, Pyware's way: from center, +y = front
 const page = (dots: Dot[]) => block('PAGE', [...u16(dots.length), ...dots.flatMap((d) => {
   const r = Array(20).fill(0);
-  r.splice(0, 2, ...u16(d.id)); r[2] = 2; r[8] = r[12] = d.sym.charCodeAt(0);
+  r.splice(0, 2, ...u16(d.id)); r[2] = 2; r[8] = r[12] = d.sym.charCodeAt(0); r[10] = (d.lab ?? 1) << 5; // 1 = Pyware's untouched spot
   r.splice(13, 2, ...u16(0x8000 + Math.round(d.x * 120))); r.splice(15, 2, ...u16(0x8000 + Math.round(d.y * 120)));
   return r;
 })]);
@@ -101,5 +101,18 @@ describe('Pyware .3dj import', () => {
   it('explains files it cannot use', () => {
     expect(() => parse3dj(new TextEncoder().encode('{"format":"freeform-show"}').buffer)).toThrow(/isn't a Pyware 3D/);
     expect(() => parse3dj(file([page(at(0, 0)), page(at(1, 0))]))).toThrow(/no saved sets/);
+  });
+});
+
+describe('Pyware label sides', () => {
+  it("keeps the sides the drill writer chose, and leaves Pyware's untouched spot automatic", () => {
+    const dots = (lab: [number, number, number, number]) => [
+      { id: 1, sym: 'T', x: 0, y: 0, lab: lab[0] }, { id: 2, sym: 'T', x: 2, y: 0, lab: lab[1] },
+      { id: 3, sym: 'A', x: 4, y: 0, lab: lab[2] }, { id: 4, sym: 'X', x: 6, y: 0, lab: lab[3] },
+    ];
+    const s = parse3dj(file([page(dots([1, 1, 1, 1])), prop('Set 1'), page(dots([0, 4, 6, 3])), prop('Set 2')]));
+    expect(s.sets[0].labels).toBeUndefined(); // all untouched
+    const byLabel = Object.fromEntries(s.performers.map((p) => [s.sections.find((x) => x.id === p.section)!.letter + p.number, s.sets[1].labels?.[p.id]]));
+    expect(byLabel).toEqual({ T1: 'below', T2: 'above', A1: 'left', X1: 'above-right' }); // 0 = toward the front, then around toward Side 2
   });
 });
