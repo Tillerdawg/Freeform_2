@@ -620,3 +620,14 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Who:** Jason Tiller (a roster assigning dots to people; the selected dot's person shown in Selection; import names from Pyware: yes; names travel only in encrypted links); layout by Claude *(Jason can veto)*
 - **Decision:** `performer.name` (optional, up to 100 characters, checked on import). Selection shows **Name** first for a single selected dot (editable; blank = unassigned). A collapsible **Roster** list in the sidebar shows every dot in section order with its name; clicking a label selects the dot. Pyware `.3dj` imports take each dot's name from the CAST block. Names are kept in the show, autosave, exported `.freeform` files and the encrypted hosted-link file; **plain share links strip them** (anyone with the link can read a share link). The phone's "who are you?" list shows "P4 · name" when the show has names.
 - **Other options:** keep names out of Freeform entirely (dot labels only); names in every link; a separate roster file.
+
+## 2026-10-29 10:35 EDT — Roster import from a spreadsheet; names on dot sheets
+- **Who:** Jason Tiller (names on printed dot sheets; import a list of names, instruments and rank codes from Excel to create dots or label existing ones; a lone "Sax" means alto); rules by Claude *(Jason can veto)*
+- **Decision:** Roster → **Import a list…**: paste cells copied from Excel (tabs) or load a CSV (commas or semicolons, quoted cells). Columns by header words (Name / First / Last, Instrument / Section / Part, Dot / Code / Label / Rank / Drill…), else guessed from the cells (codes like P4, known instruments, the rest is the name); each column's reading can be changed before applying. A preview lists every row's result; Apply is one undo step.
+  - **Code given** (P4, p-4): names that dot (says so if it replaces a name); if it doesn't exist, adds it with that number in the section with that letter. If the instrument disagrees with the code, the code wins (noted).
+  - **Only an instrument:** the section's unnamed dots in number order, then new dots numbered after the section's last.
+  - **Skipped, with the reason:** no name; no section for the instrument (or an ambiguous one); a code already used on an earlier row; a code letter no section uses.
+  - **New dots** go on the front sideline (2 steps in), 2 steps apart, centered on the 50, section by section, in every set.
+  - Instrument matching: section letter, exact name, a list of common roster abbreviations, then an unambiguous word-prefix match.
+  - **Dot sheets** show the performer's name beside the label.
+- **Other options:** read .xlsx directly (needs a spreadsheet library in the app; copy-paste and CSV cover it); create a new section for an unknown instrument (could make stray sections from typos).
