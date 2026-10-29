@@ -77,6 +77,11 @@ export function Sidebar(p: Props) {
         }}>
           {PRESETS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
         </select>
+        <select aria-label="Draw performers as" title="On the field, printed charts and phones: the section letter labeled with the number, or a dot labeled P4"
+          value={show.symbols ?? 'letters'} onChange={(e) => setShow((s) => { const { symbols: _, ...rest } = s; return e.target.value === 'dots' ? { ...rest, symbols: 'dots' } : rest; })}>
+          <option value="letters">Letters</option>
+          <option value="dots">Dots</option>
+        </select>
       </div>
       {pendingHash && (
         <div role="dialog" aria-modal="true" aria-label="Change hash marks" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'grid', placeItems: 'center', zIndex: 10 }}>

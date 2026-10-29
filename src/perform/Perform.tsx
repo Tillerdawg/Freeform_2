@@ -4,7 +4,7 @@ import { readout, type Point } from '../engine/coords';
 import { decodeShow, fetchShow, LOAD_PREFIX, linkHash, parseHosted, SHARE_PREFIX } from '../engine/share';
 import { Scanner } from './Scanner';
 import { isPhone } from './device';
-import { colorOf, label, locate, moveSteps, parseShow, positionsAt, setAt, setStarts, type Show } from '../engine/show';
+import { colorOf, label, locate, mark, moveSteps, parseShow, positionsAt, setAt, setStarts, type Show } from '../engine/show';
 import { drawField, drawLabels, drawMarks, drawPerformers, fitView, TIER_COLOR, toScreen, type View } from '../field/drawField';
 import { fmtStep } from '../ui/format';
 import { usePlayback } from '../ui/usePlayback';
@@ -167,7 +167,7 @@ export function Perform() {
     if (onSet >= 0) drawMarks(ctx, v, show.sets[onSet].marks ?? [], 'screen');
     if (!me) {
       const shown = !playing; // labels would jump around as dots move
-      drawPerformers(ctx, v, show.performers.filter((p) => positions[p.id]).map((p) => ({ id: p.id, label: shown ? label(show, p) : '', at: positions[p.id], pin: onSet >= 0 ? show.sets[onSet].labels?.[p.id] : undefined, color: colorOf(show, p) })), new Set(), [], undefined, dpr);
+      drawPerformers(ctx, v, show.performers.filter((p) => positions[p.id]).map((p) => { const m = mark(show, p); return { id: p.id, label: shown ? m.label : '', glyph: m.glyph, at: positions[p.id], pin: onSet >= 0 ? show.sets[onSet].labels?.[p.id] : undefined, color: colorOf(show, p) }; }), new Set(), [], undefined, dpr);
     } else {
       const s = v.scale;
       for (const p of show.performers) {

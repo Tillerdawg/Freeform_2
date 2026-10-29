@@ -115,7 +115,7 @@ export function drawField(ctx: CanvasRenderingContext2D, v: View, hash: HashPres
 
 export const TIER_COLOR = { ok: 'rgba(255,255,255,0.55)', yellow: '#f5c518', red: '#ff4d4d' } as const;
 
-export interface Dot { id: string; label: string; at: Point; pin?: LabelSide; color?: string }
+export interface Dot { id: string; label: string; at: Point; pin?: LabelSide; color?: string; glyph?: string } // glyph: draw this letter instead of a dot
 export interface Path { from: Point; to: Point; tier: keyof typeof TIER_COLOR }
 
 /**
@@ -160,6 +160,24 @@ export function drawLabels(
   ctx.restore();
 }
 
+/**
+ * A section letter centered on its spot, always upright (drawn in device space, so a field turned around for Facing
+ * front doesn't flip it). `badge`: a filled circle behind it (selected). Dark outline so any color reads on turf or paper.
+ */
+export function drawGlyph(ctx: CanvasRenderingContext2D, at: Point, glyph: string, size: number, color: string, badge?: string, outline = 'rgba(0,0,0,0.85)') {
+  const c = ctx.getTransform().transformPoint(at), k = Math.hypot(ctx.getTransform().a, ctx.getTransform().b);
+  ctx.save();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  const px = size * k;
+  if (badge) { ctx.fillStyle = badge; ctx.beginPath(); ctx.arc(c.x, c.y, px * 0.62, 0, Math.PI * 2); ctx.fill(); }
+  ctx.font = `800 ${px}px system-ui, sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  const y = c.y + px * 0.04; // optical center: capitals sit a touch high on the middle baseline
+  if (!badge) { ctx.lineWidth = px * 0.16; ctx.lineJoin = 'round'; ctx.strokeStyle = outline; ctx.strokeText(glyph, c.x, y); }
+  ctx.fillStyle = color; ctx.fillText(glyph, c.x, y);
+  ctx.restore();
+}
+
 /** Performers, their incoming paths, and an optional selection box. */
 export function drawPerformers(
   ctx: CanvasRenderingContext2D, v: View, dots: Dot[], selected: Set<string>, paths: Path[], box?: [Point, Point], dpr = 1,
@@ -174,10 +192,15 @@ export function drawPerformers(
   }
   ctx.setLineDash([]);
 
-  const r = Math.max(4, s * 0.45);
+  const letters = dots.some((d) => d.glyph), f = Math.max(11 * dpr, s * 1.2); // letter height
+  const r = letters ? f * 0.45 : Math.max(4, s * 0.45);
   for (const d of dots) {
     const c = toScreen(v, d.at);
     const sel = selected.has(d.id);
+    if (d.glyph) {
+      drawGlyph(ctx, c, d.glyph, f, sel ? '#111' : d.color ?? '#fff', sel ? '#ffd166' : undefined);
+      continue;
+    }
     ctx.beginPath(); ctx.arc(c.x, c.y, r, 0, Math.PI * 2);
     ctx.fillStyle = sel ? '#ffd166' : d.color ?? '#111';
     ctx.fill();

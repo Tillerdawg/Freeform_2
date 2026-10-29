@@ -68,6 +68,8 @@ export interface Show {
   sets: DrillSet[];
   /** The show's recording and the tapped count timings (the audio itself stays in the browser). */
   music?: Music;
+  /** How performers are drawn: their section letter with the number as the label (default), or 'dots' with the full label. */
+  symbols?: 'dots';
 }
 
 let seq = 0;
@@ -107,6 +109,11 @@ export const colorOf = (show: Show, p: Performer) => show.sections.find((s) => s
 
 export function label(show: Show, p: Performer) {
   return `${show.sections.find((s) => s.id === p.section)?.letter ?? '?'}${p.number}`;
+}
+
+/** What marks a performer on a chart: their section letter (centered on the spot) labeled with the number, or a dot labeled P4. */
+export function mark(show: Show, p: Performer): { glyph?: string; label: string } {
+  return show.symbols === 'dots' ? { label: label(show, p) } : { glyph: show.sections.find((s) => s.id === p.section)?.letter ?? '?', label: String(p.number) };
 }
 
 const mapSet = (show: Show, i: number, f: (s: DrillSet) => DrillSet): Show => ({
@@ -371,6 +378,7 @@ export function parseShow(text: string): Show {
   const str = (v: unknown) => typeof v === 'string';
   if (typeof s.title !== 'string') bad('title');
   if (s.music !== undefined && !validMusic(s.music)) bad('music');
+  if (s.symbols !== undefined && s.symbols !== 'dots') bad('symbols');
   for (const x of s.sections) if (!str(x?.id) || !str(x.name) || !str(x.letter) || (x.color !== undefined && !COLOR_RE.test(x.color))) bad('section');
   for (const x of s.performers) if (!str(x?.id) || !str(x.section) || !Number.isFinite(x.number) || (x.name !== undefined && (!str(x.name) || x.name.length > MAX_NAME))) bad('performer');
   for (const set of s.sets) {
