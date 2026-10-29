@@ -687,3 +687,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Decision:** On import, each count-by-count path is re-spaced so every count of a moving stretch covers the same distance along the route (`evenPath`): the route (arcs, follow-the-leader corners) is kept, counts standing still (holds, mark time before a delayed step-off) stay still, ends are unchanged. Fixes Pyware pages that jump on count 1 (e.g. Indiana Jones set 13: 7 steps on count 1, then 1 per count → even), Nightmare set 12, Dream On set 5. Straight moves were already even (linear). On a count that turns a corner the straight-line distance looks shorter (part one way, part the other), but the distance marched is the same. Standing rule added to CLAUDE.md.
 - **Known limit:** a stretch that moves, holds, then moves again is even within each stretch, but the two stretches can have different step sizes (as written).
 - **Other options:** even the whole move including holds (would erase holds); leave Pyware's spacing.
+
+## 2026-10-29 13:40 EDT — Pickups are m. 0 when matching a MIDI to the drill
+- **Who:** Jason Tiller (Dream On: the band starts set 1 → 2 on count 1 of m. 1, not on the pickup); detection by Claude *(Jason can veto)*
+- **Decision:** A MIDI whose first sound starts after the first bar's downbeat (a pickup at the end of the bar, as the score conversion now renders it) is numbered from m. 0, so drill measures line up (m. 1 = first full bar). Count 0 falls on the pickup beat. Also: when a set's counts fit exactly once the uncovered bars right before it are included, the set is widened instead of getting a hold, with a note (Dream On set 7: "mm. 35-37, 12 Counts" in the note but 16 counts → m. 34–37).
+- **Known limit:** a score whose first full bar begins with rests in every part would be read as having a pickup.
+- **Other options:** a "score has a pickup" checkbox; number MIDI bars from 1 and expect "0–" ranges in the drill.

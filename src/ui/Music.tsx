@@ -38,6 +38,7 @@ export function MusicMenu({ show, setShow, audio, onAudio, useMusic, setUseMusic
       const held = withHolds(show, midi), r = countsFromMidi(midi, held.show.sets), sets = held.show.sets.length - 1;
       setShow((s) => (s.music ? { ...s, sets: held.show.sets, music: { ...s.music, taps: r.taps } } : s));
       setNote([`Counts from ${f.name}: ${r.matched} of ${sets} sets placed by their measures${r.matched < sets ? '; the rest count plain beats' : ''}.`,
+        ...held.widened,
         ...(held.added.length ? [`Added hold set${held.added.length > 1 ? 's' : ''} ${held.added.join(', ')} for bars no set covered (undo removes ${held.added.length > 1 ? 'them' : 'it'}).`] : []),
         ...r.notes].join(' '));
     } catch (e) { setNote(e instanceof Error ? e.message : "That MIDI file couldn't be read."); }

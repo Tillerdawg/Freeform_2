@@ -72,6 +72,23 @@ describe('counts from a MIDI file', () => {
     expect(oddBars(real)).toEqual([]); // a 6/4 bar is whole beats
     expect(oddBars(parseMidi(file))).toEqual([]); // 3/4 to 4/4 isn't a lone odd bar
   });
+  it('reads a bar whose music starts after its downbeat as a pickup (m. 0), so m. 1 is the first full bar', () => {
+    // 3/4 at 120: a one-beat pickup on beat 3 of the first bar, then full bars
+    const m = parseMidi(midi([[0, ...tempo(120)], [0, ...meter(3, 4)], [960, 0x90, 60, 100], [480, 60, 0], [480 * 9, 0x80, 61, 0]]));
+    expect(m.first).toBe(0);
+    const r = countsFromMidi(m, [{ name: '1', counts: 0 }, { name: '2', counts: 6, measures: '1–2' }]);
+    expect(r.notes).toEqual([]);
+    expect(r.taps.slice(0, 3)).toEqual([1, 1.5, 2]); // count 0 on the pickup beat; set 2's count 1 on m. 1's downbeat
+    expect(parseMidi(file).first).toBe(1); // music from the first downbeat: no pickup
+  });
+  it("widens a set whose notes' measures are out of date, when its counts fit exactly with the uncovered bars before it", () => {
+    const m = parseMidi(file), base = newShow(); // 4 bars of 3/4, then 4/4 bars (m. 5 is silent)
+    const show = { ...base, sets: [{ ...base.sets[0], pos: {} }, { id: 's2', name: '2', counts: 6, measures: '1–2', pos: {} }, { id: 's3', name: '3', counts: 10, measures: '4–5', pos: {} }] };
+    const r = withHolds(show, m); // m. 3 is in no set, and 10 counts = m. 3 (3) + m. 4 (3) + m. 5 (4)
+    expect(r.added).toEqual([]);
+    expect(r.show.sets[2].measures).toBe('3–5');
+    expect(r.widened[0]).toMatch(/Set 3: its 10 counts fit m\. 3–5/);
+  });
   it('rejects files that are not MIDI', () => {
     expect(() => parseMidi(new TextEncoder().encode('hello there, not midi').buffer)).toThrow(/isn't a MIDI file/);
   });
