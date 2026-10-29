@@ -609,3 +609,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Other options:** split such moves into sub-sets (a rotation would need one per count); keep paths as offsets from the straight line so they survive edits (would bend edited moves in ways nobody drew).
 - **Labels:** while playing, no labels at all (the "show on each set and its first count" rule is gone), in the editor and the phone view; selected performers keep theirs, and on the phone so does your own. Paused or stopped: all labels.
 - **Known limits:** the path line drawn on the field and on printed charts is still straight. One Zelda 2008 copy in Examples_Drill has no saved sets (also before this change).
+
+## 2026-10-29 10:00 EDT — Guard against score-conversion glitches (odd bars)
+- **Who:** Jason Tiller (protect against the m. 31 glitch in the future); approach by Claude *(Jason can veto)*
+- **Context:** Converting Halo's old Finale file left an extra eighth rest in the flute's m. 31; MuseScore made the whole bar 9/8, which put a half-beat hitch in the rendered audio around 1:17 and moved every later count.
+- **Decision:** Two guards. (1) Freeform: **Counts from the score's MIDI…** warns about any lone bar that's a fraction of a beat longer or shorter than the matching bars on both sides (9/8 between 4/4). Real meter changes (whole beats: 6/4, 2/4, 3/4) aren't flagged. (2) The conversion skill (finale-mus-to-musescore) gets a required bar-length check on the MusicXML before anything is rendered: every part, every bar, against its time signature; a trailing extra rest past a full bar is removed, anything else is listed for review.
+- **Other options:** fix odd bars inside Freeform (it only has the MIDI, so it can't know which part was wrong); trust the converter.
