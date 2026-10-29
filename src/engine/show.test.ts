@@ -425,3 +425,16 @@ describe('roster', () => {
     expect(() => parseShow(JSON.stringify({ ...s, performers: [{ ...s.performers[0], name: 7 }] }))).toThrow(/performer/);
   });
 });
+
+describe('letters or dots', () => {
+  it('marks a performer with the section letter and the number, or a dot with the full label', async () => {
+    const { mark, parseShow } = await import('./show');
+    let s = newShow();
+    const sec = s.sections.find((x) => x.letter === 'P')!.id;
+    s = addPerformer(s, sec, { x: 0, y: 10 }).show;
+    expect(mark(s, s.performers[0])).toEqual({ glyph: 'P', label: '1' });
+    expect(mark({ ...s, symbols: 'dots' }, s.performers[0])).toEqual({ label: 'P1' });
+    expect(parseShow(JSON.stringify({ ...s, symbols: 'dots' })).symbols).toBe('dots');
+    expect(() => parseShow(JSON.stringify({ ...s, symbols: 'stars' }))).toThrow(/symbols/);
+  });
+});

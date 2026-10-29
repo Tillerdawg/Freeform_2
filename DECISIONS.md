@@ -649,3 +649,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Context:** Halo's printed charts dropped 88 labels over 14 sets (28 on set 1): pinned Pyware sides that would overlap hid instead of moving, and Freeform's print labels are large next to 2-step spacing.
 - **Decision:** On printed charts only: a label that doesn't fit beside its dot tries its chosen side, then the other sides, beside the dot; then moves out one label-height at a time (chosen side first, then the others) up to 8 label-heights, and gets a thin leader line from the dot's edge to the label's edge; if there's still no room it's drawn at its usual spot, overlapping. On screen, labels keep the old rule (hidden until you zoom in). Halo: 0 hidden on any chart; at most 9 leader lines on a set.
 - **Other options:** shrink crowded labels (smaller than the rest of the page); allow overlaps everywhere; leader lines on screen too.
+
+## 2026-10-29 11:20 EDT — Performers drawn as section letters
+- **Who:** Jason Tiller (draw the rank/section letter instead of a dot, centered on the spot, with the number as the label; everywhere; keep a Dots/Letters choice); sizes by Claude *(Jason can veto)*
+- **Decision:** `show.symbols` (absent = letters, `'dots'` = the old look), saved with the show and checked on import; picker beside the hash marks. Letters: bold, upright even in Facing front, dark outline on the field, white edge on paper so yard lines don't cut through; selected = letter on a gold badge; section colors color the letter. Labels become just the number. On printed charts the letter is a bit larger than the number. Applies to the editor, printed charts and the phone's staff view; the phone's own-dot (performer) view keeps its highlighted dot.
+- **Effect:** Halo's densest set prints with every letter and number beside its spot and no leader lines.
+- **Other options:** printed charts only; letters only (no dots option).

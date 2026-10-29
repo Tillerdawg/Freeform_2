@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { colorOf, label, type Show } from '../engine/show';
-import { drawField, drawLabels, drawMarks, fitView, toScreen } from '../field/drawField';
+import { colorOf, mark, type Show } from '../engine/show';
+import { drawField, drawGlyph, drawLabels, drawMarks, fitView, toScreen } from '../field/drawField';
 import { chartTitle, chunk, dotCards, hasMeasures, sortedPerformers } from './docs';
 
 type Kind = 'dots' | 'charts';
@@ -18,15 +18,17 @@ function chartImage(show: Show, i: number): string {
   drawField(ctx, v, show.hash, 'print');
   const s = v.scale, pos = show.sets[i].pos;
   const here = show.performers.filter((p) => pos[p.id]);
+  const letters = show.symbols !== 'dots';
   for (const p of here) {
     const q = toScreen(v, pos[p.id]);
     const color = colorOf(show, p);
+    if (letters) { drawGlyph(ctx, q, mark(show, p).glyph!, 1.7 * s, color ?? '#000', undefined, color ? '#000' : '#fff'); continue; } // white edge on plain black letters keeps lines from running through
     ctx.fillStyle = color ?? '#000';
     ctx.beginPath(); ctx.arc(q.x, q.y, 0.5 * s, 0, Math.PI * 2); ctx.fill();
     if (color) { ctx.lineWidth = 0.12 * s; ctx.strokeStyle = '#000'; ctx.stroke(); } // outlined, so pale colors still show on white
   }
   // White halo so yard lines and grid don't run through the labels.
-  drawLabels(ctx, here.map((p) => ({ id: p.id, label: label(show, p), at: pos[p.id], pin: show.sets[i].labels?.[p.id] })), v, 0.5 * s, 1.5 * s, '#000', '#fff', true); // on paper every label shows
+  drawLabels(ctx, here.map((p) => ({ id: p.id, label: mark(show, p).label, at: pos[p.id], pin: show.sets[i].labels?.[p.id] })), v, letters ? 0.65 * s : 0.5 * s, 1.5 * s, '#000', '#fff', true); // on paper every label shows
   drawMarks(ctx, v, show.sets[i].marks ?? [], 'print');
   return c.toDataURL('image/png');
 }
