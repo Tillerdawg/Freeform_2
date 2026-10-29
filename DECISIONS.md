@@ -664,3 +664,8 @@ Each entry: timestamp, who decided, context, options considered, decision.
 ## 2026-10-29 11:45 EDT — Field colors settled
 - **Who:** Jason Tiller (after mockups of Halo set 9)
 - **Decision:** Keep white letters and white numbers, both with black outlines, and dark path lines. Rejected after mockups: black letters with a white outline; black numbers with a white outline; plain black numbers.
+
+## 2026-10-29 12:00 EDT — One palette for the whole app
+- **Who:** Jason Tiller (make the colors match wherever possible, so the app looks like one package; path lines in the interface's dark green); palette by Claude *(Jason can veto)*
+- **Decision:** 18 named colors in `src/ui/palette.ts`, mirrored as CSS variables in `index.html` (a test keeps them identical). About 40 near-duplicate colors were folded in: seven panel/background greens into bg / bg-deep / surface / surface-2, five border greens into line / line-strong, two golds, two reds, two blues, four off-whites into text. Normal-step paths on the field are now the interface's own bg green (solid, #1d2a1f). Kept separate on purpose: the turf, the bright red for too-big steps on the field, black and white, and print colors (black on white for copiers).
+- **Other options:** keep the slightly different shades; a full theme system (light/dark).

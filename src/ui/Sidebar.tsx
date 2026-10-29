@@ -47,7 +47,7 @@ interface Props {
 
 const PRESETS: [HashPreset, string][] = [['highSchool', 'High school'], ['college', 'College / DCI'], ['nfl', 'NFL']];
 const LINES = [50, 45, 40, 35, 30, 25, 20, 15, 10, 5, 0];
-const box: React.CSSProperties = { borderTop: '1px solid #33443a', padding: '10px 0' };
+const box: React.CSSProperties = { borderTop: '1px solid var(--line)', padding: '10px 0' };
 const row: React.CSSProperties = { display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', marginTop: 6 };
 
 export function Sidebar(p: Props) {
@@ -58,7 +58,7 @@ export function Sidebar(p: Props) {
   const ids = [...selected];
 
   return (
-    <aside style={{ width: 300, padding: '8px 14px 0', overflowY: 'auto', borderLeft: '1px solid #33443a', fontSize: 14, display: 'flex', flexDirection: 'column' }}>
+    <aside style={{ width: 300, padding: '8px 14px 0', overflowY: 'auto', borderLeft: '1px solid var(--line)', fontSize: 14, display: 'flex', flexDirection: 'column' }}>
       <div style={row}>
         <button onClick={p.onNew}>New</button>
         <button onClick={p.onOpen} title="Load a .freeform show file (or an older .freeform.json) or a Pyware 3D .3dj drill (replaces the current show; Undo brings it back)">Import…</button>
@@ -67,7 +67,7 @@ export function Sidebar(p: Props) {
         <button onClick={p.onShare} disabled={!show.performers.length} title="A link that opens this show on performers' and staff phones">Share…</button>
         <button onClick={() => { location.hash = '#perform'; }} title="Open the performer view: your saved show, or scan / paste a show link">Performer view</button>
       </div>
-      {p.fileError && <div role="alert" style={{ color: '#ff8080', marginTop: 6 }}>{p.fileError}</div>}
+      {p.fileError && <div role="alert" style={{ color: 'var(--danger)', marginTop: 6 }}>{p.fileError}</div>}
       <div style={{ ...row, marginBottom: 10 }}>
         <input aria-label="Show title" value={show.title} onChange={(e) => setShow((s) => ({ ...s, title: e.target.value }))} style={{ flex: 1 }} />
         <select aria-label="Hashes" value={show.hash} onChange={(e) => {
@@ -85,7 +85,7 @@ export function Sidebar(p: Props) {
       </div>
       {pendingHash && (
         <div role="dialog" aria-modal="true" aria-label="Change hash marks" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'grid', placeItems: 'center', zIndex: 10 }}>
-          <div style={{ background: '#1d2a1f', border: '1px solid #33443a', padding: 20, width: 420, maxWidth: 'calc(100vw - 32px)' }}>
+          <div style={{ background: 'var(--bg)', border: '1px solid var(--line)', padding: 20, width: 420, maxWidth: 'calc(100vw - 32px)' }}>
             <h2 style={{ margin: '0 0 8px', fontSize: 18 }}>Change to {PRESETS.find(([k]) => k === pendingHash)![1]} hashes</h2>
             <p style={{ margin: '0 0 12px' }}>What should happen to the drill?</p>
             <div style={{ display: 'grid', gap: 8 }}>
@@ -118,7 +118,7 @@ export function Sidebar(p: Props) {
         <strong>Selection</strong>
         {selected.size === 0 && <p style={{ opacity: 0.7, margin: '6px 0 0' }}>Click a performer, shift-click to add, or drag a box.</p>}
         {selected.size > 1 && <p style={{ margin: '6px 0 0' }}>{selected.size} performers selected</p>}
-        {onSet < 0 && <p style={{ color: '#f5c518', margin: '6px 0 0' }}>Mid-move: you can select, but scrub to a set to move or add.</p>}
+        {onSet < 0 && <p style={{ color: 'var(--warn)', margin: '6px 0 0' }}>Mid-move: you can select, but scrub to a set to move or add.</p>}
         {one && (
           <label style={{ display: 'block', marginTop: 8 }}>Name
               <input aria-label="Performer's name" value={one.name ?? ''} placeholder={`Who marches ${label(show, one)}?`} maxLength={MAX_NAME}
@@ -158,7 +158,7 @@ export function Sidebar(p: Props) {
           const m = show.sets[onSet].marks?.find((x) => x.id === p.selectedMark);
           if (!m) return null;
           return (
-            <fieldset style={{ marginTop: 10, border: '1px solid #33443a' }}>
+            <fieldset style={{ marginTop: 10, border: '1px solid var(--line)' }}>
               <legend>{m.kind === 'text' ? 'Note' : m.kind === 'arrow' ? 'Arrow' : 'Drawing'}</legend>
               {m.kind === 'text' && (
                 <input key={m.id} aria-label="Note text" value={m.text} placeholder="Type the note"
@@ -250,7 +250,7 @@ function CoordEntry({ onPlace }: { onPlace: (x: number, y: (h: HashPreset) => nu
   return (
     <details style={{ marginTop: 10 }}>
       <summary>Place exactly (this set)</summary>
-    <fieldset style={{ marginTop: 6, border: '1px solid #33443a' }}>
+    <fieldset style={{ marginTop: 6, border: '1px solid var(--line)' }}>
       <div style={row}>
         <input aria-label="Side-to-side steps" type="number" min={0} step={0.25} value={xs} onChange={(e) => setXs(num(e.target.value))} style={{ width: 52 }} />
         <select aria-label="Inside or outside" value={xd} onChange={(e) => setXd(e.target.value as SideDir)}>
@@ -306,8 +306,8 @@ function SectionsEditor({ show, setShow, cur }: { show: Show; setShow: (f: (s: S
             <div style={row}>
               <input type="color" aria-label={`Color for ${s.name}`} title={s.color ? `Dot color for ${s.name}` : `Pick a dot color for ${s.name} (none yet)`}
                 value={s.color ?? '#111111'} onChange={(e) => edit(i, { color: e.target.value })}
-                style={{ width: 24, height: 24, padding: 0, border: s.color ? '1px solid #44594a' : '1px dashed #6b8270', borderRadius: 6, background: 'none', cursor: 'pointer', opacity: s.color ? 1 : 0.6 }} />
-              <input aria-label={`Letter for ${s.name}`} value={s.letter} maxLength={3} style={{ width: 36, textAlign: 'center', borderColor: dup ? '#ff8080' : undefined }}
+                style={{ width: 24, height: 24, padding: 0, border: s.color ? '1px solid var(--line-strong)' : '1px dashed var(--muted)', borderRadius: 6, background: 'none', cursor: 'pointer', opacity: s.color ? 1 : 0.6 }} />
+              <input aria-label={`Letter for ${s.name}`} value={s.letter} maxLength={3} style={{ width: 36, textAlign: 'center', borderColor: dup ? 'var(--danger)' : undefined }}
                 onChange={(e) => edit(i, { letter: e.target.value })} />
               <input aria-label={`Name of section ${s.letter}`} value={s.name} style={{ flex: 1, minWidth: 0 }} onChange={(e) => edit(i, { name: e.target.value })} />
               <span style={{ fontSize: 12, opacity: 0.7, minWidth: 18, textAlign: 'right' }} title={`${n} performer${n === 1 ? '' : 's'}`}>{n}</span>
@@ -316,9 +316,9 @@ function SectionsEditor({ show, setShow, cur }: { show: Show; setShow: (f: (s: S
               <button aria-label={`Delete section ${s.name}`} title="Delete this section" className="icon danger" disabled={show.sections.length < 2}
                 onClick={() => { setRenumbering(null); if (n) { setDeleting(s.id); setMoveTo(show.sections.find((x) => x.id !== s.id)!.id); } else setShow((sh) => removeSection(sh, s.id)); }}>×</button>
             </div>
-            {dup && <div role="alert" style={{ color: '#ff8080', fontSize: 12, marginTop: 2 }}>Another section also uses "{s.letter}": their labels would clash.</div>}
+            {dup && <div role="alert" style={{ color: 'var(--danger)', fontSize: 12, marginTop: 2 }}>Another section also uses "{s.letter}": their labels would clash.</div>}
             {renumbering === s.id && (
-              <div style={{ ...row, fontSize: 12, background: '#22302a', padding: 6, borderRadius: 6 }}>
+              <div style={{ ...row, fontSize: 12, background: 'var(--surface)', padding: 6, borderRadius: 6 }}>
                 Renumber {s.letter}1–{s.letter}{n}:
                 <button onClick={() => { setShow((sh) => renumberSection(sh, s.id, 'number')); setRenumbering(null); }}
                   title="Keep their order and close the gaps (e.g. X4 X5 X6 become X1 X2 X3)">Close the gaps</button>
@@ -330,7 +330,7 @@ function SectionsEditor({ show, setShow, cur }: { show: Show; setShow: (f: (s: S
               </div>
             )}
             {deleting === s.id && (
-              <div style={{ ...row, fontSize: 12, background: '#22302a', padding: 6, borderRadius: 6 }}>
+              <div style={{ ...row, fontSize: 12, background: 'var(--surface)', padding: 6, borderRadius: 6 }}>
                 Move its {n} performer{n === 1 ? '' : 's'} to
                 <select aria-label="Move performers to" value={moveTo} onChange={(e) => setMoveTo(e.target.value)}>
                   {show.sections.filter((x) => x.id !== s.id).map((x) => <option key={x.id} value={x.id}>{x.letter} · {x.name}</option>)}

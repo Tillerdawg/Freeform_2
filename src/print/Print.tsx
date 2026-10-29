@@ -67,7 +67,7 @@ export function PrintDialog({ show, selected, onClose }: Props) {
 
   return (
     <div role="dialog" aria-modal="true" aria-label="Print" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'grid', placeItems: 'center', zIndex: 10 }}>
-      <div style={{ background: '#1d2a1f', border: '1px solid #33443a', padding: 20, width: 360, maxWidth: 'calc(100vw - 32px)', fontSize: 14 }}>
+      <div style={{ background: 'var(--bg)', border: '1px solid var(--line)', padding: 20, width: 360, maxWidth: 'calc(100vw - 32px)', fontSize: 14 }}>
         <h2 style={{ margin: '0 0 12px', fontSize: 18 }}>Print</h2>
         <fieldset style={{ border: 'none', padding: 0, margin: '0 0 12px' }}>
           <legend style={{ fontWeight: 700, marginBottom: 4 }}>What</legend>

@@ -50,7 +50,7 @@ export function MusicMenu({ show, setShow, audio, onAudio, useMusic, setUseMusic
           {!m && <p style={{ margin: 0, fontSize: 12 }}>Load the show's recording, then tap along on each count, or take the counts from the score's MIDI. Playback then follows the music.</p>}
           {m && <p style={{ margin: 0, fontSize: 12 }}><strong>{m.name}</strong><br />
             {m.taps.length ? `${m.taps.length} of ${total + 1} counts tapped${m.taps.length < total + 1 ? '; later counts keep the last pace' : ''}.` : 'No counts tapped yet.'}</p>}
-          {m && !audio && <p role="alert" style={{ margin: 0, fontSize: 12, color: '#f5c518' }}>The recording isn't in this browser. Load {m.name} again to hear it.</p>}
+          {m && !audio && <p role="alert" style={{ margin: 0, fontSize: 12, color: 'var(--warn)' }}>The recording isn't in this browser. Load {m.name} again to hear it.</p>}
           <button onClick={() => file.current?.click()}>{m ? 'Replace or reload music…' : 'Load music (mp3)…'}</button>
           {m && <button disabled={!audio} onClick={() => { setTapping(true); close(); }}>Tap counts…</button>}
           {m && <button onClick={() => midiFile.current?.click()} title="Use when the music was rendered from this score's MIDI. Each set's counts are placed in the measures typed for it.">Counts from the score's MIDI…</button>}
@@ -86,7 +86,7 @@ function TapDialog({ audio, total, onDone }: { audio: HTMLAudioElement; total: n
   const n = taps.length;
   return (
     <div role="dialog" aria-modal="true" aria-label="Tap counts" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'grid', placeItems: 'center', zIndex: 30, whiteSpace: 'normal' }}>
-      <div style={{ background: '#1d2a1f', border: '1px solid #44594a', borderRadius: 10, padding: 20, width: 440, maxWidth: 'calc(100vw - 32px)' }}>
+      <div style={{ background: 'var(--bg)', border: '1px solid var(--line-strong)', borderRadius: 10, padding: 20, width: 440, maxWidth: 'calc(100vw - 32px)' }}>
         <h2 style={{ margin: '0 0 6px', fontSize: 18 }}>Tap the counts</h2>
         <p style={{ margin: '0 0 12px', fontSize: 13, opacity: 0.85 }}>
           Press <strong>Space</strong> (or the button) on every count, starting with count 0, where set 1 stands. Keep tapping as long as you

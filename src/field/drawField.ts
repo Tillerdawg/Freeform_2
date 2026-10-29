@@ -1,3 +1,4 @@
+import { PALETTE } from '../ui/palette';
 import { placeLabels, turned } from './labels';
 import type { LabelSide } from '../engine/show';
 import { FIELD_WIDTH, GOAL_LINE_X, HASHES, STEP_IN, type HashPreset, type Point } from '../engine/coords';
@@ -23,7 +24,7 @@ export function fitView(w: number, h: number): View {
 
 /** Colors for the screen (green turf) and for paper (black on white, easy on toner and copiers). */
 export const THEMES = {
-  screen: { bg: '#1d2a1f', turf: '#357842', gridMinor: 'rgba(255,255,255,0.15)', gridMajor: 'rgba(255,255,255,0.32)', line: '#fff', number: 'rgba(255,255,255,0.9)' },
+  screen: { bg: PALETTE.bg, turf: PALETTE.turf, gridMinor: 'rgba(255,255,255,0.15)', gridMajor: 'rgba(255,255,255,0.32)', line: '#fff', number: 'rgba(255,255,255,0.9)' },
   print: { bg: '#fff', turf: '#fff', gridMinor: 'rgba(0,0,0,0.07)', gridMajor: 'rgba(0,0,0,0.2)', line: '#000', number: '#555' },
 };
 export type Theme = keyof typeof THEMES;
@@ -113,8 +114,8 @@ export function drawField(ctx: CanvasRenderingContext2D, v: View, hash: HashPres
   }
 }
 
-// Normal-step paths are dark so white letters and numbers stay readable where many paths cross (Jason, Option A); yellow/red still warn.
-export const TIER_COLOR = { ok: 'rgba(8,28,14,0.6)', yellow: '#f5c518', red: '#ff4d4d' } as const;
+// Normal-step paths in the interface's own dark green, so white letters and numbers stay readable where paths cross (Jason); yellow/red still warn.
+export const TIER_COLOR = { ok: PALETTE.bg, yellow: PALETTE.warn, red: '#ff4d4d' } as const;
 
 export interface Dot { id: string; label: string; at: Point; pin?: LabelSide; color?: string; glyph?: string } // glyph: draw this letter instead of a dot
 export interface Path { from: Point; to: Point; tier: keyof typeof TIER_COLOR }
@@ -199,14 +200,14 @@ export function drawPerformers(
     const c = toScreen(v, d.at);
     const sel = selected.has(d.id);
     if (d.glyph) {
-      drawGlyph(ctx, c, d.glyph, f, sel ? '#111' : d.color ?? '#fff', sel ? '#ffd166' : undefined);
+      drawGlyph(ctx, c, d.glyph, f, sel ? '#111' : d.color ?? '#fff', sel ? PALETTE.gold : undefined);
       continue;
     }
     ctx.beginPath(); ctx.arc(c.x, c.y, r, 0, Math.PI * 2);
-    ctx.fillStyle = sel ? '#ffd166' : d.color ?? '#111';
+    ctx.fillStyle = sel ? PALETTE.gold : d.color ?? '#111';
     ctx.fill();
     ctx.lineWidth = Math.max(1.5, r * 0.25);
-    ctx.strokeStyle = sel ? '#fff' : d.color ? '#111' : '#ffd166'; // a colored dot gets a dark ring so light colors show on the turf
+    ctx.strokeStyle = sel ? '#fff' : d.color ? '#111' : PALETTE.gold; // a colored dot gets a dark ring so light colors show on the turf
     ctx.stroke();
   }
   drawLabels(ctx, dots.map((d) => ({ ...d, first: selected.has(d.id) })), v, r, Math.max(10 * dpr, s * 0.8), '#fff', 'rgba(0,0,0,0.85)'); // at least 10 CSS px: smaller isn't readable; black outline so yard lines don't swallow them
@@ -214,7 +215,7 @@ export function drawPerformers(
   if (box) {
     const a = toScreen(v, box[0]), b = toScreen(v, box[1]);
     ctx.fillStyle = 'rgba(255,209,102,0.12)';
-    ctx.strokeStyle = '#ffd166';
+    ctx.strokeStyle = PALETTE.gold;
     ctx.lineWidth = 1;
     ctx.fillRect(a.x, a.y, b.x - a.x, b.y - a.y);
     ctx.strokeRect(a.x, a.y, b.x - a.x, b.y - a.y);
@@ -227,7 +228,7 @@ export function drawShape(
   controls: boolean[] = [], arms: [Point, Point][] = [],
 ) {
   ctx.save();
-  ctx.strokeStyle = '#5ad1ff';
+  ctx.strokeStyle = PALETTE.blue;
   ctx.lineWidth = Math.max(1.5, v.scale * 0.1);
   ctx.setLineDash([6, 4]);
   ctx.beginPath();
@@ -245,7 +246,7 @@ export function drawShape(
   const r = HANDLE_PX * (window.devicePixelRatio || 1);
   handles.forEach((h, k) => {
     const s = toScreen(v, h);
-    ctx.fillStyle = '#5ad1ff';
+    ctx.fillStyle = PALETTE.blue;
     ctx.strokeStyle = '#0b2a36';
     ctx.lineWidth = 2;
     if (controls[k]) { // controls are circles; points the shape passes through are squares
@@ -271,7 +272,7 @@ export function drawMarks(ctx: CanvasRenderingContext2D, v: View, marks: Mark[],
   for (const m of marks) {
     const sel = m.id === selected;
     const stroke = (w: number, path: () => void) => {
-      if (sel) { ctx.strokeStyle = '#5ad1ff'; ctx.lineWidth = w + 6; ctx.beginPath(); path(); ctx.stroke(); }
+      if (sel) { ctx.strokeStyle = PALETTE.blue; ctx.lineWidth = w + 6; ctx.beginPath(); path(); ctx.stroke(); }
       ctx.strokeStyle = ink; ctx.lineWidth = w; ctx.beginPath(); path(); ctx.stroke();
     };
     if (m.kind === 'text') {
@@ -281,7 +282,7 @@ export function drawMarks(ctx: CanvasRenderingContext2D, v: View, marks: Mark[],
       ctx.textBaseline = 'alphabetic';
       const label = m.text || (theme === 'screen' ? '(type a note)' : '');
       ctx.lineWidth = 0.4 * s;
-      ctx.strokeStyle = sel ? '#5ad1ff' : halo;
+      ctx.strokeStyle = sel ? PALETTE.blue : halo;
       ctx.strokeText(label, q.x, q.y);
       ctx.fillStyle = m.text ? ink : 'rgba(255,255,255,0.5)';
       ctx.fillText(label, q.x, q.y);
