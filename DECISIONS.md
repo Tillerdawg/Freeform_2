@@ -595,3 +595,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
   - Bars between sets (the Mario G.P.s, m. 33 and 45) belong to no set, so the first count after them stretches across the G.P. (dots creep instead of holding).
   - Sets without measures count plain beats (the bottom note; dotted quarter in 6/8, 9/8, 12/8). Measure 1 is assumed to start at the top of the MIDI.
 - **Other options:** match by counts alone (needs a counts-per-meter setting; fails on in-one and G.P.s); MusicXML instead of MIDI (more work; MIDI already carries MuseScore's fermatas and tempo changes); render audio in the browser from the MIDI (needs a sound font in the app).
+
+## 2026-10-29 09:40 EDT — Sets hit on their last count; holds are sub-sets
+- **Who:** Jason Tiller (a set hits on the last count of the move, so the band steps off right away; holds are written as sub-sets, e.g. a 12-count hold after set 5 is set 5A on the hold's last beat); naming and counts by Claude *(Jason can veto)*
+- **Decision:** Confirms the count convention above (no change). **Counts from the score's MIDI…** now first adds a hold sub-set for bars no set's measures cover (G.P.s between moves; an intro before the first move): after set 4 it's 4A, after 4A it's 4B; same spots and label pins as the set before; its measures are those bars; one count per beat of them; note "Hold (m. 33)". It's part of the same undo step, and running it again adds nothing.
+- **Other options:** stretch the next move's first count across the gap (the old behavior: dots creep through the G.P.); a separate "hold" property on sets (not how drill writers think of it).
+- **Known limits:** a G.P. *inside* a set's measures is skipped for counting, but the set's move still runs straight through it, as the 2008 import has only each set's final page (Pyware's per-count pages are a backlog item). Imported Pyware sets are numbered 1, 2, 3…, not by their Pyware names, so hold names follow Freeform's numbers.

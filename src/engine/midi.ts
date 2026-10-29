@@ -1,7 +1,8 @@
 // Counts from a score's MIDI file. The MIDI has the score's exact timing (tempo map, meters, fermatas as tempo
 // changes), so when the show's audio was rendered from the same MIDI, every count's time is known, nothing tapped.
 // Each set's counts are spread evenly over the measures typed in its Measures box: that one rule covers counting in
-// one, cut time, odd bars, and G.P. bars no set covers (the band holds there).
+// one, cut time, odd bars, and G.P. bars (withHolds gives bars no set covers a hold sub-set, as in Pyware).
+import { newId, type Show } from './show';
 
 export interface Midi {
   ppq: number; // ticks per quarter note
@@ -90,6 +91,33 @@ function place(m: Midi, bars: number[], n: number, bar: (k: number) => number, h
   return bars.flatMap((k) => Array.from({ length: per }, (_, j) => bar(k) + ((bar(k + 1) - bar(k)) * j) / per));
 }
 
+/**
+ * Bars that no set's measures cover (a G.P. between moves, or an intro before the first move) get a hold sub-set, as
+ * a Pyware drill writer would write it: named after the set before it (after 4: 4A; after 4A, or if 4A is taken: 4B), standing on that
+ * set's spots, one count per beat of those bars. Returns the show and the names added.
+ */
+export function withHolds(show: Show, m: Midi): { show: Show; added: string[] } {
+  const sets = [...show.sets], added: string[] = [], names = new Set(sets.map((x) => x.name));
+  let end = 0; // last bar covered so far
+  for (let i = 1; i < sets.length; i++) {
+    const r = range(sets[i].measures);
+    if (!r || r[0] < 1 || r[1] > m.measures.length) { end = 0; continue; } // unknown measures: don't guess a gap
+    if ((end || i === 1) && r[0] > end + 1) {
+      const a = end + 1, b = r[0] - 1, before = sets[i - 1];
+      let k = 0, name = '';
+      const base = before.name.replace(/[A-Z]+$/, ''); // after 4A comes 4B, not 4AA
+      do name = `${base}${String.fromCharCode(65 + k++)}`; while (names.has(name) && k < 26);
+      names.add(name);
+      const counts = m.measures.slice(a - 1, b).reduce((sum, x) => sum + x.beats, 0);
+      sets.splice(i, 0, { id: newId('set'), name, counts, pos: { ...before.pos }, ...(before.labels ? { labels: { ...before.labels } } : {}), measures: a === b ? `${a}` : `${a}–${b}`, note: `Hold (m. ${a === b ? a : `${a}–${b}`})` });
+      added.push(name);
+      i++;
+    }
+    end = r[1];
+  }
+  return { show: added.length ? { ...show, sets } : show, added };
+}
+
 /** "5–20", "5-20" or "69" → [5, 20]; anything else (pickups, notes) → null. */
 const range = (s?: string): [number, number] | null => {
   const r = s?.trim().match(/^(\d+)\s*(?:[–-]\s*(\d+))?$/);
@@ -107,7 +135,7 @@ export function countsFromMidi(m: Midi, sets: { name: string; counts: number; me
   const bar = (k: number) => m.measures[k - 1]?.start ?? m.measures[m.measures.length - 1].start + (k - m.measures.length) * beatAt(m, m.end) * 4;
   for (let i = 1; i < sets.length; i++) {
     const { counts: n, name } = sets[i], r = range(sets[i].measures), prev = ticks[ticks.length - 1];
-    if (r && r[1] >= r[0] && r[1] <= m.measures.length && (Number.isNaN(prev) || bar(r[0]) > prev)) {
+    if (r && r[0] >= 1 && r[1] >= r[0] && r[1] <= m.measures.length && (Number.isNaN(prev) || bar(r[0]) > prev)) {
       const all = Array.from({ length: r[1] - r[0] + 1 }, (_, k) => r[0] + k);
       const beats = all.reduce((s, k) => s + m.measures[k - 1].beats, 0);
       // A count on each beat; or on each beat of the bars that sound (a G.P. inside the set, where the band holds);
