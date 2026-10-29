@@ -6,7 +6,7 @@ import { decodeShow, fetchShow, LOAD_PREFIX, linkHash, parseHosted, SHARE_PREFIX
 import { Scanner } from './Scanner';
 import { isPhone } from './device';
 import { colorOf, label, locate, mark, moveSteps, parseShow, positionsAt, setAt, setStarts, type Show } from '../engine/show';
-import { drawField, drawLabels, drawMarks, drawPerformers, fitView, STEP_TEXT, toScreen, type View } from '../field/drawField';
+import { drawField, drawGlyph, drawLabels, drawMarks, drawPerformers, fitView, STEP_TEXT, toScreen, type View } from '../field/drawField';
 import { fmtStep } from '../ui/format';
 import { usePlayback } from '../ui/usePlayback';
 import { IconNext, IconPause, IconPlay, IconPrev } from '../ui/icons';
@@ -170,10 +170,13 @@ export function Perform() {
       const shown = !playing; // labels would jump around as dots move
       drawPerformers(ctx, v, show.performers.filter((p) => positions[p.id]).map((p) => { const m = mark(show, p); return { id: p.id, label: shown ? m.label : '', glyph: m.glyph, at: positions[p.id], pin: onSet >= 0 ? show.sets[onSet].labels?.[p.id] : undefined, color: colorOf(show, p) }; }), new Set(), [], undefined, dpr);
     } else {
-      const s = v.scale;
+      const s = v.scale, letters = show.symbols !== 'dots', f = Math.max(11 * dpr, s * 1.1); // letter height, as in the staff view
+      const glyph = (id: string) => mark(show, show.performers.find((x) => x.id === id)!).glyph!;
+      const near = new Set(around.map((n) => n.id));
       for (const p of show.performers) {
         if (p.id === me.id || !positions[p.id]) continue;
         const q = toScreen(v, positions[p.id]);
+        if (letters) { if (!near.has(p.id)) drawGlyph(ctx, q, glyph(p.id), f, 'rgba(255,255,255,0.6)'); continue; } // the rest of the band, quieter
         ctx.fillStyle = 'rgba(255,255,255,0.45)';
         ctx.beginPath(); ctx.arc(q.x, q.y, Math.max(3, s * 0.3), 0, Math.PI * 2); ctx.fill();
       }
@@ -187,19 +190,24 @@ export function Perform() {
         ctx.beginPath(); ctx.arc(end.x, end.y, Math.max(6, s * 0.55), 0, Math.PI * 2); ctx.stroke();
       }
       const q = toScreen(v, positions[me.id]);
-      ctx.fillStyle = PALETTE.gold; ctx.strokeStyle = '#fff'; ctx.lineWidth = Math.max(2, s * 0.15);
-      ctx.beginPath(); ctx.arc(q.x, q.y, Math.max(7, s * 0.6), 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-      // Neighbors: a brighter dot each, so "who I'm next to" stands out from the rest of the band.
+      if (letters) drawGlyph(ctx, q, glyph(me.id), Math.max(16 * dpr, s * 1.3), '#111', PALETTE.gold); // me: my letter on a gold badge
+      else {
+        ctx.fillStyle = PALETTE.gold; ctx.strokeStyle = '#fff'; ctx.lineWidth = Math.max(2, s * 0.15);
+        ctx.beginPath(); ctx.arc(q.x, q.y, Math.max(7, s * 0.6), 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      }
+      // Neighbors: brighter, so "who I'm next to" stands out from the rest of the band.
       for (const n of around) {
         const nq = toScreen(v, positions[n.id]);
+        if (letters) { drawGlyph(ctx, nq, glyph(n.id), f, PALETTE.text); continue; }
         ctx.fillStyle = PALETTE.text;
         ctx.beginPath(); ctx.arc(nq.x, nq.y, Math.max(4, s * 0.38), 0, Math.PI * 2); ctx.fill();
       }
-      // Labels (upright either way, placed so they don't collide): mine first, then my nearest neighbors'.
+      // Labels (upright either way, placed so they don't collide): mine first, then my nearest neighbors'. With letters, just the number.
+      const text = (id: string) => mark(show, show.performers.find((x) => x.id === id)!).label;
       drawLabels(ctx, [
-        { id: me.id, label: label(show, me), at: positions[me.id], first: true, px: 14 * dpr, color: '#fff' },
-        ...(!playing ? around : []).map((n) => ({ id: n.id, label: label(show, show.performers.find((x) => x.id === n.id)!), at: positions[n.id] })),
-      ], v, Math.max(7, s * 0.6), 12 * dpr, PALETTE.text, 'rgba(0,0,0,0.65)');
+        { id: me.id, label: text(me.id), at: positions[me.id], first: true, px: 14 * dpr, color: '#fff' },
+        ...(!playing ? around : []).map((n) => ({ id: n.id, label: text(n.id), at: positions[n.id] })),
+      ], v, letters ? f * 0.55 : Math.max(7, s * 0.6), 12 * dpr, PALETTE.text, 'rgba(0,0,0,0.65)');
     }
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     if (follow || zoom > 1) {
