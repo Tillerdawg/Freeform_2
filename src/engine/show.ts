@@ -271,7 +271,7 @@ export function positionsAt(show: Show, t: number): Record<string, Point> {
 }
 
 /** A count-by-count path still belongs to its move: one spot per count, ends on the two sets' spots. */
-const pathFits = (path: Point[], from: Point | undefined, to: Point | undefined, counts: number) =>
+export const pathFits = (path: Point[], from: Point | undefined, to: Point | undefined, counts: number) =>
   !!from && !!to && path.length === counts + 1 && near(path[0], from) && near(path[counts], to);
 const near = (p: Point, q: Point) => Math.abs(p.x - q.x) < 1e-6 && Math.abs(p.y - q.y) < 1e-6;
 
