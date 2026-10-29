@@ -681,3 +681,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 ## 2026-10-29 12:30 EDT — Path lines follow count-by-count routes
 - **Who:** Jason Tiller (yes); by Claude
 - **Decision:** In the editor, a move that has a count-by-count path (imported from Pyware) draws its path line through every count's spot, skipping counts where the performer stands still; color = the move's step-size tier (its biggest single count). Plain moves are unchanged. The phone's own-path line already sampled count by count. Checked on Duel of the Fates set 9 (follow-the-leader corners) and Indiana Jones set 18 (rotations draw as circles).
+
+## 2026-10-29 12:40 EDT — Even steps in every move
+- **Who:** Jason Tiller (all animations move performers with consistent, even step sizes; no move may have one big step); method by Claude *(Jason can veto)*
+- **Decision:** On import, each count-by-count path is re-spaced so every count of a moving stretch covers the same distance along the route (`evenPath`): the route (arcs, follow-the-leader corners) is kept, counts standing still (holds, mark time before a delayed step-off) stay still, ends are unchanged. Fixes Pyware pages that jump on count 1 (e.g. Indiana Jones set 13: 7 steps on count 1, then 1 per count → even), Nightmare set 12, Dream On set 5. Straight moves were already even (linear). On a count that turns a corner the straight-line distance looks shorter (part one way, part the other), but the distance marched is the same. Standing rule added to CLAUDE.md.
+- **Known limit:** a stretch that moves, holds, then moves again is even within each stretch, but the two stretches can have different step sizes (as written).
+- **Other options:** even the whole move including holds (would erase holds); leave Pyware's spacing.

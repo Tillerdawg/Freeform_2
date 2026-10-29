@@ -270,6 +270,33 @@ export function positionsAt(show: Show, t: number): Record<string, Point> {
   return out;
 }
 
+/**
+ * Even steps along a count-by-count path: performers march a move with one step size, so within each stretch of
+ * counts where the performer is moving, the spots are re-spaced evenly along the same route (corners and arcs kept).
+ * Counts standing still (holds, mark time before a delayed step-off) stay still. Ends are unchanged.
+ */
+export function evenPath(path: Point[], still = 0.02): Point[] {
+  const out = path.map((p) => ({ ...p }));
+  const d = (a: Point, b: Point) => Math.hypot(b.x - a.x, b.y - a.y);
+  for (let a = 0; a < path.length - 1; ) {
+    if (d(path[a], path[a + 1]) <= still) { a++; continue; }
+    let b = a + 1;
+    while (b < path.length - 1 && d(path[b], path[b + 1]) > still) b++; // counts a..b-1 move: one stretch
+    const cum = [0];
+    for (let k = a; k < b; k++) cum.push(cum[cum.length - 1] + d(path[k], path[k + 1]));
+    const total = cum[cum.length - 1];
+    for (let j = 1; j < b - a; j++) {
+      const want = (total * j) / (b - a);
+      let k = 0;
+      while (cum[k + 1] < want) k++;
+      const f = (want - cum[k]) / (cum[k + 1] - cum[k] || 1), p = path[a + k], q = path[a + k + 1];
+      out[a + j] = { x: p.x + (q.x - p.x) * f, y: p.y + (q.y - p.y) * f };
+    }
+    a = b;
+  }
+  return out;
+}
+
 /** A count-by-count path still belongs to its move: one spot per count, ends on the two sets' spots. */
 export const pathFits = (path: Point[], from: Point | undefined, to: Point | undefined, counts: number) =>
   !!from && !!to && path.length === counts + 1 && near(path[0], from) && near(path[counts], to);
