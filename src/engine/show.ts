@@ -7,7 +7,24 @@ import { validMark, type Mark } from './marks';
 /** `color`: optional #rrggbb the section's dots are drawn in. */
 export interface Section { id: string; name: string; letter: string; color?: string }
 export const COLOR_RE = /^#[0-9a-f]{6}$/i;
-export interface Performer { id: string; section: string; number: number }
+/** `name`: the person marching this dot (the roster), if assigned. */
+export interface Performer { id: string; section: string; number: number; name?: string }
+export const MAX_NAME = 100;
+
+/** Assign (or, with an empty string, clear) the people on these dots. */
+export const setNames = (show: Show, names: Record<string, string>): Show => ({
+  ...show,
+  performers: show.performers.map((p) => {
+    if (!(p.id in names)) return p;
+    const name = names[p.id].slice(0, MAX_NAME);
+    const { name: _, ...rest } = p;
+    return name.trim() ? { ...rest, name } : rest;
+  }),
+});
+
+/** The same show with no people's names: for plain share links, which anyone holding the link can read. */
+export const withoutNames = (show: Show): Show =>
+  show.performers.some((p) => p.name) ? { ...show, performers: show.performers.map(({ name: _, ...p }) => p) } : show;
 /** A set ("page"). `counts` = counts of the move INTO this set; ignored for the first set. */
 export interface DrillSet {
   id: string;
@@ -355,7 +372,7 @@ export function parseShow(text: string): Show {
   if (typeof s.title !== 'string') bad('title');
   if (s.music !== undefined && !validMusic(s.music)) bad('music');
   for (const x of s.sections) if (!str(x?.id) || !str(x.name) || !str(x.letter) || (x.color !== undefined && !COLOR_RE.test(x.color))) bad('section');
-  for (const x of s.performers) if (!str(x?.id) || !str(x.section) || !Number.isFinite(x.number)) bad('performer');
+  for (const x of s.performers) if (!str(x?.id) || !str(x.section) || !Number.isFinite(x.number) || (x.name !== undefined && (!str(x.name) || x.name.length > MAX_NAME))) bad('performer');
   for (const set of s.sets) {
     if (!str(set?.id) || !str(set.name) || !Number.isFinite(set.counts) || typeof set.pos !== 'object' || !set.pos) bad('set');
     if (set.measures !== undefined && !str(set.measures)) bad('set measures');

@@ -1,5 +1,5 @@
 // Share links: the whole show packed into the link itself (compressed), so there's no server to run or pay for.
-import { parseShow, type Show } from './show';
+import { parseShow, withoutNames, type Show } from './show';
 
 export const SHARE_PREFIX = '#show=';
 
@@ -19,7 +19,8 @@ const fromB64url = (s: string) => Uint8Array.from(atob(s.replace(/-/g, '+').repl
 
 /** The part after "#show=": the show as compressed, URL-safe text. Positions keep 3 decimals (1/1000 step). */
 export async function encodeShow(show: Show): Promise<string> {
-  return toB64url(await pipe(new TextEncoder().encode(JSON.stringify(show, tidy)), new CompressionStream('deflate-raw')));
+  // Names stay out of plain links (anyone with the link can read it); the encrypted hosted file keeps them.
+  return toB64url(await pipe(new TextEncoder().encode(JSON.stringify(withoutNames(show), tidy)), new CompressionStream('deflate-raw')));
 }
 
 /** Unpack a share link's payload. Links come from anywhere, so the result goes through the same checks as a file. */

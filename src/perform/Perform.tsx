@@ -244,7 +244,7 @@ export function Perform() {
           <option value={STAFF}>Staff (whole band)</option>
           {show.sections.map((sec) => {
             const ps = show.performers.filter((p) => p.section === sec.id).sort((a, b) => a.number - b.number);
-            return ps.length ? <optgroup key={sec.id} label={sec.name}>{ps.map((p) => <option key={p.id} value={p.id}>{label(show, p)}</option>)}</optgroup> : null;
+            return ps.length ? <optgroup key={sec.id} label={sec.name}>{ps.map((p) => <option key={p.id} value={p.id}>{label(show, p)}{p.name ? ` · ${p.name}` : ''}</option>)}</optgroup> : null;
           })}
         </select>
         <span className="perform-title">{error ? <span role="alert" title={error} style={{ color: '#f99' }}>{error} Showing your saved copy. </span>

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { decodeShow, encodeShow, fetchShow, hostedLink, linkHash, lockShow, newKey, parseHosted } from './share';
 import { qrSvg } from './qr';
-import { addPerformer, addSetAfter, newShow, placeInSet, setCue } from './show';
+import { addPerformer, addSetAfter, newShow, placeInSet, setCue, setNames } from './show';
 
 function band(n: number, sets: number) {
   let s = newShow();
@@ -69,6 +69,14 @@ describe('hosted links', () => {
     await expect(fetchShow('#load=' + encodeURIComponent(gist), serve(file))).rejects.toThrow(/missing its key/);
     const tampered = JSON.stringify({ ...JSON.parse(file), data: JSON.parse(file).data.replace(/^./, (c: string) => (c === 'A' ? 'B' : 'A')) });
     await expect(fetchShow(link, serve(tampered))).rejects.toThrow(/key doesn't open/);
+  });
+  it('keeps names out of plain share links, but in the encrypted hosted file', async () => {
+    const { s, ids } = band(3, 2);
+    const named = setNames(s, { [ids[0]]: 'Pat Example' });
+    const back = await decodeShow(await encodeShow(named));
+    expect(back.performers.every((p) => p.name === undefined)).toBe(true);
+    expect(named.performers[0].name).toBe('Pat Example'); // the show itself is untouched
+    expect((await fetchShow(hashOf(hostedLink('x/', gist, key)), serve(await lockShow(named, key)))).performers[0].name).toBe('Pat Example');
   });
   it('downloads and checks the file', async () => {
     const show = band(4, 2).s;

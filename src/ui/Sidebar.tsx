@@ -1,9 +1,9 @@
 import { clearStartingSections, hasOwnStartingSections, saveStartingSections } from './startingSections';
-import { useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { readout, type HashPreset } from '../engine/coords';
 import type { Shape, ShapeKind } from '../engine/shapes';
 import {
-  setCue, setMarks, setNote, label, locate, newId, moveToSection, removeSection, duplicateLetters, renumberSection, placeInSet, remapHash, positionsAt, xFrom, yFrom,
+  MAX_NAME, setCue, setMarks, setNames, setNote, label, locate, newId, moveToSection, removeSection, duplicateLetters, renumberSection, placeInSet, remapHash, positionsAt, xFrom, yFrom,
   type FrontDir, type FrontRef, type Show, type SideDir,
 } from '../engine/show';
 
@@ -113,6 +113,13 @@ export function Sidebar(p: Props) {
         {selected.size === 0 && <p style={{ opacity: 0.7, margin: '6px 0 0' }}>Click a performer, shift-click to add, or drag a box.</p>}
         {selected.size > 1 && <p style={{ margin: '6px 0 0' }}>{selected.size} performers selected</p>}
         {onSet < 0 && <p style={{ color: '#f5c518', margin: '6px 0 0' }}>Mid-move: you can select, but scrub to a set to move or add.</p>}
+        {one && (
+          <label style={{ display: 'block', marginTop: 8 }}>Name
+              <input aria-label="Performer's name" value={one.name ?? ''} placeholder={`Who marches ${label(show, one)}?`} maxLength={MAX_NAME}
+                style={{ display: 'block', width: '100%', boxSizing: 'border-box', marginTop: 2 }}
+                onChange={(e) => setShow((s) => setNames(s, { [one.id]: e.target.value }))} />
+          </label>
+        )}
         {selected.size > 0 && (() => {
           const secs = new Set(show.performers.filter((x) => selected.has(x.id)).map((x) => x.section));
           return (
@@ -190,7 +197,34 @@ export function Sidebar(p: Props) {
       </section>
 
       <SectionsEditor show={show} setShow={setShow} cur={cur} />
+      <Roster show={show} setShow={setShow} selected={selected} setSelected={p.setSelected} />
     </aside>
+  );
+}
+
+/** Who marches each dot. Click a label to select that performer on the field. */
+function Roster({ show, setShow, selected, setSelected }: { show: Show; setShow: Props['setShow']; selected: Set<string>; setSelected: (s: Set<string>) => void }) {
+  const order = new Map(show.sections.map((s, i) => [s.id, i]));
+  const rows = [...show.performers].sort((a, b) => (order.get(a.section) ?? 0) - (order.get(b.section) ?? 0) || a.number - b.number);
+  const named = show.performers.filter((x) => x.name).length;
+  return (
+    <details style={box}>
+      <summary><strong>Roster</strong> <span style={{ fontSize: 12, opacity: 0.7 }}>({named} of {show.performers.length} named)</span></summary>
+      <p style={{ margin: '6px 0 0', fontSize: 12, opacity: 0.75 }}>
+        Who marches each dot. Names are saved with the show and in encrypted hosted links, but not in plain share links.
+      </p>
+      {!rows.length && <p style={{ margin: '6px 0 0', opacity: 0.7 }}>No performers yet.</p>}
+      <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '4px 6px', alignItems: 'center', marginTop: 6 }}>
+        {rows.map((x) => (
+          <Fragment key={x.id}>
+            <button onClick={() => setSelected(new Set([x.id]))} aria-pressed={selected.has(x.id)} title="Select this performer"
+              style={{ padding: '0 6px', minWidth: 40, fontWeight: selected.has(x.id) ? 700 : 400 }}>{label(show, x)}</button>
+            <input aria-label={`Name for ${label(show, x)}`} value={x.name ?? ''} maxLength={MAX_NAME} placeholder="(no one yet)"
+              onChange={(e) => setShow((s) => setNames(s, { [x.id]: e.target.value }))} style={{ minWidth: 0 }} />
+          </Fragment>
+        ))}
+      </div>
+    </details>
   );
 }
 
