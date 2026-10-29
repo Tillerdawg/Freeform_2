@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { countsFromMidi, parseMidi } from '../engine/midi';
 import { synced } from '../engine/music';
 import { newId, totalCounts, type Show } from '../engine/show';
 import { deleteAudio, putAudio } from './audioStore';
@@ -15,7 +16,7 @@ interface Props {
 
 /** Load the show's recording, tap its counts, and choose whether playback follows it. */
 export function MusicMenu({ show, setShow, audio, onAudio, useMusic, setUseMusic }: Props) {
-  const file = useRef<HTMLInputElement>(null);
+  const file = useRef<HTMLInputElement>(null), midiFile = useRef<HTMLInputElement>(null);
   const [note, setNote] = useState('');
   const [tapping, setTapping] = useState(false);
   const m = show.music, total = totalCounts(show);
@@ -30,23 +31,33 @@ export function MusicMenu({ show, setShow, audio, onAudio, useMusic, setUseMusic
     onAudio(id);
     setNote(keep ? 'Loaded. Your tapped counts still apply.' : 'Loaded. Now tap the counts.');
   };
+  // Counts from the score's MIDI: exact when the loaded music was rendered from that same MIDI.
+  const fromMidi = async (f: File) => {
+    try {
+      const r = countsFromMidi(parseMidi(await f.arrayBuffer()), show.sets);
+      setShow((s) => (s.music ? { ...s, music: { ...s.music, taps: r.taps } } : s));
+      setNote([`Counts from ${f.name}: ${r.matched} of ${show.sets.length - 1} sets placed by their measures${r.matched < show.sets.length - 1 ? '; the rest count plain beats' : ''}.`, ...r.notes].join(' '));
+    } catch (e) { setNote(e instanceof Error ? e.message : "That MIDI file couldn't be read."); }
+  };
   const label = !m ? 'Music' : synced(m) && useMusic && audio ? '♪ Music' : 'Music';
   return (
     <>
       <Menu label={label} pressed={!!(m && synced(m) && useMusic && audio)} title="Play the drill with the show's recording">
         {(close) => <>
-          {!m && <p style={{ margin: 0, fontSize: 12 }}>Load the show's recording, then tap along on each count. Playback then follows the music.</p>}
+          {!m && <p style={{ margin: 0, fontSize: 12 }}>Load the show's recording, then tap along on each count, or take the counts from the score's MIDI. Playback then follows the music.</p>}
           {m && <p style={{ margin: 0, fontSize: 12 }}><strong>{m.name}</strong><br />
             {m.taps.length ? `${m.taps.length} of ${total + 1} counts tapped${m.taps.length < total + 1 ? '; later counts keep the last pace' : ''}.` : 'No counts tapped yet.'}</p>}
           {m && !audio && <p role="alert" style={{ margin: 0, fontSize: 12, color: '#f5c518' }}>The recording isn't in this browser. Load {m.name} again to hear it.</p>}
           <button onClick={() => file.current?.click()}>{m ? 'Replace or reload music…' : 'Load music (mp3)…'}</button>
           {m && <button disabled={!audio} onClick={() => { setTapping(true); close(); }}>Tap counts…</button>}
+          {m && <button onClick={() => midiFile.current?.click()} title="Use when the music was rendered from this score's MIDI. Each set's counts are placed in the measures typed for it.">Counts from the score's MIDI…</button>}
           {m && synced(m) && <label style={{ fontSize: 13 }}><input type="checkbox" checked={useMusic} onChange={(e) => setUseMusic(e.target.checked)} /> Play with music (off: use Tempo)</label>}
           {m && <button className="danger" onClick={() => { deleteAudio(m.audioId); setShow((s) => { const { music: _, ...rest } = s; return rest; }); setNote(''); }}>Remove music</button>}
           {note && <p role="status" style={{ margin: 0, fontSize: 12 }}>{note}</p>}
         </>}
       </Menu>
       <input ref={file} type="file" accept="audio/*,.mp3,.m4a,.wav,.aac" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) load(f); e.target.value = ''; }} />
+      <input ref={midiFile} type="file" accept=".mid,.midi,audio/midi" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) fromMidi(f); e.target.value = ''; }} />
       {tapping && audio && m && <TapDialog audio={audio} total={total} onDone={(taps) => { setTapping(false); if (taps) setShow((s) => (s.music ? { ...s, music: { ...s.music, taps } } : s)); }} />}
     </>
   );
