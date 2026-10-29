@@ -673,3 +673,7 @@ Each entry: timestamp, who decided, context, options considered, decision.
 ## 2026-10-29 12:15 EDT — Legible beats pretty: contrast targets
 - **Who:** Jason Tiller (always keep good contrast between elements; when in doubt, legible is better than aesthetic); targets and fixes by Claude *(Jason can veto)*
 - **Decision:** Standing rule in CLAUDE.md: text ≥ 4.5:1, lines and shapes ≥ 3:1 (WCAG), checked by `palette.test.ts`. Fixes from measuring the palette: normal paths use bg-deep (2.8 → 3.0:1 on the turf); yellow/red step paths keep their colors but get a dark casing (red alone was 1.6:1 on the turf); step-size text on panels uses warn/danger, not the field's red (was 3.6–4.2:1); the timeline's current move is surface-2 with a gold bottom bar instead of green (red text on it was 2.5:1); "done" green brightened (#5d9b6c → #7cc08b, 4.2 → 6.4:1). The field's red joined the palette as step-red.
+
+## 2026-10-29 12:20 EDT — Letters in the phone's own-spot view too
+- **Who:** Jason Tiller (yes, do it); look by Claude *(Jason can veto)*
+- **Decision:** In a performer's own view on the phone, with Letters on: their own spot is their letter on a gold badge (larger), their nearest neighbors are bright letters labeled with their numbers, the rest of the band are quieter letters (60% white, outlined) without numbers. With Dots, it's unchanged.
