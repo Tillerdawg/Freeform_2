@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { decodeShow, encodeShow, fetchShow, hostedLink, linkHash, lockShow, newKey, parseHosted } from './share';
+import { decodeShow, encodeShow, fetchHosted, fetchShow, hostedLink, linkHash, lockShow, newKey, parseHosted } from './share';
 import { qrSvg } from './qr';
 import { addPerformer, addSetAfter, newShow, placeInSet, setCue, setNames } from './show';
 
@@ -69,6 +69,21 @@ describe('hosted links', () => {
     await expect(fetchShow('#load=' + encodeURIComponent(gist), serve(file))).rejects.toThrow(/missing its key/);
     const tampered = JSON.stringify({ ...JSON.parse(file), data: JSON.parse(file).data.replace(/^./, (c: string) => (c === 'A' ? 'B' : 'A')) });
     await expect(fetchShow(link, serve(tampered))).rejects.toThrow(/key doesn't open/);
+  });
+  it('carries the recording, encrypted with the same key, when the show has music', async () => {
+    const show = { ...band(4, 2).s, music: { name: 'opener.mp3', audioId: 'a1', taps: [0, 0.5, 1] } };
+    const sound = new Blob([new Uint8Array([73, 68, 51, 4, 0, 9, 8, 7])], { type: 'audio/mpeg' });
+    const file = await lockShow(show, key, sound);
+    expect(file).not.toContain(btoa('ID3').slice(0, 3)); // the audio is ciphertext too
+    const link = hashOf(hostedLink('x/', gist, key));
+    const got = await fetchHosted(link, serve(file));
+    expect(got.show.music?.taps).toEqual([0, 0.5, 1]);
+    expect(got.audio?.type).toBe('audio/mpeg');
+    expect([...new Uint8Array(await got.audio!.arrayBuffer())]).toEqual([73, 68, 51, 4, 0, 9, 8, 7]);
+    expect((await fetchHosted(link, serve(await lockShow(show, key)))).audio).toBeUndefined(); // left out: no recording
+    expect(JSON.parse(await lockShow(band(4, 2).s, key, sound)).audio).toBeUndefined(); // no taps: the recording isn't sent
+    const bad = JSON.stringify({ ...JSON.parse(file), audio: { ...JSON.parse(file).audio, type: 'text/html' } });
+    await expect(fetchHosted(link, serve(bad))).rejects.toThrow(/damaged/);
   });
   it('keeps names out of plain share links, but in the encrypted hosted file', async () => {
     const { s, ids } = band(3, 2);

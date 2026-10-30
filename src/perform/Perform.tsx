@@ -2,13 +2,15 @@ import { PALETTE } from '../ui/palette';
 // Performer / staff view: read-only playback of a shared show, centered on "my" dot. Built for phones (portrait).
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { readout, type Point } from '../engine/coords';
-import { decodeShow, fetchShow, LOAD_PREFIX, linkHash, parseHosted, SHARE_PREFIX } from '../engine/share';
+import { decodeShow, fetchHosted, LOAD_PREFIX, linkHash, parseHosted, SHARE_PREFIX } from '../engine/share';
 import { Scanner } from './Scanner';
 import { isPhone } from './device';
 import { colorOf, label, locate, mark, moveSteps, parseShow, positionsAt, setAt, setStarts, type Show } from '../engine/show';
 import { drawField, drawGlyph, drawLabels, drawMarks, drawPerformers, fitView, STEP_TEXT, toScreen, type View } from '../field/drawField';
 import { fmtStep } from '../ui/format';
 import { usePlayback } from '../ui/usePlayback';
+import { synced } from '../engine/music';
+import { deleteAudio, getAudio, putAudio } from '../ui/audioStore';
 import { IconNext, IconPause, IconPlay, IconPrev } from '../ui/icons';
 import { describe, nearest, yardLabel } from './neighbors';
 import { panCenter, pinchZoom } from './gestures';
@@ -41,9 +43,18 @@ export function Perform() {
   const dpr = window.devicePixelRatio || 1;
 
   const [notice, setNotice] = useState('');
+  const [audioVer, setAudioVer] = useState(0); // bumped when a recording arrives, to (re)load it
+  // The show's recording from a hosted file goes in this phone's storage (too big for localStorage), under the show's audio id.
+  const keepAudio = async (show: Show, audio: Blob | undefined, prev: Show | undefined) => {
+    if (!audio || !show.music) return;
+    if (await putAudio(show.music.audioId, audio)) setAudioVer((v) => v + 1);
+    const old = prev?.music?.audioId;
+    if (old && old !== show.music.audioId) deleteAudio(old);
+  };
   // Keep a newly arrived show on this phone; keep "who I am" if that performer is still in it.
-  const adopt = (show: Show, source: string | undefined, fresh: boolean) => {
+  const adopt = (show: Show, source: string | undefined, fresh: boolean, audio?: Blob) => {
     const prev = loadSaved();
+    keepAudio(show, audio, prev?.show);
     const keepMe = prev?.me && (prev.me === STAFF || show.performers.some((p) => p.id === prev.me)) ? prev.me : null;
     const next = { show, me: keepMe, facingFront: prev?.facingFront ?? false, follow: prev?.follow ?? true, source };
     save(next); setState(next); setError('');
@@ -60,14 +71,16 @@ export function Perform() {
     }
     if (location.hash.startsWith(LOAD_PREFIX)) {
       const hash = location.hash;
-      fetchShow(hash).then((show) => { adopt(show, hash, true); done(); }).catch(fail);
+      fetchHosted(hash).then((r) => { adopt(r.show, hash, true, r.audio); done(); }).catch(fail);
       return;
     }
     // Reopening a hosted show: quietly check for a newer version when online. Offline, the saved copy is used.
     const saved = loadSaved();
     if (saved?.source && navigator.onLine) {
-      fetchShow(saved.source).then((show) => {
-        if (JSON.stringify(show) !== JSON.stringify(saved.show)) { adopt(show, saved.source, false); setNotice('Show updated.'); }
+      // shortcut: re-downloads the whole file (recording included) on each open when online; fine for a few MB, add a version check if files get big.
+      fetchHosted(saved.source).then(({ show, audio }) => {
+        if (JSON.stringify(show) !== JSON.stringify(saved.show)) { adopt(show, saved.source, false, audio); setNotice('Show updated.'); }
+        else keepAudio(show, audio, saved.show); // same show; the recording may be new (added to the file later)
       }).catch(() => { /* keep the saved copy */ });
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -78,7 +91,18 @@ export function Perform() {
   const starts = useMemo(() => (show ? setStarts(show) : [0]), [show]);
   const total = starts.at(-1)!;
   const span = useMemo<[number, number]>(() => [0, total], [total]);
-  usePlayback(playing, setPlaying, t, setT, bpm, span, false, total);
+  // Play with the recording when this phone has it and the show has tapped counts; "♪ Music" off goes back to Tempo.
+  const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
+  const [useMusic, setUseMusic] = useState(true);
+  const audioId = synced(show?.music) ? show!.music!.audioId : null;
+  useEffect(() => {
+    if (!audioId) { setAudio(null); return; }
+    let url = '', live = true;
+    getAudio(audioId).then((b) => { if (!live || !b) return; url = URL.createObjectURL(b); const a = new Audio(url); a.preload = 'auto'; setAudio(a); });
+    return () => { live = false; setAudio((a) => { a?.pause(); return null; }); if (url) URL.revokeObjectURL(url); };
+  }, [audioId, audioVer]);
+  const music = useMemo(() => (audio && useMusic && show?.music ? { audio, taps: show.music.taps } : null), [audio, useMusic, show?.music]);
+  usePlayback(playing, setPlaying, t, setT, bpm, span, false, total, music);
 
   // Keep the screen awake while the show plays (where the browser allows it), so the phone doesn't dim mid-rep.
   useEffect(() => {
@@ -339,9 +363,10 @@ export function Perform() {
         <input type="range" aria-label="Count" min={0} max={total} step={1} value={t} onChange={(e) => { setPlaying(false); setT(Number(e.target.value)); }} disabled={!total} />
         <div className="perform-buttons">
           <button style={btn} aria-label="Previous count" onClick={() => { setPlaying(false); setT(Math.max(0, Math.ceil(t) - 1)); }}><IconPrev /></button>
-          <button style={btn} aria-label={playing ? 'Pause' : 'Play'} disabled={!total || (!playing && t >= total)} title={t >= total ? 'End of the show: tap set 1 (or another set) to play from there' : undefined} onClick={() => setPlaying(!playing)}>{playing ? <IconPause /> : <IconPlay />}</button>
+          <button style={btn} aria-label={playing ? 'Pause' : 'Play'} disabled={!total || (!playing && t >= total)} title={t >= total ? 'End of the show: tap set 1 (or another set) to play from there' : undefined} onClick={() => { if (!playing && music) music.audio.play().catch(() => {}); /* start sound inside the tap: phones only allow it there */ setPlaying(!playing); }}>{playing ? <IconPause /> : <IconPlay />}</button>
           <button style={btn} aria-label="Next count" onClick={() => { setPlaying(false); setT(Math.min(total, Math.floor(t) + 1)); }}><IconNext /></button>
-          <label style={{ fontSize: 14 }}><input aria-label="Tempo" type="number" min={20} max={300} value={bpm} onChange={(e) => setBpm(Number(e.target.value) || 120)} style={{ width: 52, fontSize: 16 }} /> bpm</label>
+          {audio && <button aria-pressed={useMusic} title={useMusic ? 'Playing with the music. Tap to use a tempo instead.' : 'Play with the music'} onClick={() => { setPlaying(false); setUseMusic(!useMusic); }} style={{ fontSize: 14, minHeight: 40 }}>♪ Music</button>}
+          {!music && <label style={{ fontSize: 14 }}><input aria-label="Tempo" type="number" min={20} max={300} value={bpm} onChange={(e) => setBpm(Number(e.target.value) || 120)} style={{ width: 52, fontSize: 16 }} /> bpm</label>}
         </div>
       </footer>
     </div>

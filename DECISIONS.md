@@ -704,5 +704,11 @@ Each entry: timestamp, who decided, context, options considered, decision.
 ## 2026-10-30 12:50 EDT — Pickups are measure 1, everywhere
 - **Who:** Jason Tiller
 - **Context:** the Measures box used "pickups are measure 0" (2026-10-23), but scores number the pickup bar m. 1, and counts from the MIDI now follow the score.
-- **Decision:** a pickup bar is m. 1 in typed measures too, matching the printed score. The Measures box hint for set 1 now reads "e.g. 1 or 1–4". The box is still free text; a show typed the old way ("0–4") just needs its numbers raised by one to match a MIDI.
+- **Decision:** a pickup bar is m. 1 in typed measures too, matching the printed score. The Measures box hint for set 1 now reads "e.g. 1–4". The box is still free text; a show typed the old way ("0–4") just needs its numbers raised by one to match a MIDI.
 - **Other options:** support both (detect m. 0 in typed measures).
+
+## 2026-10-30 13:30 EDT — Music on phones
+- **Who:** Jason Tiller (music on phones: yes, earlier; asked to build it now); details by Claude *(Jason can veto)*
+- **Decision:** the locked hosted file gets an optional `audio` part: the recording, encrypted with the show's key (its own nonce), with its type. Only sent when the show has tapped counts. The Share dialog's **Include the music** is on by default and shows the size. The phone stores the recording in its browser storage under the show's audio id (replacing the old one), and plays along by the show's counts. **♪ Music** on the phone switches to a tempo for slow practice; the tempo box hides while the music is on. Sound starts inside the Play tap, since phones only allow sound there. Files are capped at 40 MB, the recording at 25 MB, and the audio type must be `audio/…`.
+- **Other options:** host the audio as a separate file (two uploads for the director); stream instead of storing (no offline use).
+- **Known limit:** phones re-download the whole file (recording included) on each online reopen to check for updates. Big files on a gist are untested.
