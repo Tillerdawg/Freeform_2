@@ -260,7 +260,7 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Other options:** computed from a meter map (counts per measure + changes + pickup), or computed with per-set override. Revisit with music sync, where a meter map is needed anyway.
 - **Note:** typed measures don't update when a move's counts change. The drill writer edits them.
 
-## 2026-10-23 08:55 EDT — Pickups are measure 0
+## 2026-10-23 08:55 EDT — Pickups are measure 0 *(superseded 2026-10-30: pickups are m. 1)*
 - **Who:** Jason Tiller
 - **Decision:** A pickup is written as measure 0 ("0", "0–4"), not "pu". The Measures box hint and the examples use that convention. It's still free text, so nothing is enforced.
 
@@ -699,4 +699,10 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Context:** the 13:40 pickup detection guessed m. 0 from a padded first bar, which was a conversion artifact: MuseScore padded the one-beat pickup to a full 3/4 bar, putting two dead beats before m. 2. That padding was the two-beat lag.
 - **Decision:** Freeform no longer guesses: the MIDI's first bar is m. 1, as in the score. The score conversion gives the pickup its own short meter (1/4), so the MIDI and the recording have no dead beats. Dream On now fits every move (set 1A: the pickup + 7 bars of 3/4 = 22 counts).
 - **Other options:** keep detecting padded pickups as m. 0 (wrong for this score's numbering); trim the MIDI afterward.
-- **Open:** this goes against the 2026-10-23 "pickups are measure 0" convention for typed measures. A show typed that way would need its measures renumbered to match the MIDI.
+- **Open:** this goes against the 2026-10-23 "pickups are measure 0" convention for typed measures. *(Settled at 2026-10-30 12:50: pickups are m. 1 everywhere.)*
+
+## 2026-10-30 12:50 EDT — Pickups are measure 1, everywhere
+- **Who:** Jason Tiller
+- **Context:** the Measures box used "pickups are measure 0" (2026-10-23), but scores number the pickup bar m. 1, and counts from the MIDI now follow the score.
+- **Decision:** a pickup bar is m. 1 in typed measures too, matching the printed score. The Measures box hint for set 1 now reads "e.g. 1 or 1–4". The box is still free text; a show typed the old way ("0–4") just needs its numbers raised by one to match a MIDI.
+- **Other options:** support both (detect m. 0 in typed measures).
