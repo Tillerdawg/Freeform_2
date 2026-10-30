@@ -13,7 +13,7 @@ import { synced } from '../engine/music';
 import { deleteAudio, getAudio, putAudio } from '../ui/audioStore';
 import { IconNext, IconPause, IconPlay, IconPrev } from '../ui/icons';
 import { describe, nearest, yardLabel } from './neighbors';
-import { panCenter, pinchZoom } from './gestures';
+import { panCenter, pinchZoom, ZOOM_MAX } from './gestures';
 
 const STORE = 'freeform:performer'; // separate from the editor's autosave, so opening a link never touches a director's work
 const STAFF = 'staff';
@@ -119,6 +119,7 @@ export function Perform() {
   const [zoom, setZoom] = useState(1);
   const zoomRef = useRef(zoom);
   zoomRef.current = zoom;
+  const maxRef = useRef(ZOOM_MAX);
   const [center, setCenter] = useState({ x: 0, y: 42 });
   const touches = useRef(new Map<number, { x: number; y: number }>());
   const pinch = useRef<{ dist: number; zoom: number } | null>(null);
@@ -135,7 +136,7 @@ export function Perform() {
     const gap = (t: TouchList) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
     let start: { dist: number; zoom: number } | null = null;
     const down = (e: TouchEvent) => { if (e.touches.length === 2) { start = { dist: gap(e.touches), zoom: zoomRef.current }; e.preventDefault(); } };
-    const move = (e: TouchEvent) => { if (e.touches.length === 2 && start) { e.preventDefault(); setZoom(pinchZoom(start.zoom, start.dist, gap(e.touches))); } };
+    const move = (e: TouchEvent) => { if (e.touches.length === 2 && start) { e.preventDefault(); setZoom(pinchZoom(start.zoom, start.dist, gap(e.touches), maxRef.current)); } };
     const up = (e: TouchEvent) => { if (e.touches.length < 2) start = null; };
     c.addEventListener('touchstart', down, { passive: false });
     c.addEventListener('touchmove', move, { passive: false });
@@ -156,6 +157,9 @@ export function Perform() {
   }, [dpr, !!show]);
 
   const me = state?.me && state.me !== STAFF ? show?.performers.find((p) => p.id === state.me) : undefined;
+  // Both views zoom in as close as My view does at its max (the whole field starts much further out).
+  const maxZoom = me && state?.follow ? ZOOM_MAX : size[0] ? (ZOOM_MAX * size[0]) / FOLLOW_STEPS / fitView(size[0], size[1]).scale : ZOOM_MAX;
+  maxRef.current = maxZoom;
   const positions = useMemo(() => (show ? positionsAt(show, t) : {}), [show, t]);
   const onSet = show ? setAt(show, t) : -1;
   // Keep the current set's button in view as playback moves along a long show.
@@ -316,7 +320,7 @@ export function Perform() {
             touches.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
             if (touches.current.size === 2 && pinch.current) {
               const [a, b] = [...touches.current.values()];
-              setZoom(pinchZoom(pinch.current.zoom, pinch.current.dist, Math.hypot(a.x - b.x, a.y - b.y)));
+              setZoom(pinchZoom(pinch.current.zoom, pinch.current.dist, Math.hypot(a.x - b.x, a.y - b.y), maxZoom));
             }
             // In My view the camera stays on my dot; elsewhere, dragging (one finger or two) moves around the field.
             if (!(me && state!.follow) && viewRef.current) {

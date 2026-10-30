@@ -7,6 +7,7 @@ it('pinch zoom follows the finger spread, within limits', () => {
   expect(pinchZoom(1, 100, 10000)).toBe(ZOOM_MAX);
   expect(pinchZoom(1, 100, 1)).toBe(ZOOM_MIN);
   expect(pinchZoom(1.5, 0, 80)).toBe(1.5);
+  expect(pinchZoom(1, 100, 10000, 20)).toBe(20); // a view that starts zoomed further out may go further in
 });
 
 it('dragging moves the field with the finger, both ways round', () => {
