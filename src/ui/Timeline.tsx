@@ -159,7 +159,7 @@ export function SetControls({ show, setShow, t, setT }: { show: Show; setShow: (
           onChange={(e) => setShow((s) => setCounts(s, cur, Number(e.target.value)))} />
       </label>
       <label>Measures{' '}
-        <input aria-label="Measures" placeholder={cur > 0 ? 'e.g. 9–12' : 'e.g. 0 or 1'} value={show.sets[cur].measures ?? ''} style={{ width: 64 }}
+        <input aria-label="Measures" placeholder={cur > 0 ? 'e.g. 9–12' : 'e.g. 1 or 1–4'} value={show.sets[cur].measures ?? ''} style={{ width: 64 }}
           onChange={(e) => setShow((s) => setMeasures(s, cur, e.target.value))} />
       </label>
       <button onClick={() => { setShow((s) => addSetAfter(s, cur)); setT(starts[cur] + 16); }} title="Add a new set after this one (16 counts)">+ Add set</button>

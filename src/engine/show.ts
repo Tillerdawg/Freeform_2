@@ -31,7 +31,7 @@ export interface DrillSet {
   name: string;
   counts: number;
   pos: Record<string, Point>;
-  /** Measures the move into this set covers, typed by the drill writer as on a score (e.g. "9–12", or "0–4" from a pickup: pickups are measure 0). */
+  /** Measures the move into this set covers, typed by the drill writer as on a score (e.g. "9–12"; a pickup bar is m. 1, as the score numbers it). */
   measures?: string;
   /**
    * Follow-the-leader groups for the move into this set. order[0] is the leader; the rest follow in order.
