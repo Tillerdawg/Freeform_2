@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
-import { encodeShow, fetchShow, hostedLink, linkHash, lockShow, newKey, parseHosted, SHARE_PREFIX } from '../engine/share';
+import { encodeShow, fetchHosted, hostedLink, linkHash, lockShow, newKey, parseHosted, SHARE_PREFIX } from '../engine/share';
 import { qrSvg } from '../engine/qr';
 import type { Show } from '../engine/show';
+import { synced } from '../engine/music';
+import { getAudio } from '../ui/audioStore';
 
 // shortcut: hosted links are remembered per show title in this browser; a renamed show starts fresh. Upgrade if shows get ids.
 const LINKS = 'freeform:hosted-links';
@@ -31,6 +33,10 @@ export function ShareDialog({ show, onClose }: { show: Show; onClose: () => void
   const hosted = (() => { try { return fileUrl && key ? hostedLink(base, fileUrl, key) : ''; } catch { return ''; } })();
   const badUrl = !!fileUrl && (() => { try { return new URL(fileUrl).protocol !== 'https:'; } catch { return true; } })();
   const hostedQr = hosted ? qrSvg(hosted) : null;
+  // The recording can ride along in the locked file, so phones play the drill with the music (share links can't carry it).
+  const [audio, setAudio] = useState<Blob | null>(null);
+  const [withMusic, setWithMusic] = useState(true);
+  useEffect(() => { if (synced(show.music)) getAudio(show.music.audioId).then((b) => setAudio(b ?? null)); }, [show.music]);
   const [check, setCheck] = useState('');
   useEffect(() => {
     setCheck('');
@@ -38,8 +44,8 @@ export function ShareDialog({ show, onClose }: { show: Show; onClose: () => void
     saveLink(show.title, hosted);
     const t = setTimeout(() => {
       setCheck('Checking the link…');
-      fetchShow(hosted.slice(hosted.indexOf('#')))
-        .then((s) => setCheck(`✓ Checked: this link opens “${s.title}”.`))
+      fetchHosted(hosted.slice(hosted.indexOf('#')))
+        .then((r) => setCheck(`✓ Checked: this link opens “${r.show.title}”${r.audio ? ' with its music' : ''}.`))
         .catch((e: Error) => setCheck(`✗ ${e.message}`));
     }, 600);
     return () => clearTimeout(t);
@@ -47,7 +53,7 @@ export function ShareDialog({ show, onClose }: { show: Show; onClose: () => void
   const download = async () => {
     const k = key ?? newKey();
     if (!pasted) setMadeKey(k);
-    const blob = new Blob([await lockShow(show, k)], { type: 'application/octet-stream' });
+    const blob = new Blob([await lockShow(show, k, withMusic && audio ? audio : undefined)], { type: 'application/octet-stream' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = `${show.title.replace(/[^\w\- ]+/g, '').trim() || 'show'}.freeform-locked`;
@@ -75,7 +81,10 @@ export function ShareDialog({ show, onClose }: { show: Show; onClose: () => void
         <details style={{ margin: '0 0 10px' }} open={startOpen}>
           <summary>Hosted link (short, scannable, locked, updates itself)</summary>
           <ol style={{ margin: '6px 0', paddingLeft: 20, fontSize: 12 }}>
-            <li><button onClick={download}>Download locked show file</button> It's encrypted: without your link, the file is unreadable.</li>
+            <li><button onClick={download}>Download locked show file</button> It's encrypted: without your link, the file is unreadable.
+              {audio && <label style={{ display: 'block', marginTop: 4 }}><input type="checkbox" checked={withMusic} onChange={(e) => setWithMusic(e.target.checked)} />{' '}
+                Include the music ({show.music!.name}, {(audio.size / 1e6).toFixed(1)} MB), so phones play the drill with it</label>}
+              {!audio && synced(show.music) && <span style={{ display: 'block', marginTop: 4 }}>To include the music, load {show.music!.name} in Music ▾ first.</span>}</li>
             <li>Put it online. For testing: drag the file onto a new <em>secret</em> gist at gist.github.com, then copy the
               gist's <em>Raw</em> link and remove the long code after <code>/raw/</code> so it always serves the newest version.</li>
             <li>Paste that address here.</li>

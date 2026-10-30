@@ -37,7 +37,8 @@ export async function decodeShow(payload: string): Promise<Show> {
 // ---- Hosted links: for shows too big for a link or a QR code, the link points at a show file stored online.
 
 export const LOAD_PREFIX = '#load=';
-const MAX_BYTES = 10_000_000;
+const MAX_BYTES = 40_000_000; // a show with its recording (a 4-minute mp3 is ~6 MB, ~8 MB as text)
+const MAX_AUDIO = 25_000_000;
 
 // Locked files: the show is encrypted in the browser (AES-GCM) before it's uploaded, and the key travels only in the
 // link's "#" part, which browsers never send to any server. The host stores ciphertext; the link is the password.
@@ -48,28 +49,47 @@ const importKey = (key: string) => crypto.subtle.importKey('raw', fromB64url(key
 
 export const newKey = () => toB64url(crypto.getRandomValues(new Uint8Array(32)));
 
-/** The file to upload: the show compressed, then encrypted with `key`. Same key = same link, so phones pick up updates. */
-export async function lockShow(show: Show, key: string): Promise<string> {
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-  const packed = await pipe(new TextEncoder().encode(JSON.stringify(show, tidy)), new CompressionStream('deflate-raw'));
-  const data = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, await importKey(key), packed));
-  return JSON.stringify({ format: LOCKED, version: 1, iv: toB64url(iv), data: toB64url(data) });
+async function seal(bytes: Uint8Array<ArrayBuffer>, key: CryptoKey) {
+  const iv = crypto.getRandomValues(new Uint8Array(12)); // a fresh nonce for each part
+  return { iv: toB64url(iv), data: toB64url(new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, bytes))) };
 }
 
-async function unlockShow(text: string, key: string | null): Promise<Show> {
-  let f: { format?: unknown; iv?: unknown; data?: unknown };
-  try { f = JSON.parse(text); } catch { return parseShow(text); } // parseShow gives the usual "not a show file" message
-  if (f?.format !== LOCKED) return parseShow(text); // an unlocked show file still works
+/**
+ * The file to upload: the show compressed, then encrypted with `key`. Same key = same link, so phones pick up updates.
+ * `audio`: the show's recording, encrypted with the same key, so phones can play along (the show's taps place the counts).
+ */
+export async function lockShow(show: Show, key: string, audio?: Blob): Promise<string> {
+  const k = await importKey(key);
+  const packed = await pipe(new TextEncoder().encode(JSON.stringify(show, tidy)), new CompressionStream('deflate-raw'));
+  const music = audio && show.music ? { ...(await seal(new Uint8Array(await audio.arrayBuffer()), k)), type: audio.type } : undefined;
+  return JSON.stringify({ format: LOCKED, version: 1, ...(await seal(packed, k)), ...(music ? { audio: music } : {}) });
+}
+
+const AUDIO_TYPE = /^audio\/[\w.+-]{1,40}$/;
+
+async function unlockShow(text: string, key: string | null): Promise<Hosted> {
+  let f: { format?: unknown; iv?: unknown; data?: unknown; audio?: { iv?: unknown; data?: unknown; type?: unknown } };
+  try { f = JSON.parse(text); } catch { return { show: parseShow(text) }; } // parseShow gives the usual "not a show file" message
+  if (f?.format !== LOCKED) return { show: parseShow(text) }; // an unlocked show file still works
   if (!key) throw new Error('This link is missing its key. Ask for the link again.');
   if (typeof f.iv !== 'string' || typeof f.data !== 'string') throw new Error('That show file is damaged.');
-  let packed: Uint8Array<ArrayBuffer>;
-  try {
-    packed = new Uint8Array(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: fromB64url(f.iv) }, await importKey(key), fromB64url(f.data)));
-  } catch {
-    throw new Error("This link's key doesn't open the show file. Ask for the link again.");
-  }
-  return parseShow(new TextDecoder().decode(await pipe(packed, new DecompressionStream('deflate-raw'))));
+  const k = await importKey(key);
+  const open = async (iv: string, data: string) => {
+    try { return new Uint8Array(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: fromB64url(iv) }, k, fromB64url(data))); } catch {
+      throw new Error("This link's key doesn't open the show file. Ask for the link again.");
+    }
+  };
+  const show = parseShow(new TextDecoder().decode(await pipe(await open(f.iv, f.data), new DecompressionStream('deflate-raw'))));
+  const a = f.audio;
+  if (a === undefined || !show.music) return { show };
+  if (!a || typeof a.iv !== 'string' || typeof a.data !== 'string' || typeof a.type !== 'string' || !AUDIO_TYPE.test(a.type)) throw new Error('That show file is damaged.');
+  const bytes = await open(a.iv, a.data);
+  if (bytes.length > MAX_AUDIO) throw new Error('The recording in that file is too big.');
+  return { show, audio: new Blob([bytes], { type: a.type }) };
 }
+
+/** A hosted show and, if the director included it, its recording. */
+export interface Hosted { show: Show; audio?: Blob }
 
 /** A short link that makes the performer view download the show file at `fileUrl` (https) and unlock it with `key`. */
 export function hostedLink(base: string, fileUrl: string, key: string): string {
@@ -91,8 +111,8 @@ export function parseHosted(hash: string): { url: string; key: string | null } |
   } catch { return null; }
 }
 
-/** Download and unlock a hosted show. It comes from anywhere, so it's size-capped and checked like any file. */
-export async function fetchShow(hash: string, fetcher: typeof fetch = fetch): Promise<Show> {
+/** Download and unlock a hosted show (and its recording, if included). It comes from anywhere, so it's size-capped and checked like any file. */
+export async function fetchHosted(hash: string, fetcher: typeof fetch = fetch): Promise<Hosted> {
   const h = parseHosted(hash);
   if (!h) throw new Error('This link is damaged or incomplete. Ask for the link again.');
   let res: Response;
@@ -104,6 +124,8 @@ export async function fetchShow(hash: string, fetcher: typeof fetch = fetch): Pr
   if (text.length > MAX_BYTES) throw new Error('That file is too big to be a show.');
   return unlockShow(text, h.key);
 }
+
+export const fetchShow = (hash: string, fetcher: typeof fetch = fetch) => fetchHosted(hash, fetcher).then((r) => r.show);
 
 /** The Freeform part ("#show=…" or "#load=…") of a pasted message or scanned QR code, or null. */
 export function linkHash(text: string): string | null {
