@@ -172,11 +172,11 @@ function ConnectGitHub({ onConnected }: { onConnected: (g: GitHubTarget) => void
       <ol style={{ margin: '4px 0', paddingLeft: 20 }}>
         <li>Make a <em>public</em> repository for your shows (e.g. freeform-shows), with a README so it isn't empty.</li>
         <li><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noreferrer" style={{ color: 'var(--blue)' }}>Make a fine-grained token</a>:
-          Repository access → <em>Only select repositories</em> → that repository; Permissions → <em>Contents: Read and write</em>. Copy the token.</li>
-        <li>Paste both here. The token stays in this browser and is sent only to GitHub; it can't touch anything else in your account.</li>
+          Repository access → <em>Only select repositories</em> → that repository; under Permissions, add <em>Contents</em> and change its access to <em>Read and write</em>. Generate the token and copy it (GitHub shows it once).</li>
+        <li>Type the repository as <em>owner/name</em> in the first box and paste the token in the second. The token stays in this browser and is sent only to GitHub; it can't touch anything else in your account.</li>
       </ol>
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-        <input aria-label="GitHub repository" placeholder="owner/freeform-shows" value={repo} onChange={(e) => setRepo(e.target.value)} style={{ flex: 1, minWidth: 140, font: 'inherit' }} />
+        <input aria-label="GitHub repository" title="Your GitHub name / the repository, e.g. Tillerdawg/freeform-shows" placeholder="owner/freeform-shows" value={repo} onChange={(e) => setRepo(e.target.value)} style={{ flex: 1, minWidth: 140, font: 'inherit' }} />
         <input aria-label="GitHub token" type="password" placeholder="github_pat_…" value={token} onChange={(e) => setToken(e.target.value)} autoComplete="off" style={{ flex: 1, minWidth: 140, font: 'inherit' }} />
         <button disabled={!repo.trim() || !token.trim()} onClick={connect}>Connect</button>
       </div>
