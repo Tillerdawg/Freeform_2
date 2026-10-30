@@ -9,6 +9,13 @@ import { getAudio } from '../ui/audioStore';
 const LINKS = 'freeform:hosted-links';
 const loadLinks = (): Record<string, string> => { try { return JSON.parse(localStorage.getItem(LINKS) ?? '{}') ?? {}; } catch { return {}; } };
 const saveLink = (title: string, link: string) => { try { localStorage.setItem(LINKS, JSON.stringify({ ...loadLinks(), [title]: link })); } catch { /* not remembered */ } };
+// The key of a locked file downloaded but not yet linked: kept from the moment it's made, so closing the dialog to upload
+// the file doesn't lose it (a lost key leaves the uploaded file unopenable).
+const KEYS = 'freeform:pending-keys';
+const loadKeys = (): Record<string, string> => { try { return JSON.parse(localStorage.getItem(KEYS) ?? '{}') ?? {}; } catch { return {}; } };
+const saveKey = (title: string, key: string | null) => {
+  try { const k = loadKeys(); if (key) k[title] = key; else delete k[title]; localStorage.setItem(KEYS, JSON.stringify(k)); } catch { /* not remembered */ }
+};
 
 /** Make a link that opens this show in the performer view. The show travels inside the link. */
 export function ShareDialog({ show, onClose }: { show: Show; onClose: () => void }) {
@@ -24,7 +31,7 @@ export function ShareDialog({ show, onClose }: { show: Show; onClose: () => void
   const qr = url ? qrSvg(url) : null;
   // Hosted link. The field takes a file address, or an existing hosted link (whose key then locks the updated file).
   const [field, setField] = useState(() => loadLinks()[show.title] ?? '');
-  const [madeKey, setMadeKey] = useState<string | null>(null);
+  const [madeKey, setMadeKey] = useState<string | null>(() => loadKeys()[show.title] ?? null);
   const [startOpen] = useState(!!field); // opened once if this show already has a hosted link; then the user's toggle rules
   const pasted = (() => { const h = linkHash(field); return h ? parseHosted(h) : null; })();
   const fileUrl = pasted ? pasted.url : field.trim();
@@ -52,7 +59,7 @@ export function ShareDialog({ show, onClose }: { show: Show; onClose: () => void
   }, [hosted, show.title]);
   const download = async () => {
     const k = key ?? newKey();
-    if (!pasted) setMadeKey(k);
+    if (!pasted) { setMadeKey(k); saveKey(show.title, k); }
     const blob = new Blob([await lockShow(show, k, withMusic && audio ? audio : undefined)], { type: 'application/octet-stream' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -85,12 +92,13 @@ export function ShareDialog({ show, onClose }: { show: Show; onClose: () => void
               {audio && <label style={{ display: 'block', marginTop: 4 }}><input type="checkbox" checked={withMusic} onChange={(e) => setWithMusic(e.target.checked)} />{' '}
                 Include the music ({show.music!.name}, {(audio.size / 1e6).toFixed(1)} MB), so phones play the drill with it</label>}
               {!audio && synced(show.music) && <span style={{ display: 'block', marginTop: 4 }}>To include the music, load {show.music!.name} in Music ▾ first.</span>}</li>
-            <li>Put it online. For testing: drag the file onto a new <em>secret</em> gist at gist.github.com, then copy the
-              gist's <em>Raw</em> link and remove the long code after <code>/raw/</code> so it always serves the newest version.</li>
+            <li>Put it online. On GitHub: in a repository (public is fine: the file is encrypted), <em>Add file → Upload files</em>,
+              then open the file and copy its <em>Raw</em> link. Uploading again with the same name updates it at the same address.
+              (Gists work for files without music, but fail on big files.)</li>
             <li>Paste that address here.</li>
           </ol>
-          <input aria-label="Show file address" placeholder="https://gist.githubusercontent.com/…/raw/show.freeform-locked" value={field}
-            onChange={(e) => { setField(e.target.value); if (!e.target.value.trim()) setMadeKey(null); /* cleared = start over with a new key */ }} style={{ width: '100%', boxSizing: 'border-box', font: 'inherit', fontSize: 12 }} />
+          <input aria-label="Show file address" placeholder="https://raw.githubusercontent.com/…/main/show.freeform-locked" value={field}
+            onChange={(e) => { setField(e.target.value); if (!e.target.value.trim()) { setMadeKey(null); saveKey(show.title, null); } /* cleared = start over with a new key */ }} style={{ width: '100%', boxSizing: 'border-box', font: 'inherit', fontSize: 12 }} />
           {badUrl && <p role="alert" style={{ fontSize: 12 }}>That isn't a web address starting with https://</p>}
           {!badUrl && fileUrl && !key && <p role="alert" style={{ fontSize: 12 }}>
             {pasted ? "That link isn't locked. Download a locked file (step 1), upload it, and paste its address." : 'Download the locked file first (step 1), then upload that file and paste its address.'}</p>}
