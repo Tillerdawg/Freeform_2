@@ -5,7 +5,7 @@ import { readout, type Point } from '../engine/coords';
 import { decodeShow, fetchHosted, LOAD_PREFIX, linkHash, parseHosted, SHARE_PREFIX } from '../engine/share';
 import { Scanner } from './Scanner';
 import { isPhone } from './device';
-import { colorOf, label, locate, mark, moveSteps, parseShow, positionsAt, setAt, setStarts, type Show } from '../engine/show';
+import { colorOf, label, locate, mark, moveSteps, parseShow, positionsAt, setAt, setStarts, showLength, type Show } from '../engine/show';
 import { drawField, drawGlyph, drawLabels, drawMarks, drawPerformers, fitView, STEP_TEXT, toScreen, type View } from '../field/drawField';
 import { fmtStep } from '../ui/format';
 import { usePlayback } from '../ui/usePlayback';
@@ -89,7 +89,7 @@ export function Perform() {
 
   const show = state?.show;
   const starts = useMemo(() => (show ? setStarts(show) : [0]), [show]);
-  const total = starts.at(-1)!;
+  const total = show ? showLength(show) : 0;
   const span = useMemo<[number, number]>(() => [0, total], [total]);
   // Play with the recording when this phone has it and the show has tapped counts; "♪ Music" off goes back to Tempo.
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
@@ -161,7 +161,7 @@ export function Perform() {
   const maxZoom = me && state?.follow ? ZOOM_MAX : size[0] ? (ZOOM_MAX * size[0]) / FOLLOW_STEPS / fitView(size[0], size[1]).scale : ZOOM_MAX;
   maxRef.current = maxZoom;
   const positions = useMemo(() => (show ? positionsAt(show, t) : {}), [show, t]);
-  const onSet = show ? setAt(show, t) : -1;
+  const onSet = show ? (t > starts.at(-1)! ? show.sets.length - 1 : setAt(show, t)) : -1; // past the written sets: holding on the last one
   // Keep the current set's button in view as playback moves along a long show.
   const setStrip = useRef<HTMLDivElement>(null);
   // Fade whichever edge of the set row has more sets past it, so it's clear the row scrolls.

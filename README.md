@@ -36,6 +36,7 @@ Every spot reads in standard drill language, e.g. *"2 steps outside the Side 2 4
 - **Selecting:** click, shift-click, or drag a box; drag to move, with whole-step, half-step, or free snapping.
 - **Exact placement:** type a coordinate ("2 steps outside the Side 2 45…") to place a performer precisely.
 - **Sets:** add, delete, and set counts and measure numbers (as the score numbers them: a pickup bar is m. 1). Drag a set's button on the timeline to change which count it lands on; its neighbors stay put.
+- **Count-first layout:** **Movements** (beside Music, under the field) takes the show's length up front: one movement per tune (Opener 416 counts), or several for a whole show in one file (Opener, Ballad, Closer). The timeline then runs to their total, with the part past the last set striped *Not written yet* (performers hold there, and music keeps playing), and a dashed blue line where each movement starts; the timeline's readout names the movement you're in. To add a set at a specific count, click that count on the timeline (between sets or in the unwritten part) and press **+ Add set**, or type the count in **at count** beside it. Every other set stays where it is: a set added mid-move splits that move (it takes everyone's spots at that count, so the drill looks the same) and is named as a sub-set (1A after 1, as in Pyware); one past the last set starts as a copy of it. **+ Add set** with the playhead on a set still adds 16 counts after it, moving later sets along.
 - **Undo / redo** for every edit (⌘Z / Ctrl+Z).
 
 ### Shapes and transforms
@@ -101,8 +102,7 @@ The editor has the current set's controls across the top, and under them the **d
 
 Roughly in order (details in [PLAN.md](PLAN.md)):
 
-1. Laying out sets by musical selection (total counts up front).
-2. Follow-the-leader paths with turns, markup that spans several sets, basketball courts and custom surfaces, and optional cloud sync and app-store versions.
+1. Follow-the-leader paths with turns, markup that spans several sets, basketball courts and custom surfaces, and optional cloud sync and app-store versions.
 
 ## Running it yourself
 
