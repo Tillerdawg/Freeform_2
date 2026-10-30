@@ -117,6 +117,8 @@ export function Perform() {
 
   // Pinch zoom (both views) and drag to look around (whole field). Not saved: switching views resets it.
   const [zoom, setZoom] = useState(1);
+  const zoomRef = useRef(zoom);
+  zoomRef.current = zoom;
   const [center, setCenter] = useState({ x: 0, y: 42 });
   const touches = useRef(new Map<number, { x: number; y: number }>());
   const pinch = useRef<{ dist: number; zoom: number } | null>(null);
@@ -128,7 +130,21 @@ export function Perform() {
     const stop = (e: Event) => e.preventDefault();
     c.addEventListener('gesturestart', stop);
     c.addEventListener('gesturechange', stop);
-    return () => { c.removeEventListener('gesturestart', stop); c.removeEventListener('gesturechange', stop); };
+    // iOS Safari can hold back the second finger's pointer events while it decides whether a pinch is its own page zoom,
+    // so pinch from touch events too (same absolute math, so getting both is harmless) and claim the gesture for the field.
+    const gap = (t: TouchList) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+    let start: { dist: number; zoom: number } | null = null;
+    const down = (e: TouchEvent) => { if (e.touches.length === 2) { start = { dist: gap(e.touches), zoom: zoomRef.current }; e.preventDefault(); } };
+    const move = (e: TouchEvent) => { if (e.touches.length === 2 && start) { e.preventDefault(); setZoom(pinchZoom(start.zoom, start.dist, gap(e.touches))); } };
+    const up = (e: TouchEvent) => { if (e.touches.length < 2) start = null; };
+    c.addEventListener('touchstart', down, { passive: false });
+    c.addEventListener('touchmove', move, { passive: false });
+    c.addEventListener('touchend', up);
+    c.addEventListener('touchcancel', up);
+    return () => {
+      c.removeEventListener('gesturestart', stop); c.removeEventListener('gesturechange', stop);
+      c.removeEventListener('touchstart', down); c.removeEventListener('touchmove', move); c.removeEventListener('touchend', up); c.removeEventListener('touchcancel', up);
+    };
   }, [!!show]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
