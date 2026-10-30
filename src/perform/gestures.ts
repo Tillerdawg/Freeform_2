@@ -4,8 +4,8 @@ import type { Point } from '../engine/coords';
 export const ZOOM_MIN = 0.5, ZOOM_MAX = 5;
 
 /** New zoom after a pinch: fingers now `dist` apart, started `startDist` apart at `startZoom`. */
-export const pinchZoom = (startZoom: number, startDist: number, dist: number) =>
-  Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, startDist > 0 ? (startZoom * dist) / startDist : startZoom));
+export const pinchZoom = (startZoom: number, startDist: number, dist: number, max = ZOOM_MAX) =>
+  Math.min(max, Math.max(ZOOM_MIN, startDist > 0 ? (startZoom * dist) / startDist : startZoom));
 
 /**
  * Where the view's center (in steps) moves when a finger drags dx, dy screen pixels at `scale` px/step.
