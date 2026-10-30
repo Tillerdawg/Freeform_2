@@ -70,7 +70,13 @@ export interface Show {
   music?: Music;
   /** How performers are drawn: their section letter with the number as the label (default), or 'dots' with the full label. */
   symbols?: 'dots';
+  /** Count-first layout: the show's music in named stretches (one per tune, or one for a one-tune file), typed up front.
+   * The timeline runs to their total even before every set is written; past the last set, performers hold. */
+  movements?: Movement[];
 }
+
+export interface Movement { id: string; name: string; counts: number }
+export const MAX_MOVEMENT = 100_000;
 
 let seq = 0;
 export const newId = (prefix: string) => `${prefix}${Date.now().toString(36)}${(seq++).toString(36)}`;
@@ -227,6 +233,49 @@ export function setStarts(show: Show): number[] {
 }
 
 export const totalCounts = (show: Show) => setStarts(show).at(-1)!;
+
+/** A sub-set's name, as in Pyware: after 4 comes 4A, after 4A comes 4B (not 4AA); skips names in use. */
+export function subSetName(names: Set<string>, before: string): string {
+  const base = before.replace(/[A-Z]+$/, '');
+  let k = 0, name = '';
+  do name = `${base}${String.fromCharCode(65 + k++)}`; while (names.has(name) && k < 26);
+  return name;
+}
+
+/** The timeline's length: the written sets, or the movements' total if that's longer (the part not written yet). */
+export const showLength = (show: Show) => Math.max(totalCounts(show), (show.movements ?? []).reduce((n, m) => n + m.counts, 0));
+
+/** The count each movement starts on. */
+export const movementStarts = (show: Show) => (show.movements ?? []).reduce<number[]>((a, m, i) => [...a, i ? a[i - 1] + show.movements![i - 1].counts : 0], []);
+
+/** The movement playing at count t (the last one that has started), or undefined. */
+export function movementAt(show: Show, t: number): Movement | undefined {
+  const st = movementStarts(show);
+  for (let i = st.length - 1; i >= 0; i--) if (t >= st[i]) return show.movements![i];
+}
+
+/**
+ * Count-first: a new set landing exactly on count `at`, with every other set staying where it is (moving a set never
+ * shifts later sets). Mid-move, the move is split: the new set takes everyone's spots at that count. Past the last
+ * set, it starts as a copy of the last set. `index` is the new set's index, or the existing set's if one is already there.
+ */
+export function insertSetAt(show: Show, at: number): { show: Show; index: number } {
+  const c = Math.round(at), starts = setStarts(show);
+  const hit = starts.indexOf(c);
+  if (c <= 0 || hit >= 0) return { show, index: Math.max(0, hit) };
+  const i = starts.findIndex((s) => s > c); // the set whose move gets split, or -1 past the end
+  const names = new Set(show.sets.map((x) => x.name));
+  if (i < 0) {
+    const last = show.sets.length - 1;
+    let n = Math.max(0, ...show.sets.map((x) => parseInt(x.name, 10)).filter(Number.isFinite)) + 1; // after 7 (or 7A) comes 8
+    while (names.has(String(n))) n++;
+    return { show: { ...show, sets: [...show.sets, { id: newId('set'), name: String(n), counts: c - starts[last], pos: { ...show.sets[last].pos } }] }, index: last + 1 };
+  }
+  const fresh = { id: newId('set'), name: subSetName(names, show.sets[i - 1].name), counts: c - starts[i - 1], pos: positionsAt(show, c) };
+  const sets = show.sets.map((x, j) => (j === i ? { ...x, counts: starts[i] - c } : x));
+  sets.splice(i, 0, fresh);
+  return { show: { ...show, sets }, index: i };
+}
 
 /** Where time `t` falls: the set being moved into (`to`) and the fraction of that move. f = 1 means "on set `to`". */
 export function locate(show: Show, t: number): { to: number; f: number; count: number } {
@@ -406,6 +455,8 @@ export function parseShow(text: string): Show {
   if (typeof s.title !== 'string') bad('title');
   if (s.music !== undefined && !validMusic(s.music)) bad('music');
   if (s.symbols !== undefined && s.symbols !== 'dots') bad('symbols');
+  if (s.movements !== undefined && (!Array.isArray(s.movements) || s.movements.length > 100 || !s.movements.every((m: Movement) =>
+    str(m?.id) && str(m.name) && m.name.length <= MAX_NAME && Number.isInteger(m.counts) && m.counts >= 1 && m.counts <= MAX_MOVEMENT))) bad('movements');
   for (const x of s.sections) if (!str(x?.id) || !str(x.name) || !str(x.letter) || (x.color !== undefined && !COLOR_RE.test(x.color))) bad('section');
   for (const x of s.performers) if (!str(x?.id) || !str(x.section) || !Number.isFinite(x.number) || (x.name !== undefined && (!str(x.name) || x.name.length > MAX_NAME))) bad('performer');
   for (const set of s.sets) {
@@ -435,7 +486,8 @@ export function playRange(show: Show, fromId: string | null, toId: string | null
     const i = id ? show.sets.findIndex((s) => s.id === id) : -1;
     return i < 0 ? fallback : i;
   };
-  const a = idx(fromId, 0), b = idx(toId, show.sets.length - 1);
+  const a = idx(fromId, 0), b = idx(toId, -1);
+  if (b < 0) return [starts[a], showLength(show)]; // to the end: through any part not written yet
   return [starts[Math.min(a, b)], starts[Math.max(a, b)]];
 }
 

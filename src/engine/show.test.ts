@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { HASHES, readout } from './coords';
 import {
   addPerformer, addSetAfter, advance, biggestStep, chainOrder, clearFtl, ftlTrail, moveSteps, normalizeFtl, flip, mirrorSides, moveSetTo, remapHash, rotateScale, setFtl, snapSelection, playRange, playPlan, label, locate, newShow, parseShow, placeInSet, positionsAt,
-  removePerformers, removeSet, setAt, setCounts, setStarts, totalCounts, xFrom, yFrom,
+  removePerformers, removeSet, setAt, setCounts, setStarts, totalCounts, xFrom, yFrom, insertSetAt, showLength, movementAt,
 } from './show';
 
 function twoSetShow() {
@@ -449,5 +449,45 @@ describe('even steps on count-by-count paths', () => {
     // a corner (4 steps east, 4 steps north) with uneven counts: even 2-step counts that still turn the corner
     const corner = evenPath([{ x: 0, y: 0 }, { x: 3, y: 0 }, { x: 4, y: 0 }, { x: 4, y: 1 }, { x: 4, y: 4 }]);
     expect(corner).toEqual([{ x: 0, y: 0 }, { x: 2, y: 0 }, { x: 4, y: 0 }, { x: 4, y: 2 }, { x: 4, y: 4 }]);
+  });
+});
+
+describe('count-first layout', () => {
+  const withMovements = () => ({ ...twoSetShow().show, movements: [{ id: 'm1', name: 'Opener', counts: 48 }, { id: 'm2', name: 'Ballad', counts: 32 }] });
+  it('the timeline runs to the movements\' total, past the written sets; performers hold there', () => {
+    const show = withMovements();
+    expect(totalCounts(show)).toBe(16);
+    expect(showLength(show)).toBe(80);
+    expect(positionsAt(show, 60)).toEqual(show.sets[1].pos); // not written yet: standing on the last set
+    expect(movementAt(show, 47)?.name).toBe('Opener');
+    expect(movementAt(show, 48)?.name).toBe('Ballad');
+    expect(playRange(show, null, null)).toEqual([0, 80]); // playing to the end includes the unwritten part
+    expect(showLength(twoSetShow().show)).toBe(16); // no movements: the sets decide
+  });
+  it('adds a set at a count past the end, as a copy of the last set', () => {
+    const show = withMovements();
+    const r = insertSetAt(show, 40);
+    expect(r.index).toBe(2);
+    expect(setStarts(r.show)).toEqual([0, 16, 40]);
+    expect(r.show.sets[2].pos).toEqual(show.sets[1].pos);
+  });
+  it('adds a set mid-move without moving any other set; it takes the spots at that count', () => {
+    const { show, id } = twoSetShow();
+    const r = insertSetAt(show, 4);
+    expect(r.index).toBe(1);
+    expect(r.show.sets.map((s) => s.name)).toEqual(['1', '1A', '2']); // a sub-set, as in Pyware
+    expect(insertSetAt(r.show, 30).show.sets.at(-1)!.name).toBe('3');
+    expect(setStarts(r.show)).toEqual([0, 4, 16]); // set 2 still lands on count 16
+    expect(r.show.sets[1].pos[id]).toEqual({ x: -4, y: 28 }); // a quarter of the way
+    expect(positionsAt(r.show, 10)).toEqual(positionsAt(show, 10)); // the drill looks the same
+    expect(insertSetAt(show, 16).show).toBe(show); // a set is already there
+    expect(insertSetAt(show, 0).show).toBe(show);
+  });
+  it('checks movements from files', () => {
+    const show = withMovements();
+    expect(parseShow(JSON.stringify(show)).movements).toHaveLength(2);
+    expect(() => parseShow(JSON.stringify({ ...show, movements: [{ id: 'm', name: 'x', counts: 0 }] }))).toThrow(/movements/);
+    expect(() => parseShow(JSON.stringify({ ...show, movements: [{ id: 'm', name: 'x', counts: 1.5 }] }))).toThrow(/movements/);
+    expect(() => parseShow(JSON.stringify({ ...show, movements: 'lots' }))).toThrow(/movements/);
   });
 });

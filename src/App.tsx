@@ -6,7 +6,7 @@ import { assign, fitShape, isControl, moveHandle, samplePath, slots, type Shape,
 import { colorOf,
   addPerformer, ftlTrail, label, mark, newId, pathFits, setMarks, moveSteps, normalizeFtl, snapPoint, playRange, newShow, parseShow, placeInSet, positionsAt, removePerformers,
   setAt, setStarts, type Show,
-  totalCounts,
+  showLength,
 } from './engine/show';
 import { HANDLE_PX, drawField, drawMarks, drawPerformers, drawShape, fitView, toScreen, toWorld, type Path, type View } from './field/drawField';
 import { Sidebar, type Snap, type Tool } from './ui/Sidebar';
@@ -78,7 +78,7 @@ export function App() {
   const dpr = window.devicePixelRatio || 1;
 
   const starts = useMemo(() => setStarts(show), [show]);
-  const total = starts.at(-1)!;
+  const total = showLength(show); // through any part not written yet (count-first)
   const onSet = setAt(show, t);
   const positions = useMemo(() => positionsAt(show, t), [show, t]);
 
@@ -137,7 +137,7 @@ export function App() {
   }, [audioId, audioTick]);
   const taps = show.music?.taps;
   const clock = useMemo(() => (audio && useMusic && taps && taps.length >= 2 ? { audio, taps } : null), [audio, useMusic, taps]);
-  usePlayback(playing, setPlaying, t, setT, bpm, span, range.loop, totalCounts(show), clock);
+  usePlayback(playing, setPlaying, t, setT, bpm, span, range.loop, showLength(show), clock);
 
   useEffect(() => {
     const c = canvasRef.current!;

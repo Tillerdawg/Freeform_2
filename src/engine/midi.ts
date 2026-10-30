@@ -2,7 +2,7 @@
 // changes), so when the show's audio was rendered from the same MIDI, every count's time is known, nothing tapped.
 // Each set's counts are spread evenly over the measures typed in its Measures box: that one rule covers counting in
 // one, cut time, odd bars, and G.P. bars (withHolds gives bars no set covers a hold sub-set, as in Pyware).
-import { newId, type Show } from './show';
+import { newId, subSetName, type Show } from './show';
 
 export interface Midi {
   ppq: number; // ticks per quarter note
@@ -114,9 +114,7 @@ export function withHolds(show: Show, m: Midi): { show: Show; added: string[]; w
       widened.push(`Set ${sets[i].name}: its ${sets[i].counts} counts fit m. ${now}, not m. ${was}, so it now covers m. ${now}.`);
     } else if ((end || i === 1) && r[0] > end + 1) {
       const a = end + 1, b = r[0] - 1, before = sets[i - 1];
-      let k = 0, name = '';
-      const base = before.name.replace(/[A-Z]+$/, ''); // after 4A comes 4B, not 4AA
-      do name = `${base}${String.fromCharCode(65 + k++)}`; while (names.has(name) && k < 26);
+      const name = subSetName(names, before.name);
       names.add(name);
       const counts = beatsIn(a, b);
       sets.splice(i, 0, { id: newId('set'), name, counts, pos: { ...before.pos }, ...(before.labels ? { labels: { ...before.labels } } : {}), measures: a === b ? `${a}` : `${a}–${b}`, note: `Hold (m. ${a === b ? a : `${a}–${b}`})` });

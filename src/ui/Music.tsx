@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { countsFromMidi, parseMidi, withHolds } from '../engine/midi';
 import { synced } from '../engine/music';
-import { newId, totalCounts, type Show } from '../engine/show';
+import { newId, showLength, type Show } from '../engine/show';
 import { deleteAudio, putAudio } from './audioStore';
 import { Menu } from './Toolbar';
 
@@ -19,7 +19,7 @@ export function MusicMenu({ show, setShow, audio, onAudio, useMusic, setUseMusic
   const file = useRef<HTMLInputElement>(null), midiFile = useRef<HTMLInputElement>(null);
   const [note, setNote] = useState('');
   const [tapping, setTapping] = useState(false);
-  const m = show.music, total = totalCounts(show);
+  const m = show.music, total = showLength(show);
   const load = async (f: File) => {
     const id = newId('a');
     if (!(await putAudio(id, f))) { setNote("This browser wouldn't store the music (it may be out of space or in private mode)."); return; }
