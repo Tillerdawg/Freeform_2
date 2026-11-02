@@ -35,7 +35,8 @@ function loadAutosave(): Show {
 }
 
 type Drag =
-  | { kind: 'move'; start: Point; anchor: string; orig: Record<string, Point>; at: [number, number]; moved?: boolean }
+  | { kind: 'move'; start: Point; anchor: string; orig: Record<string, Point>; at: [number, number]; moved?: boolean; turns?: Point[] }
+  | { kind: 'turn'; k: number }
   | { kind: 'box'; a: Point; b: Point; add: boolean }
   | { kind: 'pan'; x: number; y: number }
   | { kind: 'handle'; i: number }
@@ -188,6 +189,7 @@ export function App() {
     const dots = show.performers.filter((p) => positions[p.id]).map((p) => { const m = mark(show, p); return { id: p.id, label: shown || selected.has(p.id) ? m.label : '', glyph: m.glyph, at: positions[p.id], pin: pins?.[p.id], color: colorOf(show, p) }; });
     if (onSet >= 0) drawMarks(ctx, view, show.sets[onSet].marks ?? [], 'screen', selectedMark);
     drawPerformers(ctx, view, dots, selected, paths, box, dpr);
+    if (ftlGroup?.turns) drawShape(ctx, view, [], false, ftlGroup.turns); // the selected FTL group's turns: drag to move
     if (shapeEdit) {
       const sh = shapeEdit.shape;
       const [a, b] = sh.handles;
@@ -316,6 +318,12 @@ export function App() {
       if (i >= 0) { drag.current = { kind: 'handle', i }; return; }
       setShapeEdit(null); // clicking elsewhere finishes the shape
     }
+    // A selected FTL group's turns have handles: grab one to move that turn (in Select or Add turns).
+    if (ftlGroup?.turns && (tool === 'select' || tool === 'turn')) {
+      const r = HANDLE_PX * 1.5 * dpr;
+      const k = ftlGroup.turns.findIndex((h) => { const q = toScreen(view, h); return Math.abs(q.x - e.nativeEvent.offsetX * dpr) <= r && Math.abs(q.y - e.nativeEvent.offsetY * dpr) <= r; });
+      if (k >= 0) { drag.current = { kind: 'turn', k }; return; }
+    }
     if ((tool === 'text' || tool === 'arrow' || tool === 'draw') && onSet >= 0) {
       e.preventDefault(); // keep the click from pulling focus off the note's text box
       const id = newId('m');
@@ -351,7 +359,9 @@ export function App() {
       setSelected(sel);
       if (sel.has(id) && onSet >= 0) {
         const orig = Object.fromEntries([...sel].map((k) => [k, show.sets[onSet].pos[k]]));
-        drag.current = { kind: 'move', start: p, anchor: id, orig, at: [e.clientX, e.clientY] };
+        // Dragging a whole FTL group brings its leader's turns along.
+        const group = onSet > 0 ? show.sets[onSet].ftl?.find((g) => g.turns && g.order.length === sel.size && g.order.every((k) => sel.has(k))) : undefined;
+        drag.current = { kind: 'move', start: p, anchor: id, orig, at: [e.clientX, e.clientY], turns: group?.turns };
       }
     } else {
       const m = onSet >= 0 ? hitMark(show.sets[onSet].marks ?? [], p, Math.max(0.5, (6 * dpr) / view.scale)) : undefined;
@@ -392,6 +402,10 @@ export function App() {
       setShow((s) => setMarks(s, onSet, (ms) => ms.map((m) => (m.id === d.id && m.kind === 'arrow' ? { ...m, to: snapTo(p, snap) } : m))));
     } else if (d.kind === 'ink') {
       setShow((s) => setMarks(s, onSet, (ms) => ms.map((m) => (m.id === d.id && m.kind === 'ink' ? { ...m, pts: addInk(m.pts, p) } : m))));
+    } else if (d.kind === 'turn') {
+      if (!ftlGroup?.turns) return;
+      const q = snapTo(p, snap), leader = ftlGroup.order[0], turns = ftlGroup.turns.map((x, k) => (k === d.k ? q : x));
+      setShow((s) => setFtlTurns(s, onSet, leader, turns));
     } else if (d.kind === 'handle') {
       if (!shapeEdit) return;
       updateShape(moveHandle(shapeEdit.shape, d.i, snapTo(p, snap), e.altKey)); // Option/Alt: move this handle alone
@@ -401,7 +415,8 @@ export function App() {
       const a1 = snapTo({ x: a0.x + p.x - d.start.x, y: a0.y + p.y - d.start.y }, snap);
       const dx = a1.x - a0.x, dy = a1.y - a0.y;
       const moves = Object.fromEntries(Object.entries(d.orig).map(([k, q]) => [k, { x: q.x + dx, y: q.y + dy }]));
-      setShow((s) => placeInSet(s, onSet, moves));
+      const leader = d.turns && ftlGroup?.order[0];
+      setShow((s) => { const m = placeInSet(s, onSet, moves); return leader ? setFtlTurns(m, onSet, leader, d.turns!.map((q) => ({ x: q.x + dx, y: q.y + dy }))) : m; });
     }
   };
 

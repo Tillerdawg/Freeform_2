@@ -536,9 +536,15 @@ export function advance(t: number, counts: number, [lo, hi]: [number, number], l
 /** Flip performers in set i across the 50 ('x') or across the field's front-to-back center ('y'). */
 export function flip(show: Show, i: number, ids: string[], axis: 'x' | 'y'): Show {
   const pos = show.sets[i].pos, pins = show.sets[i].labels;
-  const moved = placeInSet(show, i, Object.fromEntries(ids.map((id) => [id, axis === 'x' ? { x: -pos[id].x, y: pos[id].y } : { x: pos[id].x, y: FIELD_WIDTH - pos[id].y }])));
+  const f = (p: Point) => (axis === 'x' ? { x: -p.x, y: p.y } : { x: p.x, y: FIELD_WIDTH - p.y });
+  const moved = mapTurns(placeInSet(show, i, Object.fromEntries(ids.map((id) => [id, f(pos[id])]))), i, ids, f);
   return withPins(moved, i, Object.fromEntries(ids.filter((id) => pins?.[id]).map((id) => [id, mirrorSide(pins![id], axis)])));
 }
+
+/** Move the turns of FTL groups whose leader is among `ids` with them (a mirror, rotation, scale or drag of the group). */
+export const mapTurns = (show: Show, i: number, ids: string[], f: (p: Point) => Point): Show =>
+  !show.sets[i].ftl?.some((g) => g.turns && ids.includes(g.order[0])) ? show
+    : mapSet(show, i, (s) => ({ ...s, ftl: s.ftl!.map((g) => (g.turns && ids.includes(g.order[0]) ? { ...g, turns: g.turns.map(f) } : g)) }));
 
 /** A pinned label side reflected with its dot: across the 50, left ↔ right; front to back, above ↔ below. */
 export function mirrorSide(side: LabelSide, axis: 'x' | 'y'): LabelSide {
@@ -581,10 +587,8 @@ export function rotateScale(show: Show, i: number, ids: string[], deg: number, s
   const cx = (Math.min(...xs) + Math.max(...xs)) / 2, cy = (Math.min(...ys) + Math.max(...ys)) / 2;
   const a = (deg * Math.PI) / 180, cos = Math.cos(a), sin = Math.sin(a);
   const tidy = (n: number) => Math.round(n * 1e9) / 1e9; // keep 90° turns landing exactly on whole steps
-  return placeInSet(show, i, Object.fromEntries(ids.map((id) => {
-    const dx = pos[id].x - cx, dy = pos[id].y - cy;
-    return [id, { x: tidy(cx + scale * (dx * cos - dy * sin)), y: tidy(cy + scale * (dx * sin + dy * cos)) }];
-  })));
+  const f = (p: Point) => { const dx = p.x - cx, dy = p.y - cy; return { x: tidy(cx + scale * (dx * cos - dy * sin)), y: tidy(cy + scale * (dx * sin + dy * cos)) }; };
+  return mapTurns(placeInSet(show, i, Object.fromEntries(ids.map((id) => [id, f(pos[id])]))), i, ids, f);
 }
 
 // ---- Grid snapping.

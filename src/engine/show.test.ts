@@ -255,6 +255,17 @@ describe('follow-the-leader (IDEA.md example through the show model)', () => {
     expect(() => parseShow(JSON.stringify({ ...show, sets: [show.sets[0], { ...show.sets[1], ftl: [{ order: ids, turns: [{ x: 'a' }] }] }] }))).toThrow(/follow-the-leader/);
     expect(setFtlTurns(show, 1, ids[0], []).sets[1].ftl![0].turns).toBeUndefined();
   });
+  it('turns move with the group when it is mirrored, rotated or scaled', () => {
+    let { show, ids, h } = idea();
+    show = setFtlTurns(normalizeFtl(placeInSet(setFtl(show, 1, ids), 1, { [ids[0]]: { x: -24, y: h - 8 } })), 1, ids[0], [{ x: -16, y: h - 8 }]);
+    const across = normalizeFtl(flip(show, 1, ids, 'x'));
+    expect(across.sets[1].ftl![0].turns).toEqual([{ x: 16, y: h - 8 }]);
+    expect(across.sets[1].pos[ids[2]]).toEqual({ x: 16, y: h - 8 }); // C still on the (mirrored) corner
+    // The group spans x -24..-16 and y h-8..h, so it turns about (-20, h-4): the corner (-16, h-8) goes to (-24, h).
+    expect(rotateScale(show, 1, ids, 180, 1).sets[1].ftl![0].turns).toEqual([{ x: -24, y: h }]);
+    expect(rotateScale(show, 1, ids, 0, 2).sets[1].ftl![0].turns).toEqual([{ x: -12, y: h - 12 }]); // twice as far from the center
+    expect(flip(show, 1, [ids[1]], 'x').sets[1].ftl![0].turns).toEqual([{ x: -16, y: h - 8 }]); // only when the leader moves
+  });
   it('clearing FTL leaves performers where they are and floats them', () => {
     let { show, ids, h } = idea();
     show = normalizeFtl(placeInSet(setFtl(show, 1, ids), 1, { [ids[0]]: { x: -16, y: h - 16 } }));
