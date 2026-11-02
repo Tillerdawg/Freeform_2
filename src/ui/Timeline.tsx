@@ -44,30 +44,39 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
     : `Set ${show.sets[to - 1].name} → ${show.sets[to].name} · count ${Math.floor(count)} of ${show.sets[to].counts}`);
 
   const strip = useRef<HTMLDivElement>(null);
-  // Set buttons in two fixed rows (the panel never changes height): each takes the top row unless it would overlap the
-  // button before it there. Widths are measured after drawing, since names and bold vary.
+  // Set buttons in two fixed rows (the panel never changes height): each starts at its set's line and takes the top
+  // row unless it would overlap the button before it there. Widths are measured after drawing (names and bold vary).
+  // `pad` keeps room past the timeline's last count, so a button near the end still starts at its line (time order).
   const [rows, setRows] = useState<number[]>([]);
-  const [stripW, setStripW] = useState(0);
+  const [pad, setPad] = useState(0);
+  const [fullW, setFullW] = useState(0);
+  const outer = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const el = strip.current;
+    const el = outer.current;
     if (!el) return;
-    const ro = new ResizeObserver(() => setStripW(el.clientWidth));
+    const ro = new ResizeObserver(() => setFullW(el.clientWidth));
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
   useLayoutEffect(() => {
     const el = strip.current;
-    if (!el || !total) return;
-    const ends = [-Infinity, -Infinity];
-    const next = [...el.children].map((b, i) => {
-      const w = (b as HTMLElement).offsetWidth, x = starts[i] >= total ? stripW - w : (starts[i] / total) * stripW;
+    if (!el || !total || !fullW) return;
+    const ws = [...el.querySelectorAll('button')].map((b) => b.offsetWidth);
+    let p = 0; // the smallest room at the end that fits every button starting at its line
+    for (let k = 0; k < 3; k++) p = Math.max(0, ...ws.map((w, i) => (starts[i] / total) * (fullW - p) + w - (fullW - p)));
+    p = Math.ceil(p);
+    const W = fullW - p, ends = [-Infinity, -Infinity];
+    const next = ws.map((w, i) => {
+      const x = (starts[i] / total) * W;
       const r = x >= ends[0] + 2 ? 0 : x >= ends[1] + 2 ? 1 : ends[0] <= ends[1] ? 0 : 1; // three packed together: the emptier row
       ends[r] = x + w;
       return r;
     });
     if (next.join() !== rows.join()) setRows(next);
+    if (p !== pad) setPad(p);
   });
-  const box = (from: number, counts: number): React.CSSProperties => ({ position: 'absolute', top: 0, bottom: 0, left: `calc(${(from / total) * 100}% - 1px)`, // the 2px line centered on the count width: `${(counts / total) * 100}%`,
+  // left: the 2px line centered on the count.
+  const box = (from: number, counts: number): React.CSSProperties => ({ position: 'absolute', top: 0, bottom: 0, left: `calc(${(from / total) * 100}% - 1px)`, width: `${(counts / total) * 100}%`,
     boxSizing: 'border-box', borderLeft: '2px solid var(--gold)', overflow: 'hidden', fontSize: 12, whiteSpace: 'nowrap' });
   const setDrag = useRef<{ i: number; x0: number; from: number; perCount: number; moved: boolean } | null>(null);
   const fixedRow: React.CSSProperties = { display: 'flex', gap: 8, alignItems: 'center', height: 30, whiteSpace: 'nowrap', overflow: 'hidden' };
@@ -108,7 +117,12 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
       </div>
       {/* Set buttons sit above the line where each set lands. */}
       {/* Click a set to go to it; drag it (not set 1) to land it on a different count. Its neighbors stay put. */}
-      <div ref={strip} style={{ position: 'relative', height: 44 }}>
+      <div ref={outer}>
+      <div ref={strip} style={{ position: 'relative', height: 44, marginRight: pad }}>
+        {/* Each set's line runs up to its button. Behind the buttons. */}
+        {total > 0 && show.sets.map((s, i) => (
+          <div key={s.id} style={{ position: 'absolute', left: `calc(${(starts[i] / total) * 100}% - 1px)`, top: (rows[i] ?? 0) * 22 + 20, bottom: 0, width: 2, background: 'var(--gold)', pointerEvents: 'none' }} />
+        ))}
         {show.sets.map((s, i) => (
           <button key={s.id} aria-label={`Go to set ${s.name}`} title={i ? 'Click to go here; drag to change which count this set lands on' : undefined}
             onPointerDown={(e) => {
@@ -130,8 +144,8 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
               setDrag.current = null;
               if (d && !d.moved) setT(starts[i]);
             }}
-            // The button starts at its set's line (its left edge on the line); a set at the very end ends there instead.
-            style={{ position: 'absolute', top: (rows[i] ?? 0) * 22, height: 20, left: total ? `calc(${(starts[i] / total) * 100}% - 1px)` : 0, transform: total && starts[i] >= total ? 'translateX(calc(-100% + 2px))' : undefined,
+            // The button starts at its set's line (its left edge on the line).
+            style={{ position: 'absolute', zIndex: 1, top: (rows[i] ?? 0) * 22, height: 20, left: total ? `calc(${(starts[i] / total) * 100}% - 1px)` : 0,
               fontWeight: i === onSet ? 700 : 400, outline: i === onSet ? '2px solid var(--gold)' : undefined, padding: '0 6px', minWidth: 24, lineHeight: '18px',
               cursor: i ? 'ew-resize' : 'pointer', touchAction: 'none' }}>
             {s.name}
@@ -145,7 +159,7 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
           role="slider" aria-label="Show timeline in counts" aria-valuemin={0} aria-valuemax={total} aria-valuenow={Math.floor(t)} tabIndex={0}
           onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); scrub(e); }}
           onPointerMove={(e) => e.buttons && scrub(e)}
-          style={{ position: 'relative', height: 56, cursor: 'pointer', userSelect: 'none' }}
+          style={{ position: 'relative', height: 56, cursor: 'pointer', userSelect: 'none', marginRight: pad }}
         >
           {/* Each move's box is placed at its counts exactly, like the set buttons above, so its yellow line (the set it starts
               from) sits under that set's button. Padding goes inside: a box narrower than its padding (a 1-count move) would
@@ -196,6 +210,7 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
           <div style={{ position: 'absolute', top: -4, bottom: -4, width: 2, background: '#fff', left: `${(t / total) * 100}%`, pointerEvents: 'none' }} />
         </div>
       )}
+      </div>
     </div>
   );
 }
