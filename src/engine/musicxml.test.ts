@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { countsFromMidi, secondsAt } from './midi';
-import { parseMusicXml, parseScore, parseXml } from './musicxml';
+import { parseMscx, parseMusicXml, parseScore, parseXml } from './musicxml';
 
 // Two parts, divisions 2 (eighths). m. 1: a one-beat pickup in 3/4 (implicit). m. 2: 3/4 at ♩=120 (a metronome mark).
 // m. 3: everyone rests. m. 4: 4/4, <sound tempo="60">, a half note with a fermata in part 1 while part 2 moves on beat 2.
@@ -51,8 +51,34 @@ describe('counts from MusicXML', () => {
     expect((await parseScore(enc(xml))).measures).toHaveLength(4);
     const mxl = await zip({ 'META-INF/container.xml': '<container><rootfiles><rootfile full-path="score.xml"/></rootfiles></container>', 'score.xml': xml });
     expect((await parseScore(mxl)).measures).toHaveLength(4);
-    await expect(parseScore(enc('hello'))).rejects.toThrow(/isn't a MIDI or MusicXML/);
+    await expect(parseScore(enc('hello'))).rejects.toThrow(/isn't a MuseScore, MusicXML or MIDI/);
     expect(() => parseMusicXml('<score-timewise/>')).toThrow(/Timewise/);
+  });
+});
+
+// A MuseScore 4 score: a one-beat pickup (an irregular bar, len="1/4") in 3/4 at ♩=120, a bar with a triplet and a
+// grace note, a stored multi-measure rest (skipped) before an empty bar, then a fermata on a half note at ♩=60.
+const chord = (d: string, extra = '') => `<Chord>${extra}<durationType>${d}</durationType><Note><pitch>60</pitch></Note></Chord>`;
+const mscx = `<?xml version="1.0" encoding="UTF-8"?><museScore version="4.70"><Score><Part><Staff id="1"/></Part>
+<Staff id="1">
+  <Measure len="1/4"><voice><TimeSig><sigN>3</sigN><sigD>4</sigD></TimeSig><Tempo><tempo>2</tempo></Tempo>${chord('quarter')}</voice></Measure>
+  <Measure><voice>${chord('eighth', '<acciaccatura/>')}${chord('quarter')}<Tuplet><normalNotes>2</normalNotes><actualNotes>3</actualNotes></Tuplet>${chord('eighth')}${chord('eighth')}${chord('eighth')}<endTuplet/>${chord('quarter')}</voice></Measure>
+  <Measure len="3/4"><multiMeasureRest>1</multiMeasureRest><voice><Rest><durationType>measure</durationType><duration>3/4</duration></Rest></voice></Measure>
+  <Measure><voice><Rest><durationType>measure</durationType><duration>3/4</duration></Rest></voice></Measure>
+  <Measure><voice><TimeSig><sigN>4</sigN><sigD>4</sigD></TimeSig><Tempo><tempo>1</tempo></Tempo><Fermata><subtype>fermataAbove</subtype></Fermata>${chord('half')}<Rest><durationType>half</durationType></Rest></voice></Measure>
+</Staff></Score></museScore>`;
+
+describe('counts from a MuseScore file', () => {
+  it('reads the bars, tempos and fermatas, as MuseScore plays them', () => {
+    const m = parseMscx(mscx);
+    expect(m.measures.map((x) => `${x.beats}/${x.den}`)).toEqual(['1/4', '3/4', '3/4', '4/4']); // the pickup is its own bar; the stored multi-rest is skipped
+    expect(m.measures.map((x) => x.sounding)).toEqual([true, true, false, true]);
+    expect(m.measures.map((x) => secondsAt(m, x.start))).toEqual([0, 0.5, 2, 3.5]);
+    expect(secondsAt(m, m.end)).toBe(3.5 + 4 + 2); // the fermata half note (2 beats at 60) held twice as long, then a half rest
+  });
+  it('opens a .mscz (a zip) and rejects scores from before MuseScore 3', async () => {
+    expect((await parseScore(await zip({ 'score.mscx': mscx, 'Excerpts/part.mscx': '<museScore version="4.70"/>' }))).measures).toHaveLength(4);
+    expect(() => parseMscx('<museScore version="2.06"><Score/></museScore>')).toThrow(/older version/);
   });
 });
 

@@ -35,7 +35,7 @@ export function MusicMenu({ show, setShow, audio, onAudio, useMusic, setUseMusic
   // Counts from the score (MIDI, MusicXML or .mxl): exact when the loaded music was rendered from that same score.
   const fromMidi = async (f: File) => {
     try {
-      const midi = await parseScore(await f.arrayBuffer()); // a MIDI, MusicXML or .mxl file
+      const midi = await parseScore(await f.arrayBuffer()); // a MuseScore, MusicXML, .mxl or MIDI file
       const held = withHolds(show, midi), r = countsFromMidi(midi, held.show.sets), sets = held.show.sets.length - 1;
       setShow((s) => (s.music ? { ...s, sets: held.show.sets, music: { ...s.music, taps: r.taps } } : s));
       setNote([`Counts from ${f.name}: ${r.matched} of ${sets} sets placed by their measures${r.matched < sets ? '; the rest count plain beats' : ''}.`,
@@ -49,20 +49,20 @@ export function MusicMenu({ show, setShow, audio, onAudio, useMusic, setUseMusic
     <>
       <Menu label={label} pressed={!!(m && synced(m) && useMusic && audio)} title="Play the drill with the show's recording">
         {(close) => <>
-          {!m && <p style={{ margin: 0, fontSize: 12 }}>Load the show's recording, then tap along on each count, or take the counts from the score (MIDI or MusicXML). Playback then follows the music.</p>}
+          {!m && <p style={{ margin: 0, fontSize: 12 }}>Load the show's recording, then tap along on each count, or take the counts from the score (MuseScore, MusicXML or MIDI). Playback then follows the music.</p>}
           {m && <p style={{ margin: 0, fontSize: 12 }}><strong>{m.name}</strong><br />
             {m.taps.length ? `${m.taps.length} of ${total + 1} counts tapped${m.taps.length < total + 1 ? '; later counts keep the last pace' : ''}.` : 'No counts tapped yet.'}</p>}
           {m && !audio && <p role="alert" style={{ margin: 0, fontSize: 12, color: 'var(--warn)' }}>The recording isn't in this browser. Load {m.name} again to hear it.</p>}
           <button onClick={() => file.current?.click()}>{m ? 'Replace or reload music…' : 'Load music (mp3)…'}</button>
           {m && <button disabled={!audio} onClick={() => { setTapping(true); close(); }}>Tap counts…</button>}
-          {m && <button onClick={() => midiFile.current?.click()} title="Use when the music was rendered from this score (e.g. exported as audio from MuseScore). Choose the score's MIDI, MusicXML or .mxl file; each set's counts are placed in the measures typed for it.">Counts from the score…</button>}
+          {m && <button onClick={() => midiFile.current?.click()} title="Use when the music was rendered from this score (e.g. exported as audio from MuseScore). Choose the score's MuseScore file (.mscz), or its MusicXML, .mxl or MIDI; each set's counts are placed in the measures typed for it.">Counts from the score…</button>}
           {m && synced(m) && <label style={{ fontSize: 13 }}><input type="checkbox" checked={useMusic} onChange={(e) => setUseMusic(e.target.checked)} /> Play with music (off: use Tempo)</label>}
           {m && <button className="danger" onClick={() => { deleteAudio(m.audioId); setShow((s) => { const { music: _, ...rest } = s; return rest; }); setNote(''); }}>Remove music</button>}
           {note && <p role="status" style={{ margin: 0, fontSize: 12 }}>{note}</p>}
         </>}
       </Menu>
       <input ref={file} type="file" accept="audio/*,.mp3,.m4a,.wav,.aac" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) load(f); e.target.value = ''; }} />
-      <input ref={midiFile} type="file" accept=".mid,.midi,audio/midi,.musicxml,.xml,.mxl,application/vnd.recordare.musicxml+xml,application/vnd.recordare.musicxml" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) fromMidi(f); e.target.value = ''; }} />
+      <input ref={midiFile} type="file" accept=".mscz,.mscx,.mid,.midi,audio/midi,.musicxml,.xml,.mxl,application/vnd.recordare.musicxml+xml,application/vnd.recordare.musicxml" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) fromMidi(f); e.target.value = ''; }} />
       {tapping && audio && m && <TapDialog audio={audio} total={total} kept={m.taps} onDone={(taps) => { setTapping(false); if (taps) setShow((s) => (s.music ? { ...s, music: { ...s.music, taps } } : s)); }} />}
     </>
   );
