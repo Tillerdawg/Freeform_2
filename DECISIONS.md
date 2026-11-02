@@ -813,3 +813,8 @@ Each entry: timestamp, who decided, context, options considered, decision.
 ## 2026-11-02 13:10 EST — A Sort menu for sections
 - **Who:** Jason Tiller
 - **Decision:** the **Score order** button became **Sort ▾**, with Score order, By letter (A–Z) and By name (A–Z). Each choice is grayed out when the list is already in that order, and each is one undo. Letters and names sort ignoring case, with numbers in number order (Symbol 2 before Symbol 10) *(Claude; Jason can veto)*.
+
+## 2026-11-02 13:20 EST — Starting-list buttons go in a menu
+- **Who:** Jason Tiller (the two buttons should collapse after either choice); the menu form by Claude *(Jason can veto)*
+- **Context:** "Back to Freeform's list" appeared only after saving your own list, so the panel grew a button after one choice and lost it after the other.
+- **Decision:** one **Starting list ▾** menu, like Sort, holding **Use this list for new shows** and **Back to Freeform's list** (grayed out when new shows already get Freeform's list). The menu closes after either choice; the line under it still says which list new shows get.
