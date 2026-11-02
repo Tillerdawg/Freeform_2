@@ -20,7 +20,7 @@
 - ✅ Rotate and scale a selection around its center.
 - Shape follow-ups: on-field rotate/scale handles; stretch in one direction only. (Not planned: shapes that create performers. Jason: performers are defined when the show is first created.)
 - ✅ FTL transitions (leader + order, path-following; IDEA.md example is the acceptance test).
-- ✅ FTL follow-ups: a leader route with turns (click each turn); paths and FTL trails shown mid-move. ✅ Drag a turn's handle to move it; turns follow a drag, flip, rotate or scale of the group. (Copy Side 1 → 2 doesn't carry FTL groups to the other side.)
+- ✅ FTL follow-ups: a leader route with turns (click each turn); paths and FTL trails shown mid-move. ✅ Drag a turn's handle to move it; turns follow a drag, flip, rotate or scale of the group. ✅ Copy Side 1 → 2 copies FTL groups and their turns to the partners.
 - ✅ Coordinate (dot) sheets, 4 cards per page, and drill charts, one per set (print / Save as PDF).
 - ✅ Measure numbers per set (typed), on dot sheets, chart headers, and the timeline.
 - ✅ Readable dot labels (auto placement and hiding, per-set pinned sides) in the editor, printed charts and phone.

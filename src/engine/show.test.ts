@@ -255,6 +255,22 @@ describe('follow-the-leader (IDEA.md example through the show model)', () => {
     expect(() => parseShow(JSON.stringify({ ...show, sets: [show.sets[0], { ...show.sets[1], ftl: [{ order: ids, turns: [{ x: 'a' }] }] }] }))).toThrow(/follow-the-leader/);
     expect(setFtlTurns(show, 1, ids[0], []).sets[1].ftl![0].turns).toBeUndefined();
   });
+  it('Copy Side 1 → 2 copies a follow-the-leader group and its turns to the partners', () => {
+    let { show, ids, h } = idea();
+    const twins: string[] = [];
+    for (const x of [16, 12, 8, 4]) { const r = addPerformer(show, show.sections[0].id, { x, y: h }); show = r.show; twins.push(r.id); }
+    // Side 1's group without E (on the 50, neither side): A leads 8 forward, then turns toward Side 1.
+    const group = ids.slice(0, 4);
+    show = setFtlTurns(normalizeFtl(placeInSet(setFtl(show, 1, group), 1, { [ids[0]]: { x: -24, y: h - 8 } })), 1, ids[0], [{ x: -16, y: h - 8 }]);
+    const m = normalizeFtl(mirrorSides(show, 1, [...group, ...twins], 1));
+    const copy = m.sets[1].ftl!.find((g) => g.order[0] === twins[0])!;
+    expect(copy.order).toEqual(twins); // the partner of each member, in the same order
+    expect(copy.turns).toEqual([{ x: 16, y: h - 8 }]);
+    twins.forEach((id, k) => expect(m.sets[1].pos[id]).toEqual({ x: -m.sets[1].pos[group[k]].x, y: m.sets[1].pos[group[k]].y })); // a mirror image
+    expect(m.sets[1].ftl).toHaveLength(2); // the original group is still there
+    expect(m.sets[1].ftl!.find((g) => g.order[0] === ids[0])!.turns).toHaveLength(1); // with its turn
+    expect(clearFtl(m, 1, twins).sets[1].ftl![0].turns).toHaveLength(1); // floating one group keeps the other's turns
+  });
   it('turns move with the group when it is mirrored, rotated or scaled', () => {
     let { show, ids, h } = idea();
     show = setFtlTurns(normalizeFtl(placeInSet(setFtl(show, 1, ids), 1, { [ids[0]]: { x: -24, y: h - 8 } })), 1, ids[0], [{ x: -16, y: h - 8 }]);

@@ -748,4 +748,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 ## 2026-11-02 11:00 EDT — FTL turns: draggable, and they move with the group
 - **Who:** Jason Tiller (fix both limits); details by Claude *(Jason can veto)*
 - **Decision:** with an FTL group selected (exactly its members) on its set, each turn shows a blue handle like a shape's; dragging it (in Select or Add turns) moves that turn, snapped to the grid setting. Flip across the 50, Flip front ↔ back, Rotate and Scale move the turns of any group whose leader is in the selection with the same transform (`mapTurns`); dragging the whole group drags its turns too. Dragging only the leader still moves just its end spot, so the route's turns stay where they were placed.
-- **Not covered:** Copy Side 1 → 2 copies spots to other performers and doesn't create FTL groups for them, so there are no turns to carry.
+- **Not covered:** *(fixed the same day, see below)* Copy Side 1 → 2 didn't create FTL groups for the copies.
+
+## 2026-11-02 11:20 EDT — Copy Side 1 → 2 copies follow-the-leader groups
+- **Who:** Jason Tiller (fix the gap); details by Claude *(Jason can veto)*
+- **Decision:** a follow-the-leader group whose members are all on the copied side becomes a group on the other side too, in the same order, with its turns mirrored. For its members, the partner is whoever starts the move mirror-opposite them (instead of the least-travel pairing used for everyone else), so the leader's twin leads and the copy follows the mirrored trail; the copy's spots then come from the trail, as with any FTL. The original group stays.
+- **Bug fixed along the way:** making an FTL group, or floating one, dropped the turns of every other group in the same set. Other groups now keep their turns unless they lose their leader.

@@ -388,7 +388,8 @@ export function normalizeFtl(show: Show): Show {
 /** Make `order` a follow-the-leader group for the move into set i (order[0] leads). Members leave any other group. */
 export function setFtl(show: Show, i: number, order: string[]): Show {
   const old = (show.sets[i].ftl ?? []).find((g) => g.order[0] === order[0]); // same leader (a reorder): keep its route
-  const others = (show.sets[i].ftl ?? []).map((g) => ({ order: g.order.filter((id) => !order.includes(id)) }));
+  // Other groups keep their turns unless they lose their leader to this one.
+  const others = (show.sets[i].ftl ?? []).filter((g) => g !== old).map((g) => (order.includes(g.order[0]) ? { order: g.order.filter((id) => !order.includes(id)) } : { ...g, order: g.order.filter((id) => !order.includes(id)) }));
   return normalizeFtl(mapSet(show, i, (s) => ({ ...s, ftl: [...others, { order, ...(old?.turns?.length ? { turns: old.turns } : {}) }] })));
 }
 
@@ -408,7 +409,7 @@ export function leaderDistance(show: Show, i: number, g: { order: string[]; turn
 
 /** Put performers back to floating for the move into set i. They stay where FTL left them. */
 export const clearFtl = (show: Show, i: number, ids: string[]): Show =>
-  normalizeFtl(mapSet(show, i, (s) => ({ ...s, ftl: (s.ftl ?? []).map((g) => ({ order: g.order.filter((id) => !ids.includes(id)) })) })));
+  normalizeFtl(mapSet(show, i, (s) => ({ ...s, ftl: (s.ftl ?? []).map((g) => (ids.includes(g.order[0]) ? { order: g.order.filter((id) => !ids.includes(id)) } : { ...g, order: g.order.filter((id) => !ids.includes(id)) })) })));
 
 /** Default follower order: from the leader, each next performer is the nearest remaining one (at the start of the move). */
 export function chainOrder(show: Show, i: number, leader: string, ids: string[]): string[] {
@@ -569,11 +570,23 @@ export function mirrorSides(show: Show, i: number, ids: string[], from: 1 | 2): 
   }
   const targets = src.map((id) => ({ x: -pos[id].x, y: pos[id].y }));
   const origin = show.sets[Math.max(0, i - 1)].pos;
-  const slotOf = assign(dst.map((id) => origin[id] ?? pos[id]), targets);
+  // Pair by least travel; but a follow-the-leader member's partner is whoever starts mirror-opposite it, so the copy
+  // is led by the leader's twin and follows the same trail (the ends get recomputed from the trail anyway).
+  const copied = (show.sets[i].ftl ?? []).filter((g) => i > 0 && g.order.every((id) => src.includes(id)));
+  const inGroup = new Set(copied.flatMap((g) => g.order));
+  const match = src.map((id, k) => (inGroup.has(id) && origin[id] ? { x: -origin[id].x, y: origin[id].y } : targets[k]));
+  const slotOf = assign(dst.map((id) => origin[id] ?? pos[id]), match);
   const moved = placeInSet(show, i, Object.fromEntries(dst.map((id, k) => [id, targets[slotOf[k]]])));
   // Each copy takes its partner's label side, mirrored (or automatic if the partner has none).
   const pins = show.sets[i].labels;
-  return withPins(moved, i, Object.fromEntries(dst.map((id, k) => { const p = pins?.[src[slotOf[k]]]; return [id, p ? mirrorSide(p, 'x') : null]; })));
+  let out = withPins(moved, i, Object.fromEntries(dst.map((id, k) => { const p = pins?.[src[slotOf[k]]]; return [id, p ? mirrorSide(p, 'x') : null]; })));
+  // A follow-the-leader group copies too: the partners follow the partner of the leader, along the mirrored route.
+  const partner = Object.fromEntries(dst.map((id, k) => [src[slotOf[k]], id]));
+  for (const g of copied) {
+    const order = g.order.map((id) => partner[id]);
+    out = setFtlTurns(setFtl(out, i, order), i, order[0], (g.turns ?? []).map((p) => ({ x: -p.x, y: p.y })));
+  }
+  return out;
 }
 
 /**
