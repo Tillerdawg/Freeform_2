@@ -803,3 +803,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Context:** Nightmare set 2A was written as 48 counts over m. 7–20, but those bars add up to 52 beats (two are 2/4). Freeform spread the 48 counts evenly over the bars and flagged it.
 - **Options:** keep flagging it and let the writer retype the counts; change the counts to fit the bars when the score is added.
 - **Decision:** when the score is added, a set whose counts fit its bars no way at all (not a count per beat, not just the bars that sound, not a steady number per bar, not every other beat) takes one count per beat of those bars. The music menu names each set changed, and Undo puts the old count back. Counts that do fit one of those ways (a set "in one" or in half time) are left alone.
+
+## 2026-11-02 13:05 EST — Sections in score order
+- **Who:** Jason Tiller (score order instead of alphabetical); details by Claude *(Jason can veto)*
+- **Context:** Pyware imports listed sections by dot letter (A Alto, B Bass Drum, C Cymbals, E Baritone…). That list drives the roster and dot-sheet order.
+- **Options:** sort imports only; also a button for shows already open; up/down arrows to reorder by hand.
+- **Decision:** imports come in score order, and a **Score order** button in Sections sorts any show. Order: piccolo, flute, oboe, bassoon, clarinets, saxes, trumpet, mellophone/horn, trombone, baritone/euphonium, tuba, snare, bass drum, quads/tenors, cymbals, other battery, front ensemble, drum major, guard. Battery follows Freeform's starting list (snare, bass, quads, cymbals). Unrecognized names go last in their old order. Up/down arrows aren't built yet; ask if a writer needs a custom order.

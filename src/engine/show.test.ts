@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { HASHES, readout } from './coords';
 import {
   addPerformer, addSetAfter, advance, biggestStep, chainOrder, clearFtl, ftlTrail, moveSteps, normalizeFtl, flip, mirrorSides, moveSetTo, remapHash, rotateScale, setFtl, snapSelection, playRange, playPlan, label, locate, newShow, parseShow, placeInSet, positionsAt,
-  removePerformers, removeSet, setAt, setCounts, setStarts, totalCounts, xFrom, yFrom, insertSetAt, showLength, movementAt, movementOfSet, setFtlTurns,
+  removePerformers, scoreOrder, DEFAULT_SECTIONS, removeSet, setAt, setCounts, setStarts, totalCounts, xFrom, yFrom, insertSetAt, showLength, movementAt, movementOfSet, setFtlTurns,
 } from './show';
 
 function twoSetShow() {
@@ -539,5 +539,16 @@ describe('count-first layout', () => {
     expect(() => parseShow(JSON.stringify({ ...show, movements: [{ id: 'm', name: 'x', counts: 0 }] }))).toThrow(/movements/);
     expect(() => parseShow(JSON.stringify({ ...show, movements: [{ id: 'm', name: 'x', counts: 1.5 }] }))).toThrow(/movements/);
     expect(() => parseShow(JSON.stringify({ ...show, movements: 'lots' }))).toThrow(/movements/);
+  });
+});
+
+describe('score order', () => {
+  it('puts sections in score order, matching saxes before drums and unknown names last', () => {
+    const names = ['Color Guard', 'Tuba', 'Quads', 'Alto Saxophone', 'Bass Drum', 'Twirlers', 'Flute', 'Tenor Sax', 'Snare Drum', 'Bass Clarinet', 'Mellophone', 'Trumpet', 'Drum Major', 'Pit'];
+    expect(scoreOrder(names.map((name) => ({ name }))).map((s) => s.name)).toEqual(
+      ['Flute', 'Bass Clarinet', 'Alto Saxophone', 'Tenor Sax', 'Trumpet', 'Mellophone', 'Tuba', 'Snare Drum', 'Bass Drum', 'Quads', 'Pit', 'Drum Major', 'Color Guard', 'Twirlers']);
+  });
+  it("leaves Freeform's starting list as it is", () => {
+    expect(scoreOrder([...DEFAULT_SECTIONS])).toEqual([...DEFAULT_SECTIONS]);
   });
 });

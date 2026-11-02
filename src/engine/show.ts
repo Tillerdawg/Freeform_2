@@ -179,6 +179,20 @@ export function removeSection(show: Show, id: string, moveTo?: string): Show {
   return { ...moved, sections: moved.sections.filter((s) => s.id !== id) };
 }
 
+/**
+ * Sections in score order: woodwinds, brass, battery (in Freeform's starting order), front ensemble, then the guard.
+ * Sections whose names match no instrument go last, in the order they had. Sax and drum names are matched first so a
+ * "Tenor Sax" isn't read as a tenor drum or a "Bass Clarinet" as a bass drum.
+ */
+const SCORE_ORDER: RegExp[] = [/piccolo/i, /flute/i, /oboe/i, /bassoon/i, /e-?flat clar|eb clar/i, /bass clar/i, /clarinet/i, /soprano sax/i,
+  /alto sax/i, /tenor sax/i, /bari(tone)? sax/i, /sax/i, /trumpet|cornet|flugel/i, /mello|french horn|^horn/i, /trombone/i,
+  /baritone|euphonium/i, /tuba|sousa/i, /snare/i, /bass drum|^bass(es)?$/i, /quad|tenor|quint|tom/i, /cymbal/i, /battery|percussion|drum(?! major)/i,
+  /front|pit|marimba|xylo|vibe|keyboard|synth|mallet|timpani/i, /drum major/i, /guard|flag|rifle|sabre|saber|dance/i];
+export function scoreOrder<T extends { name: string }>(sections: T[]): T[] {
+  const rank = (s: T) => { const i = SCORE_ORDER.findIndex((r) => r.test(s.name)); return i < 0 ? SCORE_ORDER.length : i; };
+  return sections.map((s, i) => ({ s, i })).sort((a, b) => rank(a.s) - rank(b.s) || a.i - b.i).map((x) => x.s);
+}
+
 /** Section letters used by more than one section (their labels would clash: two "A1"s). */
 export const duplicateLetters = (show: Show) => {
   const seen = new Map<string, number>();

@@ -13,7 +13,7 @@
 // Files keep 300+ PAGEs; the ones after the last PROP are unused.
 import { FIELD_WIDTH } from './coords';
 import type { HashPreset } from './coords';
-import { MAX_NAME, evenPath, newId, parseShow, type DrillSet, type LabelSide, type Performer, type Section, type Show } from './show';
+import { MAX_NAME, evenPath, newId, parseShow, scoreOrder, type DrillSet, type LabelSide, type Performer, type Section, type Show } from './show';
 
 const UNIT = 120; // file units per step
 /**
@@ -164,7 +164,7 @@ export function parse3dj(data: ArrayBuffer, title = 'Imported show'): Show {
     sets.push(set); prev = pos;
   });
 
-  const show: Show = { format: 'freeform-show', version: 1, title, hash: hashFrom(b, first('GRID')), sections, performers, sets };
+  const show: Show = { format: 'freeform-show', version: 1, title, hash: hashFrom(b, first('GRID')), sections: scoreOrder(sections), performers, sets };
   return parseShow(JSON.stringify(show)); // same checks as any imported file
 }
 

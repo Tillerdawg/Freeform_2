@@ -4,7 +4,7 @@ import { RosterImport } from './RosterImport';
 import { readout, type HashPreset } from '../engine/coords';
 import type { Shape, ShapeKind } from '../engine/shapes';
 import {
-  MAX_NAME, setCue, setMarks, setNames, setNote, label, locate, newId, moveToSection, removeSection, duplicateLetters, renumberSection, placeInSet, remapHash, positionsAt, xFrom, yFrom,
+  MAX_NAME, scoreOrder, setCue, setMarks, setNames, setNote, label, locate, newId, moveToSection, removeSection, duplicateLetters, renumberSection, placeInSet, remapHash, positionsAt, xFrom, yFrom,
   type FrontDir, type FrontRef, type Show, type SideDir,
 } from '../engine/show';
 
@@ -344,6 +344,8 @@ function SectionsEditor({ show, setShow, cur }: { show: Show; setShow: (f: (s: S
       })}
       <div style={row}>
         <button onClick={() => setShow((sh) => ({ ...sh, sections: [...sh.sections, { id: newId('s'), name: 'New section', letter: '?' }] }))}>+ Section</button>
+        <button onClick={() => setShow((sh) => ({ ...sh, sections: scoreOrder(sh.sections) }))} disabled={scoreOrder(show.sections).every((x, i) => x === show.sections[i])}
+          title="Woodwinds, brass, battery, front ensemble, then guard; sections with other names go last">Score order</button>
         {show.sections.some((s) => s.color) && (
           <button onClick={() => setShow((sh) => ({ ...sh, sections: sh.sections.map(({ color: _, ...x }) => x) }))} title="Back to plain dots for every section">Clear colors</button>
         )}
