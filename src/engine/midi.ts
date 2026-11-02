@@ -98,7 +98,8 @@ function place(m: Midi, bars: number[], n: number, bar: (k: number) => number, h
 /**
  * Bars that no set's measures cover (a G.P. between moves, or an intro before the first move) get a hold sub-set, as
  * a Pyware drill writer would write it: named after the set before it (after 4: 4A; after 4A, or if 4A is taken: 4B), standing on that
- * set's spots, one count per beat of those bars. Returns the show and the names added.
+ * set's spots, one count per beat of those bars. A set whose counts can't fit its bars takes the bars' beats.
+ * Returns the show, the names added and notes on the sets changed (`widened`).
  */
 export function withHolds(show: Show, m: Midi): { show: Show; added: string[]; widened: string[] } {
   const sets = [...show.sets], added: string[] = [], widened: string[] = [], names = new Set(sets.map((x) => x.name));
@@ -127,6 +128,14 @@ export function withHolds(show: Show, m: Midi): { show: Show; added: string[]; w
       sets.splice(i, 0, { id: newId('set'), name, counts, pos: { ...before.pos }, ...(before.labels ? { labels: { ...before.labels } } : {}), measures: a === b ? `${a}` : `${a}–${b}`, note: `Hold (m. ${a === b ? a : `${a}–${b}`})` });
       added.push(name);
       i++;
+    }
+    const now = range(sets[i].measures)!, bars = now[1] - now[0] + 1, n = sets[i].counts, beats = beatsIn(now[0], now[1]);
+    const sounding = m.measures.slice(now[0] - 1, now[1]).reduce((sum, x) => sum + (x.sounding ? x.beats : 0), 0);
+    if (n > 0 && n !== beats && n !== sounding && n * 2 !== beats && n % bars) {
+      // Counts that fit the bars no way (a beat each, the bars that sound, a steady number per bar, every other beat):
+      // the score decides (Jason: Nightmare set 2A, 48 counts over m. 7–20, two of them 2/4 = 52 beats, is 52 counts).
+      sets[i] = { ...sets[i], counts: beats };
+      widened.push(`Set ${sets[i].name}: its ${n} counts didn't fit m. ${sets[i].measures} (${beats} beats), so it now has ${beats} counts (undo keeps ${n}).`);
     }
     end = r[1];
   }

@@ -96,6 +96,14 @@ describe('counts from a MIDI file', () => {
     expect(r.widened[0]).toMatch(/Set 3: m\. 2–4 overlaps set 2; its 6 counts fit m\. 3–4/);
     expect(countsFromMidi(m, r.show.sets).notes).toEqual([]);
   });
+  it("gives a set whose counts can't fit its bars one count per beat of them (the score decides)", () => {
+    const m = parseMidi(file), base = newShow(); // m. 1–4 are 3/4, m. 5–7 are 4/4
+    const show = { ...base, sets: [base.sets[0], { id: 's2', name: '2', counts: 5, measures: '1–2', pos: {} }, { id: 's3', name: '3', counts: 2, measures: '3–4', pos: {} }] };
+    const r = withHolds(show, m);
+    expect(r.show.sets.map((x) => x.counts)).toEqual([0, 6, 2]); // 5 counts fit 6 beats no way; 2 counts over 2 bars is "in one"
+    expect(r.widened).toEqual(["Set 2: its 5 counts didn't fit m. 1–2 (6 beats), so it now has 6 counts (undo keeps 5)."]);
+    expect(countsFromMidi(m, r.show.sets).notes).toEqual([]);
+  });
   it('rejects files that are not MIDI', () => {
     expect(() => parseMidi(new TextEncoder().encode('hello there, not midi').buffer)).toThrow(/isn't a MIDI file/);
   });

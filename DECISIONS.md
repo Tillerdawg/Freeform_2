@@ -797,3 +797,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Who:** Jason Tiller (− and + read as adding or removing counts); placement by Claude *(Jason can veto)*
 - **Options:** keep −/+ with a "Zoom" label; magnifier icons in the top row; magnifier icons in a small column at the timeline's right end.
 - **Decision:** magnifier icons (zoom out, zoom in) plus **Fit**, stacked at the right end of the timeline itself, where they read as controls for that strip. The top row was already full: there, the zoom buttons cut the count readout down to "Set …" in a 1400 px window. The column fits inside the timeline's height, so nothing changes height.
+
+## 2026-11-02 12:50 EST — The score decides a set's counts
+- **Who:** Jason Tiller (Nightmare set 2A should be 52 counts); the general rule by Claude *(Jason can veto)*
+- **Context:** Nightmare set 2A was written as 48 counts over m. 7–20, but those bars add up to 52 beats (two are 2/4). Freeform spread the 48 counts evenly over the bars and flagged it.
+- **Options:** keep flagging it and let the writer retype the counts; change the counts to fit the bars when the score is added.
+- **Decision:** when the score is added, a set whose counts fit its bars no way at all (not a count per beat, not just the bars that sound, not a steady number per bar, not every other beat) takes one count per beat of those bars. The music menu names each set changed, and Undo puts the old count back. Counts that do fit one of those ways (a set "in one" or in half time) are left alone.
