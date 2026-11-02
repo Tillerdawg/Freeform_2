@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { HASHES, readout } from './coords';
 import {
   addPerformer, addSetAfter, advance, biggestStep, chainOrder, clearFtl, ftlTrail, moveSteps, normalizeFtl, flip, mirrorSides, moveSetTo, remapHash, rotateScale, setFtl, snapSelection, playRange, playPlan, label, locate, newShow, parseShow, placeInSet, positionsAt,
-  removePerformers, removeSet, setAt, setCounts, setStarts, totalCounts, xFrom, yFrom, insertSetAt, showLength, movementAt,
+  removePerformers, removeSet, setAt, setCounts, setStarts, totalCounts, xFrom, yFrom, insertSetAt, showLength, movementAt, movementOfSet,
 } from './show';
 
 function twoSetShow() {
@@ -461,6 +461,9 @@ describe('count-first layout', () => {
     expect(positionsAt(show, 60)).toEqual(show.sets[1].pos); // not written yet: standing on the last set
     expect(movementAt(show, 47)?.name).toBe('Opener');
     expect(movementAt(show, 48)?.name).toBe('Ballad');
+    const r = insertSetAt(show, 48).show; // a set hit on the Opener's last count belongs to the Opener
+    expect(movementOfSet(r, 2)?.name).toBe('Opener');
+    expect(movementOfSet(insertSetAt(r, 60).show, 3)?.name).toBe('Ballad');
     expect(playRange(show, null, null)).toEqual([0, 80]); // playing to the end includes the unwritten part
     expect(showLength(twoSetShow().show)).toBe(16); // no movements: the sets decide
   });

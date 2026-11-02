@@ -1,6 +1,6 @@
 // What goes on printed dot sheets and drill charts (pure data; layout is in Print.tsx).
 import { frontToBack, sideToSide } from '../engine/coords';
-import { label, setStarts, type Performer, type Show } from '../engine/show';
+import { label, movementOfSet, setStarts, type Performer, type Show } from '../engine/show';
 
 export const ROWS_PER_CARD = 24; // what fits a quarter-letter card at a readable size
 
@@ -40,9 +40,10 @@ export function dotCards(show: Show, performers: Performer[]): Card[] {
 export function chartTitle(show: Show, i: number): string {
   const s = show.sets[i];
   const m = s.measures ? ` · m. ${s.measures}` : '';
-  if (i === 0) return `Set ${s.name} · opening set${m}`;
+  const mv = movementOfSet(show, i), pre = mv ? `${mv.name} · ` : ''; // a whole show in one file: which tune this chart is in
+  if (i === 0) return `${pre}Set ${s.name} · opening set${m}`;
   const starts = setStarts(show);
-  return `Set ${s.name} · ${s.counts} counts (counts ${starts[i - 1]}–${starts[i]})${m}`;
+  return `${pre}Set ${s.name} · ${s.counts} counts (counts ${starts[i - 1]}–${starts[i]})${m}`;
 }
 
 export const chunk = <T,>(xs: T[], n: number): T[][] => Array.from({ length: Math.ceil(xs.length / n) }, (_, k) => xs.slice(k * n, (k + 1) * n));

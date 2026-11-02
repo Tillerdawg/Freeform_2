@@ -77,7 +77,7 @@ export function Perform() {
     // Reopening a hosted show: quietly check for a newer version when online. Offline, the saved copy is used.
     const saved = loadSaved();
     if (saved?.source && navigator.onLine) {
-      // shortcut: re-downloads the whole file (recording included) on each open when online; fine for a few MB, add a version check if files get big.
+      // An unchanged file isn't downloaded again: the fetch revalidates (cache: 'no-cache'), and GitHub answers 304 for the same ETag.
       fetchHosted(saved.source).then(({ show, audio }) => {
         if (JSON.stringify(show) !== JSON.stringify(saved.show)) { adopt(show, saved.source, false, audio); setNotice('Show updated.'); }
         else keepAudio(show, audio, saved.show); // same show; the recording may be new (added to the file later)

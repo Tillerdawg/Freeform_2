@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { addSetAfter, biggestStep, insertSetAt, locate, MAX_MOVEMENT, movementAt, movementStarts, moveSetTo, newId, removeSet, setAt, setCounts, setMeasures, playPlan, setStarts, showLength, totalCounts, type Show } from '../engine/show';
+import { addSetAfter, biggestStep, insertSetAt, locate, MAX_MOVEMENT, movementAt, movementOfSet, movementStarts, moveSetTo, newId, removeSet, setAt, setCounts, setMeasures, playPlan, setStarts, showLength, totalCounts, type Show } from '../engine/show';
 import { Menu } from './Toolbar';
 import { STEP_TEXT } from '../field/drawField';
 import { fmtStep } from './format';
@@ -35,7 +35,7 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
     setT(Math.round(Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)) * total));
   };
 
-  const mv = movementAt(show, t);
+  const mv = onSet >= 0 ? movementOfSet(show, onSet) : movementAt(show, t);
   const status = (mv ? `${mv.name} · ` : '') + (onSet >= 0 ? `Set ${show.sets[onSet].name}`
     : past ? `After set ${show.sets.at(-1)!.name} · not written yet`
     : `Set ${show.sets[to - 1].name} → ${show.sets[to].name} · count ${Math.floor(count)} of ${show.sets[to].counts}`);
@@ -135,10 +135,15 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
               Not written yet · counts {written + 1}–{total}
             </div>
           )}
-          {/* Where each movement starts (after the first). */}
-          {movementStarts(show).slice(1).map((c, k) => (
-            <div key={show.movements![k + 1].id} title={show.movements![k + 1].name} style={{ position: 'absolute', top: 0, bottom: 0, left: `${(c / total) * 100}%`, width: 0, borderLeft: '2px dashed var(--blue)', pointerEvents: 'none' }} />
-          ))}
+          {/* Where each movement starts: a dashed line (after the first) and its name, below the moves' own text. */}
+          {movementStarts(show).map((c, k) => {
+            const m = show.movements![k], end = (k + 1 < show.movements!.length ? movementStarts(show)[k + 1] : total);
+            return (
+              <div key={m.id} title={m.name} style={{ position: 'absolute', top: 0, bottom: 0, left: `${(c / total) * 100}%`, width: `${((end - c) / total) * 100}%`, borderLeft: k ? '2px dashed var(--blue)' : undefined, pointerEvents: 'none' }}>
+                <span style={{ position: 'absolute', top: 35, left: 4, maxWidth: 'calc(100% - 8px)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 11, fontWeight: 700, color: 'var(--blue)', background: 'var(--bg-deep)', padding: '0 3px' }}>{m.name}</span>
+              </div>
+            );
+          })}
           {/* One tick per count; taller every 4 counts within a move. Clicking snaps to the nearest count. */}
           {Array.from({ length: total - 1 }, (_, k) => k + 1).filter((c) => !starts.includes(c)).map((c) => {
             const intoMove = c > written ? c - written : c - starts[locate(show, c).to - 1];

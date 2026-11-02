@@ -248,6 +248,9 @@ export const showLength = (show: Show) => Math.max(totalCounts(show), (show.move
 /** The count each movement starts on. */
 export const movementStarts = (show: Show) => (show.movements ?? []).reduce<number[]>((a, m, i) => [...a, i ? a[i - 1] + show.movements![i - 1].counts : 0], []);
 
+/** The movement a set belongs to: the one its move into it is in (a set hit on a movement's last count is in that movement). */
+export const movementOfSet = (show: Show, i: number) => movementAt(show, i ? setStarts(show)[i] - 0.5 : 0);
+
 /** The movement playing at count t (the last one that has started), or undefined. */
 export function movementAt(show: Show, t: number): Movement | undefined {
   const st = movementStarts(show);

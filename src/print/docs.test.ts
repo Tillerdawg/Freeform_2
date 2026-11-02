@@ -56,6 +56,8 @@ describe('measure numbers', () => {
     expect(card.rows.map((r) => r.measures)).toEqual(['0', '1–4']);
     expect(chartTitle(s, 1)).toBe('Set 2 · 16 counts (counts 0–16) · m. 1–4');
     expect(chartTitle(s, 0)).toBe('Set 1 · opening set · m. 0');
+    const mv = { ...s, movements: [{ id: 'm', name: 'Opener', counts: 64 }] };
+    expect(chartTitle(mv, 1)).toBe('Opener · Set 2 · 16 counts (counts 0–16) · m. 1–4');
     expect(setMeasures(s, 1, '').sets[1].measures).toBeUndefined();
   });
   it('survive a file round trip; non-text measures are rejected', () => {
