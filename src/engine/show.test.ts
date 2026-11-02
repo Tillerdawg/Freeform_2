@@ -546,7 +546,7 @@ describe('score order', () => {
   it('puts sections in score order, matching saxes before drums and unknown names last', () => {
     const names = ['Color Guard', 'Tuba', 'Quads', 'Alto Saxophone', 'Bass Drum', 'Twirlers', 'Flute', 'Tenor Sax', 'Snare Drum', 'Bass Clarinet', 'Mellophone', 'Trumpet', 'Drum Major', 'Pit'];
     expect(scoreOrder(names.map((name) => ({ name }))).map((s) => s.name)).toEqual(
-      ['Flute', 'Bass Clarinet', 'Alto Saxophone', 'Tenor Sax', 'Trumpet', 'Mellophone', 'Tuba', 'Snare Drum', 'Bass Drum', 'Quads', 'Pit', 'Drum Major', 'Color Guard', 'Twirlers']);
+      ['Flute', 'Bass Clarinet', 'Alto Saxophone', 'Tenor Sax', 'Trumpet', 'Mellophone', 'Tuba', 'Snare Drum', 'Quads', 'Bass Drum', 'Pit', 'Drum Major', 'Color Guard', 'Twirlers']);
   });
   it("leaves Freeform's starting list as it is", () => {
     expect(scoreOrder([...DEFAULT_SECTIONS])).toEqual([...DEFAULT_SECTIONS]);

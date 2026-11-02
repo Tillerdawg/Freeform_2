@@ -86,7 +86,7 @@ export type SectionList = { name: string; letter: string; color?: string }[];
 /** Freeform's starting sections (Jason's lettering). No front ensemble: they're stationary, so they need no drill spots. */
 export const DEFAULT_SECTIONS: SectionList = ([
   ['Flute', 'F'], ['Clarinet', 'K'], ['Alto Saxophone', 'A'], ['Tenor Saxophone', 'X'], ['Trumpet', 'P'], ['Mellophone', 'H'],
-  ['Trombone', 'N'], ['Baritone', 'E'], ['Tuba', 'T'], ['Snare Drum', 'S'], ['Bass Drum', 'B'], ['Quads', 'Q'], ['Cymbals', 'C'],
+  ['Trombone', 'N'], ['Baritone', 'E'], ['Tuba', 'T'], ['Snare Drum', 'S'], ['Quads', 'Q'], ['Bass Drum', 'B'], ['Cymbals', 'C'],
   ['Color Guard', 'G'],
 ] as const).map(([name, letter]) => ({ name, letter }));
 
@@ -186,7 +186,7 @@ export function removeSection(show: Show, id: string, moveTo?: string): Show {
  */
 const SCORE_ORDER: RegExp[] = [/piccolo/i, /flute/i, /oboe/i, /bassoon/i, /e-?flat clar|eb clar/i, /bass clar/i, /clarinet/i, /soprano sax/i,
   /alto sax/i, /tenor sax/i, /bari(tone)? sax/i, /sax/i, /trumpet|cornet|flugel/i, /mello|french horn|^horn/i, /trombone/i,
-  /baritone|euphonium/i, /tuba|sousa/i, /snare/i, /bass drum|^bass(es)?$/i, /quad|tenor|quint|tom/i, /cymbal/i, /battery|percussion|drum(?! major)/i,
+  /baritone|euphonium/i, /tuba|sousa/i, /snare/i, /quad|tenor|quint|tom/i, /bass drum|^bass(es)?$/i, /cymbal/i, /battery|percussion|drum(?! major)/i,
   /front|pit|marimba|xylo|vibe|keyboard|synth|mallet|timpani/i, /drum major/i, /guard|flag|rifle|sabre|saber|dance/i];
 export function scoreOrder<T extends { name: string }>(sections: T[]): T[] {
   const rank = (s: T) => { const i = SCORE_ORDER.findIndex((r) => r.test(s.name)); return i < 0 ? SCORE_ORDER.length : i; };
