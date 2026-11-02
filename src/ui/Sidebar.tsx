@@ -293,6 +293,11 @@ function SectionsEditor({ show, setShow, cur }: { show: Show; setShow: (f: (s: S
   const count = (id: string) => show.performers.filter((p) => p.section === id).length;
   const edit = (i: number, patch: { letter?: string; name?: string; color?: string }) =>
     setShow((sh) => ({ ...sh, sections: sh.sections.map((x, j) => (j === i ? { ...x, ...patch } : x)) }));
+  const move = (i: number, by: -1 | 1) => setShow((sh) => {
+    const list = [...sh.sections];
+    [list[i], list[i + by]] = [list[i + by], list[i]];
+    return { ...sh, sections: list };
+  });
   return (
     <details style={box} ref={panel}>
       <summary><strong>Sections</strong> <span style={{ fontSize: 12, opacity: 0.7 }}>({show.sections.length})</span></summary>
@@ -304,10 +309,14 @@ function SectionsEditor({ show, setShow, cur }: { show: Show; setShow: (f: (s: S
         return (
           <div key={s.id}>
             <div style={row}>
+              <span style={{ display: 'flex', flexDirection: 'column' }}>
+                <button aria-label={`Move ${s.name} up`} title="Move up the list" className="icon" disabled={i === 0} onClick={() => move(i, -1)} style={{ padding: '0 5px', lineHeight: 1, fontSize: 10 }}>▲</button>
+                <button aria-label={`Move ${s.name} down`} title="Move down the list" className="icon" disabled={i === show.sections.length - 1} onClick={() => move(i, 1)} style={{ padding: '0 5px', lineHeight: 1, fontSize: 10 }}>▼</button>
+              </span>
               <input type="color" aria-label={`Color for ${s.name}`} title={s.color ? `Dot color for ${s.name}` : `Pick a dot color for ${s.name} (none yet)`}
                 value={s.color ?? '#111111'} onChange={(e) => edit(i, { color: e.target.value })}
                 style={{ width: 24, height: 24, padding: 0, border: s.color ? '1px solid var(--line-strong)' : '1px dashed var(--muted)', borderRadius: 6, background: 'none', cursor: 'pointer', opacity: s.color ? 1 : 0.6 }} />
-              <input aria-label={`Letter for ${s.name}`} value={s.letter} maxLength={3} style={{ width: 36, textAlign: 'center', borderColor: dup ? 'var(--danger)' : undefined }}
+              <input aria-label={`Letter for ${s.name}`} value={s.letter} maxLength={3} style={{ width: 36, padding: '4px 2px', textAlign: 'center', borderColor: dup ? 'var(--danger)' : undefined }}
                 onChange={(e) => edit(i, { letter: e.target.value })} />
               <input aria-label={`Name of section ${s.letter}`} value={s.name} style={{ flex: 1, minWidth: 0 }} onChange={(e) => edit(i, { name: e.target.value })} />
               <span style={{ fontSize: 12, opacity: 0.7, minWidth: 18, textAlign: 'right' }} title={`${n} performer${n === 1 ? '' : 's'}`}>{n}</span>
