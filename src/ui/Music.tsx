@@ -32,7 +32,7 @@ export function MusicMenu({ show, setShow, audio, onAudio, useMusic, setUseMusic
     onAudio(id);
     setNote(keep ? 'Loaded. Your tapped counts still apply.' : 'Loaded. Now tap the counts.');
   };
-  // Counts from the score's MIDI: exact when the loaded music was rendered from that same MIDI.
+  // Counts from the score (MIDI, MusicXML or .mxl): exact when the loaded music was rendered from that same score.
   const fromMidi = async (f: File) => {
     try {
       const midi = await parseScore(await f.arrayBuffer()); // a MIDI, MusicXML or .mxl file
@@ -49,7 +49,7 @@ export function MusicMenu({ show, setShow, audio, onAudio, useMusic, setUseMusic
     <>
       <Menu label={label} pressed={!!(m && synced(m) && useMusic && audio)} title="Play the drill with the show's recording">
         {(close) => <>
-          {!m && <p style={{ margin: 0, fontSize: 12 }}>Load the show's recording, then tap along on each count, or take the counts from the score's MIDI. Playback then follows the music.</p>}
+          {!m && <p style={{ margin: 0, fontSize: 12 }}>Load the show's recording, then tap along on each count, or take the counts from the score (MIDI or MusicXML). Playback then follows the music.</p>}
           {m && <p style={{ margin: 0, fontSize: 12 }}><strong>{m.name}</strong><br />
             {m.taps.length ? `${m.taps.length} of ${total + 1} counts tapped${m.taps.length < total + 1 ? '; later counts keep the last pace' : ''}.` : 'No counts tapped yet.'}</p>}
           {m && !audio && <p role="alert" style={{ margin: 0, fontSize: 12, color: 'var(--warn)' }}>The recording isn't in this browser. Load {m.name} again to hear it.</p>}
