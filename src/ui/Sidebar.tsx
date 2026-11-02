@@ -2,11 +2,12 @@ import { clearStartingSections, hasOwnStartingSections, saveStartingSections } f
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { RosterImport } from './RosterImport';
 import { IconGrip } from './icons';
+import { Menu } from './Toolbar';
 import { readout, type HashPreset } from '../engine/coords';
 import type { Shape, ShapeKind } from '../engine/shapes';
 import {
   MAX_NAME, scoreOrder, setCue, setMarks, setNames, setNote, label, locate, newId, moveToSection, removeSection, duplicateLetters, renumberSection, placeInSet, remapHash, positionsAt, xFrom, yFrom,
-  type FrontDir, type FrontRef, type Show, type SideDir,
+  type FrontDir, type FrontRef, type Section, type Show, type SideDir,
 } from '../engine/show';
 
 export type Tool = 'select' | 'add' | 'text' | 'arrow' | 'draw' | 'turn'; // turn: click to add an FTL leader's turning points
@@ -281,6 +282,13 @@ function CoordEntry({ onPlace }: { onPlace: (x: number, y: (h: HashPreset) => nu
   );
 }
 
+const abc = (a: string, b: string) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+const SORTS: [string, (l: Section[]) => Section[], string][] = [
+  ['Score order', scoreOrder, 'Woodwinds, brass, battery, front ensemble, then guard; sections with other names go last'],
+  ['By letter (A–Z)', (l) => [...l].sort((a, b) => abc(a.letter, b.letter)), "By each section's label letter: A, B, C…"],
+  ['By name (A–Z)', (l) => [...l].sort((a, b) => abc(a.name, b.name)), 'Alphabetically by instrument: Alto Saxophone, Baritone, Bass Drum…'],
+];
+
 /** Rename, re-letter, add and delete sections. Letters two sections share are flagged (their labels would clash). */
 function SectionsEditor({ show, setShow, cur }: { show: Show; setShow: (f: (s: Show) => Show) => void; cur: number }) {
   const [deleting, setDeleting] = useState<string | null>(null);
@@ -373,8 +381,12 @@ function SectionsEditor({ show, setShow, cur }: { show: Show; setShow: (f: (s: S
       })}
       <div style={row}>
         <button onClick={() => setShow((sh) => ({ ...sh, sections: [...sh.sections, { id: newId('s'), name: 'New section', letter: '?' }] }))}>+ Section</button>
-        <button onClick={() => setShow((sh) => ({ ...sh, sections: scoreOrder(sh.sections) }))} disabled={scoreOrder(show.sections).every((x, i) => x === show.sections[i])}
-          title="Woodwinds, brass, battery, front ensemble, then guard; sections with other names go last">Score order</button>
+        <Menu label="Sort" title="Put the sections in an order: score order, by letter, or by name">
+          {(close) => SORTS.map(([name, how, title]) => (
+            <button key={name} title={title} disabled={how(show.sections).every((x, i) => x === show.sections[i])}
+              onClick={() => { setShow((sh) => ({ ...sh, sections: how(sh.sections) })); close(); }}>{name}</button>
+          ))}
+        </Menu>
         {show.sections.some((s) => s.color) && (
           <button onClick={() => setShow((sh) => ({ ...sh, sections: sh.sections.map(({ color: _, ...x }) => x) }))} title="Back to plain dots for every section">Clear colors</button>
         )}
