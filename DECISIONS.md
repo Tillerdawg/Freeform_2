@@ -776,3 +776,7 @@ Each entry: timestamp, who decided, context, options considered, decision.
 ## 2026-11-02 12:55 EDT — The score and the recording are two separate steps
 - **Who:** Jason Tiller (choosing two files together was confusing: two buttons read as two steps); details by Claude *(Jason can veto)*
 - **Decision:** replaces the 12:45 one-picker flow. The Music menu has **Add the score (MuseScore)…** and **Add the recording (mp3)…**, each its own pick, in either order. A score added before any recording waits in the menu (✓ Score: name) until the recording comes, then both are set in one change; a score added after the recording places the counts right away. The length check runs whichever comes second. With music loaded, the buttons read **Add the score again…** and **Replace the recording…**; **Tap counts…** stays for recordings without a score. The waiting score is kept only while the page is open.
+
+## 2026-11-02 13:10 EDT — Counts from the score: fix a set whose notes overlap the set before
+- **Who:** Claude, from Jason's Nightmare load *(Jason can veto)*
+- **Decision:** the mirror of the 2026-10-29 widening: when a set's noted measures start on or before the previous set's last bar (Nightmare set 4 "mm. 24-28" after set 3's "mm. 21-24") and its counts fit exactly from the next bar to its last (16 counts = m. 25–28), its measures become that range, with a note. Nightmare now places all 23 sets.

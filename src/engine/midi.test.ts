@@ -88,6 +88,14 @@ describe('counts from a MIDI file', () => {
     expect(r.show.sets[2].measures).toBe('3–5');
     expect(r.widened[0]).toMatch(/Set 3: its 10 counts fit m\. 3–5/);
   });
+  it("starts a set after the set before it when its notes overlap it and its counts fit from there", () => {
+    const m = parseMidi(file), base = newShow(); // 4 bars of 3/4, then 4/4 bars
+    const show = { ...base, sets: [{ ...base.sets[0], pos: {} }, { id: 's2', name: '2', counts: 6, measures: '1–2', pos: {} }, { id: 's3', name: '3', counts: 6, measures: '2–4', pos: {} }] };
+    const r = withHolds(show, m); // m. 2 is set 2's; 6 counts = m. 3–4
+    expect(r.show.sets[2].measures).toBe('3–4');
+    expect(r.widened[0]).toMatch(/Set 3: m\. 2–4 overlaps set 2; its 6 counts fit m\. 3–4/);
+    expect(countsFromMidi(m, r.show.sets).notes).toEqual([]);
+  });
   it('rejects files that are not MIDI', () => {
     expect(() => parseMidi(new TextEncoder().encode('hello there, not midi').buffer)).toThrow(/isn't a MIDI file/);
   });

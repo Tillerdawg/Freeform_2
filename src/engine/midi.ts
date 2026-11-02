@@ -113,6 +113,12 @@ export function withHolds(show: Show, m: Midi): { show: Show; added: string[]; w
       const was = sets[i].measures, now = `${end + 1}–${r[1]}`;
       sets[i] = { ...sets[i], measures: now };
       widened.push(`Set ${sets[i].name}: its ${sets[i].counts} counts fit m. ${now}, not m. ${was}, so it now covers m. ${now}.`);
+    } else if (end && r[0] <= end && r[1] > end && sets[i].counts === beatsIn(end + 1, r[1]) && sets[i].counts !== beatsIn(r[0], r[1])) {
+      // The other way round: the notes overlap the set before (Nightmare set 4: "mm. 24-28, 16 Counts" after set 3's
+      // mm. 21-24), and the counts fit exactly from the bar after it: start there.
+      const was = sets[i].measures, now = end + 1 === r[1] ? `${r[1]}` : `${end + 1}–${r[1]}`;
+      sets[i] = { ...sets[i], measures: now };
+      widened.push(`Set ${sets[i].name}: m. ${was} overlaps set ${sets[i - 1].name}; its ${sets[i].counts} counts fit m. ${now}, so it now covers m. ${now}.`);
     } else if ((end || i === 1) && r[0] > end + 1) {
       const a = end + 1, b = r[0] - 1, before = sets[i - 1];
       const name = subSetName(names, before.name);
