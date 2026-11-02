@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { peakBetween, timeAt } from '../engine/music';
 import { PALETTE } from './palette';
 import { addSetAfter, biggestStep, insertSetAt, locate, MAX_MOVEMENT, movementAt, movementOfSet, movementStarts, moveSetTo, newId, removeSet, setAt, setCounts, setMeasures, playPlan, setStarts, showLength, totalCounts, type Show } from '../engine/show';
@@ -44,6 +44,29 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
     : `Set ${show.sets[to - 1].name} → ${show.sets[to].name} · count ${Math.floor(count)} of ${show.sets[to].counts}`);
 
   const strip = useRef<HTMLDivElement>(null);
+  // Set buttons in two fixed rows (the panel never changes height): each takes the top row unless it would overlap the
+  // button before it there. Widths are measured after drawing, since names and bold vary.
+  const [rows, setRows] = useState<number[]>([]);
+  const [stripW, setStripW] = useState(0);
+  useEffect(() => {
+    const el = strip.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setStripW(el.clientWidth));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  useLayoutEffect(() => {
+    const el = strip.current;
+    if (!el || !total) return;
+    const ends = [-Infinity, -Infinity];
+    const next = [...el.children].map((b, i) => {
+      const w = (b as HTMLElement).offsetWidth, x = starts[i] >= total ? stripW - w : (starts[i] / total) * stripW;
+      const r = x >= ends[0] + 2 ? 0 : x >= ends[1] + 2 ? 1 : ends[0] <= ends[1] ? 0 : 1; // three packed together: the emptier row
+      ends[r] = x + w;
+      return r;
+    });
+    if (next.join() !== rows.join()) setRows(next);
+  });
   const box = (from: number, counts: number): React.CSSProperties => ({ position: 'absolute', top: 0, bottom: 0, left: `calc(${(from / total) * 100}% - 1px)`, // the 2px line centered on the count width: `${(counts / total) * 100}%`,
     boxSizing: 'border-box', borderLeft: '2px solid var(--gold)', overflow: 'hidden', fontSize: 12, whiteSpace: 'nowrap' });
   const setDrag = useRef<{ i: number; x0: number; from: number; perCount: number; moved: boolean } | null>(null);
@@ -85,7 +108,7 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
       </div>
       {/* Set buttons sit above the line where each set lands. */}
       {/* Click a set to go to it; drag it (not set 1) to land it on a different count. Its neighbors stay put. */}
-      <div ref={strip} style={{ position: 'relative', height: 24 }}>
+      <div ref={strip} style={{ position: 'relative', height: 44 }}>
         {show.sets.map((s, i) => (
           <button key={s.id} aria-label={`Go to set ${s.name}`} title={i ? 'Click to go here; drag to change which count this set lands on' : undefined}
             onPointerDown={(e) => {
@@ -108,8 +131,8 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
               if (d && !d.moved) setT(starts[i]);
             }}
             // The button starts at its set's line (its left edge on the line); a set at the very end ends there instead.
-            style={{ position: 'absolute', left: total ? `calc(${(starts[i] / total) * 100}% - 1px)` : 0, transform: total && starts[i] >= total ? 'translateX(calc(-100% + 2px))' : undefined,
-              fontWeight: i === onSet ? 700 : 400, outline: i === onSet ? '2px solid var(--gold)' : undefined, padding: '0 6px', minWidth: 24,
+            style={{ position: 'absolute', top: (rows[i] ?? 0) * 22, height: 20, left: total ? `calc(${(starts[i] / total) * 100}% - 1px)` : 0, transform: total && starts[i] >= total ? 'translateX(calc(-100% + 2px))' : undefined,
+              fontWeight: i === onSet ? 700 : 400, outline: i === onSet ? '2px solid var(--gold)' : undefined, padding: '0 6px', minWidth: 24, lineHeight: '18px',
               cursor: i ? 'ew-resize' : 'pointer', touchAction: 'none' }}>
             {s.name}
           </button>
