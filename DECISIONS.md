@@ -792,3 +792,8 @@ Each entry: timestamp, who decided, context, options considered, decision.
 ## 2026-11-02 13:50 EDT — A zoomable, scrollable timeline
 - **Who:** Jason Tiller (make it scrollable left to right for long pieces); details by Claude *(Jason can veto)*
 - **Decision:** the timeline has a zoom, in pixels per count: it fits the window unless that's under 4 px a count, when it opens at 6 (Nightmare's 376 counts: about 2,250 px). **−**, **+** (×1.5, up to 60 px a count) and **Fit** sit beside the count readout. The set buttons and moves scroll together in one container with an always-visible scroll bar, so the panel's height never changes. The mouse wheel scrolls it sideways (trackpads swipe), and a right-drag pans it, as on the field; left-click and drag still move the playhead. When the playhead moves out of view (playing, or a set picked elsewhere), the timeline scrolls to it; scrolling by hand doesn't move the playhead. The waveform canvas is capped at 16,384 px and stretched at high zoom.
+
+## 2026-11-02 14:30 EST — Zoom buttons are magnifying glasses, beside the timeline
+- **Who:** Jason Tiller (− and + read as adding or removing counts); placement by Claude *(Jason can veto)*
+- **Options:** keep −/+ with a "Zoom" label; magnifier icons in the top row; magnifier icons in a small column at the timeline's right end.
+- **Decision:** magnifier icons (zoom out, zoom in) plus **Fit**, stacked at the right end of the timeline itself, where they read as controls for that strip. The top row was already full: there, the zoom buttons cut the count readout down to "Set …" in a 1400 px window. The column fits inside the timeline's height, so nothing changes height.

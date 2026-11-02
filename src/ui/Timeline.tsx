@@ -5,7 +5,7 @@ import { addSetAfter, biggestStep, insertSetAt, locate, MAX_MOVEMENT, movementAt
 import { Menu } from './Toolbar';
 import { STEP_TEXT } from '../field/drawField';
 import { fmtStep } from './format';
-import { IconNext, IconPause, IconPlay, IconPrev, IconStart } from './icons';
+import { IconNext, IconPause, IconPlay, IconPrev, IconStart, IconZoomIn, IconZoomOut } from './icons';
 
 interface Props {
   show: Show;
@@ -138,16 +138,12 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
             <label><input type="checkbox" checked={range.loop} onChange={(e) => setRange({ ...range, loop: e.target.checked })} /> Loop</label>
           </>
         )}
-        <span style={{ marginLeft: 'auto', fontVariantNumeric: 'tabular-nums' }}>{status} · {Math.floor(t)} / {total} counts</span>
-        {total > 0 && <span style={{ display: 'flex', gap: 2 }} role="group" aria-label="Timeline zoom">
-          <button aria-label="Zoom the timeline out" title="Zoom out" disabled={!perCount} onClick={() => zoom(1 / 1.5)}>−</button>
-          <button aria-label="Zoom the timeline in" title="Zoom in (then scroll, or right-drag, to move along)" disabled={(perCount ?? fitPpc) >= 60} onClick={() => zoom(1.5)}>+</button>
-          <button aria-label="Fit the whole show" title="Fit the whole show in the window" disabled={!perCount || fullW <= viewW} onClick={() => setPpc(null)}>Fit</button>
-        </span>}
+        <span title={`${status} · ${Math.floor(t)} / ${total} counts`} style={{ marginLeft: 'auto', fontVariantNumeric: 'tabular-nums', overflow: 'hidden', textOverflow: 'ellipsis' }}>{status} · {Math.floor(t)} / {total} counts</span>
       </div>
       {/* Set buttons sit above the line where each set lands. */}
       {/* Click a set to go to it; drag it (not set 1) to land it on a different count. Its neighbors stay put. */}
-      <div ref={outer} style={{ overflowX: 'scroll', overflowY: 'hidden' }} // always a scroll bar, so the height never changes
+      <div style={{ display: 'flex', gap: 6 }}>
+      <div ref={outer} style={{ overflowX: 'scroll', overflowY: 'hidden', flex: 1, minWidth: 0 }} // always a scroll bar, so the height never changes
         onContextMenu={(e) => e.preventDefault()}
         onPointerDown={(e) => { if (e.button === 2) { e.currentTarget.setPointerCapture(e.pointerId); panFrom.current = { x: e.clientX, left: e.currentTarget.scrollLeft }; } }}
         onPointerMove={(e) => { if (panFrom.current) e.currentTarget.scrollLeft = panFrom.current.left - (e.clientX - panFrom.current.x); }}
@@ -247,6 +243,12 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
         </div>
       )}
       </div>
+      </div>
+        {total > 0 && <div style={{ display: 'flex', flexDirection: 'column', flex: 'none', gap: 2, justifyContent: 'center' }} role="group" aria-label="Timeline zoom">
+          <button aria-label="Zoom the timeline out" title="Zoom the timeline out" disabled={!perCount} onClick={() => zoom(1 / 1.5)}><IconZoomOut /></button>
+          <button aria-label="Zoom the timeline in" title="Zoom the timeline in (then scroll, or right-drag, to move along)" disabled={(perCount ?? fitPpc) >= 60} onClick={() => zoom(1.5)}><IconZoomIn /></button>
+          <button aria-label="Fit the whole show" title="Fit the whole show in the timeline" disabled={!perCount || fullW <= viewW} onClick={() => setPpc(null)}>Fit</button>
+        </div>}
       </div>
     </div>
   );
