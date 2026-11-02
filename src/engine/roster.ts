@@ -59,7 +59,8 @@ const code = (s: string): [string, number] | null => { const m = s.trim().match(
 // Common spellings in band rosters, mapped to words in Freeform's section names.
 const ALIASES: [RegExp, string][] = [
   [/^(fl|flt|flutes?|picc(olo)?s?)$/, 'flute'], [/^(cl|clar|clars|clarinets?|bcl|bass clarinet)$/, 'clarinet'],
-  [/^(as|asx|alto|alto sax|altos?|sax|saxes|saxophones?)$/, 'alto saxophone'], // a lone "Sax" means alto (Jason) [/^(ts|tsx|tenor sax|tenors? sax)$/, 'tenor saxophone'],
+  [/^(as|asx|alto|alto sax|altos?|sax|saxes|saxophones?)$/, 'alto saxophone'], // a lone "Sax" means alto (Jason)
+  [/^(ts|tsx|tenor sax|tenors? sax)$/, 'tenor saxophone'],
   [/^(bari sax|bs|bsx)$/, 'baritone saxophone'], [/^(tp|tpt|trp|trpt|trumpets?|cornets?)$/, 'trumpet'],
   [/^(mel|mello|mellos|mellophones?|french horns?|horns?)$/, 'mellophone'], [/^(tb|tbn|trb|trombones?|bones?)$/, 'trombone'],
   [/^(bar|bari|baris|baritones?|euph|euphoniums?)$/, 'baritone'], [/^(tu|tba|tubas?|sousa|sousaphones?)$/, 'tuba'],
@@ -194,3 +195,21 @@ export function applyRoster(show: Show, plan: Plan): Show {
   });
   return { ...show, performers, sets: show.sets.map((s) => ({ ...s, pos: { ...s.pos, ...spots } })) };
 }
+
+const SUFFIX = /^(jr|sr|ii|iii|iv|v)\.?$/i;
+/**
+ * "Pat Smith" or "Smith, Pat" → "Smith, Pat", for lists in last-name order. A suffix stays with the last name
+ * ("Pat Smith Jr." → "Smith Jr., Pat"). shortcut: a two-word surname typed first-name-first ("Ana de Souza") files
+ * under its last word; typing it "de Souza, Ana" fixes it. Upgrade if real rosters trip on this.
+ */
+export function lastFirst(name: string): string {
+  const n = name.trim().replace(/\s+/g, ' ');
+  const c = n.indexOf(',');
+  if (c >= 0 && !SUFFIX.test(n.slice(c + 1).trim())) return n; // already "Last, First"
+  const words = n.replace(',', '').split(' ');
+  if (words.length < 2) return n;
+  const k = words.length - (words.length > 2 && SUFFIX.test(words[words.length - 1]) ? 2 : 1);
+  return `${words.slice(k).join(' ')}, ${words.slice(0, k).join(' ')}`;
+}
+/** Last name, then first; ignoring case and accents. */
+export const byLastName = (a: string, b: string) => lastFirst(a).localeCompare(lastFirst(b), undefined, { sensitivity: 'base', numeric: true });

@@ -822,3 +822,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 ## 2026-11-02 13:30 EST — Measures fill in from the score
 - **Who:** Jason Tiller (go ahead); details by Claude *(Jason can veto)*
 - **Decision:** when a score is added, every set with an empty Measures box gets one: the bar its count 1 falls in through the bar its last count falls in ("9–12", or "9" for one bar). Typed measures are never changed. Sets past the end of the score stay blank. The menu says how many it filled, and Undo takes them back out. The filled measures print on dot sheets like typed ones.
+
+## 2026-11-02 14:50 EST — The phone's "who are you" list in last-name order
+- **Who:** Jason Tiller (sort by LastName, FirstName); details by Claude *(Jason can veto)*
+- **Context:** the list showed each section by dot number ("P4 · Pat Smith"), so a student had to know their dot to find themselves.
+- **Options:** one alphabetical list for the whole band; keep the section groups and sort within each; change only the order, or also show names last-name-first.
+- **Decision:** keep the section groups (score order), and within each, named dots by last name then first, shown as "Smith, Pat · P4" so the order is visible; unnamed dots follow by number. Names are stored as typed, so the last name is the last word ("Pat Smith Jr." files under Smith Jr.); a name typed "Last, First" is used as is, which is how to fix a two-word surname ("de Souza, Ana"). Case and accents are ignored. Also fixed: the roster import's tenor sax abbreviations (TS, Tsx) had been commented out by accident.

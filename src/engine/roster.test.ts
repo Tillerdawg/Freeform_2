@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applyRoster, parseTable, planRoster, sectionFor } from './roster';
+import { applyRoster, byLastName, lastFirst, parseTable, planRoster, sectionFor } from './roster';
 import { addPerformer, label, newShow, setNames } from './show';
 
 // Default sections: F Flute, K Clarinet, A Alto Saxophone, X Tenor Saxophone, P Trumpet, H Mellophone, N Trombone, ...
@@ -75,5 +75,24 @@ describe('roster import', () => {
     expect(baritone.steps.slice(0, 2).map((x) => [x.kind, x.label])).toEqual([['new', 'E1'], ['new', 'E2']]);
     const off = planRoster(s, rows, undefined, { bassoon: 'skip' });
     expect(off.steps.slice(0, 2).map((x) => [x.kind, x.note])).toEqual([['skip', 'left off (your choice)'], ['skip', 'left off (your choice)']]);
+  });
+});
+
+describe('last-name order', () => {
+  it('turns names around, keeping suffixes with the last name', () => {
+    expect(lastFirst('Pat Smith')).toBe('Smith, Pat');
+    expect(lastFirst('  Mary  Jo Smith ')).toBe('Smith, Mary Jo');
+    expect(lastFirst('Smith, Pat')).toBe('Smith, Pat');
+    expect(lastFirst('Pat Smith Jr.')).toBe('Smith Jr., Pat');
+    expect(lastFirst('Pat Smith, Jr.')).toBe('Smith Jr., Pat');
+    expect(lastFirst('Cher')).toBe('Cher');
+  });
+  it('sorts by last name, then first, ignoring case and accents', () => {
+    const names = ['zoe smithers', 'Al Smith', 'Pat Smith', 'Émile Adams', 'Brown, Lee'];
+    expect([...names].sort(byLastName)).toEqual(['Émile Adams', 'Brown, Lee', 'Al Smith', 'Pat Smith', 'zoe smithers']);
+  });
+  it('knows tenor sax abbreviations', () => {
+    const { s } = band();
+    expect(sectionFor(s, 'TS').id).toBe(s.sections.find((x) => x.name === 'Tenor Saxophone')!.id);
   });
 });

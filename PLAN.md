@@ -44,4 +44,4 @@
 - ✅ Pyware 3D .3dj import (sets, counts, notes, measures, sections from symbols/figures, hashes). ✅ Set names from the notes (2A, 3A…) and count-by-count paths for moves that aren't straight; ✅ their path lines follow the real route in the editor. Printed charts show only each set's spots (Jason). Follow-ups: .3dj files with no sets (backups/drafts); the CaneRidge Part 2/3 variant with no PAGE blocks.
 - Optional cloud sync; store-wrapped mobile apps.
 
-- ✅ Roster: a name per dot (Selection and a Roster list in the sidebar), filled in from Pyware imports; in encrypted hosted links, not in plain share links. ✅ Names on printed dot sheets; ✅ import a list (Excel paste / CSV) to name or create dots. Follow-ups: sort the phone's "who are you" list by name; read .xlsx directly.
+- ✅ Roster: a name per dot (Selection and a Roster list in the sidebar), filled in from Pyware imports; in encrypted hosted links, not in plain share links. ✅ Names on printed dot sheets; ✅ import a list (Excel paste / CSV) to name or create dots. ✅ The phone's "who are you" list in last-name order within each section. Follow-up: read .xlsx directly.
