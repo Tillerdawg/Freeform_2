@@ -107,7 +107,8 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
               setDrag.current = null;
               if (d && !d.moved) setT(starts[i]);
             }}
-            style={{ position: 'absolute', left: total ? `${(starts[i] / total) * 100}%` : 0, transform: total ? 'translateX(-50%)' : undefined,
+            // The button starts at its set's line (its left edge on the line); a set at the very end ends there instead.
+            style={{ position: 'absolute', left: total ? `calc(${(starts[i] / total) * 100}% - 1px)` : 0, transform: total && starts[i] >= total ? 'translateX(calc(-100% + 2px))' : undefined,
               fontWeight: i === onSet ? 700 : 400, outline: i === onSet ? '2px solid var(--gold)' : undefined, padding: '0 6px', minWidth: 24,
               cursor: i ? 'ew-resize' : 'pointer', touchAction: 'none' }}>
             {s.name}
