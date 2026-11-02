@@ -49,15 +49,40 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
   // `pad` keeps room past the timeline's last count, so a button near the end still starts at its line (time order).
   const [rows, setRows] = useState<number[]>([]);
   const [pad, setPad] = useState(0);
-  const [fullW, setFullW] = useState(0);
+  // Zoom: pixels per count, or null to fit the window. A long piece starts zoomed in enough to read, and scrolls.
+  const [viewW, setViewW] = useState(0);
+  const [ppc, setPpc] = useState<number | null | 'auto'>('auto');
   const outer = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = outer.current;
     if (!el) return;
-    const ro = new ResizeObserver(() => setFullW(el.clientWidth));
+    const ro = new ResizeObserver(() => setViewW(el.clientWidth));
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
+  const fitPpc = total ? viewW / total : 1;
+  const perCount = ppc === 'auto' ? (fitPpc < 4 ? 6 : null) : ppc; // under 4 px a count, start at 6 (sets and ticks readable)
+  const fullW = perCount && total ? Math.max(viewW, Math.round(total * perCount)) : viewW;
+  const zoom = (k: number) => setPpc(() => { const next = (perCount ?? fitPpc) * k; return next <= fitPpc * 1.01 ? null : Math.min(60, next); });
+  // Scroll sideways with the mouse wheel too (trackpads already swipe sideways), and pan with a right-drag, as on the field.
+  useEffect(() => {
+    const el = outer.current;
+    if (!el) return;
+    const wheel = (e: WheelEvent) => {
+      if (el.scrollWidth <= el.clientWidth || Math.abs(e.deltaX) >= Math.abs(e.deltaY)) return;
+      e.preventDefault(); el.scrollLeft += e.deltaY;
+    };
+    el.addEventListener('wheel', wheel, { passive: false });
+    return () => el.removeEventListener('wheel', wheel);
+  }, []);
+  const panFrom = useRef<{ x: number; left: number } | null>(null);
+  // Keep the playhead in view when it moves (playing, or a set picked elsewhere); scrolling by hand doesn't move it.
+  useEffect(() => {
+    const el = outer.current;
+    if (!el || !total || el.scrollWidth <= el.clientWidth) return;
+    const x = (t / total) * (fullW - pad);
+    if (x < el.scrollLeft + 24 || x > el.scrollLeft + el.clientWidth - 48) el.scrollLeft = x - el.clientWidth * 0.3;
+  }, [t, fullW, pad, total]);
   useLayoutEffect(() => {
     const el = strip.current;
     if (!el || !total || !fullW) return;
@@ -114,10 +139,20 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
           </>
         )}
         <span style={{ marginLeft: 'auto', fontVariantNumeric: 'tabular-nums' }}>{status} · {Math.floor(t)} / {total} counts</span>
+        {total > 0 && <span style={{ display: 'flex', gap: 2 }} role="group" aria-label="Timeline zoom">
+          <button aria-label="Zoom the timeline out" title="Zoom out" disabled={!perCount} onClick={() => zoom(1 / 1.5)}>−</button>
+          <button aria-label="Zoom the timeline in" title="Zoom in (then scroll, or right-drag, to move along)" disabled={(perCount ?? fitPpc) >= 60} onClick={() => zoom(1.5)}>+</button>
+          <button aria-label="Fit the whole show" title="Fit the whole show in the window" disabled={!perCount || fullW <= viewW} onClick={() => setPpc(null)}>Fit</button>
+        </span>}
       </div>
       {/* Set buttons sit above the line where each set lands. */}
       {/* Click a set to go to it; drag it (not set 1) to land it on a different count. Its neighbors stay put. */}
-      <div ref={outer}>
+      <div ref={outer} style={{ overflowX: 'scroll', overflowY: 'hidden' }} // always a scroll bar, so the height never changes
+        onContextMenu={(e) => e.preventDefault()}
+        onPointerDown={(e) => { if (e.button === 2) { e.currentTarget.setPointerCapture(e.pointerId); panFrom.current = { x: e.clientX, left: e.currentTarget.scrollLeft }; } }}
+        onPointerMove={(e) => { if (panFrom.current) e.currentTarget.scrollLeft = panFrom.current.left - (e.clientX - panFrom.current.x); }}
+        onPointerUp={() => { panFrom.current = null; }}>
+      <div style={{ width: fullW || undefined }}>
       <div ref={strip} style={{ position: 'relative', height: 44, marginRight: pad }}>
         {/* Each set's line runs up to its button. Behind the buttons. */}
         {total > 0 && show.sets.map((s, i) => (
@@ -126,6 +161,7 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
         {show.sets.map((s, i) => (
           <button key={s.id} aria-label={`Go to set ${s.name}`} title={i ? 'Click to go here; drag to change which count this set lands on' : undefined}
             onPointerDown={(e) => {
+              if (e.button !== 0) return;
               e.currentTarget.setPointerCapture(e.pointerId);
               // Fix the scale at the start: dragging the last set changes the show's length.
               setDrag.current = { i, x0: e.clientX, from: starts[i], perCount: (strip.current?.clientWidth ?? 1) / Math.max(1, total), moved: false };
@@ -157,8 +193,8 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
       ) : (
         <div
           role="slider" aria-label="Show timeline in counts" aria-valuemin={0} aria-valuemax={total} aria-valuenow={Math.floor(t)} tabIndex={0}
-          onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); scrub(e); }}
-          onPointerMove={(e) => e.buttons && scrub(e)}
+          onPointerDown={(e) => { if (e.button !== 0) return; e.currentTarget.setPointerCapture(e.pointerId); scrub(e); }}
+          onPointerMove={(e) => e.buttons === 1 && scrub(e)}
           style={{ position: 'relative', height: 56, cursor: 'pointer', userSelect: 'none', marginRight: pad }}
         >
           {/* Each move's box is placed at its counts exactly, like the set buttons above, so its yellow line (the set it starts
@@ -210,6 +246,7 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
           <div style={{ position: 'absolute', top: -4, bottom: -4, width: 2, background: '#fff', left: `${(t / total) * 100}%`, pointerEvents: 'none' }} />
         </div>
       )}
+      </div>
       </div>
     </div>
   );
@@ -293,7 +330,7 @@ function Wave({ wave, total }: { wave: NonNullable<Props['wave']>; total: number
   }, []);
   useEffect(() => {
     const c = ref.current!, dpr = window.devicePixelRatio || 1, H = 22;
-    c.width = Math.round(w * dpr); c.height = H * dpr;
+    c.width = Math.min(16384, Math.round(w * dpr)); c.height = H * dpr; // canvases have a size limit; a zoomed-in timeline is stretched
     const ctx = c.getContext('2d')!;
     ctx.clearRect(0, 0, c.width, c.height);
     ctx.fillStyle = PALETTE['green-line'];

@@ -12,6 +12,7 @@
 - ✅ Undo/redo.
 - ✅ Play a range of sets (IDEA.md: individual set, sub-collection, whole show); a loop toggle.
 - ✅ Drill toolbar under the top bar (dropdown menus for markup, shape, transform, FTL, labels) and app-wide button styling.
+- ✅ Timeline: stacked set buttons with lines up to them; zoom (−, +, Fit) and sideways scrolling for long pieces (wheel, swipe, right-drag), following the playhead.
 - Touch support pass (tablets).
 
 ## Later milestones (rough order)
