@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { countsFromMidi, secondsAt, withHolds } from '../engine/midi';
+import { countsFromMidi, secondsAt, withHolds, type Midi } from '../engine/midi';
 import { parseScore } from '../engine/musicxml';
 import { synced } from '../engine/music';
 import { newId, showLength, type Show } from '../engine/show';
@@ -15,80 +15,80 @@ interface Props {
   setUseMusic: (on: boolean) => void;
 }
 
-/** Load the show's recording, tap its counts, and choose whether playback follows it. */
+/**
+ * The show's music in two separate steps, in either order: the score (its counts) and the recording. Whichever comes
+ * second completes it. A recording alone can have its counts tapped instead.
+ */
 export function MusicMenu({ show, setShow, audio, onAudio, useMusic, setUseMusic }: Props) {
-  const file = useRef<HTMLInputElement>(null), midiFile = useRef<HTMLInputElement>(null), pairFile = useRef<HTMLInputElement>(null);
+  const file = useRef<HTMLInputElement>(null), scoreFile = useRef<HTMLInputElement>(null);
   const [note, setNote] = useState('');
   const [tapping, setTapping] = useState(false);
+  // A score added before its recording waits here (only for this session) until the recording comes.
+  const [score, setScore] = useState<{ name: string; map: Midi } | null>(null);
   const m = show.music, total = showLength(show);
-  const load = async (f: File) => {
-    const id = newId('a');
-    if (!(await putAudio(id, f))) { setNote("This browser wouldn't store the music (it may be out of space or in private mode)."); return; }
-    const old = show.music?.audioId;
-    // A different recording needs new taps; the same file again (another computer) keeps them.
-    const keep = old && show.music!.name === f.name;
-    setShow((s) => ({ ...s, music: { name: f.name, audioId: id, taps: keep ? s.music!.taps : [] } }));
-    if (old && old !== id) deleteAudio(old);
-    onAudio(id);
-    setNote(keep ? 'Loaded. Your tapped counts still apply.' : 'Loaded. Now tap the counts.');
-  };
-  // Counts from the score (MuseScore, MusicXML, .mxl or MIDI): exact when the loaded music was rendered from that same score.
-  const counts = async (f: File) => {
-    const midi = await parseScore(await f.arrayBuffer());
-    const held = withHolds(show, midi), r = countsFromMidi(midi, held.show.sets), sets = held.show.sets.length - 1;
-    const note = [`Counts from ${f.name}: ${r.matched} of ${sets} sets placed by their measures${r.matched < sets ? '; the rest count plain beats' : ''}.`,
+  // Counts from the score (MuseScore, MusicXML, .mxl or MIDI): exact when the recording was rendered from that same score.
+  const counts = (map: Midi, name: string, s: Show) => {
+    const held = withHolds(s, map), r = countsFromMidi(map, held.show.sets), sets = held.show.sets.length - 1;
+    const note = [`Counts from ${name}: ${r.matched} of ${sets} sets placed by their measures${r.matched < sets ? '; the rest count plain beats' : ''}.`,
       ...held.widened,
       ...(held.added.length ? [`Added hold set${held.added.length > 1 ? 's' : ''} ${held.added.join(', ')} for bars no set covered (undo removes ${held.added.length > 1 ? 'them' : 'it'}).`] : []),
-      ...r.notes, ...(midi.warnings ?? [])];
-    return { sets: held.show.sets, taps: r.taps, note, seconds: secondsAt(midi, midi.end) };
+      ...r.notes, ...(map.warnings ?? [])];
+    return { sets: held.show.sets, taps: r.taps, note };
   };
-  const fromMidi = async (f: File) => {
+  // A recording much shorter, or much longer, than the score plays is probably a different piece (or another export).
+  const pairCheck = (length: number | null, map: Midi) => {
+    const s = secondsAt(map, map.end);
+    return length !== null && (length < s - 2 || length > s + 20) ? [`Check that these go together: the recording is ${fmt(length)} but the score plays for ${fmt(s)}.`] : [];
+  };
+  const load = async (f: File) => {
+    const id = newId('a');
+    const length = await duration(f);
+    if (!(await putAudio(id, f))) { setNote("This browser wouldn't store the music (it may be out of space or in private mode)."); return; }
+    const old = show.music?.audioId;
+    if (old && old !== id) deleteAudio(old);
+    onAudio(id);
+    if (score) { // the score came first: the recording completes it, counts and all
+      const c = counts(score.map, score.name, show);
+      setShow((s) => ({ ...s, sets: c.sets, music: { name: f.name, audioId: id, taps: c.taps } }));
+      setNote([`Loaded ${f.name}.`, ...c.note, ...pairCheck(length, score.map)].join(' '));
+      setScore(null);
+      return;
+    }
+    // A different recording needs new counts; the same file again (another computer) keeps them.
+    const keep = old && show.music!.name === f.name;
+    setShow((s) => ({ ...s, music: { name: f.name, audioId: id, taps: keep ? s.music!.taps : [] } }));
+    setNote(keep ? 'Loaded. Your counts still apply.' : `Loaded ${f.name}. Now add its score, or tap the counts.`);
+  };
+  const addScore = async (f: File) => {
     try {
-      const c = await counts(f);
+      const map = await parseScore(await f.arrayBuffer());
+      if (!show.music) { setScore({ name: f.name, map }); setNote(`Score added: ${f.name}. Now add its recording (mp3).`); return; }
+      const c = counts(map, f.name, show);
       setShow((s) => (s.music ? { ...s, sets: c.sets, music: { ...s.music, taps: c.taps } } : s));
-      setNote(c.note.join(' '));
+      setNote([...c.note, ...pairCheck(audio && Number.isFinite(audio.duration) ? audio.duration : null, map)].join(' '));
     } catch (e) { setNote(e instanceof Error ? e.message : "That score file couldn't be read."); }
   };
-  // One step: the score and the recording MuseScore exported from it, chosen together. One Undo takes it all back.
-  const fromMuseScore = async (files: File[]) => {
-    const isAudio = (f: File) => f.type.startsWith('audio/') && !/midi/.test(f.type) || /\.(mp3|m4a|wav|aac|ogg|flac)$/i.test(f.name);
-    const sound = files.filter(isAudio), score = files.filter((f) => !isAudio(f));
-    if (sound.length !== 1 || score.length !== 1) { setNote('Choose two files together (⌘- or Ctrl-click): the score (.mscz, MusicXML or MIDI) and the recording exported from it (.mp3).'); return; }
-    try {
-      const c = await counts(score[0]);
-      const length = await duration(sound[0]);
-      const id = newId('a');
-      if (!(await putAudio(id, sound[0]))) { setNote("This browser wouldn't store the music (it may be out of space or in private mode)."); return; }
-      const old = show.music?.audioId;
-      setShow((s) => ({ ...s, sets: c.sets, music: { name: sound[0].name, audioId: id, taps: c.taps } }));
-      if (old && old !== id) deleteAudio(old);
-      onAudio(id);
-      // A recording much shorter, or much longer, than the score is probably a different piece (or a different export).
-      const off = length !== null && (length < c.seconds - 2 || length > c.seconds + 20);
-      setNote([`Loaded ${sound[0].name}.`, ...c.note, ...(off ? [`Check the pair: the recording is ${fmt(length!)} but the score plays for ${fmt(c.seconds)}, so they may not be the same piece.`] : [])].join(' '));
-    } catch (e) { setNote(e instanceof Error ? e.message : "Those files couldn't be read."); }
-  };
   const label = !m ? 'Music' : synced(m) && useMusic && audio ? '♪ Music' : 'Music';
+  const done = (ok: boolean) => (ok ? '✓ ' : '');
   return (
     <>
       <Menu label={label} pressed={!!(m && synced(m) && useMusic && audio)} title="Play the drill with the show's recording">
         {(close) => <>
-          {!m && <p style={{ margin: 0, fontSize: 12 }}>Load the show's recording, then tap along on each count, or take the counts from the score (MuseScore, MusicXML or MIDI). Playback then follows the music.</p>}
+          {!m && <p style={{ margin: 0, fontSize: 12, maxWidth: 320 }}>Add the score and its recording (exported from MuseScore as mp3), in either order: every count then comes from the score. Or add just a recording and tap the counts.</p>}
           {m && <p style={{ margin: 0, fontSize: 12 }}><strong>{m.name}</strong><br />
-            {m.taps.length ? `${m.taps.length} of ${total + 1} counts tapped${m.taps.length < total + 1 ? '; later counts keep the last pace' : ''}.` : 'No counts tapped yet.'}</p>}
-          {m && !audio && <p role="alert" style={{ margin: 0, fontSize: 12, color: 'var(--warn)' }}>The recording isn't in this browser. Load {m.name} again to hear it.</p>}
-          <button className={m ? undefined : 'primary'} onClick={() => pairFile.current?.click()} title="Choose the score (.mscz, MusicXML or MIDI) and the recording exported from it (.mp3) together: the music loads with every count in place">Add music from MuseScore…</button>
-          <button onClick={() => file.current?.click()}>{m ? 'Replace or reload music…' : 'Load music only (mp3)…'}</button>
+            {m.taps.length ? `${m.taps.length} of ${total + 1} counts placed${m.taps.length < total + 1 ? '; later counts keep the last pace' : ''}.` : 'No counts yet: add the score, or tap them.'}</p>}
+          {m && !audio && <p role="alert" style={{ margin: 0, fontSize: 12, color: 'var(--warn)' }}>The recording isn't in this browser. Add {m.name} again to hear it.</p>}
+          <button onClick={() => scoreFile.current?.click()} title="The score the recording was rendered from: MuseScore (.mscz), MusicXML, .mxl or MIDI. Each set's counts are placed in the measures typed for it.">
+            {done(!!score)}{score ? `Score: ${score.name}` : m?.taps.length ? 'Add the score again…' : 'Add the score (MuseScore)…'}</button>
+          <button onClick={() => file.current?.click()}>{done(!!m && !!audio)}{m ? 'Replace the recording…' : 'Add the recording (mp3)…'}</button>
           {m && <button disabled={!audio} onClick={() => { setTapping(true); close(); }}>Tap counts…</button>}
-          {m && <button onClick={() => midiFile.current?.click()} title="Use when the music was rendered from this score (e.g. exported as audio from MuseScore). Choose the score's MuseScore file (.mscz), or its MusicXML, .mxl or MIDI; each set's counts are placed in the measures typed for it.">Counts from the score…</button>}
           {m && synced(m) && <label style={{ fontSize: 13 }}><input type="checkbox" checked={useMusic} onChange={(e) => setUseMusic(e.target.checked)} /> Play with music (off: use Tempo)</label>}
           {m && <button className="danger" onClick={() => { deleteAudio(m.audioId); setShow((s) => { const { music: _, ...rest } = s; return rest; }); setNote(''); }}>Remove music</button>}
-          {note && <p role="status" style={{ margin: 0, fontSize: 12 }}>{note}</p>}
+          {note && <p role="status" style={{ margin: 0, fontSize: 12, maxWidth: 320 }}>{note}</p>}
         </>}
       </Menu>
       <input ref={file} type="file" accept="audio/*,.mp3,.m4a,.wav,.aac" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) load(f); e.target.value = ''; }} />
-      <input ref={pairFile} type="file" multiple accept=".mscz,.mscx,.mxl,.musicxml,.xml,.mid,.midi,audio/*,.mp3,.m4a,.wav,.aac" hidden onChange={(e) => { const f = [...(e.target.files ?? [])]; if (f.length) fromMuseScore(f); e.target.value = ''; }} />
-      <input ref={midiFile} type="file" accept=".mscz,.mscx,.mid,.midi,audio/midi,.musicxml,.xml,.mxl,application/vnd.recordare.musicxml+xml,application/vnd.recordare.musicxml" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) fromMidi(f); e.target.value = ''; }} />
+      <input ref={scoreFile} type="file" accept=".mscz,.mscx,.mid,.midi,audio/midi,.musicxml,.xml,.mxl,application/vnd.recordare.musicxml+xml,application/vnd.recordare.musicxml" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) addScore(f); e.target.value = ''; }} />
       {tapping && audio && m && <TapDialog audio={audio} total={total} kept={m.taps} onDone={(taps) => { setTapping(false); if (taps) setShow((s) => (s.music ? { ...s, music: { ...s.music, taps } } : s)); }} />}
     </>
   );

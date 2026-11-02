@@ -9,6 +9,7 @@ export interface Midi {
   tempos: [tick: number, usPerQuarter: number][];
   measures: { start: number; beats: number; den: number; sounding: boolean }[]; // in order; starts in ticks; sounding = some note is heard in it
   end: number; // last event tick
+  warnings?: string[]; // what a score reader couldn't follow (e.g. repeats in MusicXML)
 }
 
 /** Read a Standard MIDI File (formats 0 and 1). Throws a readable message on anything else. */
