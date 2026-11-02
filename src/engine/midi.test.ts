@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { countsFromMidi, oddBars, parseMidi, secondsAt, withHolds } from './midi';
+import { countsFromMidi, fillMeasures, oddBars, parseMidi, secondsAt, withHolds } from './midi';
 import { newShow } from './show';
 
 /** A one-track MIDI: 480 ticks per quarter, events as [delta, ...bytes]. */
@@ -103,6 +103,13 @@ describe('counts from a MIDI file', () => {
     expect(r.show.sets.map((x) => x.counts)).toEqual([0, 6, 2]); // 5 counts fit 6 beats no way; 2 counts over 2 bars is "in one"
     expect(r.widened).toEqual(["Set 2: its 5 counts didn't fit m. 1–2 (6 beats), so it now has 6 counts (undo keeps 5)."]);
     expect(countsFromMidi(m, r.show.sets).notes).toEqual([]);
+  });
+  it('fills in the measures of sets that have none, from where their counts fall', () => {
+    const m = parseMidi(file); // m. 1–4 are 3/4, m. 5–7 are 4/4
+    const sets = [{ name: '1', counts: 0 }, { name: '2', counts: 6, measures: '1–2' }, { name: '3', counts: 6 }, { name: '4', counts: 4 }, { name: '5', counts: 99 }];
+    const r = fillMeasures(m, countsFromMidi(m, sets).taps, sets);
+    expect(r.sets.map((x) => x.measures)).toEqual([undefined, '1–2', '3–4', '5', undefined]); // typed kept; past the end left blank
+    expect(r.filled).toBe(2);
   });
   it('rejects files that are not MIDI', () => {
     expect(() => parseMidi(new TextEncoder().encode('hello there, not midi').buffer)).toThrow(/isn't a MIDI file/);

@@ -25,7 +25,7 @@
 - ✅ Coordinate (dot) sheets, 4 cards per page, and drill charts, one per set (print / Save as PDF).
 - ✅ Measure numbers per set (typed), on dot sheets, chart headers, and the timeline.
 - ✅ Readable dot labels (auto placement and hiding, per-set pinned sides) in the editor, printed charts and phone.
-- Print follow-ups: paths on charts; a notes column; 1-per-page sheets; computing measures from a meter map once music sync exists.
+- Print follow-ups: paths on charts; a notes column; 1-per-page sheets; (done: measures fill in from the score for sets without them).
 - ✅ Page markup: text notes, arrows, freehand drawing, page notes; per-performer cues on dot sheets.
 - Markup follow-ups: markup that spans several sets; text size/color options; editing ink strokes point by point.
 - ✅ Published on GitHub Pages; installable and offline (PWA).

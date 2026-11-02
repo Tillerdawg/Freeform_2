@@ -206,3 +206,22 @@ export function countsFromMidi(m: Midi, sets: { name: string; counts: number; me
   for (let i = 1; i < taps.length; i++) if (!(taps[i] > taps[i - 1])) taps[i] = taps[i - 1] + 0.001; // keep strictly increasing
   return { taps, matched, notes };
 }
+
+/**
+ * Fill in the Measures of sets that have none, from where their counts fall in the score (`taps` from countsFromMidi):
+ * a set covers the bar its count 1 is in through the bar its last count is in. Typed measures are kept. Returns the
+ * sets and how many were filled.
+ */
+export function fillMeasures<T extends { counts: number; measures?: string }>(m: Midi, taps: number[], sets: T[]): { sets: T[]; filled: number } {
+  const starts = m.measures.map((x) => secondsAt(m, x.start)), end = secondsAt(m, m.end);
+  const barAt = (t: number) => { let k = 0; while (k + 1 < starts.length && starts[k + 1] <= t + 0.005) k++; return k + 1; };
+  let at = 0, filled = 0;
+  const out = sets.map((s, i) => {
+    const first = at + 1, last = (at += s.counts);
+    if (i === 0 || s.counts < 1 || s.measures?.trim() || last >= taps.length || taps[last] > end + 0.005) return s;
+    const a = barAt(taps[first]), b = barAt(taps[last]);
+    filled++;
+    return { ...s, measures: a === b ? `${a}` : `${a}–${b}` };
+  });
+  return { sets: out, filled };
+}

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { countsFromMidi, secondsAt, withHolds, type Midi } from '../engine/midi';
+import { countsFromMidi, fillMeasures, secondsAt, withHolds, type Midi } from '../engine/midi';
 import { parseScore } from '../engine/musicxml';
 import { synced } from '../engine/music';
 import { newId, showLength, type Show } from '../engine/show';
@@ -33,7 +33,9 @@ export function MusicMenu({ show, setShow, audio, onAudio, useMusic, setUseMusic
       ...held.widened,
       ...(held.added.length ? [`Added hold set${held.added.length > 1 ? 's' : ''} ${held.added.join(', ')} for bars no set covered (undo removes ${held.added.length > 1 ? 'them' : 'it'}).`] : []),
       ...r.notes, ...(map.warnings ?? [])];
-    return { sets: held.show.sets, taps: r.taps, note };
+    const f = fillMeasures(map, r.taps, held.show.sets);
+    if (f.filled) note.push(`Filled in the measures of ${f.filled} set${f.filled > 1 ? 's' : ''} that had none.`);
+    return { sets: f.sets, taps: r.taps, note };
   };
   // A recording much shorter, or much longer, than the score plays is probably a different piece (or another export).
   const pairCheck = (length: number | null, map: Midi) => {

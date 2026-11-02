@@ -818,3 +818,7 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Who:** Jason Tiller (the two buttons should collapse after either choice); the menu form by Claude, accepted by Jason (13:17)
 - **Context:** "Back to Freeform's list" appeared only after saving your own list, so the panel grew a button after one choice and lost it after the other.
 - **Decision:** one **Starting list ▾** menu, like Sort, holding **Use this list for new shows** and **Back to Freeform's list** (grayed out when new shows already get Freeform's list). The menu closes after either choice; the line under it still says which list new shows get.
+
+## 2026-11-02 13:30 EST — Measures fill in from the score
+- **Who:** Jason Tiller (go ahead); details by Claude *(Jason can veto)*
+- **Decision:** when a score is added, every set with an empty Measures box gets one: the bar its count 1 falls in through the bar its last count falls in ("9–12", or "9" for one bar). Typed measures are never changed. Sets past the end of the score stay blank. The menu says how many it filled, and Undo takes them back out. The filled measures print on dot sheets like typed ones.
