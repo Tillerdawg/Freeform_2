@@ -21,3 +21,4 @@ export const IconFit = L('M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4');
 // Magnifying glasses for zooming the timeline (a plain + reads as "add counts").
 export const IconZoomIn = L('M6.5 1.5a5 5 0 1 0 0 10a5 5 0 1 0 0-10M10.2 10.2 14.5 14.5M4.5 6.5h4M6.5 4.5v4');
 export const IconZoomOut = L('M6.5 1.5a5 5 0 1 0 0 10a5 5 0 1 0 0-10M10.2 10.2 14.5 14.5M4.5 6.5h4');
+export const IconGrip = S('M5 2h2v2H5zM9 2h2v2H9zM5 7h2v2H5zM9 7h2v2H9zM5 12h2v2H5zM9 12h2v2H9z'); // drag to reorder

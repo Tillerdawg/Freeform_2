@@ -1,6 +1,7 @@
 import { clearStartingSections, hasOwnStartingSections, saveStartingSections } from './startingSections';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { RosterImport } from './RosterImport';
+import { IconGrip } from './icons';
 import { readout, type HashPreset } from '../engine/coords';
 import type { Shape, ShapeKind } from '../engine/shapes';
 import {
@@ -293,11 +294,13 @@ function SectionsEditor({ show, setShow, cur }: { show: Show; setShow: (f: (s: S
   const count = (id: string) => show.performers.filter((p) => p.section === id).length;
   const edit = (i: number, patch: { letter?: string; name?: string; color?: string }) =>
     setShow((sh) => ({ ...sh, sections: sh.sections.map((x, j) => (j === i ? { ...x, ...patch } : x)) }));
-  const move = (i: number, by: -1 | 1) => setShow((sh) => {
-    const list = [...sh.sections];
-    [list[i], list[i + by]] = [list[i + by], list[i]];
-    return { ...sh, sections: list };
-  });
+  // Drag a row's grip to reorder: a gold line shows where it will land; one change (one undo) on release. Rows don't
+  // move during the drag (moving the grabbed element in the page would drop the pointer).
+  const [drag, setDrag] = useState<{ from: number; to: number; mids: number[] } | null>(null);
+  const rowEls = useRef<(HTMLDivElement | null)[]>([]);
+  const reorder = (from: number, to: number) => { if (from !== to) setShow((sh) => { const list = [...sh.sections]; list.splice(to, 0, ...list.splice(from, 1)); return { ...sh, sections: list }; }); };
+  const landing = (i: number) => (!drag || drag.to === drag.from ? undefined
+    : i === drag.to ? (drag.to < drag.from ? 'inset 0 3px 0 var(--gold)' : 'inset 0 -3px 0 var(--gold)') : undefined);
   return (
     <details style={box} ref={panel}>
       <summary><strong>Sections</strong> <span style={{ fontSize: 12, opacity: 0.7 }}>({show.sections.length})</span></summary>
@@ -305,14 +308,31 @@ function SectionsEditor({ show, setShow, cur }: { show: Show; setShow: (f: (s: S
         The swatch colors the section's dots. The letter starts each label (A1, X1). To split a section, add one here, then select its performers and change their Section.
       </p>
       {show.sections.map((s, i) => {
-        const n = count(s.id), dup = dupes.has(s.letter.trim().toUpperCase());
+        const n = count(s.id), dup = dupes.has(s.letter.trim().toUpperCase()), last = show.sections.length - 1;
         return (
-          <div key={s.id}>
+          <div key={s.id} ref={(el) => { rowEls.current[i] = el; }} style={{ boxShadow: landing(i), opacity: drag && drag.from === i && drag.to !== i ? 0.5 : 1 }}>
             <div style={row}>
-              <span style={{ display: 'flex', flexDirection: 'column' }}>
-                <button aria-label={`Move ${s.name} up`} title="Move up the list" className="icon" disabled={i === 0} onClick={() => move(i, -1)} style={{ padding: '0 5px', lineHeight: 1, fontSize: 10 }}>▲</button>
-                <button aria-label={`Move ${s.name} down`} title="Move down the list" className="icon" disabled={i === show.sections.length - 1} onClick={() => move(i, 1)} style={{ padding: '0 5px', lineHeight: 1, fontSize: 10 }}>▼</button>
-              </span>
+              <button aria-label={`Move ${s.name} (drag up or down, or use the arrow keys)`} title="Drag up or down to reorder" className="icon"
+                style={{ cursor: drag ? 'grabbing' : 'grab', touchAction: 'none', padding: '4px 5px' }}
+                onPointerDown={(e) => {
+                  if (e.button !== 0) return;
+                  e.currentTarget.setPointerCapture(e.pointerId);
+                  setRenumbering(null); setDeleting(null);
+                  // Each row's middle, in list order, as it stands when the drag starts.
+                  const mids = show.sections.map((_, j) => { const r = rowEls.current[j]?.getBoundingClientRect(); return r ? r.top + r.height / 2 : 0; });
+                  setDrag({ from: i, to: i, mids });
+                }}
+                onPointerMove={(e) => { if (drag) { const to = drag.mids.filter((m, j) => j !== drag.from && m < e.clientY).length; if (to !== drag.to) setDrag({ ...drag, to }); } }}
+                onPointerUp={() => { if (drag) { reorder(drag.from, drag.to); setDrag(null); } }}
+                onPointerCancel={() => setDrag(null)}
+                onKeyDown={(e) => {
+                  const to = e.key === 'ArrowUp' ? i - 1 : e.key === 'ArrowDown' ? i + 1 : -1;
+                  if (to < 0 || to > last) return;
+                  e.preventDefault(); reorder(i, to);
+                  requestAnimationFrame(() => (rowEls.current[to]?.querySelector('button') as HTMLButtonElement | null)?.focus()); // keep moving it
+                }}>
+                <IconGrip />
+              </button>
               <input type="color" aria-label={`Color for ${s.name}`} title={s.color ? `Dot color for ${s.name}` : `Pick a dot color for ${s.name} (none yet)`}
                 value={s.color ?? '#111111'} onChange={(e) => edit(i, { color: e.target.value })}
                 style={{ width: 24, height: 24, padding: 0, border: s.color ? '1px solid var(--line-strong)' : '1px dashed var(--muted)', borderRadius: 6, background: 'none', cursor: 'pointer', opacity: s.color ? 1 : 0.6 }} />
