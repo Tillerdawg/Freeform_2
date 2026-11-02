@@ -80,29 +80,34 @@ describe('counts from a MIDI file', () => {
     expect(r.notes).toEqual([]); // 1 + 3 + 3 beats
     expect(r.taps.slice(2, 8)).toEqual([0.5, 1, 1.5, 2, 2.5, 3]); // count 2 is m. 2's downbeat
   });
-  it("widens a set whose notes' measures are out of date, when its counts fit exactly with the uncovered bars before it", () => {
+  it("adds no hold when a set's counts run straight on through the uncovered bars before it (its measures kept)", () => {
     const m = parseMidi(file), base = newShow(); // 4 bars of 3/4, then 4/4 bars (m. 5 is silent)
     const show = { ...base, sets: [{ ...base.sets[0], pos: {} }, { id: 's2', name: '2', counts: 6, measures: '1–2', pos: {} }, { id: 's3', name: '3', counts: 10, measures: '4–5', pos: {} }] };
     const r = withHolds(show, m); // m. 3 is in no set, and 10 counts = m. 3 (3) + m. 4 (3) + m. 5 (4)
     expect(r.added).toEqual([]);
-    expect(r.show.sets[2].measures).toBe('3–5');
-    expect(r.widened[0]).toMatch(/Set 3: its 10 counts fit m\. 3–5/);
+    expect(r.show.sets[2].measures).toBe('4–5');
+    const t = countsFromMidi(m, r.show.sets);
+    expect(t.notes).toEqual([]);
+    expect(t.taps[7]).toBe(3); // set 3's count 1 is m. 3's downbeat
   });
-  it("starts a set after the set before it when its notes overlap it and its counts fit from there", () => {
+  it("runs a set on from the set before when its notes overlap it (its measures kept)", () => {
     const m = parseMidi(file), base = newShow(); // 4 bars of 3/4, then 4/4 bars
     const show = { ...base, sets: [{ ...base.sets[0], pos: {} }, { id: 's2', name: '2', counts: 6, measures: '1–2', pos: {} }, { id: 's3', name: '3', counts: 6, measures: '2–4', pos: {} }] };
     const r = withHolds(show, m); // m. 2 is set 2's; 6 counts = m. 3–4
-    expect(r.show.sets[2].measures).toBe('3–4');
-    expect(r.widened[0]).toMatch(/Set 3: m\. 2–4 overlaps set 2; its 6 counts fit m\. 3–4/);
-    expect(countsFromMidi(m, r.show.sets).notes).toEqual([]);
+    expect(r.show.sets[2].measures).toBe('2–4');
+    const t = countsFromMidi(m, r.show.sets);
+    expect(t.notes).toEqual([]);
+    expect(t.taps[7]).toBe(3); // count 1 is m. 3's downbeat
   });
-  it("gives a set whose counts can't fit its bars one count per beat of them (the score decides)", () => {
+  it("keeps a set's counts even when they can't fit its bars, and flags it (trust the writer)", () => {
     const m = parseMidi(file), base = newShow(); // m. 1–4 are 3/4, m. 5–7 are 4/4
     const show = { ...base, sets: [base.sets[0], { id: 's2', name: '2', counts: 7, measures: '1–2', pos: {} }, { id: 's3', name: '3', counts: 2, measures: '3–4', pos: {} }] };
     const r = withHolds(show, m);
-    expect(r.show.sets.map((x) => x.counts)).toEqual([0, 6, 2]); // 7 counts fit 6 beats no way; 2 counts over 2 bars is "in one"
-    expect(r.widened).toEqual(["Set 2: its 7 counts didn't fit m. 1–2 (6 beats), so it now has 6 counts (undo keeps 7)."]);
-    expect(countsFromMidi(m, r.show.sets).notes).toEqual([]);
+    expect(r.show.sets.map((x) => x.counts)).toEqual([0, 7, 2]); // 7 counts fit 6 beats no way
+    const t = countsFromMidi(m, r.show.sets);
+    expect(t.notes).toHaveLength(1);
+    expect(t.notes[0]).toMatch(/Set 2: 7 counts over m\. 1–2/);
+    expect(t.fit).toEqual([true, false, true]); // 2 counts over 2 bars is "in one"
   });
   it('lets a set hit mid-bar (beat 3), and the next run on from there', () => {
     // 6 bars of 4/4 at 120 (a quarter = 0.5 s), sounding throughout.
@@ -111,7 +116,6 @@ describe('counts from a MIDI file', () => {
     const sets = (next: { counts: number; measures: string }) => [base.sets[0], { id: 's2', name: '2', counts: 15, measures: '1–4', pos: {} }, { id: 's3', name: '3', pos: {}, ...next }];
     for (const next of [{ counts: 9, measures: '4–6' }, { counts: 9, measures: '5–6' }]) { // either way of writing a set that starts on beat 4
       const r = withHolds({ ...base, sets: sets(next) }, m);
-      expect(r.widened).toEqual([]);
       expect(r.show.sets.map((x) => x.counts)).toEqual([0, 15, 9]);
       const t = countsFromMidi(m, r.show.sets);
       expect(t.notes).toEqual([]);

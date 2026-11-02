@@ -92,35 +92,25 @@ function place(m: Midi, bars: number[], n: number, bar: (k: number) => number, h
   if (how === 'half') return n * 2 === beats.length ? beats.filter((_, j) => j % 2 === 0) : null;
   if (n % bars.length) return null;
   const per = n / bars.length;
+  if (bars.some((k) => per > m.measures[k - 1].beats)) return null; // in one or in 2, never more counts than beats
   return bars.flatMap((k) => Array.from({ length: per }, (_, j) => bar(k) + ((bar(k + 1) - bar(k)) * j) / per));
 }
 
 /**
  * Bars that no set's measures cover (a G.P. between moves, or an intro before the first move) get a hold sub-set, as
  * a Pyware drill writer would write it: named after the set before it (after 4: 4A; after 4A, or if 4A is taken: 4B), standing on that
- * set's spots, one count per beat of those bars. A set whose counts can't fit its bars takes the bars' beats.
- * Returns the show, the names added and notes on the sets changed (`widened`).
+ * set's spots, one count per beat of those bars. No hold when the set's counts run straight on through those bars to
+ * its last one (its notes start a bar late): countsFromMidi places it. The writer's counts and measures are never
+ * changed (Jason: trust the drill writer). Returns the show and the names added.
  */
-export function withHolds(show: Show, m: Midi): { show: Show; added: string[]; widened: string[] } {
-  const sets = [...show.sets], added: string[] = [], widened: string[] = [], names = new Set(sets.map((x) => x.name));
+export function withHolds(show: Show, m: Midi): { show: Show; added: string[] } {
+  const sets = [...show.sets], added: string[] = [], names = new Set(sets.map((x) => x.name));
   const beatsIn = (a: number, b: number) => m.measures.slice(a - 1, b - 1 + 1).reduce((sum, x) => sum + x.beats, 0);
   let end = 0; // last bar covered so far
   for (let i = 1; i < sets.length; i++) {
     const r = range(sets[i].measures);
     if (!r || r[0] < 1 || r[1] > lastBar(m)) { end = 0; continue; } // unknown measures: don't guess a gap
-    if ((end || i === 1) && r[0] > end + 1 && sets[i].counts === beatsIn(end + 1, r[1]) && sets[i].counts !== beatsIn(r[0], r[1])) {
-      // The set's counts fit exactly once the uncovered bars before it are included: its notes' measures are out of
-      // date (Dream On set 7: "mm. 35-37, 12 Counts" but 16 counts, with m. 34 in no set). Widen it instead of a hold.
-      const was = sets[i].measures, now = `${end + 1}–${r[1]}`;
-      sets[i] = { ...sets[i], measures: now };
-      widened.push(`Set ${sets[i].name}: its ${sets[i].counts} counts fit m. ${now}, not m. ${was}, so it now covers m. ${now}.`);
-    } else if (end && r[0] <= end && r[1] > end && sets[i].counts === beatsIn(end + 1, r[1]) && sets[i].counts !== beatsIn(r[0], r[1])) {
-      // The other way round: the notes overlap the set before (Nightmare set 4: "mm. 24-28, 16 Counts" after set 3's
-      // mm. 21-24), and the counts fit exactly from the bar after it: start there.
-      const was = sets[i].measures, now = end + 1 === r[1] ? `${r[1]}` : `${end + 1}–${r[1]}`;
-      sets[i] = { ...sets[i], measures: now };
-      widened.push(`Set ${sets[i].name}: m. ${was} overlaps set ${sets[i - 1].name}; its ${sets[i].counts} counts fit m. ${now}, so it now covers m. ${now}.`);
-    } else if ((end || i === 1) && r[0] > end + 1) {
+    if (end && r[0] > end + 1 && sets[i].counts !== beatsIn(end + 1, r[1]) || !end && i === 1 && r[0] > 1) {
       const a = end + 1, b = r[0] - 1, before = sets[i - 1];
       const name = subSetName(names, before.name);
       names.add(name);
@@ -129,17 +119,9 @@ export function withHolds(show: Show, m: Midi): { show: Show; added: string[]; w
       added.push(name);
       i++;
     }
-    const now = range(sets[i].measures)!, bars = now[1] - now[0] + 1, n = sets[i].counts, beats = beatsIn(now[0], now[1]);
-    const sounding = m.measures.slice(now[0] - 1, now[1]).reduce((sum, x) => sum + (x.sounding ? x.beats : 0), 0);
-    if (n > 0 && n !== beats && n !== sounding && n * 2 !== beats && n % bars && !countsFromMidi(m, sets.slice(0, i + 1)).fit[i]) {
-      // Counts that fit the bars no way (a beat each, the bars that sound, a steady number per bar, every other beat,
-      // nor straight on from the last set's hit to a hit inside its last bar, as on beat 3): the score decides (Jason: Nightmare set 2A, 48 counts over m. 7–20, two of them 2/4 = 52 beats, is 52 counts).
-      sets[i] = { ...sets[i], counts: beats };
-      widened.push(`Set ${sets[i].name}: its ${n} counts didn't fit m. ${sets[i].measures} (${beats} beats), so it now has ${beats} counts (undo keeps ${n}).`);
-    }
     end = r[1];
   }
-  return { show: added.length || widened.length ? { ...show, sets } : show, added, widened };
+  return { show: added.length ? { ...show, sets } : show, added };
 }
 
 /**
@@ -191,7 +173,8 @@ export function countsFromMidi(m: Midi, sets: { name: string; counts: number; me
     const next = prev + (ticks.length > 2 ? prev - ticks[ticks.length - 2] : beatAt(m, prev));
     const midBar = !Number.isNaN(prev) && !m.measures.some((x) => Math.abs(x.start - next) < 1e-6);
     fit[i] = false;
-    if (midBar && lands) {
+    // Mid-bar, or the notes overlap the set before (Nightmare set 4 "mm. 24-28" after set 3's mm. 21-24): run on.
+    if (lands && (midBar || (r && !Number.isNaN(prev) && bar(r[0]) <= prev))) {
       ticks.push(...lands);
       matched++;
       fit[i] = true;

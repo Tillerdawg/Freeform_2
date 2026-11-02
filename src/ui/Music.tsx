@@ -30,7 +30,6 @@ export function MusicMenu({ show, setShow, audio, onAudio, useMusic, setUseMusic
   const counts = (map: Midi, name: string, s: Show) => {
     const held = withHolds(s, map), r = countsFromMidi(map, held.show.sets), sets = held.show.sets.length - 1;
     const note = [`Counts from ${name}: ${r.matched} of ${sets} sets placed by their measures${r.matched < sets ? '; the rest count plain beats' : ''}.`,
-      ...held.widened,
       ...(held.added.length ? [`Added hold set${held.added.length > 1 ? 's' : ''} ${held.added.join(', ')} for bars no set covered (undo removes ${held.added.length > 1 ? 'them' : 'it'}).`] : []),
       ...r.notes, ...(map.warnings ?? [])];
     const f = fillMeasures(map, r.taps, held.show.sets);
