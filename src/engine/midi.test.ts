@@ -46,10 +46,10 @@ describe('counts from a MIDI file', () => {
   });
   it('flags a set whose counts do not fit its measures, and counts plain beats without measures', () => {
     const m = parseMidi(file);
-    const r = countsFromMidi(m, [{ name: '1', counts: 0 }, { name: '2', counts: 5, measures: '1–2' }, { name: '3', counts: 2 }]);
-    expect(r.notes[0]).toMatch(/Set 2: 5 counts over m\. 1–2/);
-    expect(r.taps.length).toBe(8);
-    expect(r.taps[7] - r.taps[6]).toBeCloseTo(0.5, 9); // plain quarter beats at 120
+    const r = countsFromMidi(m, [{ name: '1', counts: 0 }, { name: '2', counts: 7, measures: '1–2' }, { name: '3', counts: 2 }]);
+    expect(r.notes[0]).toMatch(/Set 2: 7 counts over m\. 1–2/); // 7 beats would hit in m. 3
+    expect(r.taps.length).toBe(10);
+    expect(r.taps[9] - r.taps[8]).toBeCloseTo(0.5, 9); // plain quarter beats at 120
   });
   it('adds a hold sub-set for bars no set covers (a G.P.), standing on the set before it', () => {
     const m = parseMidi(file), base = newShow();
@@ -98,11 +98,29 @@ describe('counts from a MIDI file', () => {
   });
   it("gives a set whose counts can't fit its bars one count per beat of them (the score decides)", () => {
     const m = parseMidi(file), base = newShow(); // m. 1–4 are 3/4, m. 5–7 are 4/4
-    const show = { ...base, sets: [base.sets[0], { id: 's2', name: '2', counts: 5, measures: '1–2', pos: {} }, { id: 's3', name: '3', counts: 2, measures: '3–4', pos: {} }] };
+    const show = { ...base, sets: [base.sets[0], { id: 's2', name: '2', counts: 7, measures: '1–2', pos: {} }, { id: 's3', name: '3', counts: 2, measures: '3–4', pos: {} }] };
     const r = withHolds(show, m);
-    expect(r.show.sets.map((x) => x.counts)).toEqual([0, 6, 2]); // 5 counts fit 6 beats no way; 2 counts over 2 bars is "in one"
-    expect(r.widened).toEqual(["Set 2: its 5 counts didn't fit m. 1–2 (6 beats), so it now has 6 counts (undo keeps 5)."]);
+    expect(r.show.sets.map((x) => x.counts)).toEqual([0, 6, 2]); // 7 counts fit 6 beats no way; 2 counts over 2 bars is "in one"
+    expect(r.widened).toEqual(["Set 2: its 7 counts didn't fit m. 1–2 (6 beats), so it now has 6 counts (undo keeps 7)."]);
     expect(countsFromMidi(m, r.show.sets).notes).toEqual([]);
+  });
+  it('lets a set hit mid-bar (beat 3), and the next run on from there', () => {
+    // 6 bars of 4/4 at 120 (a quarter = 0.5 s), sounding throughout.
+    const m = parseMidi(midi([[0, ...tempo(120)], [0, ...meter(4, 4)], [0, 0x90, 60, 100], [480 * 24, 0x80, 60, 0]]));
+    const base = newShow();
+    const sets = (next: { counts: number; measures: string }) => [base.sets[0], { id: 's2', name: '2', counts: 15, measures: '1–4', pos: {} }, { id: 's3', name: '3', pos: {}, ...next }];
+    for (const next of [{ counts: 9, measures: '4–6' }, { counts: 9, measures: '5–6' }]) { // either way of writing a set that starts on beat 4
+      const r = withHolds({ ...base, sets: sets(next) }, m);
+      expect(r.widened).toEqual([]);
+      expect(r.show.sets.map((x) => x.counts)).toEqual([0, 15, 9]);
+      const t = countsFromMidi(m, r.show.sets);
+      expect(t.notes).toEqual([]);
+      expect(t.fit).toEqual([true, true, true]);
+      expect([t.taps[15], t.taps[16], t.taps[24]]).toEqual([7, 7.5, 11.5]); // hit on m. 4 beat 3; next count is beat 4; last beat of m. 6
+    }
+    // Bars that would fit from a downbeat (8 counts = m. 5–6) still run on from the beat-3 hit: no beat is skipped.
+    const t = countsFromMidi(m, sets({ counts: 8, measures: '5–6' }));
+    expect([t.taps[16], t.taps[23]]).toEqual([7.5, 11]);
   });
   it('fills in the measures of sets that have none, from where their counts fall', () => {
     const m = parseMidi(file); // m. 1–4 are 3/4, m. 5–7 are 4/4

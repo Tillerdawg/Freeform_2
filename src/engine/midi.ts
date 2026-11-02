@@ -131,9 +131,9 @@ export function withHolds(show: Show, m: Midi): { show: Show; added: string[]; w
     }
     const now = range(sets[i].measures)!, bars = now[1] - now[0] + 1, n = sets[i].counts, beats = beatsIn(now[0], now[1]);
     const sounding = m.measures.slice(now[0] - 1, now[1]).reduce((sum, x) => sum + (x.sounding ? x.beats : 0), 0);
-    if (n > 0 && n !== beats && n !== sounding && n * 2 !== beats && n % bars) {
-      // Counts that fit the bars no way (a beat each, the bars that sound, a steady number per bar, every other beat):
-      // the score decides (Jason: Nightmare set 2A, 48 counts over m. 7–20, two of them 2/4 = 52 beats, is 52 counts).
+    if (n > 0 && n !== beats && n !== sounding && n * 2 !== beats && n % bars && !countsFromMidi(m, sets.slice(0, i + 1)).fit[i]) {
+      // Counts that fit the bars no way (a beat each, the bars that sound, a steady number per bar, every other beat,
+      // nor straight on from the last set's hit to a hit inside its last bar, as on beat 3): the score decides (Jason: Nightmare set 2A, 48 counts over m. 7–20, two of them 2/4 = 52 beats, is 52 counts).
       sets[i] = { ...sets[i], counts: beats };
       widened.push(`Set ${sets[i].name}: its ${n} counts didn't fit m. ${sets[i].measures} (${beats} beats), so it now has ${beats} counts (undo keeps ${n}).`);
     }
@@ -169,22 +169,40 @@ const range = (s?: string): [number, number] | null => {
 
 /**
  * Taps (seconds per count, count 0 = set 1) for a show's sets. Count 1 of a set lands on the downbeat of its first
- * measure and the set is hit on its last count. Sets without measures keep counting plain beats from where the last
- * set ended. `matched` = sets placed by their measures; `notes` = sets that don't fit theirs.
+ * measure and the set is hit on its last count; or, when that doesn't fit, counts run on beat by beat from the last
+ * set's hit to a hit inside the set's last bar (Jason: a set can land on beat 3). After a set hit mid-bar, the next
+ * one always runs on from there, since the music doesn't skip beats. Sets without measures keep counting plain beats
+ * from where the last set ended. `matched` = sets placed by their measures; `fit[i]` = set i was; `notes` = sets that
+ * don't fit theirs.
  */
-export function countsFromMidi(m: Midi, sets: { name: string; counts: number; measures?: string }[]): { taps: number[]; matched: number; notes: string[] } {
-  const ticks: number[] = [NaN], notes: string[] = [];
+export function countsFromMidi(m: Midi, sets: { name: string; counts: number; measures?: string }[]): { taps: number[]; matched: number; notes: string[]; fit: boolean[] } {
+  const ticks: number[] = [NaN], notes: string[] = [], fit = [true];
   let matched = 0;
+  const barOf = (t: number) => { let k = 0; while (k + 1 < m.measures.length && m.measures[k + 1].start <= t + 1e-6) k++; return k + 1; };
   const bar = (k: number) => m.measures[k - 1]?.start ?? m.measures[m.measures.length - 1].start + (k - lastBar(m)) * beatAt(m, m.end) * 4;
   for (let i = 1; i < sets.length; i++) {
     const { counts: n, name } = sets[i], r = range(sets[i].measures), prev = ticks[ticks.length - 1];
-    if (r && r[0] >= 1 && r[1] >= r[0] && r[1] <= lastBar(m) && (Number.isNaN(prev) || bar(r[0]) > prev)) {
+    const ok = !!r && r[0] >= 1 && r[1] >= r[0] && r[1] <= lastBar(m);
+    // Straight on, a count per beat, from the beat after the last set's hit (or this set's first downbeat).
+    const t0 = Number.isNaN(prev) ? (ok ? bar(r![0]) : 0) : prev + beatAt(m, prev), straight: number[] = [];
+    for (let j = 0, t = t0; j < n; j++, t += beatAt(m, t)) straight.push(t);
+    const lands = ok && n > 0 && barOf(straight[n - 1]) === r![1] ? straight : null;
+    // Hit mid-bar: the last set's next count (at its own count length: a beat, or a bar when "in one") isn't a downbeat.
+    const next = prev + (ticks.length > 2 ? prev - ticks[ticks.length - 2] : beatAt(m, prev));
+    const midBar = !Number.isNaN(prev) && !m.measures.some((x) => Math.abs(x.start - next) < 1e-6);
+    fit[i] = false;
+    if (midBar && lands) {
+      ticks.push(...lands);
+      matched++;
+      fit[i] = true;
+    } else if (r && ok && (Number.isNaN(prev) || bar(r[0]) > prev)) {
       const all = Array.from({ length: r[1] - r[0] + 1 }, (_, k) => r[0] + k);
       const beats = all.reduce((s, k) => s + m.measures[k - 1].beats, 0);
       // A count on each beat; or on each beat of the bars that sound (a G.P. inside the set, where the band holds);
       // or a steady number per bar (in one, in 2); or every other beat.
       const sounding = all.filter((k) => m.measures[k - 1].sounding);
-      const placed = place(m, all, n, bar, 'beat') ?? place(m, sounding, n, bar, 'beat') ?? place(m, all, n, bar, 'bar') ?? place(m, all, n, bar, 'half');
+      const placed = place(m, all, n, bar, 'beat') ?? place(m, sounding, n, bar, 'beat') ?? place(m, all, n, bar, 'bar') ?? place(m, all, n, bar, 'half') ?? lands;
+      fit[i] = !!placed;
       const a = bar(r[0]), step = (bar(r[1] + 1) - a) / n;
       const got = placed ?? Array.from({ length: n }, (_, j) => a + j * step);
       if (Number.isNaN(prev)) ticks[0] = got[0] - (got.length > 1 ? got[1] - got[0] : step);
@@ -204,7 +222,7 @@ export function countsFromMidi(m: Midi, sets: { name: string; counts: number; me
   notes.push(...oddBars(m));
   const taps = ticks.map((t) => secondsAt(m, t));
   for (let i = 1; i < taps.length; i++) if (!(taps[i] > taps[i - 1])) taps[i] = taps[i - 1] + 0.001; // keep strictly increasing
-  return { taps, matched, notes };
+  return { taps, matched, notes, fit };
 }
 
 /**
