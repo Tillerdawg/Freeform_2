@@ -24,6 +24,7 @@
       button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
       button[aria-pressed=true], button[aria-checked=true] { background: var(--gold); border-color: var(--gold); color: var(--bg-deep); font-weight: 600; }
       button.icon { padding: 4px 7px; }
+      button > svg:only-child { margin: 0 auto; } /* icons are blocks: center them when the button is wider (44 px on touch) */
       button.primary { background: var(--green); border-color: var(--green-line); }
       @media (hover: hover) { button.danger:hover:not(:disabled) { background: var(--danger-bg); border-color: var(--danger-line); } }
       select, input:not([type=radio]):not([type=checkbox]):not([type=range]), textarea { font: inherit; font-size: 13px; color: var(--text); background: var(--bg-deep);
