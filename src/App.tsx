@@ -14,6 +14,7 @@ import { SetControls, Timeline } from './ui/Timeline';
 import { startingSections } from './ui/startingSections';
 import { MusicMenu } from './ui/Music';
 import { getAudio } from './ui/audioStore';
+import { peaks } from './engine/music';
 import { Toolbar } from './ui/Toolbar';
 import { parse3dj } from './engine/pyware';
 import { usePlayback } from './ui/usePlayback';
@@ -124,6 +125,7 @@ export function App() {
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
   const [audioTick, setAudioTick] = useState(0); // bumped when a recording is (re)loaded
   const [useMusic, setUseMusic] = useState(true);
+  const [wave, setWave] = useState<Float32Array | null>(null);
   const audioId = show.music?.audioId;
   useEffect(() => {
     if (!audioId) { setAudio(null); return; }
@@ -133,8 +135,12 @@ export function App() {
       if (!blob) { setAudio(null); return; }
       url = URL.createObjectURL(blob);
       setAudio(new Audio(url));
+      // The waveform for the timeline: decoded once per recording (a few seconds of work for a long show, off the main path).
+      blob.arrayBuffer().then((b) => new AudioContext().decodeAudioData(b)).then((d) => {
+        if (!gone) setWave(peaks(Array.from({ length: d.numberOfChannels }, (_, c) => d.getChannelData(c)), d.sampleRate));
+      }).catch(() => { /* no waveform: the timeline works without it */ });
     });
-    return () => { gone = true; if (url) URL.revokeObjectURL(url); };
+    return () => { gone = true; if (url) URL.revokeObjectURL(url); setWave(null); };
   }, [audioId, audioTick]);
   const taps = show.music?.taps;
   const clock = useMemo(() => (audio && useMusic && taps && taps.length >= 2 ? { audio, taps } : null), [audio, useMusic, taps]);
@@ -495,7 +501,7 @@ export function App() {
             background: 'rgba(24,36,25,0.85)', fontSize: 14, fontVariantNumeric: 'tabular-nums', pointerEvents: 'none' }}>{hover}</div>
         )}
         </div>
-        <Timeline show={show} setShow={setShow} t={t} setT={(x) => { setPlaying(false); setT(x); }} playing={playing} setPlaying={setPlaying} bpm={bpm} setBpm={setBpm}
+        <Timeline wave={wave && show.music && show.music.taps.length >= 2 ? { peaks: wave, taps: show.music.taps } : undefined} show={show} setShow={setShow} t={t} setT={(x) => { setPlaying(false); setT(x); }} playing={playing} setPlaying={setPlaying} bpm={bpm} setBpm={setBpm}
           range={range} setRange={setRange} span={span}
           music={<MusicMenu show={show} setShow={setShow} audio={audio} onAudio={() => setAudioTick((n) => n + 1)} useMusic={useMusic} setUseMusic={setUseMusic} />} />
       </div>

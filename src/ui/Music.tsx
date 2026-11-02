@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { countsFromMidi, parseMidi, withHolds } from '../engine/midi';
+import { countsFromMidi, withHolds } from '../engine/midi';
+import { parseScore } from '../engine/musicxml';
 import { synced } from '../engine/music';
 import { newId, showLength, type Show } from '../engine/show';
 import { deleteAudio, putAudio } from './audioStore';
@@ -34,14 +35,14 @@ export function MusicMenu({ show, setShow, audio, onAudio, useMusic, setUseMusic
   // Counts from the score's MIDI: exact when the loaded music was rendered from that same MIDI.
   const fromMidi = async (f: File) => {
     try {
-      const midi = parseMidi(await f.arrayBuffer());
+      const midi = await parseScore(await f.arrayBuffer()); // a MIDI, MusicXML or .mxl file
       const held = withHolds(show, midi), r = countsFromMidi(midi, held.show.sets), sets = held.show.sets.length - 1;
       setShow((s) => (s.music ? { ...s, sets: held.show.sets, music: { ...s.music, taps: r.taps } } : s));
       setNote([`Counts from ${f.name}: ${r.matched} of ${sets} sets placed by their measures${r.matched < sets ? '; the rest count plain beats' : ''}.`,
         ...held.widened,
         ...(held.added.length ? [`Added hold set${held.added.length > 1 ? 's' : ''} ${held.added.join(', ')} for bars no set covered (undo removes ${held.added.length > 1 ? 'them' : 'it'}).`] : []),
-        ...r.notes].join(' '));
-    } catch (e) { setNote(e instanceof Error ? e.message : "That MIDI file couldn't be read."); }
+        ...r.notes, ...(midi.warnings ?? [])].join(' '));
+    } catch (e) { setNote(e instanceof Error ? e.message : "That score file couldn't be read."); }
   };
   const label = !m ? 'Music' : synced(m) && useMusic && audio ? '♪ Music' : 'Music';
   return (
@@ -54,27 +55,38 @@ export function MusicMenu({ show, setShow, audio, onAudio, useMusic, setUseMusic
           {m && !audio && <p role="alert" style={{ margin: 0, fontSize: 12, color: 'var(--warn)' }}>The recording isn't in this browser. Load {m.name} again to hear it.</p>}
           <button onClick={() => file.current?.click()}>{m ? 'Replace or reload music…' : 'Load music (mp3)…'}</button>
           {m && <button disabled={!audio} onClick={() => { setTapping(true); close(); }}>Tap counts…</button>}
-          {m && <button onClick={() => midiFile.current?.click()} title="Use when the music was rendered from this score's MIDI. Each set's counts are placed in the measures typed for it.">Counts from the score's MIDI…</button>}
+          {m && <button onClick={() => midiFile.current?.click()} title="Use when the music was rendered from this score (e.g. exported as audio from MuseScore). Choose the score's MIDI, MusicXML or .mxl file; each set's counts are placed in the measures typed for it.">Counts from the score…</button>}
           {m && synced(m) && <label style={{ fontSize: 13 }}><input type="checkbox" checked={useMusic} onChange={(e) => setUseMusic(e.target.checked)} /> Play with music (off: use Tempo)</label>}
           {m && <button className="danger" onClick={() => { deleteAudio(m.audioId); setShow((s) => { const { music: _, ...rest } = s; return rest; }); setNote(''); }}>Remove music</button>}
           {note && <p role="status" style={{ margin: 0, fontSize: 12 }}>{note}</p>}
         </>}
       </Menu>
       <input ref={file} type="file" accept="audio/*,.mp3,.m4a,.wav,.aac" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) load(f); e.target.value = ''; }} />
-      <input ref={midiFile} type="file" accept=".mid,.midi,audio/midi" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) fromMidi(f); e.target.value = ''; }} />
-      {tapping && audio && m && <TapDialog audio={audio} total={total} onDone={(taps) => { setTapping(false); if (taps) setShow((s) => (s.music ? { ...s, music: { ...s.music, taps } } : s)); }} />}
+      <input ref={midiFile} type="file" accept=".mid,.midi,audio/midi,.musicxml,.xml,.mxl,application/vnd.recordare.musicxml+xml,application/vnd.recordare.musicxml" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) fromMidi(f); e.target.value = ''; }} />
+      {tapping && audio && m && <TapDialog audio={audio} total={total} kept={m.taps} onDone={(taps) => { setTapping(false); if (taps) setShow((s) => (s.music ? { ...s, music: { ...s.music, taps } } : s)); }} />}
     </>
   );
 }
 
-/** Play the recording from the top and tap (Space, Enter or the big button) on every count. */
-function TapDialog({ audio, total, onDone }: { audio: HTMLAudioElement; total: number; onDone: (taps: number[] | null) => void }) {
-  const [taps, setTaps] = useState<number[]>([]);
+/**
+ * Play the recording and tap (Space, Enter or the big button) on every count: from the top, or from count `from` to
+ * redo part of it. Counts before `from` keep their earlier taps; the playback starts 2 counts' worth of time before it.
+ */
+function TapDialog({ audio, total, kept, onDone }: { audio: HTMLAudioElement; total: number; kept: number[]; onDone: (taps: number[] | null) => void }) {
+  const [from, setFrom] = useState(0); // the count the next tap is (redo from here); kept[0..from-1] stay
+  const [taps, setTaps] = useState<number[]>([]); // new taps, for counts from, from+1, …
   const [running, setRunning] = useState(false);
-  const tapsRef = useRef(taps);
-  tapsRef.current = taps;
-  const tap = () => { if (running) setTaps((t) => (t.length && audio.currentTime <= t[t.length - 1] ? t : [...t, audio.currentTime])); };
-  const start = (from: number) => { audio.currentTime = from; audio.play().then(() => setRunning(true), () => setRunning(false)); };
+  // Redoing a passage: the old taps after it stay too, if they still come after the last new one.
+  const after = kept.slice(from + taps.length), keepAfter = from > 0 && taps.length > 0 && after.length > 0 && after[0] > taps[taps.length - 1];
+  const all = [...kept.slice(0, from), ...taps, ...(keepAfter ? after : [])];
+  const tapped = from + taps.length; // counts tapped so far in this pass, for the button and readout
+  const allRef = useRef(all);
+  allRef.current = all;
+  const floor = from ? kept[from - 1] : -Infinity; // a new tap must come after the last kept one
+  const tap = () => { if (running) setTaps((t) => (audio.currentTime <= (t.length ? t[t.length - 1] : floor) ? t : [...t, audio.currentTime])); };
+  const start = (at: number) => { audio.currentTime = Math.max(0, at); audio.play().then(() => setRunning(true), () => setRunning(false)); };
+  const lead = from >= 2 ? kept[from - 1] - (kept[from - 1] - kept[from - 2]) * 2 : 0; // two counts before the redo starts
+  const canRedo = kept.length >= 2;
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
       if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); tap(); }
@@ -84,30 +96,38 @@ function TapDialog({ audio, total, onDone }: { audio: HTMLAudioElement; total: n
     return () => window.removeEventListener('keydown', key, true);
   });
   useEffect(() => () => audio.pause(), [audio]);
-  const n = taps.length;
+  const n = all.length;
   return (
     <div role="dialog" aria-modal="true" aria-label="Tap counts" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'grid', placeItems: 'center', zIndex: 30, whiteSpace: 'normal' }}>
       <div style={{ background: 'var(--bg)', border: '1px solid var(--line-strong)', borderRadius: 10, padding: 20, width: 440, maxWidth: 'calc(100vw - 32px)' }}>
         <h2 style={{ margin: '0 0 6px', fontSize: 18 }}>Tap the counts</h2>
         <p style={{ margin: '0 0 12px', fontSize: 13, opacity: 0.85 }}>
-          Press <strong>Space</strong> (or the button) on every count, starting with count 0, where set 1 stands. Keep tapping as long as you
+          Press <strong>Space</strong> (or the button) on every count, starting with count {from}{from ? '' : ', where set 1 stands'}. Keep tapping as long as you
           like: counts past your last tap keep its pace. Small misses are fine; you can undo a tap or start over.
         </p>
+        {canRedo && !running && !taps.length && (
+          <label style={{ display: 'block', margin: '0 0 10px', fontSize: 13 }}>Redo from count{' '}
+            <input type="number" aria-label="Redo from count" min={0} max={kept.length} value={from} style={{ width: 64 }}
+              onChange={(e) => setFrom(Math.max(0, Math.min(kept.length, Math.round(Number(e.target.value)) || 0)))} />
+            {' '}<span style={{ opacity: 0.8 }}>(counts before it keep their taps; you've tapped {kept.length})</span>
+          </label>
+        )}
         <button onPointerDown={(e) => { e.preventDefault(); tap(); }} disabled={!running} className="primary"
           style={{ width: '100%', height: 96, fontSize: 28, fontWeight: 700 }}>
-          {running ? (n ? `Count ${n - 1}` : 'Tap on count 0') : 'Press Start'}
+          {running ? (taps.length ? `Count ${tapped - 1}` : `Tap on count ${from}`) : 'Press Start'}
         </button>
         <p style={{ margin: '8px 0', fontSize: 13, fontVariantNumeric: 'tabular-nums' }}>
-          {n} of {total + 1} counts tapped{n > 1 ? ` · last count ${(taps[n - 1] - taps[n - 2]).toFixed(2)} s (${Math.round(60 / (taps[n - 1] - taps[n - 2]))} bpm)` : ''}
+          {n} of {total + 1} counts tapped{tapped > 1 ? ` · last count ${(all[tapped - 1] - all[tapped - 2]).toFixed(2)} s (${Math.round(60 / (all[tapped - 1] - all[tapped - 2]))} bpm)` : ''}
+          {keepAfter ? ` · counts ${tapped}–${n - 1} keep their earlier taps` : from > 0 && taps.length ? ` · earlier taps after count ${tapped - 1} are replaced` : ''}
         </p>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          {!running && <button className="primary" onClick={() => { setTaps([]); start(0); }}>{n ? 'Start over' : 'Start'}</button>}
+          {!running && <button className="primary" onClick={() => { setTaps([]); start(from ? lead : 0); }}>{taps.length ? (from ? `Start again from count ${from}` : 'Start over') : from ? `Start from count ${from}` : 'Start'}</button>}
           {running && <button onClick={() => { audio.pause(); setRunning(false); }}>Pause</button>}
-          {!running && n > 0 && <button onClick={() => start(Math.max(0, taps[n - 1] - 2))} title="Back up 2 seconds before your last tap and keep going">Resume</button>}
-          <button disabled={!n} onClick={() => setTaps((t) => t.slice(0, -1))}>Undo last tap</button>
+          {!running && taps.length > 0 && <button onClick={() => start(Math.max(0, taps[taps.length - 1] - 2))} title="Back up 2 seconds before your last tap and keep going">Resume</button>}
+          <button disabled={!taps.length} onClick={() => setTaps((t) => t.slice(0, -1))}>Undo last tap</button>
           <span style={{ marginLeft: 'auto' }} />
           <button onClick={() => { audio.pause(); onDone(null); }}>Cancel</button>
-          <button className="primary" disabled={n < 2} onClick={() => { audio.pause(); onDone(tapsRef.current); }}>Done</button>
+          <button className="primary" disabled={n < 2 || !taps.length} onClick={() => { audio.pause(); onDone(allRef.current); }}>Done</button>
         </div>
       </div>
     </div>

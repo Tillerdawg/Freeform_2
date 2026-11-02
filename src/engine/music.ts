@@ -45,3 +45,19 @@ export function validMusic(x: unknown): x is Music {
 
 /** Enough taps to drive playback. */
 export const synced = (m?: Music): m is Music => !!m && m.taps.length >= 2;
+
+/** The recording's loudness for drawing a waveform: the biggest sample in each 1/`rate` s slice, from 0 to 1. */
+export function peaks(channels: Float32Array[], sampleRate: number, rate = 100): Float32Array {
+  const per = Math.max(1, Math.round(sampleRate / rate)), n = Math.ceil((channels[0]?.length ?? 0) / per), out = new Float32Array(n);
+  for (const ch of channels) for (let i = 0; i < ch.length; i++) { const v = Math.abs(ch[i]), k = (i / per) | 0; if (v > out[k]) out[k] = v; }
+  let top = 0; for (const v of out) if (v > top) top = v;
+  if (top > 0) for (let k = 0; k < n; k++) out[k] = Math.min(1, out[k] / top);
+  return out;
+}
+
+/** The loudest slice between two times (seconds), for one pixel of a waveform. */
+export function peakBetween(p: Float32Array, rate: number, t0: number, t1: number): number {
+  const a = Math.max(0, Math.floor(t0 * rate)), b = Math.min(p.length, Math.max(a + 1, Math.ceil(t1 * rate)));
+  let m = 0; for (let k = a; k < b; k++) if (p[k] > m) m = p[k];
+  return m;
+}

@@ -1,4 +1,6 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { peakBetween, timeAt } from '../engine/music';
+import { PALETTE } from './palette';
 import { addSetAfter, biggestStep, insertSetAt, locate, MAX_MOVEMENT, movementAt, movementOfSet, movementStarts, moveSetTo, newId, removeSet, setAt, setCounts, setMeasures, playPlan, setStarts, showLength, totalCounts, type Show } from '../engine/show';
 import { Menu } from './Toolbar';
 import { STEP_TEXT } from '../field/drawField';
@@ -18,10 +20,11 @@ interface Props {
   setRange: (r: { from: string | null; to: string | null; loop: boolean }) => void;
   span: [number, number];
   music?: React.ReactNode; // the Music menu, beside Tempo
+  wave?: { peaks: Float32Array; taps: number[] }; // the recording's loudness (100 slices a second) and its tapped counts
 }
 
 /** One segment per move, width proportional to its counts; click or drag to scrub by whole counts. */
-export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, setBpm, range, setRange, span, music }: Props) {
+export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, setBpm, range, setRange, span, music, wave }: Props) {
   const total = showLength(show); // the timeline runs through any part not written yet (count-first)
   const written = totalCounts(show);
   const starts = setStarts(show);
@@ -144,6 +147,7 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
               </div>
             );
           })}
+          {wave && <Wave wave={wave} total={total} />}
           {/* One tick per count; taller every 4 counts within a move. Clicking snaps to the nearest count. */}
           {Array.from({ length: total - 1 }, (_, k) => k + 1).filter((c) => !starts.includes(c)).map((c) => {
             const intoMove = c > written ? c - written : c - starts[locate(show, c).to - 1];
@@ -152,6 +156,7 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
               <div key={c} style={{
                 position: 'absolute', bottom: 0, left: `${(c / total) * 100}%`, width: here ? 2 : 1, marginLeft: here ? -1 : 0,
                 height: here ? 16 : intoMove % 4 === 0 ? 10 : 6, background: here ? '#fff' : 'rgba(255,255,255,0.5)', pointerEvents: 'none',
+                boxShadow: wave ? '0 0 0 1px var(--bg-deep)' : undefined, // a dark edge keeps ticks readable over the waveform
               }} />
             );
           })}
@@ -226,4 +231,34 @@ function Movements({ show, setShow }: { show: Show; setShow: (f: (s: Show) => Sh
       </>}
     </Menu>
   );
+}
+
+/**
+ * The recording's waveform along the bottom of the timeline, under the count ticks. Each pixel covers its counts'
+ * stretch of the recording (through the tapped counts), so loud and quiet passages line up with the counts.
+ */
+function Wave({ wave, total }: { wave: NonNullable<Props['wave']>; total: number }) {
+  const ref = useRef<HTMLCanvasElement>(null);
+  const [w, setW] = useState(0);
+  useEffect(() => {
+    const c = ref.current!;
+    const ro = new ResizeObserver(() => setW(c.clientWidth));
+    ro.observe(c);
+    return () => ro.disconnect();
+  }, []);
+  useEffect(() => {
+    const c = ref.current!, dpr = window.devicePixelRatio || 1, H = 22;
+    c.width = Math.round(w * dpr); c.height = H * dpr;
+    const ctx = c.getContext('2d')!;
+    ctx.clearRect(0, 0, c.width, c.height);
+    ctx.fillStyle = PALETTE['green-line'];
+    const mid = c.height / 2;
+    for (let x = 0; x < c.width; x++) {
+      const c0 = (x / c.width) * total, c1 = ((x + 1) / c.width) * total;
+      const v = peakBetween(wave.peaks, 100, timeAt(wave.taps, c0), timeAt(wave.taps, c1));
+      const h = Math.max(dpr * 0.5, v * mid);
+      ctx.fillRect(x, mid - h, 1, h * 2);
+    }
+  }, [w, wave, total]);
+  return <canvas ref={ref} aria-hidden style={{ position: 'absolute', left: 0, right: 0, bottom: 0, width: '100%', height: 22, pointerEvents: 'none', opacity: 0.75 }} />; // 3.8:1 or more on every timeline background
 }

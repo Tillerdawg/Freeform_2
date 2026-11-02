@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { countAt, synced, timeAt, validMusic } from './music';
+import { countAt, synced, timeAt, validMusic, peaks, peakBetween } from './music';
 
 describe('music timing from taps', () => {
   const taps = [2, 2.5, 3, 3.5, 4.5, 5.5]; // counts 0–3 at 120 bpm, then a slowdown to 60 bpm (a ritard)
@@ -20,5 +20,16 @@ describe('music timing from taps', () => {
     expect(validMusic({ name: 'x', audioId: '../etc', taps: [] })).toBe(false);
     expect(validMusic({ name: 'x', audioId: 'a1', taps: [NaN] })).toBe(false);
     expect(synced({ name: 'x', audioId: 'a', taps: [1] })).toBe(false);
+  });
+});
+
+describe('waveform peaks', () => {
+  it('keeps the loudest sample per slice, scaled so the loudest is 1', () => {
+    const ch = new Float32Array([0.1, -0.4, 0.2, 0.05, 0, 0.8, -0.2, 0.1]); // 4 samples per slice at sampleRate 400, rate 100
+    const p = peaks([ch], 400);
+    expect([...p].map((v) => +v.toFixed(3))).toEqual([0.5, 1]);
+    expect(peakBetween(p, 100, 0, 0.005)).toBe(0.5); // inside the first slice
+    expect(peakBetween(p, 100, 0, 0.02)).toBe(1);
+    expect(peakBetween(p, 100, 5, 6)).toBe(0); // past the end
   });
 });
