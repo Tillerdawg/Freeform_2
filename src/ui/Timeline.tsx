@@ -44,6 +44,8 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
     : `Set ${show.sets[to - 1].name} → ${show.sets[to].name} · count ${Math.floor(count)} of ${show.sets[to].counts}`);
 
   const strip = useRef<HTMLDivElement>(null);
+  const box = (from: number, counts: number): React.CSSProperties => ({ position: 'absolute', top: 0, bottom: 0, left: `calc(${(from / total) * 100}% - 1px)`, // the 2px line centered on the count width: `${(counts / total) * 100}%`,
+    boxSizing: 'border-box', borderLeft: '2px solid var(--gold)', overflow: 'hidden', fontSize: 12, whiteSpace: 'nowrap' });
   const setDrag = useRef<{ i: number; x0: number; from: number; perCount: number; moved: boolean } | null>(null);
   const fixedRow: React.CSSProperties = { display: 'flex', gap: 8, alignItems: 'center', height: 30, whiteSpace: 'nowrap', overflow: 'hidden' };
   return (
@@ -119,23 +121,27 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
           role="slider" aria-label="Show timeline in counts" aria-valuemin={0} aria-valuemax={total} aria-valuenow={Math.floor(t)} tabIndex={0}
           onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); scrub(e); }}
           onPointerMove={(e) => e.buttons && scrub(e)}
-          style={{ position: 'relative', display: 'flex', height: 56, cursor: 'pointer', userSelect: 'none' }}
+          style={{ position: 'relative', height: 56, cursor: 'pointer', userSelect: 'none' }}
         >
-          {/* Each move's box is exactly its share of the counts, so its yellow line (the set it starts from) sits under that set's button. */}
+          {/* Each move's box is placed at its counts exactly, like the set buttons above, so its yellow line (the set it starts
+              from) sits under that set's button. Padding goes inside: a box narrower than its padding (a 1-count move) would
+              otherwise grow and push every later box off its count. */}
           {show.sets.slice(1).map((s, k) => {
             const i = k + 1;
             const big = biggestStep(show, i);
             return (
-              <div key={s.id} style={{ flex: `0 0 ${(s.counts / total) * 100}%`, boxSizing: 'border-box', minWidth: 0, borderLeft: '2px solid var(--gold)', background: i === to && onSet < 0 && !past ? 'var(--surface-2)' : 'var(--surface)', boxShadow: i === to && onSet < 0 && !past ? 'inset 0 -3px 0 var(--gold)' : undefined, overflow: 'hidden', padding: '2px 6px', fontSize: 12, whiteSpace: 'nowrap' }}>
-                <div>{show.sets[i - 1].name} → {s.name} · {s.counts} cts{s.measures ? ` · m. ${s.measures}` : ''}{s.ftl?.length ? ' · FTL' : ''}</div>
-                {big && <div style={{ color: STEP_TEXT[big.tier] }}>max {fmtStep(big.per5)}</div>}
+              <div key={s.id} style={{ ...box(starts[i - 1], s.counts), background: i === to && onSet < 0 && !past ? 'var(--surface-2)' : 'var(--surface)', boxShadow: i === to && onSet < 0 && !past ? 'inset 0 -3px 0 var(--gold)' : undefined }}>
+                <div style={{ padding: '2px 6px' }}>
+                  <div>{show.sets[i - 1].name} → {s.name} · {s.counts} cts{s.measures ? ` · m. ${s.measures}` : ''}{s.ftl?.length ? ' · FTL' : ''}</div>
+                  {big && <div style={{ color: STEP_TEXT[big.tier] }}>max {fmtStep(big.per5)}</div>}
+                </div>
               </div>
             );
           })}
           {written < total && (
-            <div title="Not written yet: click a count, then + Add set" style={{ flex: `0 0 ${((total - written) / total) * 100}%`, boxSizing: 'border-box', minWidth: 0, borderLeft: '2px solid var(--gold)', padding: '2px 6px', fontSize: 12, whiteSpace: 'nowrap', overflow: 'hidden', color: 'var(--text)',
+            <div title="Not written yet: click a count, then + Add set" style={{ ...box(written, total - written), color: 'var(--text)',
               background: 'repeating-linear-gradient(135deg, var(--bg-deep) 0 6px, var(--bg) 6px 12px)', boxShadow: past ? 'inset 0 -3px 0 var(--gold)' : undefined }}>
-              Not written yet · counts {written + 1}–{total}
+              <div style={{ padding: '2px 6px' }}>Not written yet · counts {written + 1}–{total}</div>
             </div>
           )}
           {/* Where each movement starts: a dashed line (after the first) and its name, below the moves' own text. */}

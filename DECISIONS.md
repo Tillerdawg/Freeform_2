@@ -780,3 +780,8 @@ Each entry: timestamp, who decided, context, options considered, decision.
 ## 2026-11-02 13:10 EDT — Counts from the score: fix a set whose notes overlap the set before
 - **Who:** Claude, from Jason's Nightmare load *(Jason can veto)*
 - **Decision:** the mirror of the 2026-10-29 widening: when a set's noted measures start on or before the previous set's last bar (Nightmare set 4 "mm. 24-28" after set 3's "mm. 21-24") and its counts fit exactly from the next bar to its last (16 counts = m. 25–28), its measures become that range, with a note. Nightmare now places all 23 sets.
+
+## 2026-11-02 13:30 EDT — Timeline moves are placed at their counts
+- **Who:** Claude, from Jason's report (set buttons and yellow lines drifting apart on Nightmare) *(Jason can veto)*
+- **Context:** each move's box was a flex item sized to its share of the counts, with 12 px of padding and a 2 px line inside. A box narrower than that (Nightmare's 1-count move 1 → 1A, about 5 px) grows to 14 px, pushing every later box about 10 px past its count, while the set buttons are placed at their counts exactly.
+- **Decision:** each move's box (and the "not written yet" box) is placed absolutely at its counts, like the buttons, with the padding on an inner block; the line is centered on the count. Measured on Nightmare's set lengths: 0 px between every button and its line (10.6 px before).
