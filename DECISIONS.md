@@ -729,59 +729,59 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Decision:** a show can have **movements**: named stretches of counts (`movements: [{id, name, counts}]` in the file, checked on import). The timeline's length is the larger of the written sets and the movements' total; past the last set it's striped *Not written yet*, performers hold on the last set, and playback (and the music) runs to the end. Movement starts are dashed blue lines; the readout names the current movement. **+ Add set** adds a set exactly at the playhead when it's mid-move or past the last set, or at a typed **at count**. No other set moves (the 2026-10-22 rule). Mid-move, the new set takes everyone's spots at that count, so the drill looks the same, and is named as a sub-set (1A, like holds from the MIDI; the naming helper is now shared). With the playhead on a set and no count typed, **+ Add set** still adds 16 counts after it and later sets move along, as before. The phone treats the unwritten part as holding on the last set.
 - **Other options:** one show-level total only (doesn't fit a whole show in one file); renumbering sets after an insert (renames sets people already refer to).
 
-## 2026-11-02 09:50 EDT — Finishing recent work: movement names, curved paths, phone downloads
+## 2026-11-02 09:36 EST — Finishing recent work: movement names, curved paths, phone downloads
 - **Who:** Jason Tiller (finish the recent work); details by Claude *(Jason can veto)*
 - **Movement names:** drawn on the timeline in blue where each movement starts, below the moves' text (no change in height), and at the front of each printed chart header ("Opener · Set 3 · 16 counts…"). A set belongs to the movement its move into it is in, so a set hit on a movement's last count is in that movement; set 1 is in the first.
 - **Curved paths:** nothing to build. The editor's path lines and the phone's own path already follow count-by-count routes (2026-10-29); printed charts show only each set's spots, as Jason asked. PLAN.md's note saying otherwise was out of date.
 - **Phone downloads:** nothing to build either. The phone fetches hosted files with `cache: 'no-cache'`, which makes the browser ask GitHub whether its stored copy changed; GitHub answers 304 (0 bytes, checked) for an unchanged file. The service worker leaves other sites' files alone. A version check of our own isn't possible without GitHub exposing the ETag to scripts. Supersedes the "re-downloads the whole file" limit in the 2026-10-30 music-on-phones entry.
 
-## 2026-11-02 10:30 EDT — No shapes that create performers
+## 2026-11-02 09:49 EST — No shapes that create performers
 - **Who:** Jason Tiller
 - **Decision:** shapes only arrange performers who already exist. Performers (dots) are defined when the drill file is first created (added on the field, imported from a roster or from Pyware). Taken off PLAN.md.
 
-## 2026-11-02 10:30 EDT — Follow-the-leader routes with turns; paths mid-move
+## 2026-11-02 09:49 EST — Follow-the-leader routes with turns; paths mid-move
 - **Who:** Jason Tiller (finish the FTL follow-ups); details by Claude *(Jason can veto)*
 - **Decision:** an FTL group can have `turns`: the leader's turning points, in marching order (up to 50, checked on import). The leader marches start → turns → end spot, and the trail runs back from the end through the turns to the leader's start and each follower's start. Everyone covers the leader's whole route length at one steady speed, so steps stay even through corners (house rule), and the step size shown is the route's length over the counts. Turns are added as in Pyware, by clicking: **FTL ▾ → Add turns**, then click each turn on the field (snapped to the grid setting; the top bar says what to do; Esc ends). **Remove last turn** and **Straight route** take them back; Undo works too. Reordering followers keeps the route; a new leader, or deleting the leader, starts straight. Path lines and FTL trails now also draw mid-move, for the move the playhead is in.
 - **Other options:** dragging the trail to bend it (needs handles; later if wanted).
 - **Known limits:** *(fixed the same day, see below)* turns didn't move when the group was mirrored, rotated or scaled, and couldn't be dragged.
 
-## 2026-11-02 11:00 EDT — FTL turns: draggable, and they move with the group
+## 2026-11-02 09:55 EST — FTL turns: draggable, and they move with the group
 - **Who:** Jason Tiller (fix both limits); details by Claude *(Jason can veto)*
 - **Decision:** with an FTL group selected (exactly its members) on its set, each turn shows a blue handle like a shape's; dragging it (in Select or Add turns) moves that turn, snapped to the grid setting. Flip across the 50, Flip front ↔ back, Rotate and Scale move the turns of any group whose leader is in the selection with the same transform (`mapTurns`); dragging the whole group drags its turns too. Dragging only the leader still moves just its end spot, so the route's turns stay where they were placed.
 - **Not covered:** *(fixed the same day, see below)* Copy Side 1 → 2 didn't create FTL groups for the copies.
 
-## 2026-11-02 11:20 EDT — Copy Side 1 → 2 copies follow-the-leader groups
+## 2026-11-02 09:58 EST — Copy Side 1 → 2 copies follow-the-leader groups
 - **Who:** Jason Tiller (fix the gap); details by Claude *(Jason can veto)*
 - **Decision:** a follow-the-leader group whose members are all on the copied side becomes a group on the other side too, in the same order, with its turns mirrored. For its members, the partner is whoever starts the move mirror-opposite them (instead of the least-travel pairing used for everyone else), so the leader's twin leads and the copy follows the mirrored trail; the copy's spots then come from the trail, as with any FTL. The original group stays.
 - **Bug fixed along the way:** making an FTL group, or floating one, dropped the turns of every other group in the same set. Other groups now keep their turns unless they lose their leader.
 
-## 2026-11-02 12:00 EDT — Music: re-tap from a count, waveform, counts from MusicXML
+## 2026-11-02 10:09 EST — Music: re-tap from a count, waveform, counts from MusicXML
 - **Who:** Jason Tiller (do the music tasks); details by Claude *(Jason can veto)*
 - **Re-tap:** the tap dialog takes **Redo from count N** (when taps exist). Playback starts two counts before N; counts before N keep their taps; new taps replace from N, and the old taps after the new ones stay if they still come later in time (so a passage can be redone in the middle).
 - **Waveform:** the recording is decoded in the browser once per recording; its loudness (the biggest sample per 10 ms, scaled to the loudest) is drawn along the bottom of the timeline. Each pixel covers its counts' stretch of the recording through the taps, so it lines up with the counts. Color `green-line` at 75% (at least 3.8:1 on every timeline background); count ticks get a dark edge while it's shown so they stay readable over it. No change in height.
 - **MusicXML:** **Counts from the score…** (was "from the score's MIDI") takes MIDI, MusicXML or `.mxl`, told apart by content. MusicXML is read into the same bar and tempo map as a MIDI, by a small reader (no DOM needed; no DTDs or entities fetched; size- and bar-capped): bar length = the longest voice in any part (so a pickup is its own short bar), meters, `<sound tempo>` or else metronome marks, whether anything sounds, and fermatas held as MuseScore 4 plays them (half tempo from the fermata to the next note or rest in any part). Checked against MuseScore's own MIDI for the 2010 Opener, 2nd tune and Closer: same bars, meters and silent bars, bar starts within 3 ms. Repeats and endings are counted once through, with a warning.
 - **Other options:** MuseScore's .mscz directly (an internal format that changes between versions); playing out repeats (later, if a score needs it).
 
-## 2026-11-02 12:30 EDT — Counts straight from a MuseScore file (.mscz)
+## 2026-11-02 10:22 EST — Counts straight from a MuseScore file (.mscz)
 - **Who:** Jason Tiller (pick the MuseScore file instead of exporting); details by Claude *(Jason can veto)*
 - **Context:** converting .mscz to MusicXML needs MuseScore itself, which can't run in a web page; but Freeform only needs the bar and tempo map, which the .mscz holds.
 - **Decision:** **Counts from the score…** also takes `.mscz` (a zip; the main `.mscx` at its top level, parts in `Excerpts/` ignored) and `.mscx`. Read: each staff's measures (a stored multi-measure rest skipped, since MuseScore keeps the real bars too), an irregular bar's `len` (pickups) or else its meter, `Tempo` (quarters per second), `Fermata` with its `timeStretch` (MuseScore 4's default when absent: 2), durations with dots and tuplets, grace notes ignored, repeats and voltas warned about. Same fermata rule as MusicXML (held from the fermata to the next note or rest in any part). Files from before MuseScore 3 get a message to re-save or export MusicXML. Checked against MuseScore's MIDI for the three 2010 scores: same bars, meters and silent bars, bar starts within 3 ms.
 - **Known limit:** checked on MuseScore 4.7 files; other 3.x/4.x versions store the same elements, but a format change in a future MuseScore could need an update.
 
-## 2026-11-02 12:45 EDT — Add music from MuseScore (score + its mp3, one step)
+## 2026-11-02 10:26 EST — Add music from MuseScore (score + its mp3, one step)
 - **Who:** Jason Tiller (option 1: one step, two files, for now; rendering audio in Freeform later if needed); details by Claude *(Jason can veto)*
 - **Decision:** **Music ▾ → Add music from MuseScore…** takes two files chosen together: the score (.mscz, .mscx, MusicXML, .mxl or MIDI) and the recording (by audio type or extension). Freeform reads the score's counts (with hold sets, as Counts from the score does), stores the recording, and sets both in one show change (one Undo). If the recording is more than 2 s shorter, or more than 20 s longer, than the score plays (exports add a tail), the note says to check the pair. It's the first button in the menu when the show has no music yet; loading music alone and the separate steps stay.
 - **Other options:** Freeform rendering the audio from the score itself (a browser synthesizer plus a ~40 MB sound library; recreating MuseScore's playback; basic sounds only). Kept on PLAN.md for later.
 
-## 2026-11-02 12:55 EDT — The score and the recording are two separate steps
+## 2026-11-02 10:36 EST — The score and the recording are two separate steps
 - **Who:** Jason Tiller (choosing two files together was confusing: two buttons read as two steps); details by Claude *(Jason can veto)*
-- **Decision:** replaces the 12:45 one-picker flow. The Music menu has **Add the score (MuseScore)…** and **Add the recording (mp3)…**, each its own pick, in either order. A score added before any recording waits in the menu (✓ Score: name) until the recording comes, then both are set in one change; a score added after the recording places the counts right away. The length check runs whichever comes second. With music loaded, the buttons read **Add the score again…** and **Replace the recording…**; **Tap counts…** stays for recordings without a score. The waiting score is kept only while the page is open.
+- **Decision:** replaces the 10:26 one-picker flow. The Music menu has **Add the score (MuseScore)…** and **Add the recording (mp3)…**, each its own pick, in either order. A score added before any recording waits in the menu (✓ Score: name) until the recording comes, then both are set in one change; a score added after the recording places the counts right away. The length check runs whichever comes second. With music loaded, the buttons read **Add the score again…** and **Replace the recording…**; **Tap counts…** stays for recordings without a score. The waiting score is kept only while the page is open.
 
-## 2026-11-02 13:10 EDT — Counts from the score: fix a set whose notes overlap the set before
+## 2026-11-02 10:48 EST — Counts from the score: fix a set whose notes overlap the set before
 - **Who:** Claude, from Jason's Nightmare load *(Jason can veto)*
 - **Decision:** the mirror of the 2026-10-29 widening: when a set's noted measures start on or before the previous set's last bar (Nightmare set 4 "mm. 24-28" after set 3's "mm. 21-24") and its counts fit exactly from the next bar to its last (16 counts = m. 25–28), its measures become that range, with a note. Nightmare now places all 23 sets.
 
-## 2026-11-02 13:30 EDT — Timeline moves are placed at their counts
+## 2026-11-02 11:27 EST — Timeline moves are placed at their counts
 - **Who:** Claude, from Jason's report (set buttons and yellow lines drifting apart on Nightmare) *(Jason can veto)*
 - **Context:** each move's box was a flex item sized to its share of the counts, with 12 px of padding and a 2 px line inside. A box narrower than that (Nightmare's 1-count move 1 → 1A, about 5 px) grows to 14 px, pushing every later box about 10 px past its count, while the set buttons are placed at their counts exactly.
 - **Decision:** each move's box (and the "not written yet" box) is placed absolutely at its counts, like the buttons, with the padding on an inner block; the line is centered on the count. Measured on Nightmare's set lengths: 0 px between every button and its line (10.6 px before).
@@ -789,54 +789,54 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Then (Jason): stacked buttons.** The set buttons sit in two fixed rows (the row area is always 44 px, so the panel never changes height): each button takes the top row unless it would overlap the one before it there, using the buttons' measured widths. Three sets packed into one button's width (a narrow window, or 15, 15A and the end) can still overlap; a third row would cost another 22 px of field.
 - **Then (Jason): time order and stems.** The last set's button no longer ends at its line (15A looked earlier than 15): the timeline keeps just enough room past its last count for the buttons near the end, so every button starts at its own line and left-to-right order is always time order. Each set's line now runs up to its button. Fixed along the way: the move boxes had lost their width setting in the previous change.
 
-## 2026-11-02 13:50 EDT — A zoomable, scrollable timeline
-- **Who:** Jason Tiller (make it scrollable left to right for long pieces); details by Claude *(Jason can veto)*
+## 2026-11-02 11:45 EST — A zoomable, scrollable timeline
+- **Who:** Jason Tiller (make it scrollable left to right for long pieces); details by Claude, approved by Jason (15:18)
 - **Decision:** the timeline has a zoom, in pixels per count: it fits the window unless that's under 4 px a count, when it opens at 6 (Nightmare's 376 counts: about 2,250 px). **−**, **+** (×1.5, up to 60 px a count) and **Fit** sit beside the count readout. The set buttons and moves scroll together in one container with an always-visible scroll bar, so the panel's height never changes. The mouse wheel scrolls it sideways (trackpads swipe), and a right-drag pans it, as on the field; left-click and drag still move the playhead. When the playhead moves out of view (playing, or a set picked elsewhere), the timeline scrolls to it; scrolling by hand doesn't move the playhead. The waveform canvas is capped at 16,384 px and stretched at high zoom.
 
-## 2026-11-02 14:30 EST — Zoom buttons are magnifying glasses, beside the timeline
+## 2026-11-02 12:08 EST — Zoom buttons are magnifying glasses, beside the timeline
 - **Who:** Jason Tiller (− and + read as adding or removing counts); placement by Claude *(Jason can veto)*
 - **Options:** keep −/+ with a "Zoom" label; magnifier icons in the top row; magnifier icons in a small column at the timeline's right end.
 - **Decision:** magnifier icons (zoom out, zoom in) plus **Fit**, stacked at the right end of the timeline itself, where they read as controls for that strip. The top row was already full: there, the zoom buttons cut the count readout down to "Set …" in a 1400 px window. The column fits inside the timeline's height, so nothing changes height.
 
-## 2026-11-02 12:50 EST — The score decides a set's counts
+## 2026-11-02 12:43 EST — The score decides a set's counts
 - **Who:** Jason Tiller (Nightmare set 2A should be 52 counts); the general rule by Claude *(Jason can veto)*
 - **Context:** Nightmare set 2A was written as 48 counts over m. 7–20, but those bars add up to 52 beats (two are 2/4). Freeform spread the 48 counts evenly over the bars and flagged it.
 - **Options:** keep flagging it and let the writer retype the counts; change the counts to fit the bars when the score is added.
 - **Decision:** when the score is added, a set whose counts fit its bars no way at all (not a count per beat, not just the bars that sound, not a steady number per bar, not every other beat) takes one count per beat of those bars. The music menu names each set changed, and Undo puts the old count back. Counts that do fit one of those ways (a set "in one" or in half time) are left alone.
 
-## 2026-11-02 13:05 EST — Sections in score order
+## 2026-11-02 12:52 EST — Sections in score order
 - **Who:** Jason Tiller (score order instead of alphabetical); details by Claude *(Jason can veto)*
 - **Context:** Pyware imports listed sections by dot letter (A Alto, B Bass Drum, C Cymbals, E Baritone…). That list drives the roster and dot-sheet order.
 - **Options:** sort imports only; also a button for shows already open; up/down arrows to reorder by hand.
 - **Decision:** imports come in score order, and a **Score order** button in Sections sorts any show. Order: piccolo, flute, oboe, bassoon, clarinets, saxes, trumpet, mellophone/horn, trombone, baritone/euphonium, tuba, snare, quads/tenors, bass drum, cymbals, other battery, front ensemble, drum major, guard. Battery: snare, quads, basses, cymbals (Jason: quads before basses; the starting list now matches). Unrecognized names go last in their old order. Later the same day (Jason): sections can be reordered by hand, for a writer's own order or a director's. First as ▲ ▼ arrows; then (Jason) a grip on each row to drag up or down instead. A gold line marks where it lands, and it's one undo. The arrow keys move a focused grip, for keyboard users. Rows stay still while dragging, since moving the grabbed button in the page would drop the drag.
 
-## 2026-11-02 13:10 EST — A Sort menu for sections
+## 2026-11-02 13:07 EST — A Sort menu for sections
 - **Who:** Jason Tiller
-- **Decision:** the **Score order** button became **Sort ▾**, with Score order, By letter (A–Z) and By name (A–Z). Each choice is grayed out when the list is already in that order, and each is one undo. Letters and names sort ignoring case, with numbers in number order (Symbol 2 before Symbol 10) *(Claude; Jason can veto)*.
+- **Decision:** the **Score order** button became **Sort ▾**, with Score order, By letter (A–Z) and By name (A–Z). Each choice is grayed out when the list is already in that order, and each is one undo. Letters and names sort ignoring case, with numbers in number order (Symbol 2 before Symbol 10) *(Claude; approved by Jason, 15:18)*.
 
-## 2026-11-02 13:20 EST — Starting-list buttons go in a menu
+## 2026-11-02 13:14 EST — Starting-list buttons go in a menu
 - **Who:** Jason Tiller (the two buttons should collapse after either choice); the menu form by Claude, accepted by Jason (13:17)
 - **Context:** "Back to Freeform's list" appeared only after saving your own list, so the panel grew a button after one choice and lost it after the other.
 - **Decision:** one **Starting list ▾** menu, like Sort, holding **Use this list for new shows** and **Back to Freeform's list** (grayed out when new shows already get Freeform's list). The menu closes after either choice; the line under it still says which list new shows get.
 
-## 2026-11-02 13:30 EST — Measures fill in from the score
+## 2026-11-02 13:19 EST — Measures fill in from the score
 - **Who:** Jason Tiller (go ahead); details by Claude *(Jason can veto)*
 - **Decision:** when a score is added, every set with an empty Measures box gets one: the bar its count 1 falls in through the bar its last count falls in ("9–12", or "9" for one bar). Typed measures are never changed. Sets past the end of the score stay blank. The menu says how many it filled, and Undo takes them back out. The filled measures print on dot sheets like typed ones.
 
-## 2026-11-02 14:50 EST — The phone's "who are you" list in last-name order
+## 2026-11-02 14:44 EST — The phone's "who are you" list in last-name order
 - **Who:** Jason Tiller (sort by LastName, FirstName); details by Claude *(Jason can veto)*
 - **Context:** the list showed each section by dot number ("P4 · Pat Smith"), so a student had to know their dot to find themselves.
 - **Options:** one alphabetical list for the whole band; keep the section groups and sort within each; change only the order, or also show names last-name-first.
 - **Decision:** keep the section groups (score order), and within each, named dots by last name then first, shown as "Smith, Pat · P4" so the order is visible; unnamed dots follow by number. Names are stored as typed, so the last name is the last word ("Pat Smith Jr." files under Smith Jr.); a name typed "Last, First" is used as is, which is how to fix a two-word surname ("de Souza, Ana"). Case and accents are ignored. Also fixed: the roster import's tenor sax abbreviations (TS, Tsx) had been commented out by accident.
 
-## 2026-11-02 15:10 EST — Sets can hit mid-bar
+## 2026-11-02 15:04 EST — Sets can hit mid-bar
 - **Who:** Jason Tiller (keep "the score decides a set's counts", but a set may land on beat 3 of a bar); details by Claude *(Jason can veto)*
 - **Context:** placing counts by measures assumed every set starts on a downbeat and hits on the last beat of a bar. A set of 15 counts over m. 17–20 (hit on beat 3) fit no rule, so it was rewritten to 16 counts, and the next set (starting on beat 4) was rewritten too.
 - **Options:** ask before changing counts; let the writer mark beats in the measures ("20.3"); count straight on from the last hit and accept a hit anywhere in the set's last bar.
 - **Decision:** the last. When a set's counts don't fit from a downbeat, they run on a beat at a time from the last set's hit, and the set fits if its hit lands in its last noted bar. After a mid-bar hit (judged at the last set's own count length, so a set "in one" that hits a downbeat isn't mid-bar), the next set always runs on from there, since the music doesn't skip beats; it can be written from either bar. Counts are only rewritten when the hit would fall outside the last bar (Nightmare 2A: 48 counts over 52 beats still becomes 52). Trade-off: a count typo smaller than the last bar now reads as a mid-bar hit instead of being fixed.
 
-## 2026-11-02 15:25 EST — Trust the drill writer: Freeform never changes counts or measures
+## 2026-11-02 15:13 EST — Trust the drill writer: Freeform never changes counts or measures
 - **Who:** Jason Tiller ("I would rather trust the drill writer than overwrite their counting of measures"); details by Claude *(Jason can veto)*
-- **Context:** adding a score could rewrite a set's counts (12:50 today, "the score decides") or its measures (widening a set over uncovered bars, 2026-10-29; starting a set after one its notes overlap, 13:10 today). With mid-bar hits accepted (15:10), counts that run straight on from the last hit place those sets correctly without touching what was written.
+- **Context:** adding a score could rewrite a set's counts (12:43 today, "the score decides") or its measures (widening a set over uncovered bars, 2026-10-29; starting a set after one its notes overlap, 10:48 today). With mid-bar hits accepted (15:04), counts that run straight on from the last hit place those sets correctly without touching what was written.
 - **Options:** keep the rewrites; ask before each; never rewrite, place counts around what's written, and flag what doesn't fit.
-- **Decision:** never rewrite. Replaces the 12:50 and 13:10 decisions and the widening one. A set whose counts don't fit (Nightmare 2A, 48 counts over 52 beats) keeps them, spread evenly over its bars, and the Music menu names it. A set whose counts run straight on through uncovered bars to its last bar gets no hold; one whose notes overlap the set before runs on from it. Also (Claude): the "steady number per bar" rule now allows no more counts per bar than the bar has beats ("in 5" isn't a thing); it had read 10 counts over two bars that way. Known gap: an intro before the first set whose counts include the intro now gets a hold and a flag instead of being widened.
+- **Decision:** never rewrite. Replaces the 12:43 and 10:48 decisions and the widening one. A set whose counts don't fit (Nightmare 2A, 48 counts over 52 beats) keeps them, spread evenly over its bars, and the Music menu names it. A set whose counts run straight on through uncovered bars to its last bar gets no hold; one whose notes overlap the set before runs on from it. Also (Claude): the "steady number per bar" rule now allows no more counts per bar than the bar has beats ("in 5" isn't a thing); it had read 10 counts over two bars that way. Known gap: an intro before the first set whose counts include the intro now gets a hold and a flag instead of being widened.
