@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { countsFromMidi, withHolds } from '../engine/midi';
+import { countsFromMidi, secondsAt, withHolds } from '../engine/midi';
 import { parseScore } from '../engine/musicxml';
 import { synced } from '../engine/music';
 import { newId, showLength, type Show } from '../engine/show';
@@ -17,7 +17,7 @@ interface Props {
 
 /** Load the show's recording, tap its counts, and choose whether playback follows it. */
 export function MusicMenu({ show, setShow, audio, onAudio, useMusic, setUseMusic }: Props) {
-  const file = useRef<HTMLInputElement>(null), midiFile = useRef<HTMLInputElement>(null);
+  const file = useRef<HTMLInputElement>(null), midiFile = useRef<HTMLInputElement>(null), pairFile = useRef<HTMLInputElement>(null);
   const [note, setNote] = useState('');
   const [tapping, setTapping] = useState(false);
   const m = show.music, total = showLength(show);
@@ -32,17 +32,41 @@ export function MusicMenu({ show, setShow, audio, onAudio, useMusic, setUseMusic
     onAudio(id);
     setNote(keep ? 'Loaded. Your tapped counts still apply.' : 'Loaded. Now tap the counts.');
   };
-  // Counts from the score (MIDI, MusicXML or .mxl): exact when the loaded music was rendered from that same score.
+  // Counts from the score (MuseScore, MusicXML, .mxl or MIDI): exact when the loaded music was rendered from that same score.
+  const counts = async (f: File) => {
+    const midi = await parseScore(await f.arrayBuffer());
+    const held = withHolds(show, midi), r = countsFromMidi(midi, held.show.sets), sets = held.show.sets.length - 1;
+    const note = [`Counts from ${f.name}: ${r.matched} of ${sets} sets placed by their measures${r.matched < sets ? '; the rest count plain beats' : ''}.`,
+      ...held.widened,
+      ...(held.added.length ? [`Added hold set${held.added.length > 1 ? 's' : ''} ${held.added.join(', ')} for bars no set covered (undo removes ${held.added.length > 1 ? 'them' : 'it'}).`] : []),
+      ...r.notes, ...(midi.warnings ?? [])];
+    return { sets: held.show.sets, taps: r.taps, note, seconds: secondsAt(midi, midi.end) };
+  };
   const fromMidi = async (f: File) => {
     try {
-      const midi = await parseScore(await f.arrayBuffer()); // a MuseScore, MusicXML, .mxl or MIDI file
-      const held = withHolds(show, midi), r = countsFromMidi(midi, held.show.sets), sets = held.show.sets.length - 1;
-      setShow((s) => (s.music ? { ...s, sets: held.show.sets, music: { ...s.music, taps: r.taps } } : s));
-      setNote([`Counts from ${f.name}: ${r.matched} of ${sets} sets placed by their measures${r.matched < sets ? '; the rest count plain beats' : ''}.`,
-        ...held.widened,
-        ...(held.added.length ? [`Added hold set${held.added.length > 1 ? 's' : ''} ${held.added.join(', ')} for bars no set covered (undo removes ${held.added.length > 1 ? 'them' : 'it'}).`] : []),
-        ...r.notes, ...(midi.warnings ?? [])].join(' '));
+      const c = await counts(f);
+      setShow((s) => (s.music ? { ...s, sets: c.sets, music: { ...s.music, taps: c.taps } } : s));
+      setNote(c.note.join(' '));
     } catch (e) { setNote(e instanceof Error ? e.message : "That score file couldn't be read."); }
+  };
+  // One step: the score and the recording MuseScore exported from it, chosen together. One Undo takes it all back.
+  const fromMuseScore = async (files: File[]) => {
+    const isAudio = (f: File) => f.type.startsWith('audio/') && !/midi/.test(f.type) || /\.(mp3|m4a|wav|aac|ogg|flac)$/i.test(f.name);
+    const sound = files.filter(isAudio), score = files.filter((f) => !isAudio(f));
+    if (sound.length !== 1 || score.length !== 1) { setNote('Choose two files together (⌘- or Ctrl-click): the score (.mscz, MusicXML or MIDI) and the recording exported from it (.mp3).'); return; }
+    try {
+      const c = await counts(score[0]);
+      const length = await duration(sound[0]);
+      const id = newId('a');
+      if (!(await putAudio(id, sound[0]))) { setNote("This browser wouldn't store the music (it may be out of space or in private mode)."); return; }
+      const old = show.music?.audioId;
+      setShow((s) => ({ ...s, sets: c.sets, music: { name: sound[0].name, audioId: id, taps: c.taps } }));
+      if (old && old !== id) deleteAudio(old);
+      onAudio(id);
+      // A recording much shorter, or much longer, than the score is probably a different piece (or a different export).
+      const off = length !== null && (length < c.seconds - 2 || length > c.seconds + 20);
+      setNote([`Loaded ${sound[0].name}.`, ...c.note, ...(off ? [`Check the pair: the recording is ${fmt(length!)} but the score plays for ${fmt(c.seconds)}, so they may not be the same piece.`] : [])].join(' '));
+    } catch (e) { setNote(e instanceof Error ? e.message : "Those files couldn't be read."); }
   };
   const label = !m ? 'Music' : synced(m) && useMusic && audio ? '♪ Music' : 'Music';
   return (
@@ -53,7 +77,8 @@ export function MusicMenu({ show, setShow, audio, onAudio, useMusic, setUseMusic
           {m && <p style={{ margin: 0, fontSize: 12 }}><strong>{m.name}</strong><br />
             {m.taps.length ? `${m.taps.length} of ${total + 1} counts tapped${m.taps.length < total + 1 ? '; later counts keep the last pace' : ''}.` : 'No counts tapped yet.'}</p>}
           {m && !audio && <p role="alert" style={{ margin: 0, fontSize: 12, color: 'var(--warn)' }}>The recording isn't in this browser. Load {m.name} again to hear it.</p>}
-          <button onClick={() => file.current?.click()}>{m ? 'Replace or reload music…' : 'Load music (mp3)…'}</button>
+          <button className={m ? undefined : 'primary'} onClick={() => pairFile.current?.click()} title="Choose the score (.mscz, MusicXML or MIDI) and the recording exported from it (.mp3) together: the music loads with every count in place">Add music from MuseScore…</button>
+          <button onClick={() => file.current?.click()}>{m ? 'Replace or reload music…' : 'Load music only (mp3)…'}</button>
           {m && <button disabled={!audio} onClick={() => { setTapping(true); close(); }}>Tap counts…</button>}
           {m && <button onClick={() => midiFile.current?.click()} title="Use when the music was rendered from this score (e.g. exported as audio from MuseScore). Choose the score's MuseScore file (.mscz), or its MusicXML, .mxl or MIDI; each set's counts are placed in the measures typed for it.">Counts from the score…</button>}
           {m && synced(m) && <label style={{ fontSize: 13 }}><input type="checkbox" checked={useMusic} onChange={(e) => setUseMusic(e.target.checked)} /> Play with music (off: use Tempo)</label>}
@@ -62,6 +87,7 @@ export function MusicMenu({ show, setShow, audio, onAudio, useMusic, setUseMusic
         </>}
       </Menu>
       <input ref={file} type="file" accept="audio/*,.mp3,.m4a,.wav,.aac" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) load(f); e.target.value = ''; }} />
+      <input ref={pairFile} type="file" multiple accept=".mscz,.mscx,.mxl,.musicxml,.xml,.mid,.midi,audio/*,.mp3,.m4a,.wav,.aac" hidden onChange={(e) => { const f = [...(e.target.files ?? [])]; if (f.length) fromMuseScore(f); e.target.value = ''; }} />
       <input ref={midiFile} type="file" accept=".mscz,.mscx,.mid,.midi,audio/midi,.musicxml,.xml,.mxl,application/vnd.recordare.musicxml+xml,application/vnd.recordare.musicxml" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) fromMidi(f); e.target.value = ''; }} />
       {tapping && audio && m && <TapDialog audio={audio} total={total} kept={m.taps} onDone={(taps) => { setTapping(false); if (taps) setShow((s) => (s.music ? { ...s, music: { ...s.music, taps } } : s)); }} />}
     </>
@@ -133,3 +159,16 @@ function TapDialog({ audio, total, kept, onDone }: { audio: HTMLAudioElement; to
     </div>
   );
 }
+
+/** A recording's length in seconds, from its metadata (null if the browser can't tell). */
+function duration(f: Blob): Promise<number | null> {
+  return new Promise((ok) => {
+    const a = new Audio(), url = URL.createObjectURL(f);
+    const done = (v: number | null) => { URL.revokeObjectURL(url); ok(v); };
+    a.onloadedmetadata = () => done(Number.isFinite(a.duration) ? a.duration : null);
+    a.onerror = () => done(null);
+    setTimeout(() => done(null), 5000);
+    a.preload = 'metadata'; a.src = url;
+  });
+}
+const fmt = (s: number) => { const r = Math.round(s); return `${Math.floor(r / 60)}:${String(r % 60).padStart(2, "0")}`; };
