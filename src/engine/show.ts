@@ -37,7 +37,7 @@ export interface DrillSet {
    * Follow-the-leader groups for the move into this set. order[0] is the leader; the rest follow in order.
    * Followers' spots in this set are computed from the trail (see normalizeFtl), not placed by hand.
    */
-  ftl?: { order: string[] }[];
+  ftl?: { order: string[]; turns?: Point[] }[]; // turns: the leader's turning points, in order (none = a straight leader move)
   /** Page markup shown on this set only: notes, arrows, freehand drawing. */
   marks?: Mark[];
   /** A note for the whole set, printed under its chart. */
@@ -310,7 +310,7 @@ export function positionsAt(show: Show, t: number): Record<string, Point> {
     out[id] = { x: p.x + (q.x - p.x) * f, y: p.y + (q.y - p.y) * f };
   }
   for (const g of show.sets[to].ftl ?? []) {
-    const at = ftlPositions(g.order.map((id) => a[id] ?? b[id]), b[g.order[0]], f);
+    const at = ftlPositions(g.order.map((id) => a[id] ?? b[id]), b[g.order[0]], f, g.turns);
     g.order.forEach((id, k) => { out[id] = at[k]; });
   }
   const n = show.sets[to].counts;
@@ -357,7 +357,8 @@ const near = (p: Point, q: Point) => Math.abs(p.x - q.x) < 1e-6 && Math.abs(p.y 
 /** The trail a follow-the-leader group marches along in the move into set i: leader's end, leader's start, then each follower's start. */
 export function ftlTrail(show: Show, i: number, order: string[]): Point[] {
   const a = show.sets[i - 1].pos, b = show.sets[i].pos;
-  return [b[order[0]], ...order.map((id) => a[id] ?? b[id])];
+  const turns = show.sets[i].ftl?.find((g) => g.order[0] === order[0])?.turns ?? [];
+  return [b[order[0]], ...[...turns].reverse(), ...order.map((id) => a[id] ?? b[id])];
 }
 
 /**
@@ -369,11 +370,14 @@ export function normalizeFtl(show: Show): Show {
   const alive = new Set(show.performers.map((p) => p.id));
   const sets = [...show.sets];
   for (let i = 1; i < sets.length; i++) {
-    const groups = (sets[i].ftl ?? []).map((g) => ({ order: g.order.filter((id) => alive.has(id)) })).filter((g) => g.order.length > 1);
+    const groups = (sets[i].ftl ?? []).map((g) => {
+      const order = g.order.filter((id) => alive.has(id));
+      return order[0] === g.order[0] ? { ...g, order } : { order }; // a removed leader takes its route with it
+    }).filter((g) => g.order.length > 1);
     if (!sets[i].ftl && !groups.length) continue;
     const pos = { ...sets[i].pos };
     for (const g of groups) {
-      const ends = ftlPositions(g.order.map((id) => sets[i - 1].pos[id] ?? pos[id]), pos[g.order[0]], 1);
+      const ends = ftlPositions(g.order.map((id) => sets[i - 1].pos[id] ?? pos[id]), pos[g.order[0]], 1, g.turns);
       g.order.slice(1).forEach((id, k) => { pos[id] = ends[k + 1]; });
     }
     sets[i] = { ...sets[i], pos, ftl: groups.length ? groups : undefined };
@@ -383,8 +387,23 @@ export function normalizeFtl(show: Show): Show {
 
 /** Make `order` a follow-the-leader group for the move into set i (order[0] leads). Members leave any other group. */
 export function setFtl(show: Show, i: number, order: string[]): Show {
+  const old = (show.sets[i].ftl ?? []).find((g) => g.order[0] === order[0]); // same leader (a reorder): keep its route
   const others = (show.sets[i].ftl ?? []).map((g) => ({ order: g.order.filter((id) => !order.includes(id)) }));
-  return normalizeFtl(mapSet(show, i, (s) => ({ ...s, ftl: [...others, { order }] })));
+  return normalizeFtl(mapSet(show, i, (s) => ({ ...s, ftl: [...others, { order, ...(old?.turns?.length ? { turns: old.turns } : {}) }] })));
+}
+
+export const MAX_TURNS = 50;
+
+/** Set the turning points of the group led by `leader` in the move into set i ([] = a straight leader move). */
+export const setFtlTurns = (show: Show, i: number, leader: string, turns: Point[]): Show =>
+  normalizeFtl(mapSet(show, i, (s) => ({ ...s, ftl: (s.ftl ?? []).map((g) => (g.order[0] !== leader ? g
+    : turns.length ? { ...g, turns: turns.slice(0, MAX_TURNS) } : { order: g.order })) })));
+
+/** How far the leader marches in the move into set i: start, through its turns, to its end spot. */
+export function leaderDistance(show: Show, i: number, g: { order: string[]; turns?: Point[] }): number {
+  const a = show.sets[i - 1].pos, b = show.sets[i].pos, id = g.order[0];
+  const route = [a[id] ?? b[id], ...(g.turns ?? []), b[id]];
+  return route.slice(1).reduce((d, p, k) => d + distance(route[k], p), 0);
 }
 
 /** Put performers back to floating for the move into set i. They stay where FTL left them. */
@@ -411,7 +430,7 @@ export function moveSteps(show: Show, i: number): Record<string, { per5: number;
   const a = show.sets[i - 1].pos, b = show.sets[i].pos;
   const dist: Record<string, number> = Object.fromEntries(Object.keys(b).map((id) => [id, distance(a[id] ?? b[id], b[id])]));
   // In follow-the-leader everyone marches the leader's distance, whatever the straight line says.
-  for (const g of show.sets[i].ftl ?? []) for (const id of g.order) dist[id] = dist[g.order[0]];
+  for (const g of show.sets[i].ftl ?? []) for (const id of g.order) dist[id] = leaderDistance(show, i, g);
   // On a count-by-count path, the step size that matters is its biggest single count.
   const n = show.sets[i].counts;
   for (const [id, path] of Object.entries(show.sets[i].paths ?? {}))
@@ -465,8 +484,9 @@ export function parseShow(text: string): Show {
   for (const set of s.sets) {
     if (!str(set?.id) || !str(set.name) || !Number.isFinite(set.counts) || typeof set.pos !== 'object' || !set.pos) bad('set');
     if (set.measures !== undefined && !str(set.measures)) bad('set measures');
-    if (set.ftl !== undefined && (!Array.isArray(set.ftl) || !set.ftl.every((g: { order?: unknown }) =>
-      Array.isArray(g?.order) && g.order.every((id) => str(id) && id in set.pos)))) bad('set follow-the-leader');
+    if (set.ftl !== undefined && (!Array.isArray(set.ftl) || !set.ftl.every((g: { order?: unknown; turns?: unknown }) =>
+      Array.isArray(g?.order) && g.order.every((id) => str(id) && id in set.pos) && (g.turns === undefined
+        || (Array.isArray(g.turns) && g.turns.length <= MAX_TURNS && g.turns.every((p: Point) => Number.isFinite(p?.x) && Number.isFinite(p?.y))))))) bad('set follow-the-leader');
     if (set.marks !== undefined && (!Array.isArray(set.marks) || !set.marks.every(validMark))) bad('set markup');
     if (set.note !== undefined && !str(set.note)) bad('set note');
     if (set.cues !== undefined && (typeof set.cues !== 'object' || !set.cues ||

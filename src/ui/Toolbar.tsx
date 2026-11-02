@@ -2,7 +2,7 @@ import { IconFit, IconRedo, IconUndo } from './icons';
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { addBezierSegment, addCurvePoint, type Shape, type ShapeKind } from '../engine/shapes';
 import {
-  chainOrder, clearFtl, flip, label, mirrorSides, placeInSet, removePerformers, rotateScale, setFtl, setLabelSide, snapSelection,
+  chainOrder, clearFtl, flip, setFtlTurns, label, mirrorSides, placeInSet, removePerformers, rotateScale, setFtl, setLabelSide, snapSelection,
   type LabelSide, type Show,
 } from '../engine/show';
 import { curveSides } from '../field/labels';
@@ -140,7 +140,7 @@ export function Toolbar(p: ToolbarProps) {
       </Menu>
       <Menu label="FTL" disabled={needs(ids.length > 1 && onSet > 0, onSet === 0 ? 'Set 1 has no move into it' : ids.length === 1 ? 'Select 2 or more performers' : pick)}
         title="Follow the leader: followers trace the leader's path in the move into this set">
-        {() => <FtlPanel {...p} ids={ids} />}
+        {(close) => <FtlPanel {...p} ids={ids} close={close} />}
       </Menu>
       <Menu label="Labels" disabled={needs(any, pick)} title="Where the selected performers' labels sit in this set">
         {() => <>
@@ -248,7 +248,7 @@ function ShapePanel({ shape, startShape, updateShape, endShape }: ToolbarProps) 
 }
 
 /** Follow-the-leader for the move into the current set. */
-function FtlPanel({ show, setShow, onSet, ids }: ToolbarProps & { ids: string[] }) {
+function FtlPanel({ show, setShow, onSet, ids, setTool, close }: ToolbarProps & { ids: string[]; close: () => void }) {
   const groups = show.sets[onSet].ftl ?? [];
   // The group this selection is exactly, if any; otherwise offer to make one.
   const current = groups.find((g) => g.order.length === ids.length && g.order.every((id) => ids.includes(id)));
@@ -296,7 +296,15 @@ function FtlPanel({ show, setShow, onSet, ids }: ToolbarProps & { ids: string[] 
               </li>
             ))}
           </ol>
-          <p style={help}>Move the leader to its end spot; the others follow its trail. Picking a new leader re-chains the order from it.</p>
+          <div style={row}>
+            <span>Leader's route: {current.turns?.length ? `${current.turns.length} turn${current.turns.length > 1 ? 's' : ''}` : 'straight'}</span>
+            <button onClick={() => { setTool('turn'); close(); }} title="Click the field for each turn the leader makes, in marching order; Esc when done">Add turns</button>
+            {!!current.turns?.length && <>
+              <button onClick={() => setShow((s) => setFtlTurns(s, onSet, current.order[0], current.turns!.slice(0, -1)))}>Remove last turn</button>
+              <button onClick={() => setShow((s) => setFtlTurns(s, onSet, current.order[0], []))}>Straight route</button>
+            </>}
+          </div>
+          <p style={help}>Move the leader to its end spot; the others follow its trail. For a route with corners, Add turns and click each turn on the field. Picking a new leader re-chains the order from it and starts a straight route.</p>
         </>
       )}
     </>

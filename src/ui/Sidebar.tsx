@@ -8,7 +8,7 @@ import {
   type FrontDir, type FrontRef, type Show, type SideDir,
 } from '../engine/show';
 
-export type Tool = 'select' | 'add' | 'text' | 'arrow' | 'draw';
+export type Tool = 'select' | 'add' | 'text' | 'arrow' | 'draw' | 'turn'; // turn: click to add an FTL leader's turning points
 export type Snap = 1 | 0.5 | 0;
 
 interface Props {

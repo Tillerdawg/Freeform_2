@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { HASHES, readout } from './coords';
 import {
   addPerformer, addSetAfter, advance, biggestStep, chainOrder, clearFtl, ftlTrail, moveSteps, normalizeFtl, flip, mirrorSides, moveSetTo, remapHash, rotateScale, setFtl, snapSelection, playRange, playPlan, label, locate, newShow, parseShow, placeInSet, positionsAt,
-  removePerformers, removeSet, setAt, setCounts, setStarts, totalCounts, xFrom, yFrom, insertSetAt, showLength, movementAt, movementOfSet,
+  removePerformers, removeSet, setAt, setCounts, setStarts, totalCounts, xFrom, yFrom, insertSetAt, showLength, movementAt, movementOfSet, setFtlTurns,
 } from './show';
 
 function twoSetShow() {
@@ -234,6 +234,26 @@ describe('follow-the-leader (IDEA.md example through the show model)', () => {
     expect(show.sets[1].pos[ids[4]].x).toBeCloseTo(-12);
     const gone = normalizeFtl(removePerformers(show, new Set([ids[2]])));
     expect(gone.sets[1].ftl![0].order).toEqual([ids[0], ids[1], ids[3], ids[4]]);
+  });
+  it('a leader route with a turn: everyone follows the same corner, with even steps', () => {
+    let { show, ids, h } = idea();
+    // A marches 8 forward, then turns toward Side 1 for 8: 16 steps in 16 counts.
+    show = normalizeFtl(placeInSet(setFtl(show, 1, ids), 1, { [ids[0]]: { x: -24, y: h - 8 } }));
+    show = setFtlTurns(show, 1, ids[0], [{ x: -16, y: h - 8 }]);
+    const end = show.sets[1].pos;
+    expect([end[ids[1]].x, end[ids[1]].y]).toEqual([-20, h - 8]); // B is 4 behind A, already round the corner
+    expect([end[ids[2]].x, end[ids[2]].y]).toEqual([-16, h - 8]); // C is on the corner
+    expect(end[ids[3]].x).toBeCloseTo(-16); expect(end[ids[3]].y).toBeCloseTo(h - 4);
+    expect(end[ids[4]].x).toBeCloseTo(-16); expect(end[ids[4]].y).toBeCloseTo(h); // E ends on A's start
+    expect(positionsAt(show, 8)[ids[0]]).toEqual({ x: -16, y: h - 8 }); // the leader is on the corner at count 8
+    expect(Object.values(moveSteps(show, 1)).map((s) => s.per5)).toEqual([8, 8, 8, 8, 8]);
+    expect(ftlTrail(show, 1, ids).slice(0, 3)).toEqual([{ x: -24, y: h - 8 }, { x: -16, y: h - 8 }, { x: -16, y: h }]);
+    expect(setFtl(show, 1, [ids[0], ids[2], ids[1], ids[3], ids[4]]).sets[1].ftl![0].turns).toHaveLength(1); // reordering keeps the route
+    expect(setFtl(show, 1, [...ids].reverse()).sets[1].ftl![0].turns).toBeUndefined(); // a new leader starts straight
+    expect(normalizeFtl(removePerformers(show, new Set([ids[0]]))).sets[1].ftl![0].turns).toBeUndefined(); // so does losing the leader
+    expect(parseShow(JSON.stringify(show)).sets[1].ftl![0].turns).toEqual([{ x: -16, y: h - 8 }]);
+    expect(() => parseShow(JSON.stringify({ ...show, sets: [show.sets[0], { ...show.sets[1], ftl: [{ order: ids, turns: [{ x: 'a' }] }] }] }))).toThrow(/follow-the-leader/);
+    expect(setFtlTurns(show, 1, ids[0], []).sets[1].ftl![0].turns).toBeUndefined();
   });
   it('clearing FTL leaves performers where they are and floats them', () => {
     let { show, ids, h } = idea();

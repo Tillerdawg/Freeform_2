@@ -734,3 +734,13 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Movement names:** drawn on the timeline in blue where each movement starts, below the moves' text (no change in height), and at the front of each printed chart header ("Opener · Set 3 · 16 counts…"). A set belongs to the movement its move into it is in, so a set hit on a movement's last count is in that movement; set 1 is in the first.
 - **Curved paths:** nothing to build. The editor's path lines and the phone's own path already follow count-by-count routes (2026-10-29); printed charts show only each set's spots, as Jason asked. PLAN.md's note saying otherwise was out of date.
 - **Phone downloads:** nothing to build either. The phone fetches hosted files with `cache: 'no-cache'`, which makes the browser ask GitHub whether its stored copy changed; GitHub answers 304 (0 bytes, checked) for an unchanged file. The service worker leaves other sites' files alone. A version check of our own isn't possible without GitHub exposing the ETag to scripts. Supersedes the "re-downloads the whole file" limit in the 2026-10-30 music-on-phones entry.
+
+## 2026-11-02 10:30 EDT — No shapes that create performers
+- **Who:** Jason Tiller
+- **Decision:** shapes only arrange performers who already exist. Performers (dots) are defined when the drill file is first created (added on the field, imported from a roster or from Pyware). Taken off PLAN.md.
+
+## 2026-11-02 10:30 EDT — Follow-the-leader routes with turns; paths mid-move
+- **Who:** Jason Tiller (finish the FTL follow-ups); details by Claude *(Jason can veto)*
+- **Decision:** an FTL group can have `turns`: the leader's turning points, in marching order (up to 50, checked on import). The leader marches start → turns → end spot, and the trail runs back from the end through the turns to the leader's start and each follower's start. Everyone covers the leader's whole route length at one steady speed, so steps stay even through corners (house rule), and the step size shown is the route's length over the counts. Turns are added as in Pyware, by clicking: **FTL ▾ → Add turns**, then click each turn on the field (snapped to the grid setting; the top bar says what to do; Esc ends). **Remove last turn** and **Straight route** take them back; Undo works too. Reordering followers keeps the route; a new leader, or deleting the leader, starts straight. Path lines and FTL trails now also draw mid-move, for the move the playhead is in.
+- **Other options:** dragging the trail to bend it (needs handles; later if wanted).
+- **Known limits:** turns don't move when the group is mirrored, rotated or scaled, and can't be dragged yet (remove and re-click).

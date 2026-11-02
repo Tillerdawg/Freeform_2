@@ -79,12 +79,13 @@ export const distance = (a: Point, b: Point) => Math.hypot(b.x - a.x, b.y - a.y)
  * Everyone travels the leader's path length along the trail: leaderEnd <- leaderStart <- starts[1] <- ...
  * Returns positions at fraction f (0..1) of the move.
  */
-export function ftlPositions(starts: Point[], leaderEnd: Point, f: number): Point[] {
-  const trail = [leaderEnd, ...starts];
+export function ftlPositions(starts: Point[], leaderEnd: Point, f: number, turns: Point[] = []): Point[] {
+  // `turns`: the leader's turning points, in marching order; the trail runs back from the end through them.
+  const trail = [leaderEnd, ...[...turns].reverse(), ...starts], lead = turns.length + 1;
   const arc = [0];
   for (let i = 1; i < trail.length; i++) arc.push(arc[i - 1] + distance(trail[i - 1], trail[i]));
-  const travel = arc[1] * f;
-  return starts.map((_, i) => pointAt(trail, arc, arc[i + 1] - travel));
+  const travel = arc[lead] * f; // everyone covers the leader's route length, at one steady speed (even steps)
+  return starts.map((_, i) => pointAt(trail, arc, arc[i + lead] - travel));
 }
 
 function pointAt(trail: Point[], arc: number[], s: number): Point {

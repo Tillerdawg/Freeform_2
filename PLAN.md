@@ -18,9 +18,9 @@
 - ✅ Shape tools: line, arc, curve, Bézier, circle, block (select, then shape; even or interval spacing; least-travel assignment).
 - ✅ Mirror: flip across the 50 or front to back; copy Side 1 → 2 (or 2 → 1) with least-travel pairing.
 - ✅ Rotate and scale a selection around its center.
-- Shape follow-ups: shapes that create new performers; on-field rotate/scale handles; stretch in one direction only.
+- Shape follow-ups: on-field rotate/scale handles; stretch in one direction only. (Not planned: shapes that create performers. Jason: performers are defined when the show is first created.)
 - ✅ FTL transitions (leader + order, path-following; IDEA.md example is the acceptance test).
-- FTL follow-ups: a leader path with turns (several points) instead of a straight leader move; FTL trail shown mid-move.
+- ✅ FTL follow-ups: a leader route with turns (click each turn); paths and FTL trails shown mid-move. Later, if needed: dragging a turn to move it; turns following a mirror, rotate or scale of the group.
 - ✅ Coordinate (dot) sheets, 4 cards per page, and drill charts, one per set (print / Save as PDF).
 - ✅ Measure numbers per set (typed), on dot sheets, chart headers, and the timeline.
 - ✅ Readable dot labels (auto placement and hiding, per-set pinned sides) in the editor, printed charts and phone.

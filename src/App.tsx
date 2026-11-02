@@ -4,7 +4,7 @@ import { emptyHistory, record, redo, undo } from './engine/history';
 import { addInk, hitMark, moveMark, type Mark } from './engine/marks';
 import { assign, fitShape, isControl, moveHandle, samplePath, slots, type Shape, type ShapeKind } from './engine/shapes';
 import { colorOf,
-  addPerformer, ftlTrail, label, mark, newId, pathFits, setMarks, moveSteps, normalizeFtl, snapPoint, playRange, newShow, parseShow, placeInSet, positionsAt, removePerformers,
+  addPerformer, ftlTrail, setFtlTurns, locate, label, mark, newId, pathFits, setMarks, moveSteps, normalizeFtl, snapPoint, playRange, newShow, parseShow, placeInSet, positionsAt, removePerformers,
   setAt, setStarts, type Show,
   showLength,
 } from './engine/show';
@@ -150,8 +150,10 @@ export function App() {
     return () => ro.disconnect();
   }, [dpr]);
 
-  // Paths into the current set, colored by step size.
+  // Paths into the current set, colored by step size. Mid-move, the move being made (so FTL trails show there too).
+  const pathSet = onSet >= 0 ? onSet : t < starts.at(-1)! ? locate(show, t).to : -1;
   const paths: Path[] = useMemo(() => {
+    const onSet = pathSet;
     if (onSet < 1) return [];
     const steps = moveSteps(show, onSet);
     const a = show.sets[onSet - 1].pos, b = show.sets[onSet].pos;
@@ -172,7 +174,10 @@ export function App() {
       return t.slice(1).map((p, k) => ({ from: t[k], to: p, tier: steps[g.order[0]].tier }));
     });
     return [...straight, ...trails];
-  }, [show, onSet]);
+  }, [show, pathSet]);
+  // The FTL group the selection is, exactly, in the move into this set (where Add turns puts the leader's turning points).
+  const ftlGroup = onSet > 0 ? show.sets[onSet].ftl?.find((g) => g.order.length === selected.size && g.order.every((id) => selected.has(id))) : undefined;
+  useEffect(() => { if (tool === 'turn' && !ftlGroup) setTool('select'); }, [tool, ftlGroup]);
 
   useEffect(() => {
     if (!view) return;
@@ -276,14 +281,14 @@ export function App() {
         setShow((s) => setMarks(s, onSet, (ms) => ms.filter((m) => m.id !== selectedMark))); setSelectedMark(null);
       } else if ((e.key === 'Delete' || e.key === 'Backspace') && selected.size) {
         setShow((s) => removePerformers(s, selected)); setSelected(new Set());
-      } else if (e.key === 'Escape') { if (shapeEdit) setShapeEdit(null); else { setSelected(new Set()); setSelectedMark(null); } }
+      } else if (e.key === 'Escape') { if (tool === 'turn') setTool('select'); else if (shapeEdit) setShapeEdit(null); else { setSelected(new Set()); setSelectedMark(null); } }
       else if (e.key === 'v' || e.key === 'V') setTool('select');
       else if (e.key === 'a' || e.key === 'A') setTool('add');
       else if (e.key === 't' || e.key === 'T') setTool('text');
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [selected, total, hist, show, shapeEdit, printing, selectedMark, onSet]);
+  }, [selected, total, hist, show, shapeEdit, printing, selectedMark, onSet, tool]);
 
   const world = (e: React.PointerEvent) => toWorld(view!, e.nativeEvent.offsetX * dpr, e.nativeEvent.offsetY * dpr);
 
@@ -322,6 +327,10 @@ export function App() {
       setSelected(new Set());
       setSelectedMark(id);
       if (tool !== 'text') drag.current = { kind: tool === 'arrow' ? 'arrow' : 'ink', id };
+      return;
+    }
+    if (tool === 'turn') {
+      if (ftlGroup) setShow((s) => setFtlTurns(s, onSet, ftlGroup.order[0], [...(ftlGroup.turns ?? []), snapTo(p, snap)]));
       return;
     }
     if (tool === 'add') {
@@ -446,7 +455,7 @@ export function App() {
       <div style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '0 16px', height: 40, flexShrink: 0, whiteSpace: 'nowrap', overflow: 'hidden' }}>
         <strong style={{ flex: '1 1 0' }}>Freeform</strong>
         <div style={{ flex: 'none' }}><SetControls show={show} setShow={setShow} t={t} setT={(x) => { setPlaying(false); setT(x); }} /></div>
-        <span style={{ flex: '1 1 0', fontSize: 12, opacity: 0.7, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'right' }}>Scroll to pan · pinch or ⌘/Ctrl+scroll to zoom · right-drag pans</span>
+        <span style={{ flex: '1 1 0', fontSize: 12, opacity: tool === 'turn' ? 1 : 0.7, color: tool === 'turn' ? 'var(--gold)' : undefined, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'right' }}>{tool === 'turn' ? "Click the field for each of the leader's turns, in marching order · Esc when done" : 'Scroll to pan · pinch or ⌘/Ctrl+scroll to zoom · right-drag pans'}</span>
       </div>
       <Toolbar show={show} setShow={setShow} onSet={onSet} selected={selected} setSelected={setSelected} tool={tool} setTool={setTool}
         section={section} setSection={setSection} snap={snap} setSnap={setSnap}
