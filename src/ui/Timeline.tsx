@@ -6,6 +6,11 @@ import { Menu } from './Toolbar';
 import { STEP_TEXT } from '../field/drawField';
 import { fmtStep } from './format';
 import { IconNext, IconPause, IconPlay, IconPrev, IconStart, IconZoomIn, IconZoomOut } from './icons';
+import { coarse } from '../perform/device';
+
+const TOUCH = coarse();
+const ROW = TOUCH ? 46 : 22; // set-button rows: 44 px buttons on a touch screen
+const HOLD_MS = 400; // touch: hold a set button this long to pick it up; a swipe before then scrolls the timeline
 
 interface Props {
   show: Show;
@@ -103,8 +108,10 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
   // left: the 2px line centered on the count.
   const box = (from: number, counts: number): React.CSSProperties => ({ position: 'absolute', top: 0, bottom: 0, left: `calc(${(from / total) * 100}% - 1px)`, width: `${(counts / total) * 100}%`,
     boxSizing: 'border-box', borderLeft: '2px solid var(--gold)', overflow: 'hidden', fontSize: 12, whiteSpace: 'nowrap' });
-  const setDrag = useRef<{ i: number; x0: number; from: number; perCount: number; moved: boolean } | null>(null);
-  const fixedRow: React.CSSProperties = { display: 'flex', gap: 8, alignItems: 'center', height: 30, whiteSpace: 'nowrap', overflow: 'hidden' };
+  const setDrag = useRef<{ i: number; x0: number; from: number; perCount: number; moved: boolean; touch?: { left: number; armed: boolean; scrolled: boolean; timer: number } } | null>(null);
+  const [held, setHeld] = useState<number | null>(null); // the set button a finger has picked up
+  const dropSet = () => { const d = setDrag.current; if (d?.touch) clearTimeout(d.touch.timer); setDrag.current = null; setHeld(null); return d; };
+  const fixedRow: React.CSSProperties = { display: 'flex', gap: 8, alignItems: 'center', height: TOUCH ? 48 : 30, whiteSpace: 'nowrap', overflowX: 'auto', overflowY: 'hidden', scrollbarWidth: 'none' };
   return (
     <div style={{ padding: '8px 16px 12px', borderTop: '1px solid var(--line)' }}>
       {/* Every row has a fixed height: a panel that grows or shrinks would resize (and flash) the field. */}
@@ -149,21 +156,32 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
         onPointerMove={(e) => { if (panFrom.current) e.currentTarget.scrollLeft = panFrom.current.left - (e.clientX - panFrom.current.x); }}
         onPointerUp={() => { panFrom.current = null; }}>
       <div style={{ width: fullW || undefined }}>
-      <div ref={strip} style={{ position: 'relative', height: 44, marginRight: pad }}>
+      <div ref={strip} style={{ position: 'relative', height: 2 * ROW, marginRight: pad }}>
         {/* Each set's line runs up to its button. Behind the buttons. */}
         {total > 0 && show.sets.map((s, i) => (
-          <div key={s.id} style={{ position: 'absolute', left: `calc(${(starts[i] / total) * 100}% - 1px)`, top: (rows[i] ?? 0) * 22 + 20, bottom: 0, width: 2, background: 'var(--gold)', pointerEvents: 'none' }} />
+          <div key={s.id} style={{ position: 'absolute', left: `calc(${(starts[i] / total) * 100}% - 1px)`, top: (rows[i] ?? 0) * ROW + ROW - 2, bottom: 0, width: 2, background: 'var(--gold)', pointerEvents: 'none' }} />
         ))}
         {show.sets.map((s, i) => (
-          <button key={s.id} aria-label={`Go to set ${s.name}`} title={i ? 'Click to go here; drag to change which count this set lands on' : undefined}
+          <button key={s.id} aria-label={`Go to set ${s.name}`} title={i ? (TOUCH ? 'Tap to go here; touch and hold, then drag, to change which count this set lands on' : 'Click to go here; drag to change which count this set lands on') : undefined}
             onPointerDown={(e) => {
               if (e.button !== 0) return;
               e.currentTarget.setPointerCapture(e.pointerId);
               // Fix the scale at the start: dragging the last set changes the show's length.
-              setDrag.current = { i, x0: e.clientX, from: starts[i], perCount: (strip.current?.clientWidth ?? 1) / Math.max(1, total), moved: false };
+              const d: NonNullable<typeof setDrag.current> = { i, x0: e.clientX, from: starts[i], perCount: (strip.current?.clientWidth ?? 1) / Math.max(1, total), moved: false };
+              if (e.pointerType === 'touch') // a finger picks a set up only after a hold, so swiping across the buttons scrolls
+                d.touch = { left: outer.current?.scrollLeft ?? 0, armed: false, scrolled: false,
+                  timer: window.setTimeout(() => { if (i && !d.touch!.scrolled) { d.touch!.armed = true; setHeld(i); } }, HOLD_MS) };
+              setDrag.current = d;
             }}
             onPointerMove={(e) => {
               const d = setDrag.current;
+              if (d?.touch && !d.touch.armed) {
+                if (!d.touch.scrolled && Math.abs(e.clientX - d.x0) < 8) return;
+                d.touch.scrolled = true;
+                clearTimeout(d.touch.timer);
+                if (outer.current) outer.current.scrollLeft = d.touch.left - (e.clientX - d.x0);
+                return;
+              }
               if (!d || d.i === 0) return;
               if (!d.moved && Math.abs(e.clientX - d.x0) < 4) return;
               d.moved = true;
@@ -172,13 +190,14 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
               setT(setStarts(next)[d.i]); // the playhead stays on the set, wherever it was allowed to land
             }}
             onPointerUp={() => {
-              const d = setDrag.current;
-              setDrag.current = null;
-              if (d && !d.moved) setT(starts[i]);
+              const d = dropSet();
+              if (d && !d.moved && !d.touch?.scrolled) setT(starts[i]);
             }}
+            onPointerCancel={dropSet}
             // The button starts at its set's line (its left edge on the line).
-            style={{ position: 'absolute', zIndex: 1, top: (rows[i] ?? 0) * 22, height: 20, left: total ? `calc(${(starts[i] / total) * 100}% - 1px)` : 0,
-              fontWeight: i === onSet ? 700 : 400, outline: i === onSet ? '2px solid var(--gold)' : undefined, padding: '0 6px', minWidth: 24, lineHeight: '18px',
+            style={{ position: 'absolute', zIndex: 1, top: (rows[i] ?? 0) * ROW, height: ROW - 2, minHeight: 0, left: total ? `calc(${(starts[i] / total) * 100}% - 1px)` : 0,
+              fontWeight: i === onSet ? 700 : 400, outline: i === onSet ? '2px solid var(--gold)' : undefined,
+              ...(held === i ? { background: 'var(--gold)', color: 'var(--bg-deep)', transform: 'scale(1.1)', zIndex: 2 } : {}), padding: '0 6px', minWidth: TOUCH ? 44 : 24, lineHeight: '18px',
               cursor: i ? 'ew-resize' : 'pointer', touchAction: 'none' }}>
             {s.name}
           </button>

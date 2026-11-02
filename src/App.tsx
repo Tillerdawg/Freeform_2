@@ -8,6 +8,8 @@ import { colorOf,
   setAt, setStarts, type Show,
   showLength,
 } from './engine/show';
+import { pinchView } from './perform/gestures';
+import { coarse } from './perform/device';
 import { HANDLE_PX, drawField, drawMarks, drawPerformers, drawShape, fitView, toScreen, toWorld, type Path, type View } from './field/drawField';
 import { Sidebar, type Snap, type Tool } from './ui/Sidebar';
 import { SetControls, Timeline } from './ui/Timeline';
@@ -73,6 +75,11 @@ export function App() {
   const [sharing, setSharing] = useState(false);
   const [box, setBox] = useState<[Point, Point]>();
   const drag = useRef<Drag | null>(null);
+  const [adding, setAdding] = useState(false); // tap adds to the selection (shift-click without a keyboard)
+  // Fingers on the field (canvas px). Two fingers pan and pinch; what the first one started is undone (atDown).
+  const touches = useRef(new Map<number, Point>());
+  const pinch = useRef<{ v: View; mid: Point; dist: number } | null>(null);
+  const atDown = useRef<{ show: Show; selected: Set<string>; mark: string | null; shape: typeof shapeEdit } | null>(null);
   const [hist, setHist] = useState(emptyHistory<Show>);
   const lastShow = useRef(show);
   const boundary = useRef(true); // a click/tap or shortcut happened since the last change
@@ -300,8 +307,8 @@ export function App() {
 
   const world = (e: React.PointerEvent) => toWorld(view!, e.nativeEvent.offsetX * dpr, e.nativeEvent.offsetY * dpr);
 
-  const hit = (p: Point) => {
-    const r = Math.max(0.7, (10 * dpr) / view!.scale); // at least ~10px to grab when zoomed out
+  const hit = (p: Point, touch = false) => {
+    const r = Math.max(0.7, ((touch ? 22 : 10) * dpr) / view!.scale); // at least ~10px to grab when zoomed out (a 44px circle for a finger)
     let best: string | undefined, bd = r;
     for (const [id, q] of Object.entries(positions)) {
       const d = Math.hypot(q.x - p.x, q.y - p.y);
@@ -310,13 +317,38 @@ export function App() {
     return best;
   };
 
+  const fingers = () => {
+    const [a, b] = [...touches.current.values()];
+    return { mid: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }, dist: Math.hypot(a.x - b.x, a.y - b.y) };
+  };
+  // A second finger: take back whatever the first one started (a dot added, a drag, a box), then pan and zoom instead.
+  const cancelGesture = () => {
+    const a = atDown.current;
+    drag.current = null; atDown.current = null; setBox(undefined);
+    if (!a) return;
+    if (show !== a.show) step('undo');
+    setSelected(a.selected); setSelectedMark(a.mark); setShapeEdit(a.shape);
+  };
+
   const onPointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
     if (!view) return;
     e.currentTarget.setPointerCapture(e.pointerId);
+    const touch = e.pointerType === 'touch';
+    if (touch) {
+      touches.current.set(e.pointerId, { x: e.nativeEvent.offsetX * dpr, y: e.nativeEvent.offsetY * dpr });
+      if (touches.current.size >= 2) {
+        cancelGesture();
+        if (!pinch.current) pinch.current = { v: view, ...fingers() };
+        return;
+      }
+    }
+    atDown.current = { show, selected, mark: selectedMark, shape: shapeEdit };
+    const add = e.shiftKey || adding;
     if (e.button === 1 || e.button === 2) { drag.current = { kind: 'pan', x: e.clientX, y: e.clientY }; return; }
     const p = world(e);
+    const grab = Math.max(HANDLE_PX * 1.5, touch ? 22 : 0) * dpr; // a handle's reach: 44px across for a finger
     if (shapeEdit) {
-      const r = HANDLE_PX * 1.5 * dpr;
+      const r = grab;
       const i = shapeEdit.shape.handles.findIndex((h) => {
         const q = toScreen(view, h);
         return Math.abs(q.x - e.nativeEvent.offsetX * dpr) <= r && Math.abs(q.y - e.nativeEvent.offsetY * dpr) <= r;
@@ -326,7 +358,7 @@ export function App() {
     }
     // A selected FTL group's turns have handles: grab one to move that turn (in Select or Add turns).
     if (ftlGroup?.turns && (tool === 'select' || tool === 'turn')) {
-      const r = HANDLE_PX * 1.5 * dpr;
+      const r = grab;
       const k = ftlGroup.turns.findIndex((h) => { const q = toScreen(view, h); return Math.abs(q.x - e.nativeEvent.offsetX * dpr) <= r && Math.abs(q.y - e.nativeEvent.offsetY * dpr) <= r; });
       if (k >= 0) { drag.current = { kind: 'turn', k }; return; }
     }
@@ -354,11 +386,11 @@ export function App() {
       setSelected(new Set([r.id]));
       return;
     }
-    const id = hit(p);
+    const id = hit(p, touch);
     if (id) {
       setSelectedMark(null);
       let sel = selected;
-      if (e.shiftKey) {
+      if (add) {
         sel = new Set(selected);
         if (sel.has(id)) sel.delete(id); else sel.add(id);
       } else if (!selected.has(id)) sel = new Set([id]);
@@ -370,7 +402,7 @@ export function App() {
         drag.current = { kind: 'move', start: p, anchor: id, orig, at: [e.clientX, e.clientY], turns: group?.turns };
       }
     } else {
-      const m = onSet >= 0 ? hitMark(show.sets[onSet].marks ?? [], p, Math.max(0.5, (6 * dpr) / view.scale)) : undefined;
+      const m = onSet >= 0 ? hitMark(show.sets[onSet].marks ?? [], p, Math.max(0.5, ((touch ? 16 : 6) * dpr) / view.scale)) : undefined;
       if (m) {
         setSelected(new Set());
         setSelectedMark(m.id);
@@ -378,13 +410,21 @@ export function App() {
         return;
       }
       setSelectedMark(null);
-      drag.current = { kind: 'box', a: p, b: p, add: e.shiftKey };
-      if (!e.shiftKey) setSelected(new Set());
+      drag.current = { kind: 'box', a: p, b: p, add };
+      if (!add) setSelected(new Set());
     }
   };
 
   const onPointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
     if (!view) return;
+    if (touches.current.has(e.pointerId)) {
+      touches.current.set(e.pointerId, { x: e.nativeEvent.offsetX * dpr, y: e.nativeEvent.offsetY * dpr });
+      if (touches.current.size >= 2 && pinch.current) {
+        const f = fingers(), g = pinch.current;
+        setView(pinchView(g.v, g.mid, f.mid, g.dist, f.dist, 2 * dpr, 120 * dpr)); // the same limits as the wheel
+        return;
+      }
+    }
     const p = world(e);
     setHover(readout(p, show.hash));
     const d = drag.current;
@@ -426,7 +466,13 @@ export function App() {
     }
   };
 
+  const liftFinger = (e: React.PointerEvent) => {
+    touches.current.delete(e.pointerId);
+    if (touches.current.size < 2) pinch.current = null; // the finger left behind does nothing until it lifts
+  };
   const onPointerUp = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    liftFinger(e);
+    atDown.current = null;
     // Apply the release point too: a fast release can arrive without a final pointermove, landing the drag short.
     if (drag.current && drag.current.kind !== 'pan') onPointerMove(e);
     const d = drag.current;
@@ -473,10 +519,11 @@ export function App() {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Fixed height, no wrapping: nothing up here may resize the field (a canvas resize clears it, which flashes). */}
       {/* Equal-flex sides center the set controls when there's room; when there isn't, the hint gives up space first. */}
-      <div style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '0 16px', height: 40, flexShrink: 0, whiteSpace: 'nowrap', overflow: 'hidden' }}>
+      <div style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '0 16px', height: coarse() ? 56 : 40, flexShrink: 0, whiteSpace: 'nowrap', overflowX: 'auto', overflowY: 'hidden', scrollbarWidth: 'none' }}>
         <strong style={{ flex: '1 1 0' }}>Freeform</strong>
         <div style={{ flex: 'none' }}><SetControls show={show} setShow={setShow} t={t} setT={(x) => { setPlaying(false); setT(x); }} /></div>
-        <span style={{ flex: '1 1 0', fontSize: 12, opacity: tool === 'turn' ? 1 : 0.7, color: tool === 'turn' ? 'var(--gold)' : undefined, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'right' }}>{tool === 'turn' ? "Click the field for each of the leader's turns, in marching order · Esc when done" : 'Scroll to pan · pinch or ⌘/Ctrl+scroll to zoom · right-drag pans'}</span>
+        <span style={{ flex: '1 1 0', fontSize: 12, opacity: tool === 'turn' ? 1 : 0.7, color: tool === 'turn' ? 'var(--gold)' : undefined, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'right' }}>{tool === 'turn' ? (coarse() ? "Tap the field for each of the leader's turns, in marching order · then tap Select Performer(s)" : "Click the field for each of the leader's turns, in marching order · Esc when done")
+          : coarse() ? 'Two fingers: drag to move around, pinch to zoom' : 'Scroll to pan · pinch or ⌘/Ctrl+scroll to zoom · right-drag pans'}</span>
       </div>
       <Toolbar show={show} setShow={setShow} onSet={onSet} selected={selected} setSelected={setSelected} tool={tool} setTool={setTool}
         section={section} setSection={setSection} snap={snap} setSnap={setSnap}
@@ -493,6 +540,7 @@ export function App() {
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
+          onPointerCancel={(e) => { liftFinger(e); cancelGesture(); }} // the system took the touch (an edge swipe)
           onPointerLeave={() => setHover('')}
         />
         {/* Floats over the field so its changing length can't move the layout. */}
@@ -510,7 +558,7 @@ export function App() {
         selected={selected} setSelected={setSelected} tool={tool} setTool={setTool}
         section={section} setSection={setSection} snap={snap} setSnap={setSnap} starts={starts}
         onNew={fresh} onOpen={() => fileRef.current?.click()} onSave={save} onPrint={() => setPrinting(true)} onShare={() => setSharing(true)} fileError={fileError}
-        selectedMark={selectedMark} setSelectedMark={setSelectedMark}
+        selectedMark={selectedMark} setSelectedMark={setSelectedMark} adding={adding} setAdding={setAdding}
         onUndo={() => step('undo')} onRedo={() => step('redo')} canUndo={!!hist.past.length} canRedo={!!hist.future.length}
         onFit={() => { const c = canvasRef.current!; setView(fitView(c.width, c.height)); }} shape={shapeEdit?.shape ?? null} startShape={startShape} updateShape={updateShape} endShape={() => setShapeEdit(null)}
       />

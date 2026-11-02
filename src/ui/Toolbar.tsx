@@ -166,10 +166,12 @@ export function Toolbar(p: ToolbarProps) {
       <button disabled={!ids.length} className="danger" onClick={() => { setShow((s) => removePerformers(s, selected)); p.setSelected(new Set()); }}
         title="Delete the selected performers from the whole show">Delete</button>
 
-      <span style={{ marginLeft: 'auto' }} />
+      {/* Pinned to the right edge: when the toolbar scrolls sideways (every iPad), Undo stays in reach. */}
+      <span className="tb-pinned">
       <button onClick={p.onUndo} disabled={!p.canUndo} title="Undo (⌘Z / Ctrl+Z)" aria-label="Undo" className="icon"><IconUndo /></button>
       <button onClick={p.onRedo} disabled={!p.canRedo} title="Redo (⇧⌘Z / Ctrl+Y)" aria-label="Redo" className="icon"><IconRedo /></button>
       <button onClick={p.onFit} title="Fit: zoom out to the whole field" aria-label="Fit field" className="icon"><IconFit /></button>
+      </span>
     </div>
   );
 }

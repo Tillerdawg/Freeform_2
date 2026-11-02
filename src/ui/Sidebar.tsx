@@ -1,4 +1,5 @@
 import { clearStartingSections, hasOwnStartingSections, saveStartingSections } from './startingSections';
+import { coarse } from '../perform/device';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { RosterImport } from './RosterImport';
 import { IconGrip } from './icons';
@@ -14,6 +15,8 @@ export type Tool = 'select' | 'add' | 'text' | 'arrow' | 'draw' | 'turn'; // tur
 export type Snap = 1 | 0.5 | 0;
 
 interface Props {
+  adding: boolean; // taps add to the selection (Add to selection, for touch screens)
+  setAdding: (b: boolean) => void;
   show: Show;
   setShow: (f: (s: Show) => Show) => void;
   t: number;
@@ -117,8 +120,11 @@ export function Sidebar(p: Props) {
       </section>
 
       <section style={box}>
-        <strong>Selection</strong>
-        {selected.size === 0 && <p style={{ opacity: 0.7, margin: '6px 0 0' }}>Click a performer, shift-click to add, or drag a box.</p>}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+          <strong>Selection</strong>
+          <button aria-pressed={p.adding} onClick={() => p.setAdding(!p.adding)} title="While on, tapping or boxing performers adds to the selection (like shift-click)">Add to selection</button>
+        </div>
+        {selected.size === 0 && <p style={{ opacity: 0.7, margin: '6px 0 0' }}>{coarse() ? 'Tap a performer or drag a box around several. Turn on Add to selection to pick more.' : 'Click a performer, shift-click to add, or drag a box.'}</p>}
         {selected.size > 1 && <p style={{ margin: '6px 0 0' }}>{selected.size} performers selected</p>}
         {onSet < 0 && <p style={{ color: 'var(--warn)', margin: '6px 0 0' }}>Mid-move: you can select, but scrub to a set to move or add.</p>}
         {one && (
@@ -319,7 +325,7 @@ function SectionsEditor({ show, setShow, cur }: { show: Show; setShow: (f: (s: S
         const n = count(s.id), dup = dupes.has(s.letter.trim().toUpperCase()), last = show.sections.length - 1;
         return (
           <div key={s.id} ref={(el) => { rowEls.current[i] = el; }} style={{ boxShadow: landing(i), opacity: drag && drag.from === i && drag.to !== i ? 0.5 : 1 }}>
-            <div style={row}>
+            <div style={coarse() ? { ...row, flexWrap: 'wrap' } : row}>{/* touch: 44 px controls; the name wraps rather than shrink */}
               <button aria-label={`Move ${s.name} (drag up or down, or use the arrow keys)`} title="Drag up or down to reorder" className="icon"
                 style={{ cursor: drag ? 'grabbing' : 'grab', touchAction: 'none', padding: '4px 5px' }}
                 onPointerDown={(e) => {
@@ -346,7 +352,7 @@ function SectionsEditor({ show, setShow, cur }: { show: Show; setShow: (f: (s: S
                 style={{ width: 24, height: 24, padding: 0, border: s.color ? '1px solid var(--line-strong)' : '1px dashed var(--muted)', borderRadius: 6, background: 'none', cursor: 'pointer', opacity: s.color ? 1 : 0.6 }} />
               <input aria-label={`Letter for ${s.name}`} value={s.letter} maxLength={3} style={{ width: 36, padding: '4px 2px', textAlign: 'center', borderColor: dup ? 'var(--danger)' : undefined }}
                 onChange={(e) => edit(i, { letter: e.target.value })} />
-              <input aria-label={`Name of section ${s.letter}`} value={s.name} style={{ flex: 1, minWidth: 0 }} onChange={(e) => edit(i, { name: e.target.value })} />
+              <input aria-label={`Name of section ${s.letter}`} value={s.name} style={{ flex: 1, minWidth: coarse() ? 120 : 0 }} onChange={(e) => edit(i, { name: e.target.value })} />
               <span style={{ fontSize: 12, opacity: 0.7, minWidth: 18, textAlign: 'right' }} title={`${n} performer${n === 1 ? '' : 's'}`}>{n}</span>
               <button aria-label={`Renumber section ${s.name}`} title="Renumber this section 1, 2, 3…" className="icon" disabled={n < 1}
                 onClick={() => { setRenumbering(renumbering === s.id ? null : s.id); setDeleting(null); }}>#</button>
