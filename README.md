@@ -138,7 +138,7 @@ Every push to `main` runs the tests and publishes to GitHub Pages ([`.github/wor
 | `src/ui/` | Drill toolbar, sidebar, timeline, and top-bar controls |
 | `src/print/` | Dot sheets and drill charts |
 | `src/perform/` | Performer/staff view and the Share dialog |
-| `public/` | App icons, manifest, offline service worker |
+| `public/` | App icons, logos, link-preview image, manifest, offline service worker |
 
 Positions are stored in **8-to-5 steps**: 1 step = 22.5 in, measured from where the 50 yard line meets the front sideline. +x points toward Side 2 and +y toward the back sideline. Every readout is computed from that.
 

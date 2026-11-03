@@ -12,6 +12,12 @@
     <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Freeform" />
+    <!-- Link previews (iMessage, Slack, email). shortcut: the image URL is the GitHub Pages address; change it if the site moves. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Freeform" />
+    <meta property="og:description" content="Drill, without the bill. Free, open-source drill design for marching bands and drum corps." />
+    <meta property="og:image" content="https://tillerdawg.github.io/Freeform_2/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
     <style>
       :root { --bg: #1d2a1f; --bg-deep: #182419; --surface: #22302a; --surface-2: #2b3b2f; --line: #33443a; --line-strong: #44594a; --muted: #6b8270; --green: #3d6b4a; --green-line: #7cc08b; --text: #e9f0ea; --gold: #ffd166; --warn: #f5c518; --warn-line: #5a4a1a; --danger: #ff8080; --step-red: #ff4d4d; --danger-bg: #5a2b2b; --danger-line: #a04848; --blue: #5ad1ff; --turf: #357842; } /* = src/ui/palette.ts */
       html { touch-action: manipulation; } /* no double-tap page zoom on buttons; the field has its own pinch */
@@ -176,7 +182,8 @@
         d.setAttribute('role', 'alert');
         d.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:1000;padding:32px 24px;overflow:auto;' +
           'background:var(--bg);color:var(--text);font:17px/1.5 system-ui,-apple-system,sans-serif;';
-        d.innerHTML = '<h1 style="font-size:24px;margin:0 0 12px">Freeform needs a newer browser</h1>' +
+        d.innerHTML = '<img src="./logo.svg" alt="" width="240" style="display:block;margin:0 0 20px">' +
+          '<h1 style="font-size:24px;margin:0 0 12px">Freeform needs a newer browser</h1>' +
           '<p style="margin:0 0 12px;max-width:34em">This browser is too old to run Freeform. It needs iPadOS or iOS 16.4 or later ' +
           '(any iPad from 2017 on), or a current version of Chrome, Edge, Firefox or Safari on a computer.</p>' +
           '<p style="margin:0;max-width:34em;opacity:.8">Shows and links you open on a newer device work the same there.</p>';

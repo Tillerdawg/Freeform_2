@@ -927,3 +927,13 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Context:** Mocked up as an app icon, the curve stayed crisp at small sizes where FF's script F turned to a scribble, and on field dark it stood out among other apps' bright icons. Jason also asked about letting users choose their app icon, with FF on field dark as an option.
 - **Options:** Keep FF as the app icon; the curve on turf green; the curve on field dark (normal or fat dots); a user-chosen icon.
 - **Decision:** The app icon is the curve with fat dots on field dark, bigger on iPhone/iPad (Apple never crops to a circle), circle-safe on Android. This replaces the FF home-screen icons from the entry above; the favicon is unchanged. FF moves to brand spots (avatars, shirts, stickers); FF on field dark is saved as `brand/freeform-app-icon-ff.svg`. Offline cache bumped to `freeform-v3`. **Icon picker: not now.** Native apps can swap their icon on request (iOS alternate icons, Android activity aliases), but a home-screen web app can't: iOS keeps the icon from the moment it's added, and Android takes it from the one site manifest and keeps it in sync. A picker could at best choose before adding to the home screen, and changing later would mean deleting the app, which on iOS deletes its saved shows. Revisit with store-wrapped apps (PLAN).
+
+## 2026-11-03 18:40 EST — Logo in the app
+- **Who:** Jason Tiller asked for the logo everywhere customer-facing; the placements below are Claude's calls (Jason can veto).
+- **Context:** The app showed "Freeform" as plain text in the editor's top bar, the phone's start screen and the old-browser page, and pasted links had no preview image.
+- **Options:** Logo or plain text in each spot; full logo, small logo or the curve in the top bar; logos on printouts or not.
+- **Decision:**
+  - **Top bar:** the small logo (24 px tall, 30 on touch screens), or just the curve when the window is 1000 px wide or less, so it never crowds the set controls. The bar's height doesn't change (checked at desktop, narrow and iPad sizes).
+  - **Phone start screen** and **old-browser page:** the full logo.
+  - **Link previews:** `og-image.png` (logo on field dark) and a description with the tagline, for iMessage, Slack and email.
+  - **Printouts: no logo.** Dot sheets and charts belong to the director's show, the way a score belongs to its composer, not the notation program; a logo on every card would also cost ink and space. Easy to revisit as an opt-in "Made with Freeform" line.
