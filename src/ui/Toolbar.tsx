@@ -75,7 +75,10 @@ export function Toolbar(p: ToolbarProps) {
   const pick = onASet ? 'Select performers first' : 'Scrub to a set first';
 
   return (
-    <div className="toolbar" role="toolbar" aria-label="Drill tools">
+    <>
+    {/* Two fixed rows (Jason: one scrolling row hid tools): picking and deleting performers, with Undo at the end; then
+        placing and moving them. */}
+    <div className="toolbar" role="toolbar" aria-label="Performers">
       <div className="seg" role="radiogroup" aria-label="Performer tool">
         <button role="radio" aria-checked={p.tool === 'select'} onClick={() => p.setTool('select')} title="Select and move performers (V)">Select Performer(s)</button>
         <Menu label={p.tool === 'add' ? `Add Performer(s) · ${show.sections.find((s) => s.id === p.section)?.letter ?? '?'}` : 'Add Performer(s)'}
@@ -90,7 +93,19 @@ export function Toolbar(p: ToolbarProps) {
           </>}
         </Menu>
       </div>
-      <label className="tb-field" title="Grid that performers stick to as you drag or add them">Snap to grid
+      <button disabled={!ids.length} className="danger" onClick={() => { if (!confirmDelete(show, ids)) return; setShow((s) => removePerformers(s, selected)); p.setSelected(new Set()); }}
+        title="Delete the selected performers from the whole show">Delete</button>
+
+      {/* Pinned to the right edge: if the row is ever too narrow and scrolls sideways, Undo stays in reach. */}
+      <span className="tb-pinned">
+      <button onClick={p.onUndo} disabled={!p.canUndo} title="Undo (⌘Z / Ctrl+Z)" aria-label="Undo" className="icon"><IconUndo /></button>
+      <button onClick={p.onRedo} disabled={!p.canRedo} title="Redo (⇧⌘Z / Ctrl+Y)" aria-label="Redo" className="icon"><IconRedo /></button>
+      <button onClick={p.onFit} title="Fit: zoom out to the whole field" aria-label="Fit field" className="icon"><IconFit /></button>
+      {p.sidebar && <button onClick={p.sidebar.toggle} aria-pressed={p.sidebar.open} aria-label="Sidebar" title={p.sidebar.open ? 'Hide the sidebar' : 'Show the sidebar (show, set notes, selection, sections, roster)'} className="icon"><IconSidebar /></button>}
+      </span>
+    </div>
+    <div className="toolbar" role="toolbar" aria-label="Placement and movement">
+      <label className="tb-field" title="Snap to grid: the grid performers stick to as you drag or add them">Snap<span className="tb-long"> to grid</span>
         <select value={p.snap} onChange={(e) => p.setSnap(Number(e.target.value) as Snap)}>
           <option value={1}>Whole</option>
           <option value={0.5}>Half</option>
@@ -165,18 +180,16 @@ export function Toolbar(p: ToolbarProps) {
         title={onSet > 0 ? `Put the selected performers back where they were in set ${show.sets[onSet - 1].name} (Undo reverses it)` : onSet === 0 ? 'Set 1 has no set before it' : pick}>
         Reset to set {onSet > 0 ? show.sets[onSet - 1].name : '…'}
       </button>
-      <button disabled={!ids.length} className="danger" onClick={() => { setShow((s) => removePerformers(s, selected)); p.setSelected(new Set()); }}
-        title="Delete the selected performers from the whole show">Delete</button>
-
-      {/* Pinned to the right edge: when the toolbar scrolls sideways (every iPad), Undo stays in reach. */}
-      <span className="tb-pinned">
-      <button onClick={p.onUndo} disabled={!p.canUndo} title="Undo (⌘Z / Ctrl+Z)" aria-label="Undo" className="icon"><IconUndo /></button>
-      <button onClick={p.onRedo} disabled={!p.canRedo} title="Redo (⇧⌘Z / Ctrl+Y)" aria-label="Redo" className="icon"><IconRedo /></button>
-      <button onClick={p.onFit} title="Fit: zoom out to the whole field" aria-label="Fit field" className="icon"><IconFit /></button>
-      {p.sidebar && <button onClick={p.sidebar.toggle} aria-pressed={p.sidebar.open} aria-label="Sidebar" title={p.sidebar.open ? 'Hide the sidebar' : 'Show the sidebar (show, set notes, selection, sections, roster)'} className="icon"><IconSidebar /></button>}
-      </span>
     </div>
+    </>
   );
+}
+
+/** "Are you sure?" before deleting performers (they leave every set). */
+export function confirmDelete(show: Show, ids: string[]): boolean {
+  const one = ids.length === 1 ? show.performers.find((x) => x.id === ids[0]) : undefined;
+  const who = one ? `${label(show, one)}${one.name ? ` (${one.name})` : ''}` : `these ${ids.length} performers`;
+  return confirm(`Are you sure you want to delete ${who}? ${one ? 'This performer is' : 'They are'} removed from every set. (Undo brings ${one ? 'it' : 'them'} back.)`);
 }
 
 /** A toolbar button that opens a small panel below it. Closes on a click elsewhere or Esc (unless `keepOpen`). */

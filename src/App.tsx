@@ -17,7 +17,7 @@ import { startingSections } from './ui/startingSections';
 import { MusicMenu } from './ui/Music';
 import { getAudio } from './ui/audioStore';
 import { peaks } from './engine/music';
-import { Toolbar } from './ui/Toolbar';
+import { confirmDelete, Toolbar } from './ui/Toolbar';
 import { parse3dj } from './engine/pyware';
 import { usePlayback } from './ui/usePlayback';
 import { PrintDialog } from './print/Print';
@@ -303,6 +303,7 @@ export function App() {
       else if ((e.key === 'Delete' || e.key === 'Backspace') && selectedMark && onSet >= 0) {
         setShow((s) => setMarks(s, onSet, (ms) => ms.filter((m) => m.id !== selectedMark))); setSelectedMark(null);
       } else if ((e.key === 'Delete' || e.key === 'Backspace') && selected.size) {
+        if (!confirmDelete(show, [...selected])) return;
         setShow((s) => removePerformers(s, selected)); setSelected(new Set());
       } else if (e.key === 'Escape') { if (tool === 'turn') setTool('select'); else if (shapeEdit) setShapeEdit(null); else { setSelected(new Set()); setSelectedMark(null); } }
       else if (e.key === 'v' || e.key === 'V') setTool('select');

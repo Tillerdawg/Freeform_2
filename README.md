@@ -86,7 +86,7 @@ Every spot reads in standard drill language, e.g. *"2 steps outside the Side 2 4
 
 ## Using it
 
-The editor has the current set's controls across the top, and under them the **drill toolbar**: **Select Performer(s)** and **Add Performer(s) ▾** (pick the section, then click the field to place each performer), then **Snap to grid** (whole, half or free steps for dragging and adding) with **Apply** to round performers already off the grid; **Markup ▾** (text notes, arrows, drawing) on its own; then **Shape ▾**, **Transform ▾** (mirror, rotate and scale), **FTL ▾**, **Labels ▾**, **Reset to set N** (puts the selected performers back where they were in the set before, to start the set over) and Delete for the selection, with Undo, Redo and Fit (icons) at the end, pinned there when the toolbar is too wide for the window and scrolls sideways. The field is in the middle and the timeline across the bottom. The sidebar holds the show (file buttons, title, hashes), the set's ensemble notes, the selected performers' notes and coordinates, and sections. The **sidebar button** (a window with a panel on its right, after Fit) shows or hides it. On a wide window it sits beside the field; on a narrow one (under 900 px: an iPad in portrait, Split View) it starts hidden, and opening it lays it over the field's right side, so the field keeps its size and zoom.
+The editor has the current set's controls across the top, and under them the **drill toolbar** in two rows. The first: **Select Performer(s)** and **Add Performer(s) ▾** (pick the section, then click the field to place each performer), **Delete** for the selection (it asks first), and Undo, Redo, Fit and the sidebar button at the right end. The second, for placing and moving: **Snap to grid** (just "Snap" on a narrow touch screen) (whole, half or free steps for dragging and adding) with **Apply** to round performers already off the grid; **Markup ▾** (text notes, arrows, drawing) on its own; then **Shape ▾**, **Transform ▾** (mirror, rotate and scale), **FTL ▾**, **Labels ▾** and **Reset to set N** (puts the selected performers back where they were in the set before, to start the set over). Both rows fit an iPad held either way; in a narrower window they scroll sideways, with Undo, Redo and Fit pinned at the end. The field is in the middle and the timeline across the bottom. The sidebar holds the show (file buttons, title, hashes), the set's ensemble notes, the selected performers' notes and coordinates, and sections. The **sidebar button** (a window with a panel on its right, after Fit) shows or hides it. On a wide window it sits beside the field; on a narrow one (under 900 px: an iPad in portrait, Split View) it starts hidden, and opening it lays it over the field's right side, so the field keeps its size and zoom.
 
 | Action | How |
 |---|---|
@@ -96,7 +96,7 @@ The editor has the current set's controls across the top, and under them the **d
 | Text note tool | **T** |
 | Play / pause | **Space** |
 | Step one count | **← / →** |
-| Delete selection | **Delete** |
+| Delete selection | **Delete** (asks first; Undo brings them back) |
 | Undo / redo | **⌘Z / ⇧⌘Z** (Ctrl+Z / Ctrl+Y) |
 | Close a toolbar menu | **Esc** (a second Esc clears the selection) |
 
