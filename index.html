@@ -122,6 +122,25 @@
   <body>
     <div id="root"></div>
     <div id="print-root"></div>
+    <!-- Too old to run Freeform (an iPad mini 2 on iOS 12 showed a blank page): say so. Old-style JavaScript on purpose,
+         so the browsers it's for can run it. Pointer events (iOS 13) drive every tap and drag; regex lookbehind arrived with
+         Safari 16.4, the version the app is built for (Vite's default target), so it stands in for "can read the code". -->
+    <script>
+      (function () {
+        var ok = !!window.PointerEvent;
+        try { new RegExp('(?<=a)b'); } catch (e) { ok = false; }
+        if (ok) return;
+        var d = document.createElement('div');
+        d.setAttribute('role', 'alert');
+        d.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:1000;padding:32px 24px;overflow:auto;' +
+          'background:var(--bg);color:var(--text);font:17px/1.5 system-ui,-apple-system,sans-serif;';
+        d.innerHTML = '<h1 style="font-size:24px;margin:0 0 12px">Freeform needs a newer browser</h1>' +
+          '<p style="margin:0 0 12px;max-width:34em">This browser is too old to run Freeform. It needs iPadOS or iOS 16.4 or later ' +
+          '(any iPad from 2017 on), or a current version of Chrome, Edge, Firefox or Safari on a computer.</p>' +
+          '<p style="margin:0;max-width:34em;opacity:.8">Shows and links you open on a newer device work the same there.</p>';
+        document.body.appendChild(d);
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
