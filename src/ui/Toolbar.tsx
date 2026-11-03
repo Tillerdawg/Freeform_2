@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { IconFit, IconRedo, IconSidebar, IconUndo } from './icons';
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { addBezierSegment, addCurvePoint, type Shape, type ShapeKind } from '../engine/shapes';
@@ -183,9 +184,10 @@ export function Menu({ label, title, disabled, keepOpen, pressed, children }: {
   label: string; title: string; disabled?: string; keepOpen?: boolean; pressed?: boolean; children: (close: () => void) => ReactNode;
 }) {
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLDivElement>(null), panel = useRef<HTMLDivElement>(null);
   const shown = !disabled && (open || !!keepOpen);
-  // Placed against the window, so the toolbar's sideways scrolling (narrow windows) can't clip the panel.
+  // Placed against the window and rendered into <body>: inside the toolbar's sideways-scrolling row, iPad Safari clipped
+  // it out of sight while its buttons still caught taps (a tap on the field picked the hidden first section).
   const [at, setAt] = useState<React.CSSProperties | null>(null);
   useLayoutEffect(() => {
     if (!shown) return;
@@ -193,9 +195,11 @@ export function Menu({ label, title, disabled, keepOpen, pressed, children }: {
     // Near the bottom of the window (the timeline), open upward.
     setAt(r.bottom > innerHeight * 0.6 ? { left, bottom: innerHeight - r.top + 6 } : { left, top: r.bottom + 6 });
   }, [shown]);
+  // The panel isn't next to its button in the page any more, so Tab wouldn't reach it: start in its first button.
+  useEffect(() => { if (open && at) panel.current?.querySelector<HTMLButtonElement>('button:not(:disabled)')?.focus({ preventScroll: true }); }, [open, at]); // once placed: hidden buttons can't take focus
   useEffect(() => {
     if (!open) return;
-    const away = (e: PointerEvent) => { if (!ref.current?.contains(e.target as Node)) setOpen(false); };
+    const away = (e: PointerEvent) => { const t = e.target as Node; if (!ref.current?.contains(t) && !panel.current?.contains(t)) setOpen(false); };
     const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.stopPropagation(); setOpen(false); } }; // Esc closes the panel only, not the selection
     document.addEventListener('pointerdown', away);
     document.addEventListener('keydown', esc);
@@ -207,7 +211,7 @@ export function Menu({ label, title, disabled, keepOpen, pressed, children }: {
         title={disabled ? `${title} (${disabled})` : title} onClick={() => setOpen(!open)}>
         {label} <span aria-hidden className="caret">▾</span>
       </button>
-      {shown && <div className="tb-menu-panel" role="menu" aria-label={label} style={at ?? { visibility: 'hidden' }}>{children(() => setOpen(false))}</div>}
+      {shown && createPortal(<div ref={panel} className="tb-menu-panel" role="menu" aria-label={label} style={at ?? { visibility: 'hidden' }}>{children(() => setOpen(false))}</div>, document.body)}
     </div>
   );
 }
