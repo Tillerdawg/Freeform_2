@@ -18,6 +18,9 @@
       /* viewport-fit=cover makes iOS report its status bar, home indicator and notch as safe-area insets (without it they
          read 0 while the page still runs behind the home indicator); everything stays inside them. 0 on computers. */
       #root { box-sizing: border-box; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+      /* With no status bar on top (an iPhone Duo on its side puts the clock at the right), the top bar would sit flush with
+         the edge while the home-bar margin stays below: keep a little room up top on touch screens. */
+      @media (pointer: coarse) { #root { padding-top: max(env(safe-area-inset-top), 12px); } }
       /* Buttons and fields: one calm style everywhere. Heights stay within the fixed rows (top bar 40, toolbar 44, timeline 30). */
       button { font: inherit; font-size: 13px; line-height: 18px; color: var(--text); background: var(--surface-2); border: 1px solid var(--line-strong); border-radius: 6px;
         padding: 3px 10px; cursor: pointer; transition: background .12s, border-color .12s, box-shadow .12s; }
