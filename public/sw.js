@@ -24,7 +24,9 @@ self.addEventListener('fetch', (e) => {
   if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return;
   const save = (res) => { if (res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(req, copy)); } return res; };
   if (req.mode === 'navigate') {
-    e.respondWith(fetch(req).then((res) => { save(res); prune(res.clone()); return res; })
+    // no-cache: ask the server whether the page changed (GitHub Pages lets browsers reuse it for 10 minutes otherwise,
+    // so a new version could take that long to appear).
+    e.respondWith(fetch(new Request(req, { cache: 'no-cache' })).then((res) => { save(res); prune(res.clone()); return res; })
       .catch(() => caches.match(req).then((r) => r || caches.match('./'))));
     return;
   }
