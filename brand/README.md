@@ -20,15 +20,19 @@ Every file comes in a **dark** version (for dark backgrounds) and a **light** ve
 | `freeform-logo-{dark,light}.svg` | Full logo. README, website, dot-book covers, headers: anything header size and up. |
 | `freeform-logo-small-{dark,light}.svg` | Toolbar-size headers. "Free" is 20% bigger and its strokes heavier, so the script survives small sizes. |
 | `freeform-ff-{dark,light}.svg` | FF monogram: square spots, avatars, merch. The gap where the letters cross is see-through. |
-| `freeform-ff-icon.svg` | App icon: the FF monogram on a rounded green tile. |
+| `freeform-ff-icon.svg` | FF on a rounded green tile: stickers, avatars, anywhere a square badge fits. |
 | `freeform-mark-{dark,light}.svg` | The curve alone: favicons and anything 16 px or so, where the script would turn to a scribble. |
-| `freeform-app-icon.svg` | Source of the app's home-screen icons: FF on a full-bleed green square (phones round or circle it), small enough to survive Android's tightest circle crop. |
+| `freeform-app-icon.svg` | **The app icon** (Android/manifest source): the curve with fat dots on field dark, full-bleed (phones round or circle it), small enough to survive Android's tightest circle crop. |
+| `freeform-app-icon-ios.svg` | The same for iPhone/iPad, with a bigger curve: Apple never crops to a circle. |
+| `freeform-app-icon-ff.svg` | Alternate app icon: FF on field dark. Not used by the app yet. |
 | `freeform-favicon.svg` | Source of the browser-tab icon: the curve with fatter dots, dark on light tabs and light on dark tabs. |
 
-**In the app** (`public/`): `favicon.svg` (copied from `freeform-favicon.svg`), `favicon-32.png` for browsers without SVG favicons, and `apple-touch-icon.png`, `icon-192.png` and `icon-512.png` (rendered from `freeform-app-icon.svg`).
+**In the app** (`public/`): `favicon.svg` (copied from `freeform-favicon.svg`), `favicon-32.png` for browsers without SVG favicons, and `apple-touch-icon.png` (from `freeform-app-icon-ios.svg`), `icon-192.png` and `icon-512.png` (from `freeform-app-icon.svg`).
 
 <p>
-  <img src="freeform-ff-icon.svg" alt="FF app icon" width="96">
+  <img src="freeform-app-icon-ios.svg" alt="App icon: the curve on field dark" width="96">
+  &nbsp;
+  <img src="freeform-ff-icon.svg" alt="FF badge" width="96">
   &nbsp;
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="freeform-ff-dark.svg">
@@ -44,7 +48,8 @@ Every file comes in a **dark** version (for dark backgrounds) and a **light** ve
 ## Rules
 
 - Full logo at header size and up; small logo at toolbar size.
-- Below toolbar size, use the curve alone, never the wordmark.
+- Below toolbar size, use the curve alone, never the wordmark. The curve is also the app icon and the favicon.
+- FF is for square brand spots (avatars, shirts, stickers), not the app icon: its script F thins out at icon sizes.
 - Dark files on dark grounds, light files on white.
 - Keep the curve's 13 dots evenly spaced, with the first dot as the accent.
 - Don't redraw the logo in live text; use these files.
@@ -57,7 +62,7 @@ From the app's palette (`src/ui/palette.ts`):
 |---|---|---|
 | Gold | `#ffd166` | "Free" and the first dot, on dark |
 | Off-white | `#e9f0ea` | "FORM" and the dots, on dark |
-| Turf | `#357842` | "Free" and the first dot on white; the app-icon tile |
+| Turf | `#357842` | "Free" and the first dot on white; the FF badge tile |
 | Field | `#1d2a1f` | "FORM" and the dots on white; dark backgrounds |
 
 ## Type

@@ -74,10 +74,10 @@ def mark_only(variant):
     return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="-12 8 264 144" width="264" height="144" role="img" aria-label="Freeform">\n{dots}\n</svg>\n'
 
 
-def monogram(variant, tile=False, square=False):
+def monogram(variant, tile=False, square=False, ground='#357842'):
     """FF: Parisienne F in front, its swash roofing a Barlow F. The script's outline (plus a gap) is cut out of the block F
     with a mask, so the gap is see-through on any background. tile=True puts it on a rounded green app-icon square;
-    square=True on a full-bleed green square for home screens (the phone rounds or circles it)."""
+    square=True on a full-bleed square for home screens (the phone rounds or circles it). ground: the tile color."""
     tile = tile or square
     c = COLORS[variant]; script, block = load(SCRIPT), load(BLOCK)
     d1, adv, b1 = shape(script, 'F', 170, 0, 0)
@@ -102,7 +102,17 @@ def monogram(variant, tile=False, square=False):
     tx, ty = 100 - k * (x0 + x1) / 2, 100 - k * (y0 + y1) / 2
     rx = '' if square else ' rx="44"'
     return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="Freeform">\n'
-            f'<rect width="200" height="200"{rx} fill="#357842"/>\n<g transform="translate({tx:.2f} {ty:.2f}) scale({k:.4f})">\n{art}\n</g>\n</svg>\n')
+            f'<rect width="200" height="200"{rx} fill="{ground}"/>\n<g transform="translate({tx:.2f} {ty:.2f}) scale({k:.4f})">\n{art}\n</g>\n</svg>\n')
+
+
+def app_curve(fill):
+    """Home-screen icon: the curve, fat dots (r 14), on field dark. fill: the curve's share of the icon's width.
+    Android may crop to a circle of radius 40%, so its icons keep the curve's corners inside that (fill=None)."""
+    r, hw, hh = 14, 120 + 14, 60 + 14
+    k = fill * 200 / (2 * hw) if fill else 0.38 * 200 / math.hypot(hw, hh)
+    dots = ''.join(f'<circle cx="{x}" cy="{y}" r="{r + 1 if i == 0 else r}" fill="{"#ffd166" if i == 0 else "#e9f0ea"}"/>' for i, (x, y) in enumerate(DOTS))
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="Freeform">\n'
+            f'<rect width="200" height="200" fill="#1d2a1f"/>\n<g transform="translate(100 100) scale({k:.4f}) translate(-120 -80)">{dots}</g>\n</svg>\n')
 
 
 def favicon():
@@ -117,7 +127,9 @@ def favicon():
 
 os.makedirs(OUT, exist_ok=True)
 open(f'{OUT}/freeform-ff-icon.svg', 'w').write(monogram('dark', tile=True))
-open(f'{OUT}/freeform-app-icon.svg', 'w').write(monogram('dark', square=True))  # source for public/ home-screen PNGs
+open(f'{OUT}/freeform-app-icon.svg', 'w').write(app_curve(None))  # Android/manifest icons (circle-safe)
+open(f'{OUT}/freeform-app-icon-ios.svg', 'w').write(app_curve(0.8))  # iPhone/iPad: never circled, so the curve can be bigger
+open(f'{OUT}/freeform-app-icon-ff.svg', 'w').write(monogram('dark', square=True, ground='#1d2a1f'))  # alternate: FF on field dark (not used by the app yet)
 open(f'{OUT}/freeform-favicon.svg', 'w').write(favicon())  # copied to public/favicon.svg
 for v in COLORS:
     # hero: header size and up. small: toolbar size (~18 px FORM), script 20% bigger and outline heavier, per the finalists board.
