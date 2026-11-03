@@ -889,3 +889,8 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Who:** Claude, from Jason's Device Hub test (the open Duo showed only "paste the share link / scan QR code") *(Jason can veto)*
 - **Context:** two likely causes: what an open Duo reports as its *screen* size is unknown (anything under 600 made it a phone), and Freeform launched on a closed Duo was treated like a performer who chose that view, so opening it didn't bring the editor.
 - **Decision:** a phone is a touch screen whose *window's* short side is under 500 (every iPhone is 440 or less; an open Duo is 585 or more); the screen size is no longer used. A launch into the performer view forced by a phone-sized window is noted like a fold, so opening the Duo (or widening the window) goes to the editor, at once or on the next load. Replaces the 11:15 rule; the rest of that entry stands.
+
+## 2026-11-03 12:20 EST — Editor top margin matches the bottom on touch screens
+- **Who:** Jason Tiller (option C: equal top and bottom margins for visual balance), from the iPhone Duo on its side *(Jason can veto)*
+- **Context:** with the clock at the right, the top bar sat near the top edge while the timeline kept the home-bar margin below. Matching the 84 pt clock column (tried first) didn't take effect in Device Hub and would have cost the field the most height on the shortest screen.
+- **Decision:** in the editor on touch screens, the top margin is the larger of the status bar and the home-bar margin plus 12 px (the timeline's bottom padding), so "Freeform" and the last timeline row sit the same distance from their edges. The performer view is unchanged.

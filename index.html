@@ -21,9 +21,9 @@
       /* With no status bar on top (an iPhone Duo on its side puts the clock at the right), the top bar would sit flush with
          the edge while the home-bar margin stays below: keep a little room up top on touch screens. */
       @media (pointer: coarse) { #root { padding-top: max(env(safe-area-inset-top), 12px); } }
-      /* In the editor, top room matches a status bar or notch at the side (Jason: the Duo's clock column), so the layout
-         sits evenly in the screen; the performer view keeps the height (a phone on its side has a notch there too). */
-      @media (pointer: coarse) { body:not(.performer) #root { padding-top: max(env(safe-area-inset-top), env(safe-area-inset-left), env(safe-area-inset-right), 12px); } }
+      /* In the editor, the top margin matches the bottom one (Jason: visual balance on an iPhone Duo on its side, whose clock
+         sits at the right): the home-bar margin plus the timeline's 12 px padding. The performer view keeps its height. */
+      @media (pointer: coarse) { body:not(.performer) #root { padding-top: max(env(safe-area-inset-top), calc(env(safe-area-inset-bottom) + 12px)); } }
       /* Buttons and fields: one calm style everywhere. Heights stay within the fixed rows (top bar 40, toolbar 44, timeline 30). */
       button { font: inherit; font-size: 13px; line-height: 18px; color: var(--text); background: var(--surface-2); border: 1px solid var(--line-strong); border-radius: 6px;
         padding: 3px 10px; cursor: pointer; transition: background .12s, border-color .12s, box-shadow .12s; }
