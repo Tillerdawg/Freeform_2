@@ -894,3 +894,8 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Who:** Jason Tiller (option C: equal top and bottom margins for visual balance), from the iPhone Duo on its side *(Jason can veto)*
 - **Context:** with the clock at the right, the top bar sat near the top edge while the timeline kept the home-bar margin below. Matching the 84 pt clock column (tried first) didn't take effect in Device Hub and would have cost the field the most height on the shortest screen.
 - **Decision:** in the editor on touch screens, the top margin is the larger of the status bar and the home-bar margin plus 12 px (the timeline's bottom padding), so "Freeform" and the last timeline row sit the same distance from their edges. The performer view is unchanged.
+
+## 2026-11-03 12:45 EST — A slimmer timeline on short touch screens
+- **Who:** Jason Tiller (implement the shorter timeline rows); details by Claude *(Jason can veto)*
+- **Context:** on an open iPhone Duo on its side (585 px tall) the timeline took 221 px and the field about 184.
+- **Decision:** on touch screens 650 px tall or less: one row of set buttons instead of two (buttons of close sets overlap; the current set's stays on top; zooming the timeline spreads them), each move's text on one line in a 40 px track, a 44 px controls row, less padding, and the zoom buttons two across instead of stacked (stacked, they alone held the timeline at full height). Timeline 221 → 155 px; field 184 → 250 px. Every button stays 44 px. Taller screens are unchanged.

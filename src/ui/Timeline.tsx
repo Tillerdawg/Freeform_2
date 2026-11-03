@@ -10,6 +10,9 @@ import { coarse } from '../perform/device';
 
 const TOUCH = coarse();
 const ROW = TOUCH ? 46 : 22; // set-button rows: 44 px buttons on a touch screen
+// Short touch screens (an open iPhone Duo on its side, 585 px tall): one row of set buttons, a one-line move track and a
+// snug controls row, so the field gets about 70 px more. Buttons stay 44 px; close sets' buttons overlap (zoom spreads them).
+const SHORT = '(pointer: coarse) and (max-height: 650px)';
 const HOLD_MS = 400; // touch: hold a set button this long to pick it up; a swipe before then scrolls the timeline
 
 interface Props {
@@ -49,6 +52,8 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
     : `Set ${show.sets[to - 1].name} → ${show.sets[to].name} · count ${Math.floor(count)} of ${show.sets[to].counts}`);
 
   const strip = useRef<HTMLDivElement>(null);
+  const [short, setShort] = useState(() => matchMedia(SHORT).matches);
+  useEffect(() => { const m = matchMedia(SHORT), f = () => setShort(m.matches); m.addEventListener('change', f); return () => m.removeEventListener('change', f); }, []);
   // Set buttons in two fixed rows (the panel never changes height): each starts at its set's line and takes the top
   // row unless it would overlap the button before it there. Widths are measured after drawing (names and bold vary).
   // `pad` keeps room past the timeline's last count, so a button near the end still starts at its line (time order).
@@ -98,7 +103,7 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
     const W = fullW - p, ends = [-Infinity, -Infinity];
     const next = ws.map((w, i) => {
       const x = (starts[i] / total) * W;
-      const r = x >= ends[0] + 2 ? 0 : x >= ends[1] + 2 ? 1 : ends[0] <= ends[1] ? 0 : 1; // three packed together: the emptier row
+      const r = short ? 0 : x >= ends[0] + 2 ? 0 : x >= ends[1] + 2 ? 1 : ends[0] <= ends[1] ? 0 : 1; // three packed together: the emptier row
       ends[r] = x + w;
       return r;
     });
@@ -111,9 +116,9 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
   const setDrag = useRef<{ i: number; x0: number; from: number; perCount: number; moved: boolean; touch?: { left: number; armed: boolean; scrolled: boolean; timer: number } } | null>(null);
   const [held, setHeld] = useState<number | null>(null); // the set button a finger has picked up
   const dropSet = () => { const d = setDrag.current; if (d?.touch) clearTimeout(d.touch.timer); setDrag.current = null; setHeld(null); return d; };
-  const fixedRow: React.CSSProperties = { display: 'flex', gap: 8, alignItems: 'center', height: TOUCH ? 48 : 30, whiteSpace: 'nowrap', overflowX: 'auto', overflowY: 'hidden', scrollbarWidth: 'none' };
+  const fixedRow: React.CSSProperties = { display: 'flex', gap: 8, alignItems: 'center', height: TOUCH ? (short ? 44 : 48) : 30, whiteSpace: 'nowrap', overflowX: 'auto', overflowY: 'hidden', scrollbarWidth: 'none' };
   return (
-    <div style={{ padding: '8px 12px 12px', borderTop: '1px solid var(--line)' }}>
+    <div style={{ padding: `${short ? 4 : 8}px 12px 12px`, borderTop: '1px solid var(--line)' }}>
       {/* Every row has a fixed height: a panel that grows or shrinks would resize (and flash) the field. */}
       <div style={{ ...fixedRow, marginBottom: 4 }}>
         <button aria-label="Back to start" onClick={() => setT(0)}><IconStart /></button>
@@ -156,7 +161,7 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
         onPointerMove={(e) => { if (panFrom.current) e.currentTarget.scrollLeft = panFrom.current.left - (e.clientX - panFrom.current.x); }}
         onPointerUp={() => { panFrom.current = null; }}>
       <div style={{ width: fullW || undefined }}>
-      <div ref={strip} style={{ position: 'relative', height: 2 * ROW, marginRight: pad }}>
+      <div ref={strip} style={{ position: 'relative', height: (short ? 1 : 2) * ROW, marginRight: pad }}>
         {/* Each set's line runs up to its button. Behind the buttons. */}
         {total > 0 && show.sets.map((s, i) => (
           <div key={s.id} style={{ position: 'absolute', left: `calc(${(starts[i] / total) * 100}% - 1px)`, top: (rows[i] ?? 0) * ROW + ROW - 2, bottom: 0, width: 2, background: 'var(--gold)', pointerEvents: 'none' }} />
@@ -195,7 +200,7 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
             }}
             onPointerCancel={dropSet}
             // The button starts at its set's line (its left edge on the line).
-            style={{ position: 'absolute', zIndex: 1, top: (rows[i] ?? 0) * ROW, height: ROW - 2, minHeight: 0, left: total ? `calc(${(starts[i] / total) * 100}% - 1px)` : 0,
+            style={{ position: 'absolute', zIndex: i === onSet ? 2 : 1, top: (rows[i] ?? 0) * ROW, height: ROW - 2, minHeight: 0, left: total ? `calc(${(starts[i] / total) * 100}% - 1px)` : 0,
               fontWeight: i === onSet ? 700 : 400, boxShadow: i === onSet ? 'inset 0 0 0 2px var(--gold)' : undefined, // inside the edge: the scroll strip clips anything outside it
               ...(held === i ? { background: 'var(--gold)', color: 'var(--bg-deep)', transform: 'scale(1.1)', zIndex: 2 } : {}), padding: '0 6px', minWidth: TOUCH ? 44 : 24, lineHeight: '18px',
               cursor: i ? 'ew-resize' : 'pointer', touchAction: 'none' }}>
@@ -204,13 +209,13 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
         ))}
       </div>
       {total === 0 ? (
-        <div style={{ opacity: 0.7, fontSize: 14, height: 56, display: 'flex', alignItems: 'center' }}>Only one set so far. Add a set to create a move, or set the show's length in Movements.</div>
+        <div style={{ opacity: 0.7, fontSize: 14, height: short ? 40 : 56, display: 'flex', alignItems: 'center' }}>Only one set so far. Add a set to create a move, or set the show's length in Movements.</div>
       ) : (
         <div
           role="slider" aria-label="Show timeline in counts" aria-valuemin={0} aria-valuemax={total} aria-valuenow={Math.floor(t)} tabIndex={0}
           onPointerDown={(e) => { if (e.button !== 0) return; e.currentTarget.setPointerCapture(e.pointerId); scrub(e); }}
           onPointerMove={(e) => e.buttons === 1 && scrub(e)}
-          style={{ position: 'relative', height: 56, cursor: 'pointer', userSelect: 'none', marginRight: pad }}
+          style={{ position: 'relative', height: short ? 40 : 56, cursor: 'pointer', userSelect: 'none', marginRight: pad }}
         >
           {/* Each move's box is placed at its counts exactly, like the set buttons above, so its yellow line (the set it starts
               from) sits under that set's button. Padding goes inside: a box narrower than its padding (a 1-count move) would
@@ -221,8 +226,9 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
             return (
               <div key={s.id} style={{ ...box(starts[i - 1], s.counts), background: i === to && onSet < 0 && !past ? 'var(--surface-2)' : 'var(--surface)', boxShadow: i === to && onSet < 0 && !past ? 'inset 0 -3px 0 var(--gold)' : undefined }}>
                 <div style={{ padding: '2px 6px' }}>
-                  <div>{show.sets[i - 1].name} → {s.name} · {s.counts} cts{s.measures ? ` · m. ${s.measures}` : ''}{s.ftl?.length ? ' · FTL' : ''}</div>
-                  {big && <div style={{ color: STEP_TEXT[big.tier] }}>max {fmtStep(big.per5)}</div>}
+                  <div>{show.sets[i - 1].name} → {s.name} · {s.counts} cts{s.measures ? ` · m. ${s.measures}` : ''}{s.ftl?.length ? ' · FTL' : ''}
+                    {big && short && <span style={{ color: STEP_TEXT[big.tier] }}> · max {fmtStep(big.per5)}</span>}</div>
+                  {big && !short && <div style={{ color: STEP_TEXT[big.tier] }}>max {fmtStep(big.per5)}</div>}
                 </div>
               </div>
             );
@@ -238,7 +244,7 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
             const m = show.movements![k], end = (k + 1 < show.movements!.length ? movementStarts(show)[k + 1] : total);
             return (
               <div key={m.id} title={m.name} style={{ position: 'absolute', top: 0, bottom: 0, left: `${(c / total) * 100}%`, width: `${((end - c) / total) * 100}%`, borderLeft: k ? '2px dashed var(--blue)' : undefined, pointerEvents: 'none' }}>
-                <span style={{ position: 'absolute', top: 35, left: 4, maxWidth: 'calc(100% - 8px)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 11, fontWeight: 700, color: 'var(--blue)', background: 'var(--bg-deep)', padding: '0 3px' }}>{m.name}</span>
+                <span style={{ position: 'absolute', top: short ? 22 : 35, left: 4, maxWidth: 'calc(100% - 8px)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 11, fontWeight: 700, color: 'var(--blue)', background: 'var(--bg-deep)', padding: '0 3px' }}>{m.name}</span>
               </div>
             );
           })}
@@ -263,10 +269,11 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
       )}
       </div>
       </div>
-        {total > 0 && <div style={{ display: 'flex', flexDirection: 'column', flex: 'none', gap: 2, justifyContent: 'center' }} role="group" aria-label="Timeline zoom">
+        {total > 0 && <div style={short ? { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, flex: 'none', alignContent: 'center' } // two across: as tall as the slim track
+          : { display: 'flex', flexDirection: 'column', flex: 'none', gap: 2, justifyContent: 'center' }} role="group" aria-label="Timeline zoom">
           <button aria-label="Zoom the timeline out" title="Zoom the timeline out" disabled={!perCount} onClick={() => zoom(1 / 1.5)}><IconZoomOut /></button>
           <button aria-label="Zoom the timeline in" title="Zoom the timeline in (then scroll, or right-drag, to move along)" disabled={(perCount ?? fitPpc) >= 60} onClick={() => zoom(1.5)}><IconZoomIn /></button>
-          <button aria-label="Fit the whole show" title="Fit the whole show in the timeline" disabled={!perCount || fullW <= viewW} onClick={() => setPpc(null)}>Fit</button>
+          <button aria-label="Fit the whole show" title="Fit the whole show in the timeline" disabled={!perCount || fullW <= viewW} onClick={() => setPpc(null)} style={short ? { gridColumn: '1 / -1' } : undefined}>Fit</button>
         </div>}
       </div>
     </div>
