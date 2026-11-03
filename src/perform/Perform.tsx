@@ -118,11 +118,10 @@ export function Perform() {
 
   // Pinch zoom (both views) and drag to look around (whole field). Not saved: switching views resets it.
   const [zoom, setZoom] = useState(1);
-  // Landscape puts the view buttons atop the side column (over the field they covered its yard numbers). Turning the
-  // phone also scrolls the page back to the top: this screen never scrolls, but iOS may have, to show a focused box.
+  // Landscape puts the view buttons atop the side column (over the field they covered its yard numbers).
   const LAND = 'screen and (orientation: landscape)';
   const [land, setLand] = useState(() => matchMedia(LAND).matches);
-  useEffect(() => { const m = matchMedia(LAND), f = () => { setLand(m.matches); window.scrollTo(0, 0); }; m.addEventListener('change', f); return () => m.removeEventListener('change', f); }, []);
+  useEffect(() => { const m = matchMedia(LAND), f = () => setLand(m.matches); m.addEventListener('change', f); return () => m.removeEventListener('change', f); }, []);
   const zoomRef = useRef(zoom);
   zoomRef.current = zoom;
   const maxRef = useRef(ZOOM_MAX);

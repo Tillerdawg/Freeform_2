@@ -67,6 +67,9 @@
         white-space: normal; font-size: 13px; z-index: 20; max-height: 70vh; overflow-y: auto; }
       .tb-menu-panel > button { text-align: left; }
       @media screen { #print-root { display: none; } }
+      /* The page itself never scrolls (panels scroll inside themselves): pinned, so iOS can't leave it scrolled after
+         rotating or after lifting a text box above the keyboard, which pushed the phone view up under the status bar. */
+      @media screen { html { overflow: hidden; } body { position: fixed; inset: 0; overflow: hidden; } }
       /* Performer view: portrait-first phone layout; side by side in landscape. */
       .perform { display: flex; flex-direction: column; height: 100%; }
       /* Phone header: the show's title on its own line (full contrast, up to two lines), then the big "who are you" button. */
