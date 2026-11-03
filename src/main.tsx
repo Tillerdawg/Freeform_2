@@ -40,30 +40,30 @@ class Crash extends Component<{ children: ReactNode }, { error?: Error }> {
 
 // Share links (#show=...), hosted links (#load=...) and the saved performer view (#perform) open the read-only performer screen.
 const isPerform = () => ['#show=', '#load=', '#perform'].some((p) => location.hash.startsWith(p));
+// A phone-sized window gets the performer view. When it's the size that put us there (a closed iPhone Duo, at launch
+// or by folding mid-session, or a narrow iPad Split View pane), a note in sessionStorage says so, and widening (opening
+// the Duo) goes back to the editor; a performer who came by link or chose the performer view stays put. The show is
+// autosaved on every change; the undo history doesn't survive the reload.
+const FOLDED = 'freeform:folded-from-editor';
+const note = (on: boolean) => { try { if (on) sessionStorage.setItem(FOLDED, '1'); else sessionStorage.removeItem(FOLDED); } catch { /* storage blocked */ } };
+const noted = () => { try { return !!sessionStorage.getItem(FOLDED); } catch { return false; } };
+if (isPhone() && !isPerform()) note(true);
+if (!isPhone() && isPerform() && location.hash === '#perform' && noted()) history.replaceState(null, '', location.pathname); // opened since
 const perform = isPhone() || isPerform();
 if (perform && !isPerform()) history.replaceState(null, '', location.pathname + '#perform');
+if (!perform) note(false);
 document.body.classList.toggle('performer', perform);
 window.addEventListener('hashchange', () => {
   if (isPerform() !== perform && !isPhone()) location.reload();
   else if (location.hash.startsWith('#show=') || location.hash.startsWith('#load=')) location.reload(); // a new link opened in the same tab
 });
-// Folding an iPhone Duo (or narrowing an iPad's Split View pane) mid-session: closed, it's a phone, so the editor gives
-// way to the performer view; opened again, it goes back to the editor, if the fold is what left it (the show is
-// autosaved on every change; the undo history doesn't survive the reload). A performer who came by link stays put.
-const FOLDED = 'freeform:folded-from-editor';
-if (!perform) try { sessionStorage.removeItem(FOLDED); } catch { /* fine */ } // only a fold-opened performer view carries it
 let resizing = 0;
 window.addEventListener('resize', () => {
   clearTimeout(resizing);
   resizing = window.setTimeout(() => { // after the fold or rotation settles
     const phone = isPhone();
-    if (phone && !perform) {
-      try { sessionStorage.setItem(FOLDED, '1'); } catch { /* still switch */ }
-      history.replaceState(null, '', location.pathname + '#perform'); location.reload();
-    } else if (!phone && perform && (() => { try { return sessionStorage.getItem(FOLDED); } catch { return null; } })()) {
-      try { sessionStorage.removeItem(FOLDED); } catch { /* fine */ }
-      history.replaceState(null, '', location.pathname); location.reload();
-    }
+    if (phone && !perform) { note(true); history.replaceState(null, '', location.pathname + '#perform'); location.reload(); }
+    else if (!phone && perform && noted()) { note(false); history.replaceState(null, '', location.pathname); location.reload(); }
   }, 400);
 });
 createRoot(document.getElementById('root')!).render(<Crash>{perform ? <Perform /> : <App />}</Crash>);
