@@ -1,6 +1,6 @@
 """Builds the Freeform logo SVGs: the dot curve + "Free" (Parisienne, tuned) + "FORM" (Barlow Semi Condensed Bold),
 with the letters converted to paths so the files need no fonts. Usage: python3 build_logo.py <font dir> <out dir>"""
-import io, os, sys
+import io, math, os, sys
 import uharfbuzz as hb
 from fontTools.ttLib import TTFont
 from fontTools.pens.svgPathPen import SVGPathPen
@@ -74,9 +74,11 @@ def mark_only(variant):
     return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="-12 8 264 144" width="264" height="144" role="img" aria-label="Freeform">\n{dots}\n</svg>\n'
 
 
-def monogram(variant, tile=False):
+def monogram(variant, tile=False, square=False):
     """FF: Parisienne F in front, its swash roofing a Barlow F. The script's outline (plus a gap) is cut out of the block F
-    with a mask, so the gap is see-through on any background. tile=True puts it on a rounded green app-icon square."""
+    with a mask, so the gap is see-through on any background. tile=True puts it on a rounded green app-icon square;
+    square=True on a full-bleed green square for home screens (the phone rounds or circles it)."""
+    tile = tile or square
     c = COLORS[variant]; script, block = load(SCRIPT), load(BLOCK)
     d1, adv, b1 = shape(script, 'F', 170, 0, 0)
     d2, _, b2 = shape(block, 'F', 136, adv - 22, 0)
@@ -93,14 +95,30 @@ def monogram(variant, tile=False):
         w, h = x1 - x0, y1 - y0
         return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="{x0:.1f} {y0:.1f} {w:.1f} {h:.1f}" width="{w:.0f}" height="{h:.0f}" '
                 f'role="img" aria-label="Freeform">\n{art}\n</svg>\n')
-    k = 0.74 * 200 / max(x1 - x0, y1 - y0)  # letters fill 74% of the tile, centered on their actual outlines
+    if square:  # Android masks home-screen icons to as small as a circle of radius 40%: keep the letters' corners inside it
+        k = 0.38 * 200 / math.hypot((x1 - x0) / 2, (y1 - y0) / 2)
+    else:
+        k = 0.74 * 200 / max(x1 - x0, y1 - y0)  # letters fill 74% of the tile, centered on their actual outlines
     tx, ty = 100 - k * (x0 + x1) / 2, 100 - k * (y0 + y1) / 2
+    rx = '' if square else ' rx="44"'
     return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="Freeform">\n'
-            f'<rect width="200" height="200" rx="44" fill="#357842"/>\n<g transform="translate({tx:.2f} {ty:.2f}) scale({k:.4f})">\n{art}\n</g>\n</svg>\n')
+            f'<rect width="200" height="200"{rx} fill="#357842"/>\n<g transform="translate({tx:.2f} {ty:.2f}) scale({k:.4f})">\n{art}\n</g>\n</svg>\n')
+
+
+def favicon():
+    """The curve for browser tabs: dark dots on light tabs, light dots on dark tabs (browsers that read SVG favicons
+    honor prefers-color-scheme inside them)."""
+    # fatter dots than the logo's (r 14 vs 10; neighbors are 31 apart, so they still don't touch): tabs are 16 px
+    dots = '\n'.join(f'<circle class="{"a" if i == 0 else "d"}" cx="{x}" cy="{y}" r="14"/>' for i, (x, y) in enumerate(DOTS))
+    return ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="-16 -56 272 272" width="32" height="32">\n'
+            '<style>.d{fill:#1d2a1f}.a{fill:#357842}@media (prefers-color-scheme:dark){.d{fill:#e9f0ea}.a{fill:#ffd166}}</style>\n'
+            f'{dots}\n</svg>\n')
 
 
 os.makedirs(OUT, exist_ok=True)
 open(f'{OUT}/freeform-ff-icon.svg', 'w').write(monogram('dark', tile=True))
+open(f'{OUT}/freeform-app-icon.svg', 'w').write(monogram('dark', square=True))  # source for public/ home-screen PNGs
+open(f'{OUT}/freeform-favicon.svg', 'w').write(favicon())  # copied to public/favicon.svg
 for v in COLORS:
     # hero: header size and up. small: toolbar size (~18 px FORM), script 20% bigger and outline heavier, per the finalists board.
     open(f'{OUT}/freeform-logo-{v}.svg', 'w').write(lockup(v, boost=1.0, stroke=0.6))

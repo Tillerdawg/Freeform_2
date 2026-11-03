@@ -46,4 +46,4 @@
 - Optional cloud sync; store-wrapped mobile apps.
 
 - ✅ Roster: a name per dot (Selection and a Roster list in the sidebar), filled in from Pyware imports; in encrypted hosted links, not in plain share links. ✅ Names on printed dot sheets; ✅ import a list (Excel paste / CSV) to name or create dots. ✅ The phone's "who are you" list in last-name order within each section. Follow-up: read .xlsx directly.
-- ✅ Logo and brand: the Freeform curve, the "Free FORM" wordmark (Parisienne + Barlow Semi Condensed), an FF monogram and app icon, tagline "Drill, without the bill." Files and rules in `brand/`. Follow-up: use them in the app (favicon, home-screen icon, a header logo).
+- ✅ Logo and brand: the Freeform curve, the "Free FORM" wordmark (Parisienne + Barlow Semi Condensed), an FF monogram and app icon, tagline "Drill, without the bill." Files and rules in `brand/`. ✅ In the app: browser-tab favicon (the curve) and home-screen icons (FF). Follow-up: a logo in the app's own header or start screen.

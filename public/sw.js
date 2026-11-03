@@ -1,6 +1,7 @@
 // Offline support: serve from cache, refresh the cache in the background.
 // The page itself (navigation) prefers the network so a new version shows up as soon as you're online.
-const CACHE = 'freeform-v1';
+// Bump when a file without a hash in its name changes (icons, manifest): cached copies are otherwise kept forever.
+const CACHE = 'freeform-v2'; // v2: new logo icons
 
 self.addEventListener('install', (e) => {
   // Cache the page plus every file it links (the built JS has a hashed name we can't list ahead of time),

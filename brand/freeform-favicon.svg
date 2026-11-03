@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-16 -56 272 272" width="32" height="32">
+<style>.d{fill:#1d2a1f}.a{fill:#357842}@media (prefers-color-scheme:dark){.d{fill:#e9f0ea}.a{fill:#ffd166}}</style>
+<circle class="a" cx="0" cy="80" r="14"/>
+<circle class="d" cx="8" cy="50" r="14"/>
+<circle class="d" cx="30" cy="28" r="14"/>
+<circle class="d" cx="60" cy="20" r="14"/>
+<circle class="d" cx="90" cy="28" r="14"/>
+<circle class="d" cx="112" cy="50" r="14"/>
+<circle class="d" cx="120" cy="80" r="14"/>
+<circle class="d" cx="128" cy="110" r="14"/>
+<circle class="d" cx="150" cy="132" r="14"/>
+<circle class="d" cx="180" cy="140" r="14"/>
+<circle class="d" cx="210" cy="132" r="14"/>
+<circle class="d" cx="232" cy="110" r="14"/>
+<circle class="d" cx="240" cy="80" r="14"/>
+</svg>

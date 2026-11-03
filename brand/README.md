@@ -22,6 +22,10 @@ Every file comes in a **dark** version (for dark backgrounds) and a **light** ve
 | `freeform-ff-{dark,light}.svg` | FF monogram: square spots, avatars, merch. The gap where the letters cross is see-through. |
 | `freeform-ff-icon.svg` | App icon: the FF monogram on a rounded green tile. |
 | `freeform-mark-{dark,light}.svg` | The curve alone: favicons and anything 16 px or so, where the script would turn to a scribble. |
+| `freeform-app-icon.svg` | Source of the app's home-screen icons: FF on a full-bleed green square (phones round or circle it), small enough to survive Android's tightest circle crop. |
+| `freeform-favicon.svg` | Source of the browser-tab icon: the curve with fatter dots, dark on light tabs and light on dark tabs. |
+
+**In the app** (`public/`): `favicon.svg` (copied from `freeform-favicon.svg`), `favicon-32.png` for browsers without SVG favicons, and `apple-touch-icon.png`, `icon-192.png` and `icon-512.png` (rendered from `freeform-app-icon.svg`).
 
 <p>
   <img src="freeform-ff-icon.svg" alt="FF app icon" width="96">
@@ -74,5 +78,14 @@ npm i --no-save @fontsource/parisienne @fontsource/barlow-semi-condensed
 pip install fonttools brotli uharfbuzz
 python3 brand/build_logo.py node_modules/@fontsource brand
 ```
+
+Then, to refresh the app's icons in `public/` (needs Playwright's Chromium):
+
+```sh
+npm i --no-save playwright && npx playwright install chromium
+node brand/render_icons.cjs
+```
+
+After changing any icon, bump `CACHE` in `public/sw.js`: the offline helper keeps files without a hash in their name forever, so phones would otherwise keep the old icon.
 
 Why the logo looks the way it does, and what else was considered, is in [DECISIONS.md](../DECISIONS.md) (2026-11-03).

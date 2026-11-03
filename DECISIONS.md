@@ -911,3 +911,13 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Context:** A square mark was needed for app icons, avatars and merch. Dot-shaped F marks were tried, but next to the wordmark they repeat the F; an FF monogram compresses the wordmark itself.
 - **Options:** Dot F (block, script, lowercase); FF side by side; FF interlocked; FF interlocked on an app-icon tile.
 - **Decision:** Keep FF interlocked (Parisienne F in front, its swash roofing a Barlow Semi Condensed Bold F, with a see-through gap where they cross) and the same on a rounded green tile as the app icon. Family: full logo for headers, covers and the README; FF for square spots; the curve alone at favicon size, where the script F turns to a scribble. Files: `brand/freeform-ff-{dark,light,icon}.svg`.
+
+## 2026-11-03 17:15 EST — Favicon and home-screen icons
+- **Who:** Jason Tiller asked for them; the details below are Claude's calls (Jason can veto).
+- **Context:** The app still used the placeholder icon (a small field with dots). The brand rules say: FF for square spots and the app icon, the curve alone at 16 px.
+- **Options:** The rounded FF tile as is; a full-bleed square; the curve for home screens too.
+- **Decision:**
+  - **Home screens** (`apple-touch-icon.png`, `icon-192.png`, `icon-512.png`): FF on a *full-bleed* green square, because iOS and Android cut their own shapes and a pre-rounded tile would get a second, mismatched rounding. The letters are sized to stay inside Android's smallest mask (a circle 80% of the icon), so `icon-512` stays marked "maskable".
+  - **Browser tab** (`favicon.svg`): the curve, with fatter dots than the logo's (they were faint at 16 px), dark dots on light tabs and light dots on dark tabs via `prefers-color-scheme`. `favicon-32.png` (FF) is the fallback for browsers without SVG favicons.
+  - **Offline cache bumped to `freeform-v2`:** the offline helper serves files without a hash in their name from its cache forever, so phones would otherwise keep the old icons. Checked: a browser with v1 cached switches to the new icon after one visit. Icons already on a home screen may not change until the app is removed and added again; that's up to the phone.
+  - Sources and the render script live in `brand/` (`freeform-app-icon.svg`, `freeform-favicon.svg`, `render_icons.cjs`).
