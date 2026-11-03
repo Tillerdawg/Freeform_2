@@ -66,8 +66,22 @@
       @media screen { #print-root { display: none; } }
       /* Performer view: portrait-first phone layout; side by side in landscape. */
       .perform { display: flex; flex-direction: column; height: 100%; }
-      .perform-bar { display: flex; gap: 8px; align-items: center; padding: 8px 12px; flex-shrink: 0; }
-      .perform-title { margin-left: auto; opacity: 0.75; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      /* Phone header: the show's title on its own line (full contrast, up to two lines), then the big "who are you" button. */
+      .perform-bar { display: flex; flex-direction: column; gap: 6px; padding: 8px 12px; flex-shrink: 0; }
+      .perform-titlebar { display: flex; align-items: center; gap: 8px; }
+      .perform-title { flex: 1; min-width: 0; font-size: 15px; font-weight: 600; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
+      .who-button { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-height: 44px; font-size: 17px; text-align: left; }
+      .who-current { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      /* The "who are you" sheet: whole screen on a phone, a centered panel on anything wider. */
+      .who-sheet { position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column; padding: 8px 12px 0; background: var(--bg); }
+      @media (min-width: 600px) { .who-sheet { inset: 5vh auto auto 50%; transform: translateX(-50%); width: min(440px, 92vw); height: 90vh; box-sizing: border-box;
+        border: 1px solid var(--line-strong); border-radius: 12px; box-shadow: 0 12px 40px rgba(0,0,0,0.5); } }
+      .who-head { display: flex; align-items: center; justify-content: space-between; min-height: 44px; font-size: 17px; }
+      .who-sheet input[type=search] { width: 100%; box-sizing: border-box; min-height: 44px; margin: 6px 0 8px; font-size: 17px; }
+      .who-list { flex: 1; min-height: 0; overflow-y: auto; padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
+      .who-list h3 { margin: 14px 0 6px; font-size: 14px; }
+      .who-list button { display: block; width: 100%; min-height: 44px; margin: 0 0 6px; font-size: 17px; text-align: left; }
+      .who-list p { font-size: 16px; }
       .perform-field { position: relative; flex: 1; min-height: 0; }
       .perform-toggles { position: absolute; top: 8px; right: 8px; display: flex; gap: 6px; }
       .perform-toggles button { font-size: 14px; padding: 6px 10px; }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applyRoster, byLastName, lastFirst, parseTable, planRoster, sectionFor } from './roster';
+import { applyRoster, byLastName, lastFirst, matchesSearch, parseTable, planRoster, sectionFor } from './roster';
 import { addPerformer, label, newShow, setNames } from './show';
 
 // Default sections: F Flute, K Clarinet, A Alto Saxophone, X Tenor Saxophone, P Trumpet, H Mellophone, N Trombone, ...
@@ -94,5 +94,18 @@ describe('last-name order', () => {
   it('knows tenor sax abbreviations', () => {
     const { s } = band();
     expect(sectionFor(s, 'TS').id).toBe(s.sections.find((x) => x.name === 'Tenor Saxophone')!.id);
+  });
+});
+
+describe('who-are-you search', () => {
+  it('matches the start of any word of name, label or section, in any order', () => {
+    const pat = ['Pat Smith', 'P4', 'Trumpet'];
+    for (const q of ['', 'pat', 'sm', 'smith pat', 'Pat Sm', 'p4', 'trump', '  SMITH  ']) expect(matchesSearch(q, ...pat)).toBe(true);
+    for (const q of ['mith', 'p5', 'pat jones', 'tuba']) expect(matchesSearch(q, ...pat)).toBe(false);
+  });
+  it('ignores accents and punctuation', () => {
+    expect(matchesSearch('jose', 'José Núñez', 'A2', 'Alto Saxophone')).toBe(true);
+    expect(matchesSearch('nunez', 'Núñez, José', 'A2', 'Alto Saxophone')).toBe(true);
+    expect(matchesSearch("o'b", "Lee O'Brien", 'T1', 'Tuba')).toBe(true); // "o" and "b" each start a word
   });
 });

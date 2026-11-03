@@ -213,3 +213,13 @@ export function lastFirst(name: string): string {
 }
 /** Last name, then first; ignoring case and accents. */
 export const byLastName = (a: string, b: string) => lastFirst(a).localeCompare(lastFirst(b), undefined, { sensitivity: 'base', numeric: true });
+
+const fold = (s: string) => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+/**
+ * The "who are you" search: every word typed must start a word of the performer's name, dot label or section
+ * ("pat sm", "smith", "p4", "trump"), ignoring case and accents. An empty search matches everyone.
+ */
+export function matchesSearch(query: string, ...fields: string[]): boolean {
+  const words = fold(fields.join(' ')).split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+  return fold(query).split(/[^\p{L}\p{N}]+/u).filter(Boolean).every((q) => words.some((w) => w.startsWith(q)));
+}

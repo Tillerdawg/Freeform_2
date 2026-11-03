@@ -14,7 +14,7 @@ import { deleteAudio, getAudio, putAudio } from '../ui/audioStore';
 import { IconNext, IconPause, IconPlay, IconPrev } from '../ui/icons';
 import { describe, nearest, yardLabel } from './neighbors';
 import { panCenter, pinchZoom, ZOOM_MAX } from './gestures';
-import { byLastName, lastFirst } from '../engine/roster';
+import { WhoPicker } from './WhoPicker';
 
 const STORE = 'freeform:performer'; // separate from the editor's autosave, so opening a link never touches a director's work
 const STAFF = 'staff';
@@ -293,19 +293,12 @@ export function Perform() {
   return (
     <div className="perform">
       <header className="perform-bar">
-        <select aria-label="Who are you?" value={state!.me ?? ''} onChange={(e) => { update({ me: e.target.value || null }); setZoom(1); setCenter({ x: 0, y: 42 }); }} style={{ fontSize: 16, maxWidth: '55%' }}>
-          <option value="">Who are you?</option>
-          <option value={STAFF}>Staff (whole band)</option>
-          {show.sections.map((sec) => {
-            // Named dots by last name, then unnamed ones by number.
-            const ps = show.performers.filter((p) => p.section === sec.id)
-              .sort((a, b) => (a.name ? (b.name ? byLastName(a.name, b.name) : -1) : b.name ? 1 : a.number - b.number));
-            return ps.length ? <optgroup key={sec.id} label={sec.name}>{ps.map((p) => <option key={p.id} value={p.id}>{p.name ? `${lastFirst(p.name)} · ${label(show, p)}` : label(show, p)}</option>)}</optgroup> : null;
-          })}
-        </select>
-        <span className="perform-title">{error ? <span role="alert" title={error} style={{ color: 'var(--danger)' }}>{error} Showing your saved copy. </span>
-          : notice ? <span role="status" style={{ color: 'var(--green-line)' }}>{notice} </span> : null}{show.title}</span>
-        {!isPhone() && <button onClick={toEditor} title="Back to the drill editor" style={{ fontSize: 14 }}>← Editor</button>}
+        <div className="perform-titlebar">
+          <span className="perform-title">{error ? <span role="alert" title={error} style={{ color: 'var(--danger)' }}>{error} Showing your saved copy. </span>
+            : notice ? <span role="status" style={{ color: 'var(--green-line)' }}>{notice} </span> : null}{show.title}</span>
+          {!isPhone() && <button onClick={toEditor} title="Back to the drill editor" style={{ fontSize: 14 }}>← Editor</button>}
+        </div>
+        <WhoPicker show={show} value={state!.me} staff={STAFF} onPick={(v) => { update({ me: v }); setZoom(1); setCenter({ x: 0, y: 42 }); }} />
       </header>
       <div className="perform-field">
         <canvas ref={canvasRef} aria-label="Field" style={{ width: '100%', height: '100%', display: 'block', touchAction: 'none' }}
