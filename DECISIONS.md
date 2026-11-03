@@ -899,3 +899,15 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Who:** Jason Tiller (implement the shorter timeline rows); details by Claude *(Jason can veto)*
 - **Context:** on an open iPhone Duo on its side (585 px tall) the timeline took 221 px and the field about 184.
 - **Decision:** on touch screens 650 px tall or less: one row of set buttons instead of two (buttons of close sets overlap; the current set's stays on top; zooming the timeline spreads them), each move's text on one line in a 40 px track, a 44 px controls row, less padding, and the zoom buttons two across instead of stacked (stacked, they alone held the timeline at full height). Timeline 221 → 155 px; field 184 → 250 px. Every button stays 44 px. Taller screens are unchanged.
+
+## 2026-11-03 16:30 EST — Logo and tagline
+- **Who:** Jason Tiller (concepts and font tests from Claude)
+- **Context:** Freeform needed a mark and wordmark that say "free" and "marching." Seven logo concepts were mocked up, then wordmark type was narrowed over several rounds, tested on dark, on white paper and at small sizes.
+- **Options:** Mark: Freeform curve, zero dot, dot path, F in formation, open-field brackets, coordinate-sheet hero, flag silk. "Free": Parisienne, Great Vibes, Rouge Script, Norican, Amita Bold, plus ten others. "FORM": Graduate or Barlow.
+- **Decision:** Tagline "Drill, without the bill." Mark: the Freeform curve (13 evenly spaced dots in an S, first dot gold, echoing the even-steps rule). Wordmark: "Free" in Parisienne, gold, with a thin outline to strengthen its hairlines; "FORM" in Barlow Semi Condensed Bold, all caps. A "small" version (script 20% larger, heavier outline) is for toolbar size; below that, use the curve alone. Amita Bold was the runner-up for readability. Files are in `brand/` with letters converted to outlines, so no fonts ship (both fonts are SIL OFL). `brand/build_logo.py` regenerates them.
+
+## 2026-11-03 16:55 EST — FF monogram joins the logo family
+- **Who:** Jason Tiller (designs from Claude)
+- **Context:** A square mark was needed for app icons, avatars and merch. Dot-shaped F marks were tried, but next to the wordmark they repeat the F; an FF monogram compresses the wordmark itself.
+- **Options:** Dot F (block, script, lowercase); FF side by side; FF interlocked; FF interlocked on an app-icon tile.
+- **Decision:** Keep FF interlocked (Parisienne F in front, its swash roofing a Barlow Semi Condensed Bold F, with a see-through gap where they cross) and the same on a rounded green tile as the app icon. Family: full logo for headers, covers and the README; FF for square spots; the curve alone at favicon size, where the script F turns to a scribble. Files: `brand/freeform-ff-{dark,light,icon}.svg`.

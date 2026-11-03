@@ -1,4 +1,11 @@
-# Freeform
+<h1 align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="brand/freeform-logo-dark.svg">
+    <img src="brand/freeform-logo-light.svg" alt="Freeform" width="420">
+  </picture>
+</h1>
+
+<p align="center"><em>Drill, without the bill.</em></p>
 
 **Free, open-source drill design for marching bands and drum corps.**
 
@@ -134,6 +141,10 @@ Every push to `main` runs the tests and publishes to GitHub Pages ([`.github/wor
 | `public/` | App icons, manifest, offline service worker |
 
 Positions are stored in **8-to-5 steps**: 1 step = 22.5 in, measured from where the 50 yard line meets the front sideline. +x points toward Side 2 and +y toward the back sideline. Every readout is computed from that.
+
+## Logo
+
+The logo, monogram, app icon, colors and the rules for using them are in [brand/](brand/README.md). The files are SVG with outlined letters, ready to use.
 
 ## How decisions are made
 
