@@ -79,7 +79,7 @@ export function Toolbar(p: ToolbarProps) {
     {/* Two fixed rows (Jason: one scrolling row hid tools): picking and deleting performers, with Undo at the end; then
         placing and moving them. */}
     <div className="toolbar" role="toolbar" aria-label="Performers">
-      <div className="seg" role="radiogroup" aria-label="Performer tool">
+      <div role="radiogroup" aria-label="Performer tool" style={{ display: 'inline-flex', gap: 4 }}>{/* separate buttons, like Delete (Jason) */}
         <button role="radio" aria-checked={p.tool === 'select'} onClick={() => p.setTool('select')} title="Select and move performers (V)">Select Performer(s)</button>
         <Menu label={p.tool === 'add' ? `Add Performer(s) · ${show.sections.find((s) => s.id === p.section)?.letter ?? '?'}` : 'Add Performer(s)'}
           pressed={p.tool === 'add'} title="Pick a section, then click the field to place its performers (A)">
