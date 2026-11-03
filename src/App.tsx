@@ -529,7 +529,7 @@ export function App() {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Fixed height, no wrapping: nothing up here may resize the field (a canvas resize clears it, which flashes). */}
       {/* Equal-flex sides center the set controls when there's room; when there isn't, the hint gives up space first. */}
-      <div style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '0 16px', height: coarse() ? 56 : 40, flexShrink: 0, whiteSpace: 'nowrap', overflowX: 'auto', overflowY: 'hidden', scrollbarWidth: 'none' }}>
+      <div style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '0 12px', height: coarse() ? 56 : 40, flexShrink: 0, whiteSpace: 'nowrap', overflowX: 'auto', overflowY: 'hidden', scrollbarWidth: 'none' }}>
         <strong className="tb-long-sm" style={{ flex: '1 1 0' }}>Freeform</strong>
         <div style={{ flex: 'none' }}><SetControls show={show} setShow={setShow} t={t} setT={(x) => { setPlaying(false); setT(x); }} /></div>
         <span style={{ flex: '1 1 0', fontSize: 12, opacity: tool === 'turn' ? 1 : 0.7, color: tool === 'turn' ? 'var(--gold)' : undefined, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'right' }}>{tool === 'turn' ? (coarse() ? "Tap the field for each of the leader's turns, in marching order · then tap Select Performer(s)" : "Click the field for each of the leader's turns, in marching order · Esc when done")

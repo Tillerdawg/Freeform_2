@@ -113,7 +113,7 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
   const dropSet = () => { const d = setDrag.current; if (d?.touch) clearTimeout(d.touch.timer); setDrag.current = null; setHeld(null); return d; };
   const fixedRow: React.CSSProperties = { display: 'flex', gap: 8, alignItems: 'center', height: TOUCH ? 48 : 30, whiteSpace: 'nowrap', overflowX: 'auto', overflowY: 'hidden', scrollbarWidth: 'none' };
   return (
-    <div style={{ padding: '8px 16px 12px', borderTop: '1px solid var(--line)' }}>
+    <div style={{ padding: '8px 12px 12px', borderTop: '1px solid var(--line)' }}>
       {/* Every row has a fixed height: a panel that grows or shrinks would resize (and flash) the field. */}
       <div style={{ ...fixedRow, marginBottom: 4 }}>
         <button aria-label="Back to start" onClick={() => setT(0)}><IconStart /></button>
