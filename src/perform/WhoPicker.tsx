@@ -21,7 +21,7 @@ export function WhoPicker({ show, value, staff, onPick }: { show: Show; value: s
   })).filter((g) => g.ps.length);
   const staffShown = matchesSearch(q, STAFF_NAME, 'director');
   const first = groups[0]?.ps[0]?.id ?? (staffShown ? staff : undefined); // Return picks the first match
-  const close = () => { setOpen(false); setQ(''); };
+  const close = () => { setOpen(false); setQ(''); window.scrollTo(0, 0); }; // iOS scrolled the page to show the search box above the keyboard
   const pick = (v: string) => { onPick(v); close(); };
 
   return (
