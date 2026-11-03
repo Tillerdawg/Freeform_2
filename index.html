@@ -78,7 +78,7 @@
       .who-current { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       /* The "who are you" sheet: whole screen on a phone, a centered panel on anything wider. */
       .who-sheet { position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column; padding: calc(8px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) 0 calc(12px + env(safe-area-inset-left)); background: var(--bg); }
-      @media (min-width: 600px) { .who-sheet { inset: 5vh auto auto 50%; transform: translateX(-50%); width: min(440px, 92vw); height: 90vh; box-sizing: border-box;
+      @media (min-width: 600px) and (min-height: 600px) { .who-sheet { inset: 5vh auto auto 50%; transform: translateX(-50%); width: min(440px, 92vw); height: 90vh; box-sizing: border-box;
         border: 1px solid var(--line-strong); border-radius: 12px; box-shadow: 0 12px 40px rgba(0,0,0,0.5); } }
       .who-head { display: flex; align-items: center; justify-content: space-between; min-height: 44px; font-size: 17px; }
       .who-sheet input[type=search] { width: 100%; box-sizing: border-box; min-height: 44px; margin: 6px 0 8px; font-size: 17px; }
@@ -86,6 +86,18 @@
       .who-list h3 { margin: 14px 0 6px; font-size: 14px; }
       .who-list button { display: block; width: 100%; min-height: 44px; margin: 0 0 6px; font-size: 17px; text-align: left; }
       .who-list p { font-size: 16px; }
+      /* Short screens (a phone on its side, where the keyboard takes most of the height): title, search and Cancel share one
+         row, and names run in columns, so more of the band shows above the keyboard. */
+      @media (max-height: 500px) {
+        .who-sheet { display: grid; grid-template-columns: auto 1fr auto; grid-template-rows: auto 1fr; column-gap: 12px; align-items: center; }
+        .who-head { display: contents; }
+        .who-head strong { grid-area: 1 / 1; }
+        .who-head button { grid-area: 1 / 3; }
+        .who-sheet input[type=search] { grid-area: 1 / 2; margin: 6px 0; }
+        .who-list { grid-area: 2 / 1 / 3 / 4; align-self: stretch; }
+        .who-list section { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); column-gap: 8px; }
+        .who-list h3 { grid-column: 1 / -1; }
+      }
       .perform-field { position: relative; flex: 1; min-height: 0; }
       .perform-toggles { position: absolute; top: 8px; right: 8px; display: flex; gap: 6px; }
       .perform-toggles button { font-size: 14px; padding: 6px 10px; }
