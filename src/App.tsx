@@ -75,9 +75,10 @@ export function App() {
   const [sharing, setSharing] = useState(false);
   const [box, setBox] = useState<[Point, Point]>();
   const drag = useRef<Drag | null>(null);
-  // Sidebar: beside the field on a wide window; on a narrow one (an iPad in portrait, Split View) hidden until asked
-  // for, then over the field's right side, so opening it doesn't resize (and refit) the field.
-  const NARROW = '(max-width: 899px)';
+  // Sidebar: beside the field on a wide window; on a narrow one (an iPad in portrait, Split View), or a short touch screen
+  // (an open iPhone Duo on its side, 585 px tall), hidden until asked for, then over the field's right side, so opening
+  // it doesn't resize (and refit) the field.
+  const NARROW = '(max-width: 899px), (pointer: coarse) and (max-height: 650px)';
   const [narrow, setNarrow] = useState(() => matchMedia(NARROW).matches);
   useEffect(() => { const m = matchMedia(NARROW), f = () => setNarrow(m.matches); m.addEventListener('change', f); return () => m.removeEventListener('change', f); }, []);
   const [sideChoice, setSideChoice] = useState<boolean | null>(null); // null: the default for this width
@@ -529,7 +530,7 @@ export function App() {
       {/* Fixed height, no wrapping: nothing up here may resize the field (a canvas resize clears it, which flashes). */}
       {/* Equal-flex sides center the set controls when there's room; when there isn't, the hint gives up space first. */}
       <div style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '0 16px', height: coarse() ? 56 : 40, flexShrink: 0, whiteSpace: 'nowrap', overflowX: 'auto', overflowY: 'hidden', scrollbarWidth: 'none' }}>
-        <strong style={{ flex: '1 1 0' }}>Freeform</strong>
+        <strong className="tb-long-sm" style={{ flex: '1 1 0' }}>Freeform</strong>
         <div style={{ flex: 'none' }}><SetControls show={show} setShow={setShow} t={t} setT={(x) => { setPlaying(false); setT(x); }} /></div>
         <span style={{ flex: '1 1 0', fontSize: 12, opacity: tool === 'turn' ? 1 : 0.7, color: tool === 'turn' ? 'var(--gold)' : undefined, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'right' }}>{tool === 'turn' ? (coarse() ? "Tap the field for each of the leader's turns, in marching order · then tap Select Performer(s)" : "Click the field for each of the leader's turns, in marching order · Esc when done")
           : coarse() ? 'Two fingers: drag to move around, pinch to zoom' : 'Scroll to pan · pinch or ⌘/Ctrl+scroll to zoom · right-drag pans'}</span>

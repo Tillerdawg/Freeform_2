@@ -47,6 +47,25 @@ window.addEventListener('hashchange', () => {
   if (isPerform() !== perform && !isPhone()) location.reload();
   else if (location.hash.startsWith('#show=') || location.hash.startsWith('#load=')) location.reload(); // a new link opened in the same tab
 });
+// Folding an iPhone Duo (or narrowing an iPad's Split View pane) mid-session: closed, it's a phone, so the editor gives
+// way to the performer view; opened again, it goes back to the editor, if the fold is what left it (the show is
+// autosaved on every change; the undo history doesn't survive the reload). A performer who came by link stays put.
+const FOLDED = 'freeform:folded-from-editor';
+if (!perform) try { sessionStorage.removeItem(FOLDED); } catch { /* fine */ } // only a fold-opened performer view carries it
+let resizing = 0;
+window.addEventListener('resize', () => {
+  clearTimeout(resizing);
+  resizing = window.setTimeout(() => { // after the fold or rotation settles
+    const phone = isPhone();
+    if (phone && !perform) {
+      try { sessionStorage.setItem(FOLDED, '1'); } catch { /* still switch */ }
+      history.replaceState(null, '', location.pathname + '#perform'); location.reload();
+    } else if (!phone && perform && (() => { try { return sessionStorage.getItem(FOLDED); } catch { return null; } })()) {
+      try { sessionStorage.removeItem(FOLDED); } catch { /* fine */ }
+      history.replaceState(null, '', location.pathname); location.reload();
+    }
+  }, 400);
+});
 createRoot(document.getElementById('root')!).render(<Crash>{perform ? <Perform /> : <App />}</Crash>);
 
 // Offline support in the published app only (in development it would cache stale code).

@@ -39,6 +39,9 @@
         border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--bg-deep); position: relative; z-index: 5; }
       .toolbar + .toolbar { border-top: none; padding-right: 10px; } /* the second toolbar row */
       @media (pointer: coarse) and (max-width: 820px) { .tb-long { display: none; } } /* "Snap to grid" → "Snap": the row fits an upright iPad mini */
+      /* Narrower still (an open iPhone Duo, 669 px): Select / Add / Delete, "Reset", no "Freeform" title, snugger padding.
+         Buttons stay 44 px tall, and screen readers still hear the full names. */
+      @media (pointer: coarse) and (max-width: 700px) { .tb-long-sm { display: none !important; } .toolbar button { padding-left: 6px; padding-right: 6px; } }
       .toolbar > * { flex: none; }
       .tb-field { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; opacity: .9; }
       .tb-field select { max-width: 130px; }

@@ -73,6 +73,7 @@ export function Toolbar(p: ToolbarProps) {
   const markup = MARKUP.find(([t]) => t === p.tool);
   const needs = (ok: boolean, why: string) => (ok ? undefined : why);
   const pick = onASet ? 'Select performers first' : 'Scrub to a set first';
+  const addLetter = p.tool === 'add' ? ` · ${show.sections.find((s) => s.id === p.section)?.letter ?? '?'}` : '';
 
   return (
     <>
@@ -80,8 +81,8 @@ export function Toolbar(p: ToolbarProps) {
         placing and moving them. */}
     <div className="toolbar" role="toolbar" aria-label="Performers">
       <div role="radiogroup" aria-label="Performer tool" style={{ display: 'inline-flex', gap: 4 }}>{/* separate buttons, like Delete (Jason) */}
-        <button role="radio" aria-checked={p.tool === 'select'} onClick={() => p.setTool('select')} title="Select and move performers (V)">Select Performer(s)</button>
-        <Menu label={p.tool === 'add' ? `Add Performer(s) · ${show.sections.find((s) => s.id === p.section)?.letter ?? '?'}` : 'Add Performer(s)'}
+        <button role="radio" aria-checked={p.tool === 'select'} onClick={() => p.setTool('select')} title="Select and move performers (V)" aria-label="Select Performer(s)">Select<span className="tb-long-sm"> Performer(s)</span></button>
+        <Menu label={<>Add<span className="tb-long-sm"> Performer(s)</span>{addLetter}</>} name={`Add Performer(s)${addLetter}`}
           pressed={p.tool === 'add'} title="Pick a section, then click the field to place its performers (A)">
           {(close) => <>
             <strong style={{ fontSize: 12, opacity: 0.8 }}>Add which section?</strong>
@@ -94,7 +95,7 @@ export function Toolbar(p: ToolbarProps) {
         </Menu>
       </div>
       <button disabled={!ids.length} className="danger" onClick={() => { if (!confirmDelete(show, ids)) return; setShow((s) => removePerformers(s, selected)); p.setSelected(new Set()); }}
-        title="Delete the selected performers from the whole show">Delete Performer(s)</button>
+        title="Delete the selected performers from the whole show" aria-label="Delete Performer(s)">Delete<span className="tb-long-sm"> Performer(s)</span></button>
 
       {/* Pinned to the right edge: if the row is ever too narrow and scrolls sideways, Undo stays in reach. */}
       <span className="tb-pinned">
@@ -177,8 +178,8 @@ export function Toolbar(p: ToolbarProps) {
         </>}
       </Menu>
       <button disabled={!(any && onSet > 0)} onClick={() => setShow((s) => placeInSet(s, onSet, Object.fromEntries(ids.map((id) => [id, s.sets[onSet - 1].pos[id]]))))}
-        title={onSet > 0 ? `Put the selected performers back where they were in set ${show.sets[onSet - 1].name} (Undo reverses it)` : onSet === 0 ? 'Set 1 has no set before it' : pick}>
-        Reset to set {onSet > 0 ? show.sets[onSet - 1].name : '…'}
+        title={onSet > 0 ? `Put the selected performers back where they were in set ${show.sets[onSet - 1].name} (Undo reverses it)` : onSet === 0 ? 'Set 1 has no set before it' : pick} aria-label={`Reset to set ${onSet > 0 ? show.sets[onSet - 1].name : '…'}`}>
+        Reset<span className="tb-long-sm"> to set {onSet > 0 ? show.sets[onSet - 1].name : '…'}</span>
       </button>
     </div>
     </>
@@ -193,8 +194,8 @@ export function confirmDelete(show: Show, ids: string[]): boolean {
 }
 
 /** A toolbar button that opens a small panel below it. Closes on a click elsewhere or Esc (unless `keepOpen`). */
-export function Menu({ label, title, disabled, keepOpen, pressed, children }: {
-  label: string; title: string; disabled?: string; keepOpen?: boolean; pressed?: boolean; children: (close: () => void) => ReactNode;
+export function Menu({ label, name, title, disabled, keepOpen, pressed, children }: {
+  label: ReactNode; name?: string; title: string; disabled?: string; keepOpen?: boolean; pressed?: boolean; children: (close: () => void) => ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null), panel = useRef<HTMLDivElement>(null);
@@ -220,11 +221,11 @@ export function Menu({ label, title, disabled, keepOpen, pressed, children }: {
   }, [open]);
   return (
     <div ref={ref} className="tb-menu">
-      <button aria-haspopup="true" aria-expanded={shown} aria-pressed={pressed || undefined} disabled={!!disabled}
+      <button aria-haspopup="true" aria-expanded={shown} aria-pressed={pressed || undefined} disabled={!!disabled} aria-label={name}
         title={disabled ? `${title} (${disabled})` : title} onClick={() => setOpen(!open)}>
         {label} <span aria-hidden className="caret">▾</span>
       </button>
-      {shown && createPortal(<div ref={panel} className="tb-menu-panel" role="menu" aria-label={label} style={at ?? { visibility: 'hidden' }}>{children(() => setOpen(false))}</div>, document.body)}
+      {shown && createPortal(<div ref={panel} className="tb-menu-panel" role="menu" aria-label={name ?? String(label)} style={at ?? { visibility: 'hidden' }}>{children(() => setOpen(false))}</div>, document.body)}
     </div>
   );
 }
