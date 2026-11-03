@@ -94,7 +94,7 @@ export function Toolbar(p: ToolbarProps) {
         </Menu>
       </div>
       <button disabled={!ids.length} className="danger" onClick={() => { if (!confirmDelete(show, ids)) return; setShow((s) => removePerformers(s, selected)); p.setSelected(new Set()); }}
-        title="Delete the selected performers from the whole show">Delete</button>
+        title="Delete the selected performers from the whole show">Delete Performer(s)</button>
 
       {/* Pinned to the right edge: if the row is ever too narrow and scrolls sideways, Undo stays in reach. */}
       <span className="tb-pinned">
