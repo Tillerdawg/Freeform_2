@@ -75,6 +75,14 @@ export function App() {
   const [sharing, setSharing] = useState(false);
   const [box, setBox] = useState<[Point, Point]>();
   const drag = useRef<Drag | null>(null);
+  // Sidebar: beside the field on a wide window; on a narrow one (an iPad in portrait, Split View) hidden until asked
+  // for, then over the field's right side, so opening it doesn't resize (and refit) the field.
+  const NARROW = '(max-width: 899px)';
+  const [narrow, setNarrow] = useState(() => matchMedia(NARROW).matches);
+  useEffect(() => { const m = matchMedia(NARROW), f = () => setNarrow(m.matches); m.addEventListener('change', f); return () => m.removeEventListener('change', f); }, []);
+  const [sideChoice, setSideChoice] = useState<boolean | null>(null); // null: the default for this width
+  useEffect(() => setSideChoice(null), [narrow]);
+  const sideOpen = sideChoice ?? !narrow;
   const [adding, setAdding] = useState(false); // tap adds to the selection (shift-click without a keyboard)
   // Fingers on the field (canvas px). Two fingers pan and pinch; what the first one started is undone (atDown).
   const touches = useRef(new Map<number, Point>());
@@ -528,9 +536,9 @@ export function App() {
       <Toolbar show={show} setShow={setShow} onSet={onSet} selected={selected} setSelected={setSelected} tool={tool} setTool={setTool}
         section={section} setSection={setSection} snap={snap} setSnap={setSnap}
         onUndo={() => step('undo')} onRedo={() => step('redo')} canUndo={!!hist.past.length} canRedo={!!hist.future.length}
-        onFit={() => { const c = canvasRef.current!; setView(fitView(c.width, c.height)); }}
+        onFit={() => { const c = canvasRef.current!; setView(fitView(c.width, c.height)); }} sidebar={{ open: sideOpen, toggle: () => setSideChoice(!sideOpen) }}
         shape={shapeEdit?.shape ?? null} startShape={startShape} updateShape={updateShape} endShape={() => setShapeEdit(null)} />
-      <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
+      <div style={{ flex: 1, display: 'flex', minHeight: 0, position: 'relative' }}>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
         <canvas
@@ -553,6 +561,9 @@ export function App() {
           range={range} setRange={setRange} span={span}
           music={<MusicMenu show={show} setShow={setShow} audio={audio} onAudio={() => setAudioTick((n) => n + 1)} useMusic={useMusic} setUseMusic={setUseMusic} />} />
       </div>
+      {/* Hidden, not unmounted: open panels and drafts survive closing it. */}
+      <div style={!sideOpen ? { display: 'none' } : narrow ? { position: 'absolute', top: 0, right: 0, bottom: 0, maxWidth: '100%', zIndex: 10, display: 'flex',
+        background: 'var(--bg)', boxShadow: '-6px 0 16px rgba(0,0,0,0.45)' } : { display: 'flex' }}>
       <Sidebar
         show={show} setShow={setShow} t={t} setT={(x) => { setPlaying(false); setT(x); }} onSet={onSet}
         selected={selected} setSelected={setSelected} tool={tool} setTool={setTool}
@@ -562,6 +573,7 @@ export function App() {
         onUndo={() => step('undo')} onRedo={() => step('redo')} canUndo={!!hist.past.length} canRedo={!!hist.future.length}
         onFit={() => { const c = canvasRef.current!; setView(fitView(c.width, c.height)); }} shape={shapeEdit?.shape ?? null} startShape={startShape} updateShape={updateShape} endShape={() => setShapeEdit(null)}
       />
+      </div>
       </div>
       {sharing && <ShareDialog show={show} onClose={() => setSharing(false)} />}
       {printing && <PrintDialog show={show} selected={selected} onClose={() => setPrinting(false)} />}
