@@ -15,4 +15,4 @@ Instructions for anyone (person or AI agent) changing this repo. IDEA.md is the 
 - **Even steps (Jason).** A moving performer takes one step size from start to finish of a move: no animation may have one big step. Holds (standing still) are fine. Imported count-by-count paths are evened with `evenPath`; anything new that moves performers must keep step size constant too.
 - **Shows from files are untrusted.** Validate new fields in `parseShow`.
 - **Clean-room:** no decompiled or copied code from Pyware/UDB, and no third-party show files in the repo (`Examples_Drill/` is git-ignored).
-- **Commits** are authored as Jason Tiller <49928484+Tillerdawg@users.noreply.github.com>.
+- **Commits:** AI agents author commits as themselves (Claude <noreply@anthropic.com>, so GitHub shows them as Verified), with `Co-Authored-By: Jason Tiller <49928484+Tillerdawg@users.noreply.github.com>` at the end of the message. Jason's own commits are authored as him.

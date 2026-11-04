@@ -947,3 +947,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
   - **A second palette** (`LIGHT` in `palette.ts`, `:root[data-theme=light]` in `index.html`), with the same names and the same contrast checks as the dark one. Gold becomes deep green (#245c33) in light mode, since gold is unreadable on white. (First tried a dark amber; Jason didn't like it and picked deep green over purple, plum, or real gold buttons with dark outlines.) Jason then didn't like gold text on deep green either; from mockups of five options (turf green, real gold, field dark with gold text, a gold tint, a turf outline) he picked **real gold**: pressed buttons in light mode are the same gold as in dark mode (`gold-fill`), with dark text (`on-gold`, 11.6:1) and a 2 px field-dark edge; `gold` itself (focus rings, set lines, selection outlines) is field dark (#1d2a1f) in light mode.
   - **A button, default dark.** A sun/moon button at the right of the editor's top bar and beside Facing front on the phone; the choice is kept in that browser. It doesn't follow the device's setting yet (that would turn Freeform light for everyone whose computer is in light mode, unasked); easy to add as the default when nothing's been chosen.
   - **Logos:** the brand's light versions in light mode.
+
+## 2026-11-04 09:35 EST — Who authors AI commits
+- **Who:** Jason Tiller
+- **Context:** Commits Claude made as Jason showed on GitHub as Unverified, since they weren't signed with Jason's key.
+- **Options:** Keep authoring as Jason (Unverified); Jason sets up his own signing key; Claude authors its commits as itself (signed, Verified).
+- **Decision:** Claude authors its commits as Claude <noreply@anthropic.com>, with Jason as co-author in the message. CLAUDE.md updated. Earlier commits keep their authors (rewriting pushed history on `main` would need a force-push).
