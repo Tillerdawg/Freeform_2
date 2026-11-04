@@ -51,7 +51,7 @@ describe('counts from MusicXML', () => {
     expect((await parseScore(enc(xml))).measures).toHaveLength(4);
     const mxl = await zip({ 'META-INF/container.xml': '<container><rootfiles><rootfile full-path="score.xml"/></rootfiles></container>', 'score.xml': xml });
     expect((await parseScore(mxl)).measures).toHaveLength(4);
-    await expect(parseScore(enc('hello'))).rejects.toThrow(/isn't a MuseScore, MusicXML or MIDI/);
+    await expect(parseScore(enc('hello'))).rejects.toThrow(/isn't a MuseScore, MusicXML, or MIDI/);
     expect(() => parseMusicXml('<score-timewise/>')).toThrow(/Timewise/);
   });
 });

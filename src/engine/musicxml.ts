@@ -173,7 +173,7 @@ export async function parseScore(buf: ArrayBuffer): Promise<Midi & { warnings?: 
   if (/<museScore\b/.test(new TextDecoder().decode(buf.slice(0, 2000)))) return parseMscx(new TextDecoder().decode(buf)); // an uncompressed .mscx
   const text = new TextDecoder().decode(buf);
   if (/<score-(partwise|timewise)\b/.test(text.slice(0, 5000))) return parseMusicXml(text);
-  throw new Error("That isn't a MuseScore, MusicXML or MIDI file. Choose the score's .mscz, or export it as MusicXML or MIDI.");
+  throw new Error("That isn't a MuseScore, MusicXML, or MIDI file. Choose the score's .mscz, or export it as MusicXML or MIDI.");
 }
 
 const DUR: Record<string, number> = { longa: 16, breve: 8, whole: 4, half: 2, quarter: 1, eighth: 0.5, '16th': 0.25, '32nd': 0.125, '64th': 0.0625, '128th': 0.03125, '256th': 0.015625 };

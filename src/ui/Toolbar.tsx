@@ -114,11 +114,11 @@ export function Toolbar(p: ToolbarProps) {
         </select>
       </label>
       <button disabled={!any} onClick={snapSel}
-        title={any ? `Round the selected performers onto ${snapUnit === 1 ? 'whole' : 'half'} steps (for dots left off the grid by a rotate, a shape or an import)` : `Rounds selected performers onto the grid (${pick.toLowerCase()})`} aria-label="Apply the grid to selected performers">Apply</button>
+        title={any ? `Round the selected performers onto ${snapUnit === 1 ? 'whole' : 'half'} steps (for dots left off the grid by a rotate, a shape, or an import)` : `Rounds selected performers onto the grid (${pick.toLowerCase()})`} aria-label="Apply the grid to selected performers">Apply</button>
       {snapNote && <span role="alert" className="tb-note" title={snapNote}>{snapNote}</span>}
       <span className="tb-sep" />
       {/* Markup (instructions on the page) is a separate kind of tool from placing performers. */}
-      <Menu label={markup ? markup[1].replace(' (T)', '') : 'Markup'} pressed={!!markup} title="Notes, arrows and drawing on this set's page">
+      <Menu label={markup ? markup[1].replace(' (T)', '') : 'Markup'} pressed={!!markup} title="Notes, arrows, and drawing on this set's page">
         {(close) => MARKUP.map(([t, l]) => (
           <button key={t} role="menuitemradio" aria-checked={p.tool === t} onClick={() => { p.setTool(t); close(); }}>{l}</button>
         ))}
@@ -126,10 +126,10 @@ export function Toolbar(p: ToolbarProps) {
       <span className="tb-sep" />
 
       <Menu label="Shape" disabled={needs(many, ids.length === 1 ? 'Select 2 or more performers' : pick)} keepOpen={!!p.shape} pressed={!!p.shape}
-        title="Shape the selection into a line, arc, curve, Bézier, circle or block">
+        title="Shape the selection into a line, arc, curve, Bézier, circle, or block">
         {() => <ShapePanel {...p} />}
       </Menu>
-      <Menu label="Transform" disabled={needs(any, pick)} title="Flip, mirror, rotate or scale the selection">
+      <Menu label="Transform" disabled={needs(any, pick)} title="Flip, mirror, rotate, or scale the selection">
         {() => <>
           <strong style={{ fontSize: 12, opacity: 0.8 }}>Mirror</strong>
           <button onClick={() => { setShow((s) => flip(s, onSet, ids, 'x')); setNote(''); }} title="Swap sides: Side 1 ↔ Side 2">Flip across the 50</button>

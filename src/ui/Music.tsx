@@ -26,7 +26,7 @@ export function MusicMenu({ show, setShow, audio, onAudio, useMusic, setUseMusic
   // A score added before its recording waits here (only for this session) until the recording comes.
   const [score, setScore] = useState<{ name: string; map: Midi } | null>(null);
   const m = show.music, total = showLength(show);
-  // Counts from the score (MuseScore, MusicXML, .mxl or MIDI): exact when the recording was rendered from that same score.
+  // Counts from the score (MuseScore, MusicXML, .mxl, or MIDI): exact when the recording was rendered from that same score.
   const counts = (map: Midi, name: string, s: Show) => {
     const held = withHolds(s, map), r = countsFromMidi(map, held.show.sets), sets = held.show.sets.length - 1;
     const note = [`Counts from ${name}: ${r.matched} of ${sets} sets placed by their measures${r.matched < sets ? '; the rest count plain beats' : ''}.`,
@@ -79,7 +79,7 @@ export function MusicMenu({ show, setShow, audio, onAudio, useMusic, setUseMusic
           {m && <p style={{ margin: 0, fontSize: 12 }}><strong>{m.name}</strong><br />
             {m.taps.length ? `${m.taps.length} of ${total + 1} counts placed${m.taps.length < total + 1 ? '; later counts keep the last pace' : ''}.` : 'No counts yet: add the score, or tap them.'}</p>}
           {m && !audio && <p role="alert" style={{ margin: 0, fontSize: 12, color: 'var(--warn)' }}>The recording isn't in this browser. Add {m.name} again to hear it.</p>}
-          <button onClick={() => scoreFile.current?.click()} title="The score the recording was rendered from: MuseScore (.mscz), MusicXML, .mxl or MIDI. Each set's counts are placed in the measures typed for it.">
+          <button onClick={() => scoreFile.current?.click()} title="The score the recording was rendered from: MuseScore (.mscz), MusicXML, .mxl, or MIDI. Each set's counts are placed in the measures typed for it.">
             {done(!!score)}{score ? `Score: ${score.name}` : m?.taps.length ? 'Add the score again…' : 'Add the score (MuseScore)…'}</button>
           <button onClick={() => file.current?.click()}>{done(!!m && !!audio)}{m ? 'Replace the recording…' : 'Add the recording (mp3)…'}</button>
           {m && <button disabled={!audio} onClick={() => { setTapping(true); close(); }}>Tap counts…</button>}
