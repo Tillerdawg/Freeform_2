@@ -9,15 +9,15 @@
 
 **FreeFORM is a free and open-source drill design and learning tool for all marching arts organizations.**
 
-I'm a former band director. Over my career teaching in public and private K-12 schools, I wrote several marching band shows in Pyware, and over the years the software frustrated me more and more: the yearly license fee, the limits on how many performers a show could have, and the tools locked behind higher tiers. So I built FreeFORM, a free, open-source drill writer that runs in your web browser. With it, you can quickly add performers to a show, build sets, watch the moves between sets play out count by count, print drill charts and individual dot sheets, and send the show to your students' and staff members' devices.
+I'm a former band director. Over my career teaching in public and private K-12 schools, I wrote several marching band shows in Pyware, and over the years the software frustrated me more and more: the yearly license fee, the limits on how many performers a show could have, and the tools locked behind higher tiers. I built FreeFORM because I wanted a drill writer that's easy to use, gives you every tool from the start, works for marching ensembles of any size, and lightens your organization's financial burden. It's a free, open-source drill writer and learning tool that runs in your web browser, or as an app on your home screen. There's nothing to install. Your shows are saved in the browser on your device, and once you've opened FreeFORM, it works offline too. You can quickly add performers to a show, build sets, watch the moves between sets play out count by count, print drill charts and individual dot sheets, and send the show to your students' and staff members' devices.
+
+FreeFORM is released under the [MIT license](LICENSE), so anyone is free to use it, share it, and change it as they need to, as long as the license notice stays with it.
 
 Sharing a show is easy: students and staff scan a QR code (or open a link you text or email them) on their phones or tablets. Once the show is loaded, anyone can look up a performer's coordinates (their "dot") and watch any move from the director's point of view, facing the audience the way a performer would, or following their own dot. That helps students and staff learn the show quickly.
 
 A note on where the ideas came from: FreeFORM is modeled on Pyware and the Ultimate Drill Book (UDB), but no proprietary code went into it (see [Clean room](#clean-room)).
 
 **Use it here:** <https://tillerdawg.github.io/Freeform_2/>
-
-There's no account and nothing to install. It works offline, and you can add it to a phone's or tablet's home screen.
 
 **New to FreeFORM? Start with the [How-to guide](docs/HOW-TO.md).** It walks through everything below, step by step, with pictures.
 
