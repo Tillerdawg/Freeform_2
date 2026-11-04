@@ -21,7 +21,8 @@ describe('one palette', () => {
     for (const P of [PALETTE, LIGHT]) { // the panels, in both modes
       for (const bg of [P.bg, P['bg-deep'], P.surface, P['surface-2']]) for (const fg of [P.text, P.gold, P.warn, P.danger, P.blue, P['green-line']]) expect(ratio(fg, bg)).toBeGreaterThanOrEqual(4.5);
       expect(ratio(P.text, P.green)).toBeGreaterThanOrEqual(4.5); // primary buttons
-      expect(ratio(P['on-gold'], P.gold)).toBeGreaterThanOrEqual(4.5); // pressed toggles
+      expect(ratio(P['on-gold'], P['gold-fill'])).toBeGreaterThanOrEqual(4.5); // pressed toggles
+      expect(ratio(P.gold, P['bg-deep'])).toBeGreaterThanOrEqual(3); // a pressed toggle's edge against the page
     }
     const P = PALETTE; // the field: the same in both modes
     expect(ratio('#111111', P.gold)).toBeGreaterThanOrEqual(4.5); // pressed toggles, selected letters

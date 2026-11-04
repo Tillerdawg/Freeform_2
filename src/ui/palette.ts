@@ -15,7 +15,8 @@ export const PALETTE = {
   'green-line': '#7cc08b', // primary button border, "done" messages
   text: '#e9f0ea',
   gold: '#ffd166', // selection, focus, pressed toggles, the playhead's set
-  'on-gold': '#182419', // text on a pressed toggle (on gold)
+  'gold-fill': '#ffd166', // pressed toggles' fill (gold in both modes)
+  'on-gold': '#182419', // text on a pressed toggle (on gold-fill)
   warn: '#f5c518', // warnings, bigger steps
   'warn-line': '#5a4a1a', // border of a box asking for a decision
   danger: '#ff8080', // errors
@@ -45,8 +46,9 @@ export const LIGHT: Record<PaletteName, string> = {
   green: '#c4e3cc',
   'green-line': '#2a6e3b',
   text: '#14201a',
-  gold: '#245c33', // deep green (Jason): gold itself is unreadable on white
-  'on-gold': '#ffd166', // gold text on the deep green (Jason)
+  gold: '#1d2a1f', // field dark for lines, rings and edges (Jason): thin gold is unreadable on white
+  'gold-fill': '#ffd166', // pressed toggles stay real gold (Jason)
+  'on-gold': '#14201a',
   warn: '#7a5200',
   'warn-line': '#c9a447',
   danger: '#b3261e',

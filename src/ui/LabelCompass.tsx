@@ -13,7 +13,7 @@ const SIZE = 88, R = 32, DOT = 18;
 export function LabelCompass({ value, onPick }: { value: LabelSide | '' | 'mixed'; onPick: (side: LabelSide | null) => void }) {
   const btn = (on: boolean): React.CSSProperties => ({
     position: 'absolute', width: DOT, height: DOT, padding: 0, borderRadius: '50%', border: '2px solid var(--gold)',
-    background: on ? 'var(--gold)' : 'var(--bg-deep)', cursor: 'pointer', transform: 'translate(-50%, -50%)',
+    background: on ? 'var(--gold-fill)' : 'var(--bg-deep)', cursor: 'pointer', transform: 'translate(-50%, -50%)',
   });
   return (
     <div role="group" aria-label="Label direction" style={{ position: 'relative', width: SIZE, height: SIZE, flex: 'none' }}>
