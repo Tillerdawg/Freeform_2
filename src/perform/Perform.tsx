@@ -281,7 +281,7 @@ export function Perform() {
   if (!show) {
     return (
       <main className="perform-empty">
-        <h1><img src={theme === 'light' ? './logo-light.svg' : './logo.svg'} alt="Freeform" style={{ width: 'min(280px, 100%)', display: 'block' }} /></h1>
+        <h1><img src={theme === 'light' ? './logo-light.svg' : './logo.svg'} alt="FreeFORM" style={{ width: 'min(280px, 100%)', display: 'block' }} /></h1>
         {error ? <p role="alert">{error}</p>
           : location.hash.startsWith(LOAD_PREFIX) ? <p>Downloading the show…</p>
           : <p>Open the show link your director sent you. It will be saved on this phone and work offline after that.</p>}
@@ -420,7 +420,7 @@ function PasteLink() {
       <button onClick={open} disabled={!text.trim()} style={{ fontSize: 16 }}>Open</button>
       {'mediaDevices' in navigator && <button onClick={() => setScan(true)} style={{ fontSize: 16 }}>Scan QR code</button>}
       {scan && <Scanner onClose={() => setScan(false)} />}
-      {bad && <span role="alert" style={{ width: '100%', color: 'var(--danger)' }}>That doesn't look like a Freeform share link.</span>}
+      {bad && <span role="alert" style={{ width: '100%', color: 'var(--danger)' }}>That doesn't look like a FreeFORM share link.</span>}
     </div>
   );
 }

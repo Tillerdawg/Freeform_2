@@ -1,8 +1,8 @@
-# How to use Freeform
+# How to use FreeFORM
 
-This guide walks you through writing a show in Freeform, from an empty field to dot sheets in your students' hands and the drill on their phones. It's written for band directors and drill writers. You don't need to have used Pyware or UDB before, but if you have, most of this will feel familiar.
+This guide walks you through writing a show in FreeFORM, from an empty field to dot sheets in your students' hands and the drill on their phones. It's written for band directors and drill writers. You don't need to have used Pyware or UDB before, but if you have, most of this will feel familiar.
 
-Freeform runs in your web browser at <https://tillerdawg.github.io/Freeform_2/>. There's nothing to install and no account to make.
+FreeFORM runs in your web browser at <https://tillerdawg.github.io/Freeform_2/>. There's nothing to install and no account to make.
 
 The pictures in this guide come from a small sample show (47 performers, 4 sets) that ships with the code. Your screen will look the same, just with your own drill on it.
 
@@ -32,15 +32,15 @@ The pictures in this guide come from a small sample show (47 performers, 4 sets)
 
 ## Before you start
 
-You'll want a computer or an iPad to write drill. Freeform needs a current version of Chrome, Edge, Firefox or Safari, or iPadOS 16.4 or later (any iPad from 2017 on). If your browser is too old, you'll get a page that says so.
+You'll want a computer or an iPad to write drill. FreeFORM needs a current version of Chrome, Edge, Firefox or Safari, or iPadOS 16.4 or later (any iPad from 2017 on). If your browser is too old, you'll get a page that says so.
 
 Phones only get the performer view. That's on purpose: a phone screen is too small to write drill on, but it's perfect for a student checking their spot.
 
-One thing to know up front: **your show is saved in the browser you're using.** Freeform saves every change automatically, but only on that computer, in that browser. If you clear your browser data, or switch from Chrome to Safari, your show won't be there. Use **Export** often to keep a copy you control (see [Saving, backing up and opening files](#saving-backing-up-and-opening-files)).
+One thing to know up front: **your show is saved in the browser you're using.** FreeFORM saves every change automatically, but only on that computer, in that browser. If you clear your browser data, or switch from Chrome to Safari, your show won't be there. Use **Export** often to keep a copy you control (see [Saving, backing up and opening files](#saving-backing-up-and-opening-files)).
 
 ## A quick tour of the editor
 
-![The Freeform editor with the sample show on set 2](img/editor.png)
+![The FreeFORM editor with the sample show on set 2](img/editor.png)
 
 From top to bottom:
 
@@ -52,10 +52,10 @@ From top to bottom:
 
 ## Set up a new show
 
-Click **New** in the sidebar to start a show. (If you already have one open, Freeform asks first, and Undo brings it back.)
+Click **New** in the sidebar to start a show. (If you already have one open, FreeFORM asks first, and Undo brings it back.)
 
 1. **Name it.** Type the title in the box under the file buttons. It prints on every dot sheet and chart.
-2. **Pick your hash marks.** The menu under the title has **High school**, **College / DCI** and **NFL**. Freeform draws the field the way drill software does, with whole-step hashes:
+2. **Pick your hash marks.** The menu under the title has **High school**, **College / DCI** and **NFL**. FreeFORM draws the field the way drill software does, with whole-step hashes:
 
    | Level | Sideline to hash / hash to hash / hash to sideline |
    |---|---|
@@ -63,7 +63,7 @@ Click **New** in the sidebar to start a show. (If you already have one open, Fre
    | College / DCI | 32 / 20 / 32 steps |
    | NFL | 36 / 12 / 36 steps |
 
-   If you change the hashes after you've written drill, Freeform asks whether performers should keep their places relative to the hashes (on the hash stays on the hash) or keep their exact spots on the field.
+   If you change the hashes after you've written drill, FreeFORM asks whether performers should keep their places relative to the hashes (on the hash stays on the hash) or keep their exact spots on the field.
 3. **Letters or dots.** By default each performer is drawn as their section letter with their number beside it (a P with a 4). Switch the menu beside the hashes to **Dots** if you'd rather see plain dots labeled P4.
 4. **Check your sections.** Open **Sections** in the sidebar.
 
@@ -73,13 +73,13 @@ New shows start with Flute (F), Clarinet (K), Alto Sax (A), Tenor Sax (X), Trump
 
 In the Sections list you can:
 
-- Rename a section or change its letter. If two sections share a letter, Freeform flags them, since their labels would look the same.
+- Rename a section or change its letter. If two sections share a letter, FreeFORM flags them, since their labels would look the same.
 - Give a section a color with the swatch. Its dots show in that color on the field, on phones and on printed charts. **Clear colors** goes back to plain dots.
 - Add or delete a section. If you delete one that has performers, you pick where they go.
 - Reorder the list by dragging the dotted grip at the left of a row, or use **Sort** for score order, by letter or by name. Dot sheets print in this order.
 - Renumber a section with **#**: **Close the gaps** (X4, X5, X6 become X1, X2, X3), **Left to right** (Side 1 to Side 2) or **Front to back** (rank by rank), as they stand in the current set.
 
-If your program always uses the same sections, set them up once and choose **Starting list → Use this list for new shows**. New shows in that browser will start with your list. **Back to Freeform's list** undoes it.
+If your program always uses the same sections, set them up once and choose **Starting list → Use this list for new shows**. New shows in that browser will start with your list. **Back to FreeFORM's list** undoes it.
 
 ## Add performers
 
@@ -95,7 +95,7 @@ Performers are part of the whole show, so a performer you add appears in every s
 
 ![The Roster list](img/roster.png)
 
-If you already have your roster in a spreadsheet, use **Import a list…** in Roster. Copy the cells from Excel and paste them, or choose a CSV file. Freeform reads the column headers (Name, or First and Last; Instrument or Section; Dot or Label), and you can fix any column it reads wrong. It shows you what will happen to every row before anything changes:
+If you already have your roster in a spreadsheet, use **Import a list…** in Roster. Copy the cells from Excel and paste them, or choose a CSV file. FreeFORM reads the column headers (Name, or First and Last; Instrument or Section; Dot or Label), and you can fix any column it reads wrong. It shows you what will happen to every row before anything changes:
 
 - A row with a dot (P4) names that dot, or adds it if it doesn't exist yet.
 - A row with only an instrument names that section's next unnamed dot, or adds a new one.
@@ -116,7 +116,7 @@ With **Select Performer(s)** on:
 
 On a touch screen there's no Shift key, so turn on **Add to selection** in the sidebar's Selection area. Every tap or box then adds to what's already selected.
 
-**Snap to grid** (in the toolbar) sets how dragging and adding land: on whole steps, half steps, or anywhere (free). If performers are already off the grid (after a rotate, a shape or an import), select them and click **Apply** to round them onto it. Freeform warns you if two performers would land on the same spot.
+**Snap to grid** (in the toolbar) sets how dragging and adding land: on whole steps, half steps, or anywhere (free). If performers are already off the grid (after a rotate, a shape or an import), select them and click **Apply** to round them onto it. FreeFORM warns you if two performers would land on the same spot.
 
 **Reading coordinates.** Click one performer and the sidebar shows exactly where they are, in standard drill language.
 
@@ -159,7 +159,7 @@ The timeline then runs the full length, with the part you haven't written yet st
 3. Drag the blue handles on the field to adjust the shape. Choose **Even** spacing, or **Every** so many steps.
 4. Click **Done** (or press Esc) when it looks right.
 
-Freeform decides who goes to which spot by keeping total travel from the previous set as short as it can, so the paths don't cross. Curves can take extra points (**+ Curve point**) and Béziers extra segments (**+ Segment**). Bézier joints stay smooth unless you hold Option (Alt on Windows) while you drag a handle. Blocks also take a number of **Columns**.
+FreeFORM decides who goes to which spot by keeping total travel from the previous set as short as it can, so the paths don't cross. Curves can take extra points (**+ Curve point**) and Béziers extra segments (**+ Segment**). Bézier joints stay smooth unless you hold Option (Alt on Windows) while you drag a handle. Blocks also take a number of **Columns**.
 
 ## Rotate, stretch and flip
 
@@ -175,7 +175,7 @@ The amount shows in the bottom-left corner of the field while you drag, and each
 The **Transform** menu has the rest:
 
 - **Flip across the 50** swaps Side 1 and Side 2, and **Flip front ↔ back** swaps front and back.
-- **Copy Side 1 → 2** (or 2 → 1) gives the other side the mirror image. Freeform pairs each performer with the one in the mirror-opposite spot.
+- **Copy Side 1 → 2** (or 2 → 1) gives the other side the mirror image. FreeFORM pairs each performer with the one in the mirror-opposite spot.
 - **Rotate & scale** turns the selection by a typed number of degrees, and **Expand** and **Contract** scale it evenly by a typed percent.
 
 Rotating or stretching usually leaves performers between grid steps. Use **Snap to grid → Apply** if you want them back on whole or half steps.
@@ -199,7 +199,7 @@ Everyone in an FTL move covers the leader's whole route at one steady step size,
 
 ![Paths into set 4, too fast on purpose](img/step-warnings.png)
 
-Freeform checks every move against the counts it has:
+FreeFORM checks every move against the counts it has:
 
 - **Yellow** means someone's step is bigger than a 6-to-5.
 - **Red** means it's bigger than a 4-to-5, which is about as big a step as anyone should take.
@@ -208,7 +208,7 @@ The colors show on the path lines on the field and in the timeline's "max" reado
 
 ## Dot labels
 
-Freeform keeps labels from overlapping each other or covering another dot. Each one sits above its dot, or below, beside or on a diagonal when that spot is taken. In a tight block, some labels hide until you zoom in.
+FreeFORM keeps labels from overlapping each other or covering another dot. Each one sits above its dot, or below, beside or on a diagonal when that spot is taken. In a tight block, some labels hide until you zoom in.
 
 To place labels yourself, select performers, open **Labels**, and click a direction on the compass for the current set. The center **A** goes back to automatic, and **Hide** hides them. For a curve of three or more performers, **Inside curve** and **Outside curve** point every label toward or away from the curve's center.
 
@@ -242,17 +242,17 @@ The play controls are at the left end of the timeline: back to the start, back o
 
 ![The Music menu](img/music.png)
 
-Freeform can play your drill along with the recording, so the moves line up with the music the way they will on the field.
+FreeFORM can play your drill along with the recording, so the moves line up with the music the way they will on the field.
 
 **The easy way, with MuseScore:**
 
 1. In MuseScore, export the score as audio (mp3).
-2. In Freeform, open **Music** (beside Tempo) and click **Add the score (MuseScore)…**. Choose the `.mscz` file (MusicXML, `.mxl` and MIDI work too).
+2. In FreeFORM, open **Music** (beside Tempo) and click **Add the score (MuseScore)…**. Choose the `.mscz` file (MusicXML, `.mxl` and MIDI work too).
 3. Click **Add the recording (mp3)…** and choose the mp3 you exported.
 
-You can do steps 2 and 3 in either order. Once both are in, Freeform takes the time of every count from the score, including meter changes, tempo marks and fermatas, and places each set's counts in the measures you typed for it. It warns you if the recording's length doesn't match the score (usually a sign you picked the wrong file). Bars that no set covers, like a G.P. or an intro, get a hold sub-set (4A) so everyone stands still through them.
+You can do steps 2 and 3 in either order. Once both are in, FreeFORM takes the time of every count from the score, including meter changes, tempo marks and fermatas, and places each set's counts in the measures you typed for it. It warns you if the recording's length doesn't match the score (usually a sign you picked the wrong file). Bars that no set covers, like a G.P. or an intro, get a hold sub-set (4A) so everyone stands still through them.
 
-**With any recording, by tapping:** add just the recording (mp3, m4a or wav), then choose **Tap counts…**. Freeform plays it from the top while you press Space on every count, starting with count 0 (set 1). You can undo a tap, pause, or start over. To fix part of it later, set **Redo from count** first.
+**With any recording, by tapping:** add just the recording (mp3, m4a or wav), then choose **Tap counts…**. FreeFORM plays it from the top while you press Space on every count, starting with count 0 (set 1). You can undo a tap, pause, or start over. To fix part of it later, set **Redo from count** first.
 
 When the counts are in, Play follows the music, rubato and all, and the recording's waveform shows along the bottom of the timeline. Uncheck **Play with music** to go back to the Tempo setting.
 
@@ -264,7 +264,7 @@ Click **Print…** in the sidebar.
 
 ![The Print dialog](img/print.png)
 
-Choose **Dot sheets** or **Drill charts**, and who to print for: **Everyone**, one **Section**, or the performers you have **Selected**. Freeform opens your browser's print dialog. To get a PDF instead of paper, pick **Save as PDF** there.
+Choose **Dot sheets** or **Drill charts**, and who to print for: **Everyone**, one **Section**, or the performers you have **Selected**. FreeFORM opens your browser's print dialog. To get a PDF instead of paper, pick **Save as PDF** there.
 
 Dot sheets come four cards to a page. Each card has the performer's label, name and section, then every set with its counts, measures and coordinates, plus any performer notes.
 
@@ -285,12 +285,12 @@ Click **Share…** in the sidebar.
 - Anyone with the link can see the show, so names are left out.
 - Changes you make later aren't sent. After you edit, share a new link.
 
-**Hosted links** are better for a real season. Open **Hosted link** in the Share dialog. Freeform makes a *locked* show file, encrypted in your browser, and you put that file online. The link that opens it is short, makes a QR code that scans easily, and keeps working when you update the show: performers' phones pick up your latest version the next time they open it online. The key that unlocks the file is only in the link, so whoever hosts the file can't read it. **The link is the password, so share it only with your band.** A locked file can carry names and, if you want, the music.
+**Hosted links** are better for a real season. Open **Hosted link** in the Share dialog. FreeFORM makes a *locked* show file, encrypted in your browser, and you put that file online. The link that opens it is short, makes a QR code that scans easily, and keeps working when you update the show: performers' phones pick up your latest version the next time they open it online. The key that unlocks the file is only in the link, so whoever hosts the file can't read it. **The link is the password, so share it only with your band.** A locked file can carry names and, if you want, the music.
 
 There are two ways to put the file online:
 
-- **Publish to phones** does it in one click once you connect Freeform to a public GitHub repository of your own. (Public is fine, since the file is encrypted.) You'll need the repository's name and a fine-grained GitHub token that can write only to that repository (*Contents: Read and write*). Both stay in your browser. After that, **Publish update** replaces the file, and the link and QR code never change.
-- **Or host the file yourself**: download the locked file and upload it anywhere that gives you a direct link to it. A GitHub repository works (upload the file, open it, and copy its **Raw** link). Paste that address into the box and Freeform makes your short link.
+- **Publish to phones** does it in one click once you connect FreeFORM to a public GitHub repository of your own. (Public is fine, since the file is encrypted.) You'll need the repository's name and a fine-grained GitHub token that can write only to that repository (*Contents: Read and write*). Both stay in your browser. After that, **Publish update** replaces the file, and the link and QR code never change.
+- **Or host the file yourself**: download the locked file and upload it anywhere that gives you a direct link to it. A GitHub repository works (upload the file, open it, and copy its **Raw** link). Paste that address into the box and FreeFORM makes your short link.
 
 To cut off old links (say, a student leaves the program), clear the address and start over. Phones that already have the show keep their copy but get no more updates.
 
@@ -300,7 +300,7 @@ When a student opens your link on their phone, they pick who they are.
 
 ![Picking who you are on a phone](img/phone-who.png)
 
-They can search by name, by dot (P4) or by section, and **Staff (whole band)** at the top shows everyone. Freeform remembers their choice, and the show keeps working offline once it's opened.
+They can search by name, by dot (P4) or by section, and **Staff (whole band)** at the top shows everyone. FreeFORM remembers their choice, and the show keeps working offline once it's opened.
 
 ![A performer's view of set 2 on a phone](img/phone.png)
 
@@ -312,7 +312,7 @@ On the performer screen:
 - **Around you** lists their nearest neighbors (up to four, within 10 steps) and where each one is, like "P5 · 4 steps toward Side 1."
 - They can play at any tempo, step count by count, scrub, or tap a set number to jump to it. If the show has music, Play follows it, and **♪ Music** switches back to a tempo.
 
-Students can add Freeform to their home screen. In the home-screen app, they open a show with **Scan QR code** or by pasting the link.
+Students can add FreeFORM to their home screen. In the home-screen app, they open a show with **Scan QR code** or by pasting the link.
 
 On a computer or iPad, **Performer view** in the sidebar (or **Open performer view here** in the Share dialog) shows you the same screen, and **← Editor** takes you back.
 
@@ -323,7 +323,7 @@ On a computer or iPad, **Performer view** in the sidebar (or **Open performer vi
 The editor works on an iPad the same way it does on a computer, with a few touch habits:
 
 - **One finger** does whatever the tool does: tap to select or add, drag to move, drag on open field for a box.
-- **Two fingers** pan and pinch-zoom the field. If a second finger lands while the first one has started something, Freeform takes that back and moves the view instead.
+- **Two fingers** pan and pinch-zoom the field. If a second finger lands while the first one has started something, FreeFORM takes that back and moves the view instead.
 - Turn on **Add to selection** to build up a selection without a Shift key.
 - On the timeline, tap a set to go to it and swipe to scroll. To move a set to a new count, touch and hold its button until it lifts, then drag. That way a swipe can't move a set by accident.
 - On an iPad held upright, the sidebar starts hidden. The sidebar button opens it over the right side of the field.
@@ -363,4 +363,4 @@ With a keyboard attached, the [keyboard shortcuts](#keyboard-shortcuts) work too
 
 **The browser says it's too old.** Update your browser, or on an iPad, update iPadOS to 16.4 or later.
 
-**Freeform hit an error.** The error page has **Download autosaved show**, so you can save your work before you reload. If it keeps happening, please [open an issue](https://github.com/Tillerdawg/Freeform_2/issues) and say what you were doing.
+**FreeFORM hit an error.** The error page has **Download autosaved show**, so you can save your work before you reload. If it keeps happening, please [open an issue](https://github.com/Tillerdawg/Freeform_2/issues) and say what you were doing.

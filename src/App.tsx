@@ -563,7 +563,7 @@ export function App() {
         {/* The small logo; just the curve when the window is narrow, so it never crowds the set controls. */}
         <span className="tb-long-sm" style={{ flex: '1 1 0', minWidth: 0, display: 'flex' }}>
           <picture><source media="(max-width: 1000px)" srcSet={theme === 'light' ? './mark-light.svg' : './mark.svg'} />
-            <img src={theme === 'light' ? './logo-small-light.svg' : './logo-small.svg'} alt="Freeform" style={{ height: coarse() ? 30 : 24, display: 'block' }} /></picture>
+            <img src={theme === 'light' ? './logo-small-light.svg' : './logo-small.svg'} alt="FreeFORM" style={{ height: coarse() ? 30 : 24, display: 'block' }} /></picture>
         </span>
         <div style={{ flex: 'none' }}><SetControls show={show} setShow={setShow} t={t} setT={(x) => { setPlaying(false); setT(x); }} /></div>
         <span style={{ flex: '1 1 0', fontSize: 12, opacity: tool === 'turn' ? 1 : 0.7, color: tool === 'turn' ? 'var(--gold)' : undefined, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'right' }}>{tool === 'turn' ? (coarse() ? "Tap the field for each of the leader's turns, in marching order · then tap Select Performer(s)" : "Click the field for each of the leader's turns, in marching order · Esc when done")

@@ -70,7 +70,7 @@ describe('Pyware .3dj import', () => {
     const moved = { ...show, sets: show.sets.map((s, i) => (i === 2 ? { ...s, pos: { ...s.pos, [t1.id]: { x: 10, y: 32 } } } : s)) };
     expect(positionsAt(moved, 5)[t1.id]).toEqual({ x: 5, y: 24 }); // halfway along the straight line
   });
-  it('places dots in Freeform steps: x from the 50 (+ Side 2), y from the front sideline', () => {
+  it('places dots in FreeFORM steps: x from the 50 (+ Side 2), y from the front sideline', () => {
     const t1 = show.performers.find((p) => p.number === 1 && show.sections.find((s) => s.id === p.section)!.letter === 'T')!;
     expect(show.sets[0].pos[t1.id]).toEqual({ x: -4, y: 42 - 30 }); // Pyware +y is toward the front
     expect(show.sets[1].pos[t1.id]).toEqual({ x: 0, y: 16 });

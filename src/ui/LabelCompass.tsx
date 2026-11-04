@@ -22,7 +22,7 @@ export function LabelCompass({ value, onPick }: { value: LabelSide | '' | 'mixed
         <button key={side} aria-label={`Label ${words}`} title={`Label ${words}`} aria-pressed={value === side} onClick={() => onPick(side)}
           style={{ ...btn(value === side), left: SIZE / 2 + R * Math.cos((deg * Math.PI) / 180), top: SIZE / 2 - R * Math.sin((deg * Math.PI) / 180) }} />
       ))}
-      <button aria-label="Label placed automatically" title="Automatic: Freeform picks a free side, and hides the label when there's no room"
+      <button aria-label="Label placed automatically" title="Automatic: FreeFORM picks a free side, and hides the label when there's no room"
         aria-pressed={value === ''} onClick={() => onPick(null)}
         style={{ ...btn(value === ''), left: SIZE / 2, top: SIZE / 2, width: 26, height: 26, fontSize: 10, fontWeight: 700, color: value === '' ? 'var(--on-gold)' : 'var(--gold)' }}>
         A

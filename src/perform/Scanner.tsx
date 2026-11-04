@@ -3,7 +3,7 @@ import jsQR from 'jsqr';
 import { linkHash } from '../engine/share';
 
 /**
- * Scan a Freeform QR code with the camera, from inside the app. On iPhone, scanning with the
+ * Scan a FreeFORM QR code with the camera, from inside the app. On iPhone, scanning with the
  * Camera app always opens Safari, which can't hand the show to the home-screen app.
  */
 export function Scanner({ onClose }: { onClose: () => void }) {
@@ -30,7 +30,7 @@ export function Scanner({ onClose }: { onClose: () => void }) {
         if (code) {
           const hash = linkHash(code.data);
           if (hash) { stopped = true; location.hash = hash; close.current(); return; }
-          setMsg("That QR code isn't a Freeform show link.");
+          setMsg("That QR code isn't a FreeFORM show link.");
         }
       }
       raf = requestAnimationFrame(tick);
@@ -44,7 +44,7 @@ export function Scanner({ onClose }: { onClose: () => void }) {
         setMsg('Point the camera at the show’s QR code.');
         raf = requestAnimationFrame(tick);
       })
-      .catch(() => setMsg('The camera isn’t available. Allow camera access for Freeform in Settings, or paste the link instead.'));
+      .catch(() => setMsg('The camera isn’t available. Allow camera access for FreeFORM in Settings, or paste the link instead.'));
     return () => { stopped = true; cancelAnimationFrame(raf); stream?.getTracks().forEach((t) => t.stop()); };
   }, []);
   useEffect(() => {

@@ -56,7 +56,7 @@ export function parseTable(text: string): string[][] {
 const CODE = /^([A-Za-z]{1,2})\s*[-#.]?\s*(\d{1,3})$/;
 const code = (s: string): [string, number] | null => { const m = s.trim().match(CODE); return m ? [m[1].toUpperCase(), +m[2]] : null; };
 
-// Common spellings in band rosters, mapped to words in Freeform's section names.
+// Common spellings in band rosters, mapped to words in FreeFORM's section names.
 const ALIASES: [RegExp, string][] = [
   [/^(fl|flt|flutes?|picc(olo)?s?)$/, 'flute'], [/^(cl|clar|clars|clarinets?|bcl|bass clarinet)$/, 'clarinet'],
   [/^(as|asx|alto|alto sax|altos?|sax|saxes|saxophones?)$/, 'alto saxophone'], // a lone "Sax" means alto (Jason)

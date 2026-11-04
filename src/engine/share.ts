@@ -127,7 +127,7 @@ export async function fetchHosted(hash: string, fetcher: typeof fetch = fetch): 
 
 export const fetchShow = (hash: string, fetcher: typeof fetch = fetch) => fetchHosted(hash, fetcher).then((r) => r.show);
 
-/** The Freeform part ("#show=…" or "#load=…") of a pasted message or scanned QR code, or null. */
+/** The FreeFORM part ("#show=…" or "#load=…") of a pasted message or scanned QR code, or null. */
 export function linkHash(text: string): string | null {
   const m = text.match(/#(show|load)=\S+/);
   return m ? m[0] : null;

@@ -1,6 +1,6 @@
 import { DEFAULT_SECTIONS, validSectionList, type SectionList, type Show } from '../engine/show';
 
-// A director's own starting section list, kept in this browser. New shows start with it instead of Freeform's.
+// A director's own starting section list, kept in this browser. New shows start with it instead of FreeFORM's.
 const KEY = 'freeform:starting-sections';
 
 export function startingSections(): SectionList {

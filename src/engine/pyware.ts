@@ -28,12 +28,12 @@ const LETTERS: Record<string, [string, RegExp]> = {
   C: ['Cymbals', /cymbal/i], // not in Jason's list, but his files give C cymbal figures
 };
 const MAX_BYTES = 50_000_000;
-/** Pyware label codes 0–7, from the front around toward Side 2, as Freeform's sides (above = toward the back, right = Side 2). */
+/** Pyware label codes 0–7, from the front around toward Side 2, as FreeFORM's sides (above = toward the back, right = Side 2). */
 const PY_SIDES: LabelSide[] = ['below', 'below-right', 'right', 'above-right', 'above', 'above-left', 'left', 'below-left'];
 
 const fail = (msg: string): never => { throw new Error(msg); };
 
-/** Read a .3dj file into a Freeform show. Throws a readable error for anything it can't use. */
+/** Read a .3dj file into a FreeFORM show. Throws a readable error for anything it can't use. */
 export function parse3dj(data: ArrayBuffer, title = 'Imported show'): Show {
   if (data.byteLength > MAX_BYTES) fail('That file is too big to be a Pyware show.');
   const b = new Uint8Array(data);
@@ -125,7 +125,7 @@ export function parse3dj(data: ArrayBuffer, title = 'Imported show'): Show {
     performers.push(p); pid.set(id, p.id);
   }
 
-  // Field position: Freeform measures x in steps from the 50 (+ = Side 2) and y in steps from the front sideline.
+  // Field position: FreeFORM measures x in steps from the 50 (+ = Side 2) and y in steps from the front sideline.
   const sets: DrillSet[] = [];
   const spot = (rec: Rec) => ({ x: rec.x / UNIT, y: FIELD_WIDTH / 2 - rec.y / UNIT });
   const taken = new Set<string>();
@@ -143,7 +143,7 @@ export function parse3dj(data: ArrayBuffer, title = 'Imported show'): Show {
     if (mm) set.measures = mm[1].replace(/\s+/g, '').replace('-', '–');
     if (r.note) set.note = r.note;
     // Label sides the drill writer chose in Pyware. Code 1 (below-right) is where Pyware leaves a label nobody moved,
-    // so those stay automatic (readable) in Freeform.
+    // so those stay automatic (readable) in FreeFORM.
     const sides: Record<string, LabelSide> = {};
     for (const [id, rec] of r.last) if (rec.lab !== 1) sides[pid.get(id)!] = PY_SIDES[rec.lab];
     if (Object.keys(sides).length) set.labels = sides;

@@ -1,4 +1,4 @@
-# Working on Freeform
+# Working on FreeFORM
 
 Instructions for anyone (person or AI agent) changing this repo. IDEA.md is the original brief; PLAN.md is the roadmap.
 

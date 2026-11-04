@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react';
 
-// Freeform's colors, one set for the whole app. The page styles use the same names as CSS variables (index.html,
+// FreeFORM's colors, one set for the whole app. The page styles use the same names as CSS variables (index.html,
 // :root); canvas drawing (the field, the phone view) uses these values. palette.test.ts keeps the two in step and checks
 // contrast: legible beats pretty (text 4.5:1, lines and shapes 3:1).
 export const PALETTE = {

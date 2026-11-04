@@ -83,7 +83,7 @@ export const newId = (prefix: string) => `${prefix}${Date.now().toString(36)}${(
 
 export type SectionList = { name: string; letter: string; color?: string }[];
 
-/** Freeform's starting sections (Jason's lettering). No front ensemble: they're stationary, so they need no drill spots. */
+/** FreeFORM's starting sections (Jason's lettering). No front ensemble: they're stationary, so they need no drill spots. */
 export const DEFAULT_SECTIONS: SectionList = ([
   ['Flute', 'F'], ['Clarinet', 'K'], ['Alto Saxophone', 'A'], ['Tenor Saxophone', 'X'], ['Trumpet', 'P'], ['Mellophone', 'H'],
   ['Trombone', 'N'], ['Baritone', 'E'], ['Tuba', 'T'], ['Snare Drum', 'S'], ['Quads', 'Q'], ['Bass Drum', 'B'], ['Cymbals', 'C'],
@@ -180,7 +180,7 @@ export function removeSection(show: Show, id: string, moveTo?: string): Show {
 }
 
 /**
- * Sections in score order: woodwinds, brass, battery (in Freeform's starting order), front ensemble, then the guard.
+ * Sections in score order: woodwinds, brass, battery (in FreeFORM's starting order), front ensemble, then the guard.
  * Sections whose names match no instrument go last, in the order they had. Sax and drum names are matched first so a
  * "Tenor Sax" isn't read as a tenor drum or a "Bass Clarinet" as a bass drum.
  */
@@ -482,7 +482,7 @@ export function yFrom(ref: FrontRef, steps: number, dir: FrontDir, hash: HashPre
 
 export function parseShow(text: string): Show {
   const s = JSON.parse(text);
-  const bad = (why: string) => { throw new Error(`Not a valid Freeform show: ${why}`); };
+  const bad = (why: string) => { throw new Error(`Not a valid FreeFORM show: ${why}`); };
   if (s?.format === 'freeform-locked') throw new Error('That is a locked copy made for a hosted link, and only the link can open it. Import the .freeform file instead.');
   if (s?.format !== 'freeform-show') bad('missing format marker');
   if (s.version !== 1) bad(`unsupported version ${s.version}`);

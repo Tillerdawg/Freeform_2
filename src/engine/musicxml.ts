@@ -137,7 +137,7 @@ async function readZip(buf: ArrayBuffer, what: string): Promise<Record<string, (
       const start = local + 30 + v.getUint16(local + 26, true) + v.getUint16(local + 28, true);
       const data = b.slice(start, start + size);
       if (method === 0) return new TextDecoder().decode(data);
-      if (method !== 8) throw new Error(`That ${what} file uses a compression Freeform can't read.`);
+      if (method !== 8) throw new Error(`That ${what} file uses a compression FreeFORM can't read.`);
       return new TextDecoder().decode(await new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
     };
     o += 46 + nameLen + extra + comment;

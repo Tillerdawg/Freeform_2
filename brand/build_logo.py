@@ -1,4 +1,4 @@
-"""Builds the Freeform logo SVGs: the dot curve + "Free" (Parisienne, tuned) + "FORM" (Barlow Semi Condensed Bold),
+"""Builds the FreeFORM logo SVGs: the dot curve + "Free" (Parisienne, tuned) + "FORM" (Barlow Semi Condensed Bold),
 with the letters converted to paths so the files need no fonts. Usage: python3 build_logo.py <font dir> <out dir>"""
 import io, math, os, sys
 import uharfbuzz as hb
@@ -65,13 +65,13 @@ def lockup(variant, boost, stroke, mark=True):
     x1 = max(xe, b2[2]) + pad
     w, h = x1 + pad, y1 - y0
     return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="{-pad:.1f} {y0:.1f} {w:.1f} {h:.1f}" '
-            f'width="{w:.0f}" height="{h:.0f}" role="img" aria-label="Freeform">\n' + '\n'.join(parts) + '\n</svg>\n')
+            f'width="{w:.0f}" height="{h:.0f}" role="img" aria-label="FreeFORM">\n' + '\n'.join(parts) + '\n</svg>\n')
 
 
 def mark_only(variant):
     c = COLORS[variant]
     dots = '\n'.join(f'<circle cx="{x}" cy="{y}" r="{11 if i == 0 else 10}" fill="{c["first"] if i == 0 else c["dots"]}"/>' for i, (x, y) in enumerate(DOTS))
-    return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="-12 8 264 144" width="264" height="144" role="img" aria-label="Freeform">\n{dots}\n</svg>\n'
+    return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="-12 8 264 144" width="264" height="144" role="img" aria-label="FreeFORM">\n{dots}\n</svg>\n'
 
 
 def monogram(variant, tile=False, square=False, ground='#357842'):
@@ -94,14 +94,14 @@ def monogram(variant, tile=False, square=False, ground='#357842'):
     if not tile:
         w, h = x1 - x0, y1 - y0
         return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="{x0:.1f} {y0:.1f} {w:.1f} {h:.1f}" width="{w:.0f}" height="{h:.0f}" '
-                f'role="img" aria-label="Freeform">\n{art}\n</svg>\n')
+                f'role="img" aria-label="FreeFORM">\n{art}\n</svg>\n')
     if square:  # Android masks home-screen icons to as small as a circle of radius 40%: keep the letters' corners inside it
         k = 0.38 * 200 / math.hypot((x1 - x0) / 2, (y1 - y0) / 2)
     else:
         k = 0.74 * 200 / max(x1 - x0, y1 - y0)  # letters fill 74% of the tile, centered on their actual outlines
     tx, ty = 100 - k * (x0 + x1) / 2, 100 - k * (y0 + y1) / 2
     rx = '' if square else ' rx="44"'
-    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="Freeform">\n'
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="FreeFORM">\n'
             f'<rect width="200" height="200"{rx} fill="{ground}"/>\n<g transform="translate({tx:.2f} {ty:.2f}) scale({k:.4f})">\n{art}\n</g>\n</svg>\n')
 
 
@@ -111,7 +111,7 @@ def app_curve(fill):
     r, hw, hh = 14, 120 + 14, 60 + 14
     k = fill * 200 / (2 * hw) if fill else 0.38 * 200 / math.hypot(hw, hh)
     dots = ''.join(f'<circle cx="{x}" cy="{y}" r="{r + 1 if i == 0 else r}" fill="{"#ffd166" if i == 0 else "#e9f0ea"}"/>' for i, (x, y) in enumerate(DOTS))
-    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="Freeform">\n'
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="FreeFORM">\n'
             f'<rect width="200" height="200" fill="#1d2a1f"/>\n<g transform="translate(100 100) scale({k:.4f}) translate(-120 -80)">{dots}</g>\n</svg>\n')
 
 

@@ -97,7 +97,7 @@ describe('hosted links', () => {
     const show = band(4, 2).s;
     const link = '#load=' + encodeURIComponent(gist);
     expect((await fetchShow(link, serve(JSON.stringify(show)))).performers).toEqual(show.performers); // unlocked files still open
-    await expect(fetchShow(link, serve('{"not":"a show"}'))).rejects.toThrow(/Not a valid Freeform show/);
+    await expect(fetchShow(link, serve('{"not":"a show"}'))).rejects.toThrow(/Not a valid FreeFORM show/);
     await expect(fetchShow(link, serve('', 404))).rejects.toThrow(/404/);
     const down = (async () => { throw new TypeError('Failed to fetch'); }) as unknown as typeof fetch;
     await expect(fetchShow(link, down)).rejects.toThrow(/allows other sites/);
@@ -114,7 +114,7 @@ describe('QR codes', () => {
 });
 
 describe('finding a link in text', () => {
-  it('pulls the Freeform part out of a message or QR code', () => {
+  it('pulls the FreeFORM part out of a message or QR code', () => {
     expect(linkHash('Drill is up! https://x.io/app/#load=https%3A%2F%2Fg.io%2Fs.json see you')).toBe('#load=https%3A%2F%2Fg.io%2Fs.json');
     expect(linkHash('https://x.io/#show=abc_-123')).toBe('#show=abc_-123');
     expect(linkHash('https://example.com/menu')).toBeNull();

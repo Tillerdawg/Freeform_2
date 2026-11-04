@@ -1,7 +1,7 @@
 <h1 align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="brand/freeform-logo-dark.svg">
-    <img src="brand/freeform-logo-light.svg" alt="Freeform" width="420">
+    <img src="brand/freeform-logo-light.svg" alt="FreeFORM" width="420">
   </picture>
 </h1>
 
@@ -9,19 +9,19 @@
 
 **Free, open-source drill design for marching bands and drum corps.**
 
-I'm a former band director. Over my career teaching in public and private K-12 schools, I wrote several marching band shows in Pyware, and over the years the software frustrated me more and more: the yearly license fee, the limits on how many performers a show could have, and the tools locked behind higher tiers. So I built Freeform, a free, open-source drill writer that runs in your web browser. With it, you can quickly add performers to a show, build sets, watch the moves between sets play out count by count, print drill charts and individual dot sheets, and send the show to your students' and staff members' devices.
+I'm a former band director. Over my career teaching in public and private K-12 schools, I wrote several marching band shows in Pyware, and over the years the software frustrated me more and more: the yearly license fee, the limits on how many performers a show could have, and the tools locked behind higher tiers. So I built FreeFORM, a free, open-source drill writer that runs in your web browser. With it, you can quickly add performers to a show, build sets, watch the moves between sets play out count by count, print drill charts and individual dot sheets, and send the show to your students' and staff members' devices.
 
 Sharing a show is easy: students and staff scan a QR code (or open a link you text or email them) on their phones or tablets. Once the show is loaded, anyone can look up a performer's coordinates (their "dot") and watch any move from the director's point of view, facing the audience the way a performer would, or following their own dot. That helps students and staff learn the show quickly.
 
-A note on where the ideas came from: Freeform is modeled on Pyware and the Ultimate Drill Book (UDB), but no proprietary code went into it (see [Clean room](#clean-room)).
+A note on where the ideas came from: FreeFORM is modeled on Pyware and the Ultimate Drill Book (UDB), but no proprietary code went into it (see [Clean room](#clean-room)).
 
 **Use it here:** <https://tillerdawg.github.io/Freeform_2/>
 
 There's no account and nothing to install. It works offline, and you can add it to a phone's or tablet's home screen.
 
-**New to Freeform? Start with the [How-to guide](docs/HOW-TO.md).** It walks through everything below, step by step, with pictures.
+**New to FreeFORM? Start with the [How-to guide](docs/HOW-TO.md).** It walks through everything below, step by step, with pictures.
 
-![The Freeform editor](docs/img/editor.png)
+![The FreeFORM editor](docs/img/editor.png)
 
 > **Status:** early, and I'm working on it actively. Everything listed below works today. Shows are saved in your browser, in files you export, and in the links you share. There are no accounts and no cloud sync yet.
 
@@ -31,7 +31,7 @@ There's no account and nothing to install. It works offline, and you can add it 
 - A football field with high school, college/DCI or NFL hashes and an 8-to-5 grid, seen from the press box (Side 1 on the left).
 - Coordinates in standard drill language, like "2 steps outside the Side 2 45, 2 steps in front of Front Hash."
 - Sections with letters and colors, a roster of names (paste it from a spreadsheet), and labels that stay out of each other's way.
-- Shapes: line, arc, curve, Bézier, circle and block. Freeform assigns spots by least total travel, so paths don't cross.
+- Shapes: line, arc, curve, Bézier, circle and block. FreeFORM assigns spots by least total travel, so paths don't cross.
 - Rotate and stretch a group by dragging handles on the field. Flip across the 50 or front to back, or copy one side to the other.
 - Follow-the-leader moves, with turns.
 - Step-size warnings: yellow past a 6-to-5, red past a 4-to-5.
@@ -61,7 +61,7 @@ The full list is in [PLAN.md](PLAN.md). What's next, roughly:
 
 - Touch versions of the few actions that still need a keyboard key, and Apple Pencil support
 - Paths on printed charts, a notes column on dot sheets, and one dot sheet per page
-- Faster count entry for recordings that weren't made from the score (tap a few downbeats, Freeform fills in the rest)
+- Faster count entry for recordings that weren't made from the score (tap a few downbeats, FreeFORM fills in the rest)
 - Markup that spans several sets
 - Basketball courts and custom surfaces
 - Later: optional cloud sync and app-store versions
@@ -112,7 +112,7 @@ Every design decision is logged in [DECISIONS.md](DECISIONS.md): when, who made 
 
 ### Clean room
 
-Freeform is written from scratch. I studied Pyware and UDB only through how they behave and what their documentation says, never by decompiling them, and there's no third-party code or show file in this repo.
+FreeFORM is written from scratch. I studied Pyware and UDB only through how they behave and what their documentation says, never by decompiling them, and there's no third-party code or show file in this repo.
 
 ## Contributing
 
@@ -120,4 +120,4 @@ Issues and pull requests are welcome, especially from drill writers and band dir
 
 ## License
 
-[MIT](LICENSE) © Jason Tiller and Freeform contributors.
+[MIT](LICENSE) © Jason Tiller and FreeFORM contributors.

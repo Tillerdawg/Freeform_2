@@ -25,7 +25,7 @@ class Crash extends Component<{ children: ReactNode }, { error?: Error }> {
     };
     return (
       <div role="alert" style={{ padding: 24, maxWidth: 720 }}>
-        <h1 style={{ fontSize: 20 }}>Freeform hit an error</h1>
+        <h1 style={{ fontSize: 20 }}>FreeFORM hit an error</h1>
         <pre style={{ whiteSpace: 'pre-wrap', background: '#111', padding: 12 }}>{error.message}{'\n\n'}{error.stack}</pre>
         <p>Your show is still in this browser's autosave.</p>
         <div style={{ display: 'flex', gap: 8 }}>

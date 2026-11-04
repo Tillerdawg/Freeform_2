@@ -410,7 +410,7 @@ describe('renumbering a section', () => {
 });
 
 describe('starting section lists', () => {
-  it("starts new shows with Freeform's list or a saved one, and rejects junk", async () => {
+  it("starts new shows with FreeFORM's list or a saved one, and rejects junk", async () => {
     const { validSectionList, DEFAULT_SECTIONS } = await import('./show');
     expect(newShow().sections.map((s) => s.letter).join('')).toBe(DEFAULT_SECTIONS.map((s) => s.letter).join(''));
     expect(newShow().sections.some((s) => /front ensemble/i.test(s.name))).toBe(false);
@@ -549,7 +549,7 @@ describe('score order', () => {
     expect(scoreOrder(names.map((name) => ({ name }))).map((s) => s.name)).toEqual(
       ['Flute', 'Bass Clarinet', 'Alto Saxophone', 'Tenor Sax', 'Trumpet', 'Mellophone', 'Tuba', 'Snare Drum', 'Quads', 'Bass Drum', 'Pit', 'Drum Major', 'Color Guard', 'Twirlers']);
   });
-  it("leaves Freeform's starting list as it is", () => {
+  it("leaves FreeFORM's starting list as it is", () => {
     expect(scoreOrder([...DEFAULT_SECTIONS])).toEqual([...DEFAULT_SECTIONS]);
   });
 });

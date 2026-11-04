@@ -168,7 +168,7 @@ function ConnectGitHub({ onConnected }: { onConnected: (g: GitHubTarget) => void
   };
   return (
     <div style={{ fontSize: 12, border: '1px solid var(--line)', padding: 8 }}>
-      <strong>Publish straight from Freeform</strong> (one-time setup with GitHub):
+      <strong>Publish straight from FreeFORM</strong> (one-time setup with GitHub):
       <ol style={{ margin: '4px 0', paddingLeft: 20 }}>
         <li>Make a <em>public</em> repository for your shows (e.g. freeform-shows), with a README so it isn't empty.</li>
         <li><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noreferrer" style={{ color: 'var(--blue)' }}>Make a fine-grained token</a>:

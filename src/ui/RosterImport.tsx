@@ -19,7 +19,7 @@ export function RosterImport({ show, setShow, onClose }: { show: Show; setShow: 
   const count = (k: string) => plan.steps.filter((s) => s.kind === k).length;
   const file = async (f: File) => {
     setFileError('');
-    if (/\.xlsx?$/i.test(f.name)) { setFileError('Freeform reads CSV or pasted cells, not .xlsx: in Excel, select the cells and copy them here, or Save As "CSV".'); return; }
+    if (/\.xlsx?$/i.test(f.name)) { setFileError('FreeFORM reads CSV or pasted cells, not .xlsx: in Excel, select the cells and copy them here, or Save As "CSV".'); return; }
     if (f.size > 2_000_000) { setFileError('That file is too big for a roster.'); return; }
     setRoles(null); setChoices({}); setText(await f.text());
   };

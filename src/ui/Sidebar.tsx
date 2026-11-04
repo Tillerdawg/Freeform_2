@@ -402,13 +402,13 @@ function SectionsEditor({ show, setShow, cur }: { show: Show; setShow: (f: (s: S
           {(close) => <>
             <button onClick={() => { setStartNote(saveStartingSections(show) ? 'New shows will start with this list.' : "This browser won't save it."); setOwn(hasOwnStartingSections()); close(); }}
               title="New shows you start in this browser get these sections and letters">Use this list for new shows</button>
-            <button disabled={!own} onClick={() => { clearStartingSections(); setOwn(false); setStartNote("New shows will start with Freeform's list."); close(); }}
-              title="New shows go back to Freeform's starting sections">Back to Freeform's list</button>
+            <button disabled={!own} onClick={() => { clearStartingSections(); setOwn(false); setStartNote("New shows will start with FreeFORM's list."); close(); }}
+              title="New shows go back to FreeFORM's starting sections">Back to FreeFORM's list</button>
           </>}
         </Menu>
       </div>
       <p style={{ margin: '4px 0 0', fontSize: 12, opacity: 0.75 }} role="status">
-        {startNote || (own ? 'New shows start with your own list (in this browser).' : "New shows start with Freeform's list.")}
+        {startNote || (own ? 'New shows start with your own list (in this browser).' : "New shows start with FreeFORM's list.")}
       </p>
     </details>
   );

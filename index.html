@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>Freeform</title>
+    <title>FreeFORM</title>
     <meta name="description" content="Free, open-source drill design for marching bands and drum corps." />
     <meta name="theme-color" content="#1d2a1f" />
     <link rel="manifest" href="./manifest.webmanifest" />
@@ -11,10 +11,10 @@
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" /><!-- the curve; light dots on dark tabs -->
     <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-title" content="Freeform" />
+    <meta name="apple-mobile-web-app-title" content="FreeFORM" />
     <!-- Link previews (iMessage, Slack, email). shortcut: the image URL is the GitHub Pages address; change it if the site moves. -->
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Freeform" />
+    <meta property="og:title" content="FreeFORM" />
     <meta property="og:description" content="Drill, without the bill. Free, open-source drill design for marching bands and drum corps." />
     <meta property="og:image" content="https://tillerdawg.github.io/Freeform_2/og-image.png" />
     <meta name="twitter:card" content="summary_large_image" />
@@ -53,7 +53,7 @@
         border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--bg-deep); position: relative; z-index: 5; }
       .toolbar + .toolbar { border-top: none; padding-right: 12px; } /* the second toolbar row */
       @media (pointer: coarse) and (max-width: 820px) { .tb-long { display: none; } } /* "Snap to grid" → "Snap": the row fits an upright iPad mini */
-      /* Narrower still (an open iPhone Duo, 669 px): Select / Add / Delete, "Reset", no "Freeform" title, snugger padding.
+      /* Narrower still (an open iPhone Duo, 669 px): Select / Add / Delete, "Reset", no "FreeFORM" title, snugger padding.
          Buttons stay 44 px tall, and screen readers still hear the full names. */
       @media (pointer: coarse) and (max-width: 700px) { .tb-long-sm { display: none !important; } .toolbar button { padding-left: 6px; padding-right: 6px; } }
       .toolbar > * { flex: none; }
@@ -171,7 +171,7 @@
   <body>
     <div id="root"></div>
     <div id="print-root"></div>
-    <!-- Too old to run Freeform (an iPad mini 2 on iOS 12 showed a blank page): say so. Old-style JavaScript on purpose,
+    <!-- Too old to run FreeFORM (an iPad mini 2 on iOS 12 showed a blank page): say so. Old-style JavaScript on purpose,
          so the browsers it's for can run it. Pointer events (iOS 13) drive every tap and drag; regex lookbehind arrived with
          Safari 16.4, the version the app is built for (Vite's default target), so it stands in for "can read the code". -->
     <script>
@@ -184,8 +184,8 @@
         d.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:1000;padding:32px 24px;overflow:auto;' +
           'background:var(--bg);color:var(--text);font:17px/1.5 system-ui,-apple-system,sans-serif;';
         d.innerHTML = '<img src="./logo.svg" alt="" width="240" style="display:block;margin:0 0 20px">' +
-          '<h1 style="font-size:24px;margin:0 0 12px">Freeform needs a newer browser</h1>' +
-          '<p style="margin:0 0 12px;max-width:34em">This browser is too old to run Freeform. It needs iPadOS or iOS 16.4 or later ' +
+          '<h1 style="font-size:24px;margin:0 0 12px">FreeFORM needs a newer browser</h1>' +
+          '<p style="margin:0 0 12px;max-width:34em">This browser is too old to run FreeFORM. It needs iPadOS or iOS 16.4 or later ' +
           '(any iPad from 2017 on), or a current version of Chrome, Edge, Firefox or Safari on a computer.</p>' +
           '<p style="margin:0;max-width:34em;opacity:.8">Shows and links you open on a newer device work the same there.</p>';
         document.body.appendChild(d);
