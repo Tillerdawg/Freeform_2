@@ -7,7 +7,7 @@
 
 <p align="center"><em>Drill, without the bill.</em></p>
 
-**Free, open-source drill design for marching bands and drum corps.**
+**FreeFORM is a free and open-source drill design and learning tool for all marching arts organizations.**
 
 I'm a former band director. Over my career teaching in public and private K-12 schools, I wrote several marching band shows in Pyware, and over the years the software frustrated me more and more: the yearly license fee, the limits on how many performers a show could have, and the tools locked behind higher tiers. So I built FreeFORM, a free, open-source drill writer that runs in your web browser. With it, you can quickly add performers to a show, build sets, watch the moves between sets play out count by count, print drill charts and individual dot sheets, and send the show to your students' and staff members' devices.
 
