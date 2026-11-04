@@ -147,7 +147,7 @@ shot('share', async () => {
   await page.evaluate(async () => {
     const { qrSvg } = await import('/src/engine/qr.ts');
     const t = document.querySelector('[role=dialog] textarea');
-    t.value = t.value.replace(location.origin + '/', 'https://tillerdawg.github.io/Freeform_2/');
+    t.value = t.value.replace(location.origin + '/', 'https://freeformdrill.org/');
     const svg = document.querySelector('[role=dialog] svg')?.parentElement;
     if (svg) svg.innerHTML = qrSvg(t.value); // so the pictured code scans to the real address too
   });

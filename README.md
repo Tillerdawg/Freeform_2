@@ -19,7 +19,7 @@ Sharing a show is easy: students and staff scan a QR code (or open a link you te
 
 A note on where the ideas came from: FreeFORM is modeled on Pyware and the Ultimate Drill Book (UDB), but no proprietary code went into it (see [Clean room](#clean-room)).
 
-**Use it here:** <https://tillerdawg.github.io/Freeform_2/>
+**Use it here:** <https://freeformdrill.org/>
 
 **New to FreeFORM? Start with the [How-to guide](docs/HOW-TO.md).** It walks through everything below, step by step, with pictures.
 

@@ -2,7 +2,7 @@
 
 This guide walks you through writing a show in FreeFORM, from an empty field to dot sheets in your students' hands and the drill on their phones. It's written for band directors and drill writers. You don't need to have used Pyware or UDB before, but if you have, most of this will feel familiar.
 
-FreeFORM runs in your web browser at <https://tillerdawg.github.io/Freeform_2/>. There's nothing to install and no account to make.
+FreeFORM runs in your web browser at <https://freeformdrill.org/>. There's nothing to install and no account to make.
 
 The pictures in this guide come from a small sample show (47 performers, 4 sets) that ships with the code. Your screen will look the same, just with your own drill on it.
 

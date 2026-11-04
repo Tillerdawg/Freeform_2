@@ -998,3 +998,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Context:** The app lives at `tillerdawg.github.io/Freeform_2/`. Jason wants an address of FreeFORM's own; store apps opening QR-code links need a domain FreeFORM controls (iOS Universal Links and Android App Links need files at the domain's root).
 - **Options:** Rename the repository (moves the github.io address and breaks every existing link); a custom domain.
 - **Decision:** A custom domain, freeformdrill.org, once it's confirmed available and registered. The repository keeps its name, and the old address should forward to the new one. The switch plan, including moving saved shows (browsers keep data per address), is in PLAN.md.
+
+## 2026-11-04 15:50 EST — Moving to freeformdrill.org without an export notice
+- **Who:** Jason Tiller (only he has shows saved so far); details Claude's *(Jason can veto)*.
+- **Context:** Jason registered freeformdrill.org at Cloudflare. Browsers keep saved data per web address, so shows saved at the old address don't appear at the new one.
+- **Options:** Ship an in-app "export your shows" notice and wait a week before switching; switch as soon as DNS is ready.
+- **Decision:** Switch as soon as DNS is ready, since nobody else has data to lose. Jason exports his shows first and imports them at the new address. Cloudflare's records stay "DNS only" (no Cloudflare proxy), because GitHub can't issue the HTTPS certificate through the proxy.

@@ -27,7 +27,7 @@ The logo, small logo, FF monogram, and curve each come in a **dark** version (fo
 | `freeform-app-icon-ff.svg` | Alternate app icon: FF on field dark. Not used by the app yet. |
 | `freeform-favicon.svg` | Source of the browser-tab icon: the curve with fatter dots, dark on light tabs and light on dark tabs. |
 
-**In the app** (`public/`): `favicon.svg` (copied from `freeform-favicon.svg`), `favicon-32.png` for browsers without SVG favicons, `apple-touch-icon.png` (from `freeform-app-icon-ios.svg`), and `icon-192.png` and `icon-512.png` (both from `freeform-app-icon.svg`). Also `logo.svg` (phone start screen, old-browser page), `logo-small.svg` and `mark.svg` (the editor's top bar: the small logo, or just the curve in narrow windows), each with a `-light` version for light mode, and `og-image.png`, the 1200 × 630 card shown when a FreeFORM link is pasted into a message (its address in `index.html` is the GitHub Pages one).
+**In the app** (`public/`): `favicon.svg` (copied from `freeform-favicon.svg`), `favicon-32.png` for browsers without SVG favicons, `apple-touch-icon.png` (from `freeform-app-icon-ios.svg`), and `icon-192.png` and `icon-512.png` (both from `freeform-app-icon.svg`). Also `logo.svg` (phone start screen, old-browser page), `logo-small.svg` and `mark.svg` (the editor's top bar: the small logo, or just the curve in narrow windows), each with a `-light` version for light mode, and `og-image.png`, the 1200 × 630 card shown when a FreeFORM link is pasted into a message (its address in `index.html` is freeformdrill.org).
 
 <p>
   <img src="freeform-app-icon-ios.svg" alt="App icon: the curve on field dark" width="96">
