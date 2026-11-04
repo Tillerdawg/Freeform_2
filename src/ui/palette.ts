@@ -44,7 +44,7 @@ export const LIGHT: Record<PaletteName, string> = {
   green: '#c4e3cc',
   'green-line': '#2a6e3b',
   text: '#14201a',
-  gold: '#7a4f00', // dark amber: gold itself is unreadable on white
+  gold: '#245c33', // deep green (Jason): gold itself is unreadable on white
   warn: '#7a5200',
   'warn-line': '#c9a447',
   danger: '#b3261e',
