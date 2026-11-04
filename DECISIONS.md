@@ -986,3 +986,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Context:** The app and docs wrote the name "Freeform"; only the logo drew it as "Free FORM". Jason likes the stylized spelling: it's distinctive and matches the wordmark.
 - **Options:** Keep "Freeform" in text and the styling only in the logo; "FreeFORM" everywhere.
 - **Decision:** "FreeFORM" everywhere people read the name: the app's text and error messages, the browser tab, the home-screen name (manifest; offline cache bumped to `freeform-v4` so installed apps pick it up), link previews, the logo images' alt text, README, the How-to guide, the brand README, PLAN, CLAUDE.md, LICENSE and code comments. Unchanged on purpose *(Claude's call; Jason can veto)*: anything saved data or links depend on (`.freeform` files, the `freeform-show` format, `freeform:` storage keys, the `Freeform_2` repository and web address), earlier DECISIONS.md entries and IDEA.md (records of what was written at the time), and the label inside the existing logo SVG files, which carry content credentials that editing would break. `build_logo.py` uses the new name, so the next rebuild of the logo files picks it up.
+
+## 2026-11-04 15:05 EST — Store apps alongside the browser version
+- **Who:** Jason Tiller
+- **Context:** Planning ahead for app-store versions of FreeFORM, and how the docs will describe it. Claude pointed out that directors on school Chromebooks or locked-down district computers may not be able to install apps.
+- **Options:** Store apps replace the browser version; store apps alongside it.
+- **Decision:** Alongside. Jason wants people to be able to use FreeFORM anywhere they are, so the browser version stays. When the store apps ship, the docs and app text add them ("in your web browser, or as an app from the App Store or Google Play") instead of dropping the browser. The list of wording to update is on the store-apps item in PLAN.md.
