@@ -605,16 +605,16 @@ export function mirrorSides(show: Show, i: number, ids: string[], from: 1 | 2): 
 
 /**
  * Rotate (degrees; positive = counterclockwise as the director sees it) and/or scale the selected performers
- * in set i around the center of their bounding box.
+ * in set i around the center of their bounding box. `ky` stretches front to back separately (default: same as `scale`).
  */
-export function rotateScale(show: Show, i: number, ids: string[], deg: number, scale: number): Show {
+export function rotateScale(show: Show, i: number, ids: string[], deg: number, scale: number, ky = scale): Show {
   if (!ids.length) return show;
   const pos = show.sets[i].pos;
   const xs = ids.map((id) => pos[id].x), ys = ids.map((id) => pos[id].y);
   const cx = (Math.min(...xs) + Math.max(...xs)) / 2, cy = (Math.min(...ys) + Math.max(...ys)) / 2;
   const a = (deg * Math.PI) / 180, cos = Math.cos(a), sin = Math.sin(a);
   const tidy = (n: number) => Math.round(n * 1e9) / 1e9; // keep 90° turns landing exactly on whole steps
-  const f = (p: Point) => { const dx = p.x - cx, dy = p.y - cy; return { x: tidy(cx + scale * (dx * cos - dy * sin)), y: tidy(cy + scale * (dx * sin + dy * cos)) }; };
+  const f = (p: Point) => { const dx = p.x - cx, dy = p.y - cy; return { x: tidy(cx + scale * (dx * cos - dy * sin)), y: tidy(cy + ky * (dx * sin + dy * cos)) }; };
   return mapTurns(placeInSet(show, i, Object.fromEntries(ids.map((id) => [id, f(pos[id])]))), i, ids, f);
 }
 

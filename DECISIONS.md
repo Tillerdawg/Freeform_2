@@ -964,3 +964,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
   - **Angles land on whole degrees and pull to multiples of 15° within 4°; scale lands on whole percents and pulls to 100% within 3%**, so 45° and 90° are easy to hit by finger. The amount shows in the bottom-left readout while dragging.
   - **No grid snap afterward**, same as the menu: a turned block would otherwise collapse dots onto each other. Snap to grid → Apply rounds them when wanted.
   - Same center as the menu (the selection's bounding box), FTL turns go along, each drag is one Undo, and a second finger takes the drag back like every other one-finger action. Handles are sized for fingers on touch screens.
+
+## 2026-11-04 10:15 EST — Corners stretch one direction by default
+- **Who:** Jason Tiller (stretching one way is the default); how the corners do it is Claude's call *(Jason can veto)*.
+- **Context:** The on-field corners scaled evenly (entry above); Jason wanted one-direction stretching to be what a corner drag does.
+- **Options:** Corners stretch each direction on their own; edge handles stretch one way and corners scale evenly; a modifier key to switch (no good on touch).
+- **Decision:** Corners stretch side to side and front to back independently, along the field's lines (not the frame's, after a rotate): drag sideways and only the width changes, up or down and only the depth, diagonally for both. Each direction lands on whole percents and pulls to 100% within 3%, so a slightly crooked sideways drag doesn't change the depth. Dragging past the center stops at 10% (no flipping; Flip does that). Even scaling stays in Transform ▾ (Expand/Contract). The readout shows both: "Side to side 150% · front to back 100%". `rotateScale` takes an optional separate front-to-back factor.

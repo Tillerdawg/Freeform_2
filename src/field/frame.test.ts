@@ -21,7 +21,8 @@ it('turns a drag into a rotation or a scale, pulled to round numbers', () => {
   expect(frameDrag('rotate', c, { x: 0, y: 10 }, { x: -Math.sin(0.6), y: Math.cos(0.6) }).deg).toBe(34); // 34.4°
   expect(frameDrag('rotate', c, { x: 0, y: 10 }, { x: -Math.sin(0.8), y: Math.cos(0.8) }).deg).toBe(45); // 45.8° → 45
   expect(Math.abs(frameDrag('rotate', c, { x: 0, y: -10 }, { x: 0.01, y: 10 }).deg)).toBe(180); // wraps, never 360
-  expect(frameDrag('scale', c, { x: 3, y: 4 }, { x: 6, y: 8 }).k).toBe(2);
-  expect(frameDrag('scale', c, { x: 3, y: 4 }, { x: 3.1, y: 4.1 }).k).toBe(1); // 102% → 100%
-  expect(frameDrag('scale', c, { x: 3, y: 4 }, { x: 0, y: 0 }).k).toBe(0.1); // never collapses to a point
+  expect(frameDrag('scale', c, { x: 3, y: 4 }, { x: 6, y: 8 })).toEqual({ deg: 0, kx: 2, ky: 2 }); // diagonal: both
+  expect(frameDrag('scale', c, { x: 3, y: 4 }, { x: 6, y: 4.1 })).toEqual({ deg: 0, kx: 2, ky: 1 }); // sideways: wider only
+  expect(frameDrag('scale', c, { x: -3, y: -4 }, { x: -3, y: -6 })).toEqual({ deg: 0, kx: 1, ky: 1.5 }); // any corner works
+  expect(frameDrag('scale', c, { x: 3, y: 4 }, { x: -1, y: 4 }).kx).toBe(0.1); // across the center: never flips
 });

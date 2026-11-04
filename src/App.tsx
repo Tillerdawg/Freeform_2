@@ -49,7 +49,7 @@ type Drag =
   | { kind: 'mark'; id: string; start: Point; orig: Mark; at: [number, number]; moved?: boolean }
   | { kind: 'arrow'; id: string }
   | { kind: 'ink'; id: string }
-  | { kind: 'frame'; mode: 'rotate' | 'scale'; c: Point; down: Point; orig: Show; ids: string[]; deg: number; k: number };
+  | { kind: 'frame'; mode: 'rotate' | 'scale'; c: Point; down: Point; orig: Show; ids: string[]; deg: number; kx: number; ky: number };
 
 const snapTo = snapPoint;
 
@@ -216,7 +216,7 @@ export function App() {
     const pts = [...selected].flatMap((id) => (pos[id] ? [pos[id]] : []));
     if (pts.length < 2) return null;
     const px = (coarse() ? 2 : 1) * dpr / view!.scale; // one CSS pixel (two on touch screens) in steps
-    return selectionFrame(pts, 12 * px, 22 * px, d?.deg, d?.k);
+    return selectionFrame(pts, 12 * px, 22 * px, d?.deg, d?.kx, d?.ky);
   };
 
   useEffect(() => {
@@ -395,7 +395,7 @@ export function App() {
     if (fr) {
       const near = (h: Point) => { const q = toScreen(view, h); return Math.abs(q.x - e.nativeEvent.offsetX * dpr) <= grab && Math.abs(q.y - e.nativeEvent.offsetY * dpr) <= grab; };
       const mode = near(fr.knob) ? 'rotate' : fr.corners.some(near) ? 'scale' : null;
-      if (mode) { drag.current = { kind: 'frame', mode, c: fr.c, down: p, orig: show, ids: [...selected], deg: 0, k: 1 }; return; }
+      if (mode) { drag.current = { kind: 'frame', mode, c: fr.c, down: p, orig: show, ids: [...selected], deg: 0, kx: 1, ky: 1 }; return; }
     }
     if ((tool === 'text' || tool === 'arrow' || tool === 'draw') && onSet >= 0) {
       e.preventDefault(); // keep the click from pulling focus off the note's text box
@@ -488,10 +488,10 @@ export function App() {
       const q = snapTo(p, snap), leader = ftlGroup.order[0], turns = ftlGroup.turns.map((x, k) => (k === d.k ? q : x));
       setShow((s) => setFtlTurns(s, onSet, leader, turns));
     } else if (d.kind === 'frame') {
-      const { deg, k } = frameDrag(d.mode, d.c, d.down, p);
-      d.deg = deg; d.k = k;
-      setShow(() => rotateScale(d.orig, onSet, d.ids, deg, k));
-      setHover(d.mode === 'rotate' ? `Rotate ${Math.abs(deg)}° ${deg > 0 ? 'counterclockwise' : deg < 0 ? 'clockwise' : ''}` : `Scale ${Math.round(k * 100)}%`);
+      const { deg, kx, ky } = frameDrag(d.mode, d.c, d.down, p);
+      Object.assign(d, { deg, kx, ky });
+      setShow(() => rotateScale(d.orig, onSet, d.ids, deg, kx, ky));
+      setHover(d.mode === 'rotate' ? `Rotate ${Math.abs(deg)}° ${deg > 0 ? 'counterclockwise' : deg < 0 ? 'clockwise' : ''}` : `Side to side ${Math.round(kx * 100)}% · front to back ${Math.round(ky * 100)}%`);
     } else if (d.kind === 'handle') {
       if (!shapeEdit) return;
       updateShape(moveHandle(shapeEdit.shape, d.i, snapTo(p, snap), e.altKey)); // Option/Alt: move this handle alone
