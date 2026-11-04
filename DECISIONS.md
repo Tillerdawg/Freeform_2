@@ -1004,3 +1004,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Context:** Jason registered freeformdrill.org at Cloudflare. Browsers keep saved data per web address, so shows saved at the old address don't appear at the new one.
 - **Options:** Ship an in-app "export your shows" notice and wait a week before switching; switch as soon as DNS is ready.
 - **Decision:** Switch as soon as DNS is ready, since nobody else has data to lose. Jason exports his shows first and imports them at the new address. Cloudflare's records stay "DNS only" (no Cloudflare proxy), because GitHub can't issue the HTTPS certificate through the proxy.
+
+## 2026-11-04 18:20 EST — A show/hide button for the timeline
+- **Who:** Jason Tiller asked for it; the details are Claude's *(Jason can veto)*.
+- **Context:** Writing drill on a tablet, the timeline and the sidebar take a lot of the screen. The sidebar already had a show/hide button; the timeline didn't.
+- **Options:** Collapse the timeline to just its play row; hide it completely; a single "focus mode" button that hides both.
+- **Decision:** Hide it completely, with its own button beside the sidebar button at the right end of the toolbar (pinned with Undo, so it's always in reach). Two buttons rather than one focus mode, so either panel can stay. It starts shown and isn't remembered between visits, like the sidebar. Hidden, not unmounted, so its zoom and menus survive. Showing or hiding it resizes the field, which refits it (zooms back out), the same as the sidebar button on a wide screen. This doesn't break the fixed-height rule, which is about things that change on their own as you work, not a button you press. Set controls stay in the top bar and the keyboard shortcuts keep working while it's hidden.

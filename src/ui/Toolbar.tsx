@@ -1,5 +1,5 @@
 import { createPortal } from 'react-dom';
-import { IconFit, IconRedo, IconSidebar, IconUndo } from './icons';
+import { IconFit, IconRedo, IconSidebar, IconTimeline, IconUndo } from './icons';
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { addBezierSegment, addCurvePoint, type Shape, type ShapeKind } from '../engine/shapes';
 import {
@@ -28,6 +28,7 @@ export interface ToolbarProps {
   canRedo: boolean;
   onFit: () => void;
   sidebar?: { open: boolean; toggle: () => void }; // the sidebar's show/hide button
+  timeline?: { open: boolean; toggle: () => void }; // the timeline's show/hide button
   shape: Shape | null;
   startShape: (k: ShapeKind) => void;
   updateShape: (patch: Partial<Shape>) => void;
@@ -102,6 +103,7 @@ export function Toolbar(p: ToolbarProps) {
       <button onClick={p.onUndo} disabled={!p.canUndo} title="Undo (⌘Z / Ctrl+Z)" aria-label="Undo" className="icon"><IconUndo /></button>
       <button onClick={p.onRedo} disabled={!p.canRedo} title="Redo (⇧⌘Z / Ctrl+Y)" aria-label="Redo" className="icon"><IconRedo /></button>
       <button onClick={p.onFit} title="Fit: zoom out to the whole field" aria-label="Fit field" className="icon"><IconFit /></button>
+      {p.timeline && <button onClick={p.timeline.toggle} aria-pressed={p.timeline.open} aria-label="Timeline" title={p.timeline.open ? 'Hide the timeline (more room for the field)' : 'Show the timeline (play, tempo, music, sets)'} className="icon"><IconTimeline /></button>}
       {p.sidebar && <button onClick={p.sidebar.toggle} aria-pressed={p.sidebar.open} aria-label="Sidebar" title={p.sidebar.open ? 'Hide the sidebar' : 'Show the sidebar (show, set notes, selection, sections, roster)'} className="icon"><IconSidebar /></button>}
       </span>
     </div>

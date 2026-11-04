@@ -89,6 +89,7 @@ export function App() {
   const [sideChoice, setSideChoice] = useState<boolean | null>(null); // null: the default for this width
   useEffect(() => setSideChoice(null), [narrow]);
   const sideOpen = sideChoice ?? !narrow;
+  const [timelineOpen, setTimelineOpen] = useState(true); // hide it for more field while writing (a tablet)
   const [adding, setAdding] = useState(false); // tap adds to the selection (shift-click without a keyboard)
   // Fingers on the field (canvas px). Two fingers pan and pinch; what the first one started is undone (atDown).
   const touches = useRef(new Map<number, Point>());
@@ -574,6 +575,7 @@ export function App() {
         section={section} setSection={setSection} snap={snap} setSnap={setSnap}
         onUndo={() => step('undo')} onRedo={() => step('redo')} canUndo={!!hist.past.length} canRedo={!!hist.future.length}
         onFit={() => { const c = canvasRef.current!; setView(fitView(c.width, c.height)); }} sidebar={{ open: sideOpen, toggle: () => setSideChoice(!sideOpen) }}
+        timeline={{ open: timelineOpen, toggle: () => setTimelineOpen(!timelineOpen) }}
         shape={shapeEdit?.shape ?? null} startShape={startShape} updateShape={updateShape} endShape={() => setShapeEdit(null)} />
       <div style={{ flex: 1, display: 'flex', minHeight: 0, position: 'relative' }}>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
@@ -594,9 +596,12 @@ export function App() {
             background: 'rgba(24,36,25,0.85)', color: PALETTE.text, fontSize: 14, fontVariantNumeric: 'tabular-nums', pointerEvents: 'none' }}>{hover}</div>
         )}
         </div>
+        {/* Hidden, not unmounted, like the sidebar: its zoom and menus survive. */}
+        <div style={timelineOpen ? undefined : { display: 'none' }}>
         <Timeline wave={wave && show.music && show.music.taps.length >= 2 ? { peaks: wave, taps: show.music.taps } : undefined} show={show} setShow={setShow} t={t} setT={(x) => { setPlaying(false); setT(x); }} playing={playing} setPlaying={setPlaying} bpm={bpm} setBpm={setBpm}
           range={range} setRange={setRange} span={span}
           music={<MusicMenu show={show} setShow={setShow} audio={audio} onAudio={() => setAudioTick((n) => n + 1)} useMusic={useMusic} setUseMusic={setUseMusic} />} />
+        </div>
       </div>
       {/* Hidden, not unmounted: open panels and drafts survive closing it. */}
       <div style={!sideOpen ? { display: 'none' } : narrow ? { position: 'absolute', top: 0, right: 0, bottom: 0, maxWidth: '100%', zIndex: 10, display: 'flex',

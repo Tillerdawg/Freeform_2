@@ -55,7 +55,7 @@ A note on where the ideas came from: FreeFORM is modeled on Pyware and the Ultim
 - Autosave in your browser, plus export and import of `.freeform` files.
 - Import Pyware 3D (`.3dj`) shows, tested with files from 2008 to 2010.
 
-It runs on a current Chrome, Edge, Firefox, or Safari, and on iPadOS/iOS 16.4 or later. Write drill on a computer or an iPad. Phones get only the performer view.
+It runs on a current Chrome, Edge, Firefox, or Safari, and on iPadOS/iOS 16.4 or later. Write drill on a computer or an iPad (hide the timeline and sidebar for more field). Phones get only the performer view.
 
 ## Roadmap
 
