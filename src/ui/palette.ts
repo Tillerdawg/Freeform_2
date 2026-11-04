@@ -1,3 +1,5 @@
+import { useSyncExternalStore } from 'react';
+
 // Freeform's colors, one set for the whole app. The page styles use the same names as CSS variables (index.html,
 // :root); canvas drawing (the field, the phone view) uses these values. palette.test.ts keeps the two in step and checks
 // contrast: legible beats pretty (text 4.5:1, lines and shapes 3:1).
@@ -26,3 +28,49 @@ export const PALETTE = {
 export type PaletteName = keyof typeof PALETTE;
 /** For inline styles: `css('surface')` → 'var(--surface)'. */
 export const css = (name: PaletteName) => `var(--${name})`;
+
+/**
+ * Light mode: the same names for the panels, buttons and text (index.html, :root[data-theme=light]). The field itself
+ * doesn't change: turf, yard lines, dots and paths keep PALETTE, so a show looks the same in both modes.
+ */
+export const LIGHT: Record<PaletteName, string> = {
+  bg: '#eef3ef',
+  'bg-deep': '#ffffff',
+  surface: '#e3ebe5',
+  'surface-2': '#d5e0d8',
+  line: '#bfcdc3',
+  'line-strong': '#8ea596',
+  muted: '#5f7564',
+  green: '#c4e3cc',
+  'green-line': '#2a6e3b',
+  text: '#14201a',
+  gold: '#7a4f00', // dark amber: gold itself is unreadable on white
+  warn: '#7a5200',
+  'warn-line': '#c9a447',
+  danger: '#b3261e',
+  'step-red': '#c41e1e',
+  'danger-bg': '#f6d5d3',
+  'danger-line': '#c96a64',
+  blue: '#075f85',
+  turf: '#357842',
+};
+
+export type ThemeName = 'dark' | 'light';
+const KEY = 'freeform:theme';
+let theme: ThemeName = (() => { try { return localStorage.getItem(KEY) === 'light' ? 'light' : 'dark'; } catch { return 'dark'; } })();
+const listeners = new Set<() => void>();
+/** A panel color for canvas drawing (the space around the field, the waveform), in the current mode. */
+export const chrome = (name: PaletteName) => (theme === 'light' ? LIGHT : PALETTE)[name];
+function apply() {
+  if (typeof document === 'undefined') return; // tests
+  document.documentElement.dataset.theme = theme;
+  document.querySelector('meta[name=theme-color]')?.setAttribute('content', chrome('bg'));
+}
+apply();
+export function setTheme(t: ThemeName) {
+  theme = t; apply();
+  try { localStorage.setItem(KEY, t); } catch { /* private mode: this visit only */ }
+  listeners.forEach((f) => f());
+}
+/** The current mode; a component using it redraws its canvas when the mode changes. */
+export const useTheme = () => useSyncExternalStore((f) => { listeners.add(f); return () => { listeners.delete(f); }; }, () => theme);

@@ -22,6 +22,8 @@ import { parse3dj } from './engine/pyware';
 import { usePlayback } from './ui/usePlayback';
 import { PrintDialog } from './print/Print';
 import { ShareDialog } from './perform/ShareDialog';
+import { PALETTE, useTheme } from './ui/palette';
+import { ThemeButton } from './ui/ThemeButton';
 
 export const AUTOSAVE = 'freeform:autosave';
 
@@ -57,6 +59,7 @@ export function App() {
   const setShow = useCallback((f: Show | ((s: Show) => Show)) => setShowRaw((s) => normalizeFtl(typeof f === 'function' ? f(s) : f)), []);
   const [t, setT] = useState(0);
   const [view, setView] = useState<View | null>(null);
+  const theme = useTheme();
   const [hover, setHover] = useState('');
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [tool, setTool] = useState<Tool>('select');
@@ -224,7 +227,7 @@ export function App() {
         : [];
       drawShape(ctx, view, guide.pts, guide.closed, h, h.map((_, k) => isControl(sh, k)), arms);
     }
-  }, [view, show, positions, selected, paths, box, shapeEdit, onSet, selectedMark, playing, t]);
+  }, [view, show, positions, selected, paths, box, shapeEdit, onSet, selectedMark, playing, t, theme]);
 
   // Empty text notes are removed as soon as they're not the one being edited (no timing to get wrong).
   useEffect(() => {
@@ -532,12 +535,13 @@ export function App() {
       <div style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '0 12px', height: coarse() ? 56 : 40, flexShrink: 0, whiteSpace: 'nowrap', overflowX: 'auto', overflowY: 'hidden', scrollbarWidth: 'none' }}>
         {/* The small logo; just the curve when the window is narrow, so it never crowds the set controls. */}
         <span className="tb-long-sm" style={{ flex: '1 1 0', minWidth: 0, display: 'flex' }}>
-          <picture><source media="(max-width: 1000px)" srcSet="./mark.svg" />
-            <img src="./logo-small.svg" alt="Freeform" style={{ height: coarse() ? 30 : 24, display: 'block' }} /></picture>
+          <picture><source media="(max-width: 1000px)" srcSet={theme === 'light' ? './mark-light.svg' : './mark.svg'} />
+            <img src={theme === 'light' ? './logo-small-light.svg' : './logo-small.svg'} alt="Freeform" style={{ height: coarse() ? 30 : 24, display: 'block' }} /></picture>
         </span>
         <div style={{ flex: 'none' }}><SetControls show={show} setShow={setShow} t={t} setT={(x) => { setPlaying(false); setT(x); }} /></div>
         <span style={{ flex: '1 1 0', fontSize: 12, opacity: tool === 'turn' ? 1 : 0.7, color: tool === 'turn' ? 'var(--gold)' : undefined, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'right' }}>{tool === 'turn' ? (coarse() ? "Tap the field for each of the leader's turns, in marching order · then tap Select Performer(s)" : "Click the field for each of the leader's turns, in marching order · Esc when done")
           : coarse() ? 'Two fingers: drag to move around, pinch to zoom' : 'Scroll to pan · pinch or ⌘/Ctrl+scroll to zoom · right-drag pans'}</span>
+        <span style={{ flex: 'none' }}><ThemeButton /></span>
       </div>
       <Toolbar show={show} setShow={setShow} onSet={onSet} selected={selected} setSelected={setSelected} tool={tool} setTool={setTool}
         section={section} setSection={setSection} snap={snap} setSnap={setSnap}
@@ -560,7 +564,7 @@ export function App() {
         {/* Floats over the field so its changing length can't move the layout. */}
         {hover && (
           <div style={{ position: 'absolute', left: 8, bottom: 8, maxWidth: 'calc(100% - 16px)', padding: '4px 8px', borderRadius: 4,
-            background: 'rgba(24,36,25,0.85)', fontSize: 14, fontVariantNumeric: 'tabular-nums', pointerEvents: 'none' }}>{hover}</div>
+            background: 'rgba(24,36,25,0.85)', color: PALETTE.text, fontSize: 14, fontVariantNumeric: 'tabular-nums', pointerEvents: 'none' }}>{hover}</div>
         )}
         </div>
         <Timeline wave={wave && show.music && show.music.taps.length >= 2 ? { peaks: wave, taps: show.music.taps } : undefined} show={show} setShow={setShow} t={t} setT={(x) => { setPlaying(false); setT(x); }} playing={playing} setPlaying={setPlaying} bpm={bpm} setBpm={setBpm}

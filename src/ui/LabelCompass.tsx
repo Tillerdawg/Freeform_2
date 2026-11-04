@@ -13,7 +13,7 @@ const SIZE = 88, R = 32, DOT = 18;
 export function LabelCompass({ value, onPick }: { value: LabelSide | '' | 'mixed'; onPick: (side: LabelSide | null) => void }) {
   const btn = (on: boolean): React.CSSProperties => ({
     position: 'absolute', width: DOT, height: DOT, padding: 0, borderRadius: '50%', border: '2px solid var(--gold)',
-    background: on ? 'var(--gold)' : '#111', cursor: 'pointer', transform: 'translate(-50%, -50%)',
+    background: on ? 'var(--gold)' : 'var(--bg-deep)', cursor: 'pointer', transform: 'translate(-50%, -50%)',
   });
   return (
     <div role="group" aria-label="Label direction" style={{ position: 'relative', width: SIZE, height: SIZE, flex: 'none' }}>
@@ -24,7 +24,7 @@ export function LabelCompass({ value, onPick }: { value: LabelSide | '' | 'mixed
       ))}
       <button aria-label="Label placed automatically" title="Automatic: Freeform picks a free side, and hides the label when there's no room"
         aria-pressed={value === ''} onClick={() => onPick(null)}
-        style={{ ...btn(value === ''), left: SIZE / 2, top: SIZE / 2, width: 26, height: 26, fontSize: 10, fontWeight: 700, color: value === '' ? '#111' : 'var(--gold)' }}>
+        style={{ ...btn(value === ''), left: SIZE / 2, top: SIZE / 2, width: 26, height: 26, fontSize: 10, fontWeight: 700, color: value === '' ? 'var(--bg-deep)' : 'var(--gold)' }}>
         A
       </button>
     </div>

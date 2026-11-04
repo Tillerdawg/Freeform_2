@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { peakBetween, timeAt } from '../engine/music';
-import { PALETTE } from './palette';
+import { chrome, useTheme } from './palette';
 import { addSetAfter, biggestStep, insertSetAt, locate, MAX_MOVEMENT, movementAt, movementOfSet, movementStarts, moveSetTo, newId, removeSet, setAt, setCounts, setMeasures, playPlan, setStarts, showLength, totalCounts, type Show } from '../engine/show';
 import { Menu } from './Toolbar';
 import { STEP_TEXT } from '../field/drawField';
@@ -256,7 +256,7 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
             return (
               <div key={c} style={{
                 position: 'absolute', bottom: 0, left: `${(c / total) * 100}%`, width: here ? 2 : 1, marginLeft: here ? -1 : 0,
-                height: here ? 16 : intoMove % 4 === 0 ? 10 : 6, background: here ? '#fff' : 'rgba(255,255,255,0.5)', pointerEvents: 'none',
+                height: here ? 16 : intoMove % 4 === 0 ? 10 : 6, background: here ? 'var(--text)' : 'color-mix(in srgb, var(--text) 50%, transparent)', pointerEvents: 'none',
                 boxShadow: wave ? '0 0 0 1px var(--bg-deep)' : undefined, // a dark edge keeps ticks readable over the waveform
               }} />
             );
@@ -264,7 +264,7 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
           {/* Dim what's outside the play range. */}
           {span[0] > 0 && <div style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: `${(span[0] / total) * 100}%`, background: 'rgba(0,0,0,0.45)', pointerEvents: 'none' }} />}
           {span[1] < total && <div style={{ position: 'absolute', top: 0, bottom: 0, right: 0, width: `${((total - span[1]) / total) * 100}%`, background: 'rgba(0,0,0,0.45)', pointerEvents: 'none' }} />}
-          <div style={{ position: 'absolute', top: -4, bottom: -4, width: 2, background: '#fff', left: `${(t / total) * 100}%`, pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', top: -4, bottom: -4, width: 2, background: 'var(--text)', left: `${(t / total) * 100}%`, pointerEvents: 'none' }} />
         </div>
       )}
       </div>
@@ -350,6 +350,7 @@ function Movements({ show, setShow }: { show: Show; setShow: (f: (s: Show) => Sh
 function Wave({ wave, total }: { wave: NonNullable<Props['wave']>; total: number }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const [w, setW] = useState(0);
+  const theme = useTheme();
   useEffect(() => {
     const c = ref.current!;
     const ro = new ResizeObserver(() => setW(c.clientWidth));
@@ -361,7 +362,7 @@ function Wave({ wave, total }: { wave: NonNullable<Props['wave']>; total: number
     c.width = Math.min(16384, Math.round(w * dpr)); c.height = H * dpr; // canvases have a size limit; a zoomed-in timeline is stretched
     const ctx = c.getContext('2d')!;
     ctx.clearRect(0, 0, c.width, c.height);
-    ctx.fillStyle = PALETTE['green-line'];
+    ctx.fillStyle = chrome('green-line');
     const mid = c.height / 2;
     for (let x = 0; x < c.width; x++) {
       const c0 = (x / c.width) * total, c1 = ((x + 1) / c.width) * total;
@@ -369,6 +370,6 @@ function Wave({ wave, total }: { wave: NonNullable<Props['wave']>; total: number
       const h = Math.max(dpr * 0.5, v * mid);
       ctx.fillRect(x, mid - h, 1, h * 2);
     }
-  }, [w, wave, total]);
+  }, [w, wave, total, theme]);
   return <canvas ref={ref} aria-hidden style={{ position: 'absolute', left: 0, right: 0, bottom: 0, width: '100%', height: 22, pointerEvents: 'none', opacity: 0.75 }} />; // 3.8:1 or more on every timeline background
 }

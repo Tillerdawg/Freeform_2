@@ -23,3 +23,6 @@ export const IconFit = L('M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4');
 export const IconZoomIn = L('M6.5 1.5a5 5 0 1 0 0 10a5 5 0 1 0 0-10M10.2 10.2 14.5 14.5M4.5 6.5h4M6.5 4.5v4');
 export const IconZoomOut = L('M6.5 1.5a5 5 0 1 0 0 10a5 5 0 1 0 0-10M10.2 10.2 14.5 14.5M4.5 6.5h4');
 export const IconGrip = S('M5 2h2v2H5zM9 2h2v2H9zM5 7h2v2H5zM9 7h2v2H9zM5 12h2v2H5zM9 12h2v2H9z'); // drag to reorder
+// Light and dark mode: the button shows the mode it switches to.
+export const IconSun = L('M8 5.5a2.5 2.5 0 1 0 0 5a2.5 2.5 0 1 0 0-5M8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3.05 3.05l1.06 1.06M11.89 11.89l1.06 1.06M3.05 12.95l1.06-1.06M11.89 4.11l1.06-1.06');
+export const IconMoon = L('M13.5 9.5A5.5 5.5 0 1 1 6.5 2.5a4.5 4.5 0 0 0 7 7z');

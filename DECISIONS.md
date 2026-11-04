@@ -937,3 +937,13 @@ Each entry: timestamp, who decided, context, options considered, decision.
   - **Phone start screen** and **old-browser page:** the full logo.
   - **Link previews:** `og-image.png` (logo on field dark) and a description with the tagline, for iMessage, Slack and email.
   - **Printouts: no logo.** Dot sheets and charts belong to the director's show, the way a score belongs to its composer, not the notation program; a logo on every card would also cost ink and space. Easy to revisit as an opt-in "Made with Freeform" line.
+
+## 2026-11-04 09:20 EST — Light mode
+- **Who:** Jason Tiller asked for a light mode users can switch to; the details below are Claude's calls (Jason can veto).
+- **Context:** The app had one dark palette shared by the page styles and the canvas.
+- **Options:** Light mode for everything, the field included; light panels with the field unchanged; follow the device's light/dark setting, or a button; where the button goes.
+- **Decision:**
+  - **The field doesn't change.** Turf, yard lines, dots, paths and their warning colors keep the current palette in both modes, so a show reads the same everywhere and the contrast checks on the turf still hold. Only what sits off the turf follows the mode: the panels, buttons, text, the space around the field and the yard numbers printed there.
+  - **A second palette** (`LIGHT` in `palette.ts`, `:root[data-theme=light]` in `index.html`), with the same names and the same contrast checks as the dark one. Gold becomes a dark amber in light mode, since gold is unreadable on white.
+  - **A button, default dark.** A sun/moon button at the right of the editor's top bar and beside Facing front on the phone; the choice is kept in that browser. It doesn't follow the device's setting yet (that would turn Freeform light for everyone whose computer is in light mode, unasked); easy to add as the default when nothing's been chosen.
+  - **Logos:** the brand's light versions in light mode.

@@ -1,4 +1,4 @@
-import { PALETTE } from '../ui/palette';
+import { chrome, PALETTE } from '../ui/palette';
 import { placeLabels, turned } from './labels';
 import type { LabelSide } from '../engine/show';
 import { FIELD_WIDTH, GOAL_LINE_X, HASHES, STEP_IN, type HashPreset, type Point } from '../engine/coords';
@@ -24,7 +24,7 @@ export function fitView(w: number, h: number): View {
 
 /** Colors for the screen (green turf) and for paper (black on white, easy on toner and copiers). */
 export const THEMES = {
-  screen: { bg: PALETTE.bg, turf: PALETTE.turf, gridMinor: 'rgba(255,255,255,0.15)', gridMajor: 'rgba(255,255,255,0.32)', line: '#fff', number: 'rgba(255,255,255,0.9)' },
+  screen: { get bg() { return chrome('bg'); }, turf: PALETTE.turf, gridMinor: 'rgba(255,255,255,0.15)', gridMajor: 'rgba(255,255,255,0.32)', line: '#fff', get number() { return chrome('text'); } }, // bg and number sit off the turf, so they follow light/dark mode
   print: { bg: '#fff', turf: '#fff', gridMinor: 'rgba(0,0,0,0.07)', gridMajor: 'rgba(0,0,0,0.2)', line: '#000', number: '#555' },
 };
 export type Theme = keyof typeof THEMES;

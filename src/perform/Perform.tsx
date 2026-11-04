@@ -1,4 +1,5 @@
-import { PALETTE } from '../ui/palette';
+import { PALETTE, useTheme } from '../ui/palette';
+import { ThemeButton } from '../ui/ThemeButton';
 // Performer / staff view: read-only playback of a shared show, centered on "my" dot. Built for phones (portrait).
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { readout, type Point } from '../engine/coords';
@@ -35,6 +36,7 @@ const save = (s: Saved) => { try { localStorage.setItem(STORE, JSON.stringify(s)
 
 export function Perform() {
   const [state, setState] = useState<Saved | null>(loadSaved);
+  const theme = useTheme();
   const [error, setError] = useState('');
   const [t, setT] = useState(0);
   const [playing, setPlaying] = useState(false);
@@ -274,12 +276,12 @@ export function Perform() {
         ctx.fillText(yardLabel(x), at, H - band / 2 + 2 * dpr);
       }
     }
-  }, [show, size, positions, me, state, onSet, myPath, dpr, around, zoom, center, playing, t]);
+  }, [show, size, positions, me, state, onSet, myPath, dpr, around, zoom, center, playing, t, theme]);
 
   if (!show) {
     return (
       <main className="perform-empty">
-        <h1><img src="./logo.svg" alt="Freeform" style={{ width: 'min(280px, 100%)', display: 'block' }} /></h1>
+        <h1><img src={theme === 'light' ? './logo-light.svg' : './logo.svg'} alt="Freeform" style={{ width: 'min(280px, 100%)', display: 'block' }} /></h1>
         {error ? <p role="alert">{error}</p>
           : location.hash.startsWith(LOAD_PREFIX) ? <p>Downloading the show…</p>
           : <p>Open the show link your director sent you. It will be saved on this phone and work offline after that.</p>}
@@ -299,6 +301,7 @@ export function Perform() {
         <button aria-pressed={state!.facingFront} onClick={() => update({ facingFront: !state!.facingFront })}>{state!.facingFront ? 'Facing front' : 'Director view'}</button>
         {(zoom !== 1 || center.x !== 0 || center.y !== 42) && <button onClick={() => { setZoom(1); setCenter({ x: 0, y: 42 }); }}>Reset zoom</button>}
         {me && <button aria-pressed={state!.follow} onClick={() => { update({ follow: !state!.follow }); setZoom(1); setCenter({ x: 0, y: 42 }); }}>{state!.follow ? 'My view' : 'Whole field'}</button>}
+        <ThemeButton />
       </div>
   );
 
