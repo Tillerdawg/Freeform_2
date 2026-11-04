@@ -202,7 +202,7 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
             // The button starts at its set's line (its left edge on the line).
             style={{ position: 'absolute', zIndex: i === onSet ? 2 : 1, top: (rows[i] ?? 0) * ROW, height: ROW - 2, minHeight: 0, left: total ? `calc(${(starts[i] / total) * 100}% - 1px)` : 0,
               fontWeight: i === onSet ? 700 : 400, boxShadow: i === onSet ? 'inset 0 0 0 2px var(--gold)' : undefined, // inside the edge: the scroll strip clips anything outside it
-              ...(held === i ? { background: 'var(--gold)', color: 'var(--bg-deep)', transform: 'scale(1.1)', zIndex: 2 } : {}), padding: '0 6px', minWidth: TOUCH ? 44 : 24, lineHeight: '18px',
+              ...(held === i ? { background: 'var(--gold)', color: 'var(--on-gold)', transform: 'scale(1.1)', zIndex: 2 } : {}), padding: '0 6px', minWidth: TOUCH ? 44 : 24, lineHeight: '18px',
               cursor: i ? 'ew-resize' : 'pointer', touchAction: 'none' }}>
             {s.name}
           </button>

@@ -19,8 +19,8 @@
     <meta property="og:image" content="https://tillerdawg.github.io/Freeform_2/og-image.png" />
     <meta name="twitter:card" content="summary_large_image" />
     <style>
-      :root { --bg: #1d2a1f; --bg-deep: #182419; --surface: #22302a; --surface-2: #2b3b2f; --line: #33443a; --line-strong: #44594a; --muted: #6b8270; --green: #3d6b4a; --green-line: #7cc08b; --text: #e9f0ea; --gold: #ffd166; --warn: #f5c518; --warn-line: #5a4a1a; --danger: #ff8080; --step-red: #ff4d4d; --danger-bg: #5a2b2b; --danger-line: #a04848; --blue: #5ad1ff; --turf: #357842; } /* = src/ui/palette.ts */
-      :root[data-theme=light] { --bg: #eef3ef; --bg-deep: #ffffff; --surface: #e3ebe5; --surface-2: #d5e0d8; --line: #bfcdc3; --line-strong: #8ea596; --muted: #5f7564; --green: #c4e3cc; --green-line: #2a6e3b; --text: #14201a; --gold: #245c33; --warn: #7a5200; --warn-line: #c9a447; --danger: #b3261e; --step-red: #c41e1e; --danger-bg: #f6d5d3; --danger-line: #c96a64; --blue: #075f85; --turf: #357842; } /* = LIGHT in src/ui/palette.ts */
+      :root { --bg: #1d2a1f; --bg-deep: #182419; --surface: #22302a; --surface-2: #2b3b2f; --line: #33443a; --line-strong: #44594a; --muted: #6b8270; --green: #3d6b4a; --green-line: #7cc08b; --text: #e9f0ea; --gold: #ffd166; --on-gold: #182419; --warn: #f5c518; --warn-line: #5a4a1a; --danger: #ff8080; --step-red: #ff4d4d; --danger-bg: #5a2b2b; --danger-line: #a04848; --blue: #5ad1ff; --turf: #357842; } /* = src/ui/palette.ts */
+      :root[data-theme=light] { --bg: #eef3ef; --bg-deep: #ffffff; --surface: #e3ebe5; --surface-2: #d5e0d8; --line: #bfcdc3; --line-strong: #8ea596; --muted: #5f7564; --green: #c4e3cc; --green-line: #2a6e3b; --text: #14201a; --gold: #245c33; --on-gold: #ffd166; --warn: #7a5200; --warn-line: #c9a447; --danger: #b3261e; --step-red: #c41e1e; --danger-bg: #f6d5d3; --danger-line: #c96a64; --blue: #075f85; --turf: #357842; } /* = LIGHT in src/ui/palette.ts */
       html { touch-action: manipulation; } /* no double-tap page zoom on buttons; the field has its own pinch */
       html, body, #root { margin: 0; height: 100%; background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; }
       /* viewport-fit=cover makes iOS report its status bar, home indicator and notch as safe-area insets (without it they
@@ -39,7 +39,7 @@
       button:active:not(:disabled) { background: var(--surface); }
       button:disabled { opacity: .45; cursor: default; }
       button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
-      button[aria-pressed=true], button[aria-checked=true] { background: var(--gold); border-color: var(--gold); color: var(--bg-deep); font-weight: 600; }
+      button[aria-pressed=true], button[aria-checked=true] { background: var(--gold); border-color: var(--gold); color: var(--on-gold); font-weight: 600; }
       button.icon { padding: 4px 7px; }
       button > svg:only-child { margin: 0 auto; } /* icons are blocks: center them when the button is wider (44 px on touch) */
       button.primary { background: var(--green); border-color: var(--green-line); }

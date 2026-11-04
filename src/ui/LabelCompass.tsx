@@ -24,7 +24,7 @@ export function LabelCompass({ value, onPick }: { value: LabelSide | '' | 'mixed
       ))}
       <button aria-label="Label placed automatically" title="Automatic: Freeform picks a free side, and hides the label when there's no room"
         aria-pressed={value === ''} onClick={() => onPick(null)}
-        style={{ ...btn(value === ''), left: SIZE / 2, top: SIZE / 2, width: 26, height: 26, fontSize: 10, fontWeight: 700, color: value === '' ? 'var(--bg-deep)' : 'var(--gold)' }}>
+        style={{ ...btn(value === ''), left: SIZE / 2, top: SIZE / 2, width: 26, height: 26, fontSize: 10, fontWeight: 700, color: value === '' ? 'var(--on-gold)' : 'var(--gold)' }}>
         A
       </button>
     </div>
