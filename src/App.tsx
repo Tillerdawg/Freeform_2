@@ -94,6 +94,8 @@ export function App() {
   // Fingers on the field (canvas px). Two fingers pan and pinch; what the first one started is undone (atDown).
   const touches = useRef(new Map<number, Point>());
   const pinch = useRef<{ v: View; mid: Point; dist: number } | null>(null);
+  // Once an Apple Pencil (or any pen) touches the field, fingers only pan and zoom (two fingers), and a resting palm does nothing.
+  const penSeen = useRef(false);
   const atDown = useRef<{ show: Show; selected: Set<string>; mark: string | null; shape: typeof shapeEdit } | null>(null);
   const [hist, setHist] = useState(emptyHistory<Show>);
   const lastShow = useRef(show);
@@ -356,7 +358,13 @@ export function App() {
     const a = atDown.current;
     drag.current = null; atDown.current = null; setBox(undefined);
     if (!a) return;
-    if (show !== a.show) step('undo');
+    // Put the show back exactly as it was when that finger came down. (Not Undo: if the finger's change isn't in the
+    // history yet, Undo would take back the change before it, like a performer just placed with the Pencil.)
+    if (show !== a.show) {
+      setHist((h) => (h.past.at(-1) === a.show ? { ...h, past: h.past.slice(0, -1) } : h));
+      lastShow.current = a.show; // not a new change to record
+      setShowRaw(a.show);
+    }
     setSelected(a.selected); setSelectedMark(a.mark); setShapeEdit(a.shape);
   };
 
@@ -364,13 +372,15 @@ export function App() {
     if (!view) return;
     e.currentTarget.setPointerCapture(e.pointerId);
     const touch = e.pointerType === 'touch';
+    if (e.pointerType === 'pen') penSeen.current = true;
     if (touch) {
       touches.current.set(e.pointerId, { x: e.nativeEvent.offsetX * dpr, y: e.nativeEvent.offsetY * dpr });
       if (touches.current.size >= 2) {
-        cancelGesture();
+        if (!penSeen.current) cancelGesture(); // with a Pencil, fingers never started anything (and the Pencil's work stays)
         if (!pinch.current) pinch.current = { v: view, ...fingers() };
         return;
       }
+      if (penSeen.current) return; // Pencil in use: one finger or a resting palm does nothing; the Pencil edits
     }
     atDown.current = { show, selected, mark: selectedMark, shape: shapeEdit };
     const add = e.shiftKey || adding;
@@ -460,6 +470,7 @@ export function App() {
         setView(pinchView(g.v, g.mid, f.mid, g.dist, f.dist, 2 * dpr, 120 * dpr)); // the same limits as the wheel
         return;
       }
+      if (penSeen.current) return; // a lone finger or palm while the Pencil is in use
     }
     const p = world(e);
     setHover(readout(p, show.hash));
@@ -512,7 +523,9 @@ export function App() {
     if (touches.current.size < 2) pinch.current = null; // the finger left behind does nothing until it lifts
   };
   const onPointerUp = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    const finger = touches.current.has(e.pointerId);
     liftFinger(e);
+    if (finger && penSeen.current) return; // fingers only pan and zoom: what's under way belongs to the Pencil
     atDown.current = null;
     // Apply the release point too: a fast release can arrive without a final pointermove, landing the drag short.
     if (drag.current && drag.current.kind !== 'pan') onPointerMove(e);
@@ -587,7 +600,12 @@ export function App() {
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
-          onPointerCancel={(e) => { liftFinger(e); cancelGesture(); }} // the system took the touch (an edge swipe)
+          onPointerCancel={(e) => { // the system took the touch (an edge swipe, or iPadOS when fingers join a Pencil)
+            const finger = touches.current.has(e.pointerId);
+            liftFinger(e);
+            if (e.pointerType === 'pen') { drag.current = null; atDown.current = null; setBox(undefined); } // keep what the Pencil did
+            else if (!(finger && penSeen.current)) cancelGesture();
+          }}
           onPointerLeave={() => setHover('')}
         />
         {/* Floats over the field so its changing length can't move the layout. */}

@@ -324,6 +324,7 @@ The editor works on an iPad the same way it does on a computer, with a few touch
 
 - **One finger** does whatever the tool does: tap to select or add, drag to move, drag on open field for a box.
 - **Two fingers** pan and pinch-zoom the field. If a second finger lands while the first one has started something, FreeFORM takes that back and moves the view instead.
+- **With an Apple Pencil**, the Pencil does the editing. Once you've used it on the field, a single finger or a palm resting on the screen does nothing there, so you can rest your hand while you work. Two fingers still pan and zoom, and they never undo what the Pencil just did. To go back to editing with your finger, reload the page.
 - Turn on **Add to selection** to build up a selection without a Shift key.
 - On the timeline, tap a set to go to it and swipe to scroll. To move a set to a new count, touch and hold its button until it lifts, then drag. That way a swipe can't move a set by accident.
 - On an iPad held upright, the sidebar starts hidden. The sidebar button opens it over the right side of the field.

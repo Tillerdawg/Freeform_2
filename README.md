@@ -61,7 +61,7 @@ It runs on a current Chrome, Edge, Firefox, or Safari, and on iPadOS/iOS 16.4 or
 
 The full list is in [PLAN.md](PLAN.md). What's next, roughly:
 
-- Touch versions of the few actions that still need a keyboard key, and Apple Pencil support
+- Touch versions of the few actions that still need a keyboard key
 - Paths on printed charts, a notes column on dot sheets, and one dot sheet per page
 - Faster count entry for recordings that weren't made from the score (tap a few downbeats, FreeFORM fills in the rest)
 - Markup that spans several sets
