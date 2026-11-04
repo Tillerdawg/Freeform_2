@@ -992,3 +992,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Context:** Planning ahead for app-store versions of FreeFORM, and how the docs will describe it. Claude pointed out that directors on school Chromebooks or locked-down district computers may not be able to install apps.
 - **Options:** Store apps replace the browser version; store apps alongside it.
 - **Decision:** Alongside. Jason wants people to be able to use FreeFORM anywhere they are, so the browser version stays. When the store apps ship, the docs and app text add them ("in your web browser, or as an app from the App Store or Google Play") instead of dropping the browser. The list of wording to update is on the store-apps item in PLAN.md.
+
+## 2026-11-04 15:10 EST — freeformdrill.org as the web address
+- **Who:** Jason Tiller
+- **Context:** The app lives at `tillerdawg.github.io/Freeform_2/`. Jason wants an address of FreeFORM's own; store apps opening QR-code links need a domain FreeFORM controls (iOS Universal Links and Android App Links need files at the domain's root).
+- **Options:** Rename the repository (moves the github.io address and breaks every existing link); a custom domain.
+- **Decision:** A custom domain, freeformdrill.org, once it's confirmed available and registered. The repository keeps its name, and the old address should forward to the new one. The switch plan, including moving saved shows (browsers keep data per address), is in PLAN.md.
