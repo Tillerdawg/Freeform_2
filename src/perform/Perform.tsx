@@ -16,6 +16,7 @@ import { IconNext, IconPause, IconPlay, IconPrev } from '../ui/icons';
 import { describe, nearest, yardLabel } from './neighbors';
 import { panCenter, pinchZoom, ZOOM_MAX } from './gestures';
 import { WhoPicker } from './WhoPicker';
+import { NumberField } from '../ui/NumberField';
 
 const STORE = 'freeform:performer'; // separate from the editor's autosave, so opening a link never touches a director's work
 const STAFF = 'staff';
@@ -394,7 +395,7 @@ export function Perform() {
           <button style={btn} aria-label={playing ? 'Pause' : 'Play'} disabled={!total || (!playing && t >= total)} title={t >= total ? 'End of the show: tap set 1 (or another set) to play from there' : undefined} onClick={() => { if (!playing && music) music.audio.play().catch(() => {}); /* start sound inside the tap: phones only allow it there */ setPlaying(!playing); }}>{playing ? <IconPause /> : <IconPlay />}</button>
           <button style={btn} aria-label="Next count" onClick={() => { setPlaying(false); setT(Math.min(total, Math.floor(t) + 1)); }}><IconNext /></button>
           {audio && <button aria-pressed={useMusic} title={useMusic ? 'Playing with the music. Tap to use a tempo instead.' : 'Play with the music'} onClick={() => { setPlaying(false); setUseMusic(!useMusic); }} style={{ fontSize: 14, minHeight: 40 }}>♪ Music</button>}
-          {!music && <label style={{ fontSize: 14 }}><input aria-label="Tempo" type="number" min={20} max={300} value={bpm} onChange={(e) => setBpm(Number(e.target.value) || 120)} style={{ width: 52, fontSize: 16 }} /> bpm</label>}
+          {!music && <label style={{ fontSize: 14 }}><NumberField aria-label="Tempo" min={20} max={300} integer value={bpm} onValue={setBpm} style={{ width: 52, fontSize: 16 }} /> bpm</label>}
         </div>
       </footer>
     </div>

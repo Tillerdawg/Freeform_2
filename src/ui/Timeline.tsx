@@ -7,6 +7,7 @@ import { STEP_TEXT } from '../field/drawField';
 import { fmtStep } from './format';
 import { IconNext, IconPause, IconPlay, IconPrev, IconStart, IconZoomIn, IconZoomOut } from './icons';
 import { coarse } from '../perform/device';
+import { NumberField } from './NumberField';
 
 const TOUCH = coarse();
 const ROW = TOUCH ? 46 : 22; // set-button rows: 44 px buttons on a touch screen
@@ -127,7 +128,7 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
           title={!playing && t >= total ? 'End of the show: pick a set to play from there' : undefined}>{playing ? <IconPause /> : <IconPlay />}</button>
         <button aria-label="Next count" onClick={() => setT(Math.min(total, Math.floor(t) + 1))}><IconNext /></button>
         <label>
-          Tempo <input type="number" min={20} max={300} value={bpm} onChange={(e) => setBpm(Number(e.target.value) || 120)} style={{ width: 56 }} /> bpm
+          Tempo <NumberField min={20} max={300} integer value={bpm} onValue={setBpm} style={{ width: 56 }} /> bpm
         </label>
         {music}
         <Movements show={show} setShow={setShow} />
@@ -299,9 +300,9 @@ export function SetControls({ show, setShow, t, setT }: { show: Show; setShow: (
     <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
       <strong>Set {show.sets[cur].name}</strong>
       <label>Counts{' '}
-        <input type="number" min={1} aria-label="Counts" disabled={cur === 0} title={cur === 0 ? 'The opening set has no move into it' : undefined}
+        <NumberField min={1} integer whenDone aria-label="Counts" disabled={cur === 0} title={cur === 0 ? 'The opening set has no move into it' : undefined}
           value={cur === 0 ? '' : show.sets[cur].counts} style={{ width: 46 }}
-          onChange={(e) => setShow((s) => setCounts(s, cur, Number(e.target.value)))} />
+          onValue={(n) => setShow((s) => setCounts(s, cur, n))} />
       </label>
       <label>Measures{' '}
         <input aria-label="Measures" placeholder={cur > 0 ? 'e.g. 9–12' : 'e.g. 1–4'} value={show.sets[cur].measures ?? ''} style={{ width: 64 }}
@@ -309,7 +310,7 @@ export function SetControls({ show, setShow, t, setT }: { show: Show; setShow: (
       </label>
       <button onClick={add} title={target === null ? 'Add a new set after this one (16 counts; later sets move along). Or type a count to add a set there.' : `Add a set landing on count ${target}; every other set stays where it is`}>+ Add set</button>
       <label>at count{' '}
-        <input type="number" min={1} aria-label="Add set at count" placeholder={onSet < 0 ? String(Math.round(t)) : ''} value={at} style={{ width: 52 }}
+        <input type="number" inputMode="numeric" min={1} aria-label="Add set at count" placeholder={onSet < 0 ? String(Math.round(t)) : ''} value={at} style={{ width: 52 }}
           onChange={(e) => setAtCount(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') add(); }} />
       </label>
       <button disabled={show.sets.length < 2} onClick={() => { setShow((s) => removeSet(s, cur)); setT(starts[Math.max(0, cur - 1)]); }}>Delete set</button>
@@ -331,8 +332,8 @@ function Movements({ show, setShow }: { show: Show; setShow: (f: (s: Show) => Sh
           <div key={m.id} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
             <input aria-label={`Movement ${i + 1} name`} value={m.name} maxLength={100} style={{ width: 120 }}
               onChange={(e) => edit((l) => l.map((x) => (x.id === m.id ? { ...x, name: e.target.value } : x)))} />
-            <input aria-label={`Movement ${i + 1} counts`} type="number" min={1} value={m.counts} style={{ width: 64 }}
-              onChange={(e) => { const n = Math.round(Number(e.target.value)); if (n >= 1 && n <= MAX_MOVEMENT) edit((l) => l.map((x) => (x.id === m.id ? { ...x, counts: n } : x))); }} /> cts
+            <NumberField aria-label={`Movement ${i + 1} counts`} min={1} max={MAX_MOVEMENT} integer value={m.counts} style={{ width: 64 }}
+              onValue={(n) => edit((l) => l.map((x) => (x.id === m.id ? { ...x, counts: n } : x)))} /> cts
             <button aria-label={`Remove movement ${m.name}`} onClick={() => edit((l) => l.filter((x) => x.id !== m.id))}>×</button>
           </div>
         ))}

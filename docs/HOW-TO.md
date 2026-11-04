@@ -135,7 +135,7 @@ Coordinates read side to side first, then front to back, from the nearest yard l
 A set is one picture of the drill, and the move into it takes a number of counts. Set 1 is the opening set, so it has no move into it.
 
 - **+ Add set** (top bar) adds a set 16 counts after the one you're on, and the sets after it move along. The new set starts as a copy of the one you were on, so you only move the people who move.
-- Change a set's **Counts** and **Measures** in the top bar. Type measures the way the score numbers them (a pickup bar is m. 1).
+- Change a set's **Counts** and **Measures** in the top bar. New counts take effect when you press Enter or tap away, so the set doesn't jump around while you type. Type measures the way the score numbers them (a pickup bar is m. 1).
 - **Delete set** removes the set you're on.
 - **Click a set's button** on the timeline to go to it, or click any count to see where everyone is on that count.
 - **Drag a set's button** to move it to a different count. The sets around it stay where they are.

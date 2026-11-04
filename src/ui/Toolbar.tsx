@@ -9,6 +9,7 @@ import {
 import { curveSides } from '../field/labels';
 import { LabelCompass } from './LabelCompass';
 import type { Snap, Tool } from './Sidebar';
+import { NumberField } from './NumberField';
 
 export interface ToolbarProps {
   show: Show;
@@ -143,14 +144,12 @@ export function Toolbar(p: ToolbarProps) {
           {ids.length > 1 && <>
             <strong style={{ fontSize: 12, opacity: 0.8, marginTop: 6 }}>Rotate &amp; scale (around the center)</strong>
             <div style={{ ...row, marginTop: 0 }}>
-              <input aria-label="Rotation in degrees" type="number" min={1} max={180} value={deg} style={{ width: 52 }}
-                onChange={(e) => setDeg(Math.min(180, Math.max(1, Number(e.target.value) || 15)))} />°
+              <NumberField aria-label="Rotation in degrees" min={1} max={180} integer value={deg} style={{ width: 52 }} onValue={setDeg} />°
               <button onClick={() => turn(deg, 1)} title="Rotate counterclockwise">↺</button>
               <button onClick={() => turn(-deg, 1)} title="Rotate clockwise">↻</button>
             </div>
             <div style={{ ...row, marginTop: 0 }}>
-              <input aria-label="Scale percent" type="number" min={101} max={400} value={pct} style={{ width: 52 }}
-                onChange={(e) => setPct(Math.min(400, Math.max(101, Number(e.target.value) || 110)))} />%
+              <NumberField aria-label="Scale percent" min={101} max={400} integer value={pct} style={{ width: 52 }} onValue={setPct} />%
               <button onClick={() => turn(0, pct / 100)}>Expand</button>
               <button onClick={() => turn(0, 100 / pct)}>Contract</button>
             </div>
@@ -246,14 +245,14 @@ function ShapePanel({ shape, startShape, updateShape, endShape }: ToolbarProps) 
             <label><input type="radio" name="spacing" checked={shape.interval == null} onChange={() => updateShape({ interval: null })} /> Even</label>
             <label>
               <input type="radio" name="spacing" checked={shape.interval != null} onChange={() => updateShape({ interval: 2 })} /> Every{' '}
-              <input aria-label="Interval in steps" type="number" min={0.5} step={0.5} value={shape.interval ?? 2} style={{ width: 48 }}
-                onChange={(e) => updateShape({ interval: Math.max(0.5, Number(e.target.value) || 2) })} /> steps
+              <NumberField aria-label="Interval in steps" min={0.5} step={0.5} value={shape.interval ?? 2} style={{ width: 48 }}
+                onValue={(n) => updateShape({ interval: n })} /> steps
             </label>
           </div>
           {shape.kind === 'block' && (
             <div style={row}>
-              <label>Columns <input aria-label="Columns" type="number" min={1} value={shape.cols} style={{ width: 48 }}
-                onChange={(e) => updateShape({ cols: Math.max(1, Math.round(Number(e.target.value) || 1)) })} /></label>
+              <label>Columns <NumberField aria-label="Columns" min={1} integer value={shape.cols} style={{ width: 48 }}
+                onValue={(n) => updateShape({ cols: n })} /></label>
             </div>
           )}
           <div style={row}>

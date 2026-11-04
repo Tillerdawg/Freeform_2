@@ -5,6 +5,7 @@ import { synced } from '../engine/music';
 import { newId, showLength, type Show } from '../engine/show';
 import { deleteAudio, putAudio } from './audioStore';
 import { Menu } from './Toolbar';
+import { NumberField } from './NumberField';
 
 interface Props {
   show: Show;
@@ -134,8 +135,7 @@ function TapDialog({ audio, total, kept, onDone }: { audio: HTMLAudioElement; to
         </p>
         {canRedo && !running && !taps.length && (
           <label style={{ display: 'block', margin: '0 0 10px', fontSize: 13 }}>Redo from count{' '}
-            <input type="number" aria-label="Redo from count" min={0} max={kept.length} value={from} style={{ width: 64 }}
-              onChange={(e) => setFrom(Math.max(0, Math.min(kept.length, Math.round(Number(e.target.value)) || 0)))} />
+            <NumberField aria-label="Redo from count" min={0} max={kept.length} integer value={from} style={{ width: 64 }} onValue={setFrom} />
             {' '}<span style={{ opacity: 0.8 }}>(counts before it keep their taps; you've tapped {kept.length})</span>
           </label>
         )}

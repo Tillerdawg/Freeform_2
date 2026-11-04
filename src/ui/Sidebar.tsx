@@ -10,6 +10,7 @@ import {
   MAX_NAME, scoreOrder, setCue, setMarks, setNames, setNote, label, locate, newId, moveToSection, removeSection, duplicateLetters, renumberSection, placeInSet, remapHash, positionsAt, xFrom, yFrom,
   type FrontDir, type FrontRef, type Section, type Show, type SideDir,
 } from '../engine/show';
+import { NumberField } from './NumberField';
 
 export type Tool = 'select' | 'add' | 'text' | 'arrow' | 'draw' | 'turn'; // turn: click to add an FTL leader's turning points
 export type Snap = 1 | 0.5 | 0;
@@ -254,13 +255,12 @@ function CoordEntry({ onPlace }: { onPlace: (x: number, y: (h: HashPreset) => nu
   const [ref, setRef] = useState<FrontRef>('Front Hash');
   const [ys, setYs] = useState(0);
   const [yd, setYd] = useState<FrontDir>('on');
-  const num = (v: string) => Math.max(0, Number(v) || 0);
   return (
     <details style={{ marginTop: 10 }}>
       <summary>Place exactly (this set)</summary>
     <fieldset style={{ marginTop: 6, border: '1px solid var(--line)' }}>
       <div style={row}>
-        <input aria-label="Side-to-side steps" type="number" min={0} step={0.25} value={xs} onChange={(e) => setXs(num(e.target.value))} style={{ width: 52 }} />
+        <NumberField aria-label="Side-to-side steps" min={0} step={0.25} value={xs} onValue={setXs} style={{ width: 52 }} />
         <select aria-label="Inside or outside" value={xd} onChange={(e) => setXd(e.target.value as SideDir)}>
           <option value="on">on</option><option value="inside">inside</option><option value="outside">outside</option>
         </select>
@@ -272,7 +272,7 @@ function CoordEntry({ onPlace }: { onPlace: (x: number, y: (h: HashPreset) => nu
         </select>
       </div>
       <div style={row}>
-        <input aria-label="Front-to-back steps" type="number" min={0} step={0.25} value={ys} onChange={(e) => setYs(num(e.target.value))} style={{ width: 52 }} />
+        <NumberField aria-label="Front-to-back steps" min={0} step={0.25} value={ys} onValue={setYs} style={{ width: 52 }} />
         <select aria-label="In front or behind" value={yd} onChange={(e) => setYd(e.target.value as FrontDir)}>
           <option value="on">on</option><option value="in front of">in front of</option><option value="behind">behind</option>
         </select>
