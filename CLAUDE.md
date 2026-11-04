@@ -7,7 +7,7 @@ Instructions for anyone (person or AI agent) changing this repo. IDEA.md is the 
    - **docs/HOW-TO.md**, the user guide: the steps, button names, keyboard shortcuts, and anything else the change affects.
    - **README.md**: the short feature list, the roadmap, the code map.
    - **The screenshots** (`docs/img/`), when the change alters what one shows: retake it with `node scripts/screenshots.mjs <name>` and look at it. A new screen worth showing gets a shot in the script and a picture in the guide. The sample show is `src/engine/sample.ts`.
-   Don't describe features that don't exist yet as if they do. Write plainly, the way Jason would explain it to another band director: short sentences, button names in **bold**, no em dashes.
+   Don't describe features that don't exist yet as if they do. Write plainly, the way Jason would explain it to another band director: short sentences, button names in **bold**, the Oxford comma (a, b, and c), and no em dashes.
 2. **Log decisions in DECISIONS.md:** timestamp, who decided, context, other options, and the decision. Include decisions you make yourself, and mark them so Jason can veto.
 3. **Update PLAN.md** when something on it is finished or newly planned.
 4. **Test before pushing:** `npm run typecheck`, `npm test`, `npm run build` (`src/engine/guide.test.ts` checks that every picture the docs use exists and every screenshot is used). New logic gets unit tests in `src/engine/` (or next to the code); UI changes get checked in a real browser.

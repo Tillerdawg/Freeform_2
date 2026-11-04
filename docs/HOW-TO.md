@@ -13,9 +13,9 @@ The pictures in this guide come from a small sample show (47 performers, 4 sets)
 3. [Set up a new show](#set-up-a-new-show)
 4. [Add performers](#add-performers)
 5. [Select and move performers](#select-and-move-performers)
-6. [Sets, counts and the timeline](#sets-counts-and-the-timeline)
-7. [Shapes: lines, arcs, curves, circles and blocks](#shapes-lines-arcs-curves-circles-and-blocks)
-8. [Rotate, stretch and flip](#rotate-stretch-and-flip)
+6. [Sets, counts, and the timeline](#sets-counts-and-the-timeline)
+7. [Shapes: lines, arcs, curves, circles, and blocks](#shapes-lines-arcs-curves-circles-and-blocks)
+8. [Rotate, stretch, and flip](#rotate-stretch-and-flip)
 9. [Follow-the-leader](#follow-the-leader)
 10. [Step-size warnings](#step-size-warnings)
 11. [Dot labels](#dot-labels)
@@ -26,17 +26,17 @@ The pictures in this guide come from a small sample show (47 performers, 4 sets)
 16. [Send the show to your performers](#send-the-show-to-your-performers)
 17. [What performers see on their phones](#what-performers-see-on-their-phones)
 18. [Using an iPad](#using-an-ipad)
-19. [Saving, backing up and opening files](#saving-backing-up-and-opening-files)
+19. [Saving, backing up, and opening files](#saving-backing-up-and-opening-files)
 20. [Keyboard shortcuts](#keyboard-shortcuts)
 21. [If something goes wrong](#if-something-goes-wrong)
 
 ## Before you start
 
-You'll want a computer or an iPad to write drill. FreeFORM needs a current version of Chrome, Edge, Firefox or Safari, or iPadOS 16.4 or later (any iPad from 2017 on). If your browser is too old, you'll get a page that says so.
+You'll want a computer or an iPad to write drill. FreeFORM needs a current version of Chrome, Edge, Firefox, or Safari, or iPadOS 16.4 or later (any iPad from 2017 on). If your browser is too old, you'll get a page that says so.
 
 Phones only get the performer view. That's on purpose: a phone screen is too small to write drill on, but it's perfect for a student checking their spot.
 
-One thing to know up front: **your show is saved in the browser you're using.** FreeFORM saves every change automatically, but only on that computer, in that browser. If you clear your browser data, or switch from Chrome to Safari, your show won't be there. Use **Export** often to keep a copy you control (see [Saving, backing up and opening files](#saving-backing-up-and-opening-files)).
+One thing to know up front: **your show is saved in the browser you're using.** FreeFORM saves every change automatically, but only on that computer, in that browser. If you clear your browser data, or switch from Chrome to Safari, your show won't be there. Use **Export** often to keep a copy you control (see [Saving, backing up, and opening files](#saving-backing-up-and-opening-files)).
 
 ## A quick tour of the editor
 
@@ -44,18 +44,18 @@ One thing to know up front: **your show is saved in the browser you're using.** 
 
 From top to bottom:
 
-- **The top bar** shows the set you're on, with its counts and measures, **+ Add set** and **Delete set**. The sun/moon button at the far right switches between dark mode (the default) and light mode. The field looks the same either way.
-- **The drill toolbar** has two rows. The first row picks what a click on the field does: **Select Performer(s)** or **Add Performer(s)**. It also has **Delete Performer(s)**, and at the right end Undo, Redo, Fit (zooms back out to the whole field) and the sidebar button. The second row has the tools for placing and moving performers: **Snap to grid**, **Markup**, **Shape**, **Transform**, **FTL**, **Labels** and **Reset to set**.
+- **The top bar** shows the set you're on, with its counts and measures, **+ Add set**, and **Delete set**. The sun/moon button at the far right switches between dark mode (the default) and light mode. The field looks the same either way.
+- **The drill toolbar** has two rows. The first row picks what a click on the field does: **Select Performer(s)** or **Add Performer(s)**. It also has **Delete Performer(s)**, and at the right end Undo, Redo, Fit (zooms back out to the whole field), and the sidebar button. The second row has the tools for placing and moving performers: **Snap to grid**, **Markup**, **Shape**, **Transform**, **FTL**, **Labels**, and **Reset to set**.
 - **The field** is in the middle. You're looking at it from the press box: the front sideline is at the bottom and Side 1 is on the left. Scroll to move around, and pinch (or hold ⌘ or Ctrl and scroll) to zoom.
-- **The timeline** runs across the bottom. Each set has a numbered button, and each move between sets shows its counts, measures and biggest step size.
-- **The sidebar** on the right holds the show's file buttons, title and hash marks, the current set's notes, whatever you have selected, and the **Sections** and **Roster** lists. The sidebar button (at the right end of the toolbar) shows and hides it.
+- **The timeline** runs across the bottom. Each set has a numbered button, and each move between sets shows its counts, measures, and biggest step size.
+- **The sidebar** on the right holds the show's file buttons, title, and hash marks; the current set's notes; whatever you have selected; and the **Sections** and **Roster** lists. The sidebar button (at the right end of the toolbar) shows and hides it.
 
 ## Set up a new show
 
 Click **New** in the sidebar to start a show. (If you already have one open, FreeFORM asks first, and Undo brings it back.)
 
 1. **Name it.** Type the title in the box under the file buttons. It prints on every dot sheet and chart.
-2. **Pick your hash marks.** The menu under the title has **High school**, **College / DCI** and **NFL**. FreeFORM draws the field the way drill software does, with whole-step hashes:
+2. **Pick your hash marks.** The menu under the title has **High school**, **College / DCI**, and **NFL**. FreeFORM draws the field the way drill software does, with whole-step hashes:
 
    | Level | Sideline to hash / hash to hash / hash to sideline |
    |---|---|
@@ -69,15 +69,15 @@ Click **New** in the sidebar to start a show. (If you already have one open, Fre
 
 ![The Sections list](img/sections.png)
 
-New shows start with Flute (F), Clarinet (K), Alto Sax (A), Tenor Sax (X), Trumpet (P), Mellophone (H), Trombone (N), Baritone (E), Tuba (T), Snare (S), Quads (Q), Bass Drum (B), Cymbals (C) and Color Guard (G). There's no front ensemble, since they usually stay put, but you can add one.
+New shows start with Flute (F), Clarinet (K), Alto Sax (A), Tenor Sax (X), Trumpet (P), Mellophone (H), Trombone (N), Baritone (E), Tuba (T), Snare (S), Quads (Q), Bass Drum (B), Cymbals (C), and Color Guard (G). There's no front ensemble, since they usually stay put, but you can add one.
 
 In the Sections list you can:
 
 - Rename a section or change its letter. If two sections share a letter, FreeFORM flags them, since their labels would look the same.
-- Give a section a color with the swatch. Its dots show in that color on the field, on phones and on printed charts. **Clear colors** goes back to plain dots.
+- Give a section a color with the swatch. Its dots show in that color on the field, on phones, and on printed charts. **Clear colors** goes back to plain dots.
 - Add or delete a section. If you delete one that has performers, you pick where they go.
-- Reorder the list by dragging the dotted grip at the left of a row, or use **Sort** for score order, by letter or by name. Dot sheets print in this order.
-- Renumber a section with **#**: **Close the gaps** (X4, X5, X6 become X1, X2, X3), **Left to right** (Side 1 to Side 2) or **Front to back** (rank by rank), as they stand in the current set.
+- Reorder the list by dragging the dotted grip at the left of a row, or use **Sort** for score order, by letter, or by name. Dot sheets print in this order.
+- Renumber a section with **#**: **Close the gaps** (X4, X5, X6 become X1, X2, X3), **Left to right** (Side 1 to Side 2), or **Front to back** (rank by rank), as they stand in the current set.
 
 If your program always uses the same sections, set them up once and choose **Starting list → Use this list for new shows**. New shows in that browser will start with your list. **Back to FreeFORM's list** undoes it.
 
@@ -86,7 +86,7 @@ If your program always uses the same sections, set them up once and choose **Sta
 ![The Add Performer(s) menu, picking a section](img/add-performers.png)
 
 1. Click **Add Performer(s)** and pick a section.
-2. Click the field wherever you want each one. They're numbered in order: P1, P2, P3 and so on.
+2. Click the field wherever you want each one. They're numbered in order: P1, P2, P3, and so on.
 3. Press **V** (or click **Select Performer(s)**) when you're done.
 
 Performers are part of the whole show, so a performer you add appears in every set, on the same spot, until you move them.
@@ -116,7 +116,7 @@ With **Select Performer(s)** on:
 
 On a touch screen there's no Shift key, so turn on **Add to selection** in the sidebar's Selection area. Every tap or box then adds to what's already selected.
 
-**Snap to grid** (in the toolbar) sets how dragging and adding land: on whole steps, half steps, or anywhere (free). If performers are already off the grid (after a rotate, a shape or an import), select them and click **Apply** to round them onto it. FreeFORM warns you if two performers would land on the same spot.
+**Snap to grid** (in the toolbar) sets how dragging and adding land: on whole steps, half steps, or anywhere (free). If performers are already off the grid (after a rotate, a shape, or an import), select them and click **Apply** to round them onto it. FreeFORM warns you if two performers would land on the same spot.
 
 **Reading coordinates.** Click one performer and the sidebar shows exactly where they are, in standard drill language.
 
@@ -128,7 +128,7 @@ Coordinates read side to side first, then front to back, from the nearest yard l
 
 **Reset to set** in the toolbar puts the selected performers back where they were in the set before, so you can start their move over.
 
-## Sets, counts and the timeline
+## Sets, counts, and the timeline
 
 ![The timeline](img/timeline.png)
 
@@ -150,18 +150,18 @@ The timeline scrolls sideways for a long show. Use the mouse wheel or a swipe ov
 
 The timeline then runs the full length, with the part you haven't written yet striped *Not written yet*. To add a set at a particular count, click that count on the timeline and press **+ Add set**, or type the count in the **at count** box. No other set moves. A set added in the middle of a move splits it and gets a sub-set name (1A after 1), the way Pyware names them.
 
-## Shapes: lines, arcs, curves, circles and blocks
+## Shapes: lines, arcs, curves, circles, and blocks
 
 ![Shaping a block into an arc](img/shape-arc.png)
 
 1. Select the performers you want in the shape.
-2. Open **Shape** and pick **Line**, **Arc**, **Curve**, **Bézier**, **Circle** or **Block**.
+2. Open **Shape** and pick **Line**, **Arc**, **Curve**, **Bézier**, **Circle**, or **Block**.
 3. Drag the blue handles on the field to adjust the shape. Choose **Even** spacing, or **Every** so many steps.
 4. Click **Done** (or press Esc) when it looks right.
 
 FreeFORM decides who goes to which spot by keeping total travel from the previous set as short as it can, so the paths don't cross. Curves can take extra points (**+ Curve point**) and Béziers extra segments (**+ Segment**). Bézier joints stay smooth unless you hold Option (Alt on Windows) while you drag a handle. Blocks also take a number of **Columns**.
 
-## Rotate, stretch and flip
+## Rotate, stretch, and flip
 
 Select two or more performers and a dashed frame appears around them.
 
@@ -191,7 +191,7 @@ In a follow-the-leader (FTL) move, the performers march the leader's path in ord
 3. Drag the leader to their end spot. Everyone else follows the trail.
 4. For a route with corners, click **Add turns**, then click each turn on the field in marching order. Press Esc when you're done.
 
-With the group selected, each turn has a blue handle you can drag. **Remove last turn** and **Straight route** take turns back out, and **Float instead** turns FTL off for that group. Turns move with the group when you drag, flip, rotate or stretch it, and **Copy Side 1 → 2** copies an FTL group to the other side.
+With the group selected, each turn has a blue handle you can drag. **Remove last turn** and **Straight route** take turns back out, and **Float instead** turns FTL off for that group. Turns move with the group when you drag, flip, rotate, or stretch it, and **Copy Side 1 → 2** copies an FTL group to the other side.
 
 Everyone in an FTL move covers the leader's whole route at one steady step size, so a turn never makes anybody take a giant step.
 
@@ -208,7 +208,7 @@ The colors show on the path lines on the field and in the timeline's "max" reado
 
 ## Dot labels
 
-FreeFORM keeps labels from overlapping each other or covering another dot. Each one sits above its dot, or below, beside or on a diagonal when that spot is taken. In a tight block, some labels hide until you zoom in.
+FreeFORM keeps labels from overlapping each other or covering another dot. Each one sits above its dot, or below, beside, or on a diagonal when that spot is taken. In a tight block, some labels hide until you zoom in.
 
 To place labels yourself, select performers, open **Labels**, and click a direction on the compass for the current set. The center **A** goes back to automatic, and **Hide** hides them. For a curve of three or more performers, **Inside curve** and **Outside curve** point every label toward or away from the curve's center.
 
@@ -247,12 +247,12 @@ FreeFORM can play your drill along with the recording, so the moves line up with
 **The easy way, with MuseScore:**
 
 1. In MuseScore, export the score as audio (mp3).
-2. In FreeFORM, open **Music** (beside Tempo) and click **Add the score (MuseScore)…**. Choose the `.mscz` file (MusicXML, `.mxl` and MIDI work too).
+2. In FreeFORM, open **Music** (beside Tempo) and click **Add the score (MuseScore)…**. Choose the `.mscz` file (MusicXML, `.mxl`, and MIDI work too).
 3. Click **Add the recording (mp3)…** and choose the mp3 you exported.
 
-You can do steps 2 and 3 in either order. Once both are in, FreeFORM takes the time of every count from the score, including meter changes, tempo marks and fermatas, and places each set's counts in the measures you typed for it. It warns you if the recording's length doesn't match the score (usually a sign you picked the wrong file). Bars that no set covers, like a G.P. or an intro, get a hold sub-set (4A) so everyone stands still through them.
+You can do steps 2 and 3 in either order. Once both are in, FreeFORM takes the time of every count from the score, including meter changes, tempo marks, and fermatas, and places each set's counts in the measures you typed for it. It warns you if the recording's length doesn't match the score (usually a sign you picked the wrong file). Bars that no set covers, like a G.P. or an intro, get a hold sub-set (4A) so everyone stands still through them.
 
-**With any recording, by tapping:** add just the recording (mp3, m4a or wav), then choose **Tap counts…**. FreeFORM plays it from the top while you press Space on every count, starting with count 0 (set 1). You can undo a tap, pause, or start over. To fix part of it later, set **Redo from count** first.
+**With any recording, by tapping:** add just the recording (mp3, m4a, or wav), then choose **Tap counts…**. FreeFORM plays it from the top while you press Space on every count, starting with count 0 (set 1). You can undo a tap, pause, or start over. To fix part of it later, set **Redo from count** first.
 
 When the counts are in, Play follows the music, rubato and all, and the recording's waveform shows along the bottom of the timeline. Uncheck **Play with music** to go back to the Tempo setting.
 
@@ -266,7 +266,7 @@ Click **Print…** in the sidebar.
 
 Choose **Dot sheets** or **Drill charts**, and who to print for: **Everyone**, one **Section**, or the performers you have **Selected**. FreeFORM opens your browser's print dialog. To get a PDF instead of paper, pick **Save as PDF** there.
 
-Dot sheets come four cards to a page. Each card has the performer's label, name and section, then every set with its counts, measures and coordinates, plus any performer notes.
+Dot sheets come four cards to a page. Each card has the performer's label, name, and section, then every set with its counts, measures, and coordinates, plus any performer notes.
 
 ![A page of dot sheets](img/dot-sheet.png)
 
@@ -300,7 +300,7 @@ When a student opens your link on their phone, they pick who they are.
 
 ![Picking who you are on a phone](img/phone-who.png)
 
-They can search by name, by dot (P4) or by section, and **Staff (whole band)** at the top shows everyone. FreeFORM remembers their choice, and the show keeps working offline once it's opened.
+They can search by name, by dot (P4), or by section, and **Staff (whole band)** at the top shows everyone. FreeFORM remembers their choice, and the show keeps working offline once it's opened.
 
 ![A performer's view of set 2 on a phone](img/phone.png)
 
@@ -308,7 +308,7 @@ On the performer screen:
 
 - **My view** follows their dot through each move. **Whole field** shows everything, and pinch-zoom works in both.
 - **Director view** shows the field the way the editor does. Tap it to switch to **Facing front**, which turns the field around to match what they see facing the audience.
-- Under the field they see their spot now and in the next set, with counts, measures and step size, plus their notes and the ensemble notes.
+- Under the field they see their spot now and in the next set, with counts, measures, and step size, plus their notes and the ensemble notes.
 - **Around you** lists their nearest neighbors (up to four, within 10 steps) and where each one is, like "P5 · 4 steps toward Side 1."
 - They can play at any tempo, step count by count, scrub, or tap a set number to jump to it. If the show has music, Play follows it, and **♪ Music** switches back to a tempo.
 
@@ -330,7 +330,7 @@ The editor works on an iPad the same way it does on a computer, with a few touch
 
 With a keyboard attached, the [keyboard shortcuts](#keyboard-shortcuts) work too.
 
-## Saving, backing up and opening files
+## Saving, backing up, and opening files
 
 - **Autosave**: every change is saved in your browser right away.
 - **Export** downloads the show as a `.freeform` file. This is your real backup, because the autosave lives in only that one browser. Export before big changes and at the end of every session.

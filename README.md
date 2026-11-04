@@ -33,11 +33,11 @@ A note on where the ideas came from: FreeFORM is modeled on Pyware and the Ultim
 - A football field with high school, college/DCI, or NFL hashes and an 8-to-5 grid, seen from the press box (Side 1 on the left).
 - Coordinates in standard drill language, like "2 steps outside the Side 2 45, 2 steps in front of Front Hash."
 - Sections with letters and colors, a roster of names (paste it from a spreadsheet), and labels that stay out of each other's way.
-- Shapes: line, arc, curve, Bézier, circle and block. FreeFORM assigns spots by least total travel, so paths don't cross.
+- Shapes: line, arc, curve, Bézier, circle, and block. FreeFORM assigns spots by least total travel, so paths don't cross.
 - Rotate and stretch a group by dragging handles on the field. Flip across the 50 or front to back, or copy one side to the other.
 - Follow-the-leader moves, with turns.
 - Step-size warnings: yellow past a 6-to-5, red past a 4-to-5.
-- Text, arrows and freehand markup on each set, plus ensemble notes and per-performer notes.
+- Text, arrows, and freehand markup on each set, plus ensemble notes and per-performer notes.
 - Undo for every edit.
 
 **Timing and music**
@@ -55,7 +55,7 @@ A note on where the ideas came from: FreeFORM is modeled on Pyware and the Ultim
 - Autosave in your browser, plus export and import of `.freeform` files.
 - Import Pyware 3D (`.3dj`) shows, tested with files from 2008 to 2010.
 
-It runs on a current Chrome, Edge, Firefox or Safari, and on iPadOS/iOS 16.4 or later. Write drill on a computer or an iPad. Phones get only the performer view.
+It runs on a current Chrome, Edge, Firefox, or Safari, and on iPadOS/iOS 16.4 or later. Write drill on a computer or an iPad. Phones get only the performer view.
 
 ## Roadmap
 
@@ -97,14 +97,14 @@ node scripts/screenshots.mjs ftl print    # or just these
 | Path | What's there |
 |---|---|
 | `src/engine/` | The drill logic, with no UI: coordinates and readouts, the show model, shapes, markup, undo, music timing, share links and locked files, QR codes, and the Pyware reader. Unit-tested. |
-| `src/field/` | Drawing the field, performers, shapes and markup, dot-label placement, and the rotate/stretch frame |
-| `src/ui/` | The toolbar, sidebar, timeline, music menu and color palette |
+| `src/field/` | Drawing the field, performers, shapes, and markup, plus dot-label placement and the rotate/stretch frame |
+| `src/ui/` | The toolbar, sidebar, timeline, music menu, and color palette |
 | `src/print/` | Dot sheets and drill charts |
-| `src/perform/` | The performer view, the Share dialog and the QR scanner |
-| `public/` | App icons, logos, the link-preview image, the manifest and the offline service worker |
+| `src/perform/` | The performer view, the Share dialog, and the QR scanner |
+| `public/` | App icons, logos, the link-preview image, the manifest, and the offline service worker |
 | `docs/` | The How-to guide and its screenshots |
 | `scripts/` | The screenshot script |
-| `brand/` | Logo files, colors and rules ([brand/README.md](brand/README.md)) |
+| `brand/` | Logo files, colors, and rules ([brand/README.md](brand/README.md)) |
 
 Positions are stored in 8-to-5 steps (one step is 22.5 inches), measured from where the 50 meets the front sideline. +x points toward Side 2 and +y toward the back sideline. Every readout is worked out from that.
 
