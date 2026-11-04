@@ -9,7 +9,11 @@
 
 **Free, open-source drill design for marching bands and drum corps.**
 
-I taught band for six years, five in public schools and one in a private school. I'm building Freeform to take licensing cost off the table for school and community programs. It's a drill writer that runs in your browser: put performers on a football field, build sets, watch the moves count by count, print dot sheets and drill charts, and send the show to your students' phones. The ideas come from Pyware and the Ultimate Drill Book, but none of their code (see [Clean room](#clean-room)).
+I'm a former band director. Over my career teaching in public and private K-12 schools, I wrote several marching band shows in Pyware, and over the years the software frustrated me more and more: the yearly license fee, the limits on how many performers a show could have, and the tools locked behind higher tiers. So I built Freeform, a free, open-source drill writer that runs in your web browser. With it, you can quickly add performers to a show, build sets, watch the moves between sets play out count by count, print drill charts and individual dot sheets, and send the show to your students' and staff members' devices.
+
+Sharing a show is easy: students and staff scan a QR code (or open a link you text or email them) on their phones or tablets. Once the show is loaded, anyone can look up a performer's coordinates (their "dot") and watch any move from the director's point of view, facing the audience the way a performer would, or following their own dot. That helps students and staff learn the show quickly.
+
+A note on where the ideas came from: Freeform is modeled on Pyware and the Ultimate Drill Book (UDB), but no proprietary code went into it (see [Clean room](#clean-room)).
 
 **Use it here:** <https://tillerdawg.github.io/Freeform_2/>
 
