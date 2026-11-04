@@ -953,3 +953,14 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Context:** Commits Claude made as Jason showed on GitHub as Unverified, since they weren't signed with Jason's key.
 - **Options:** Keep authoring as Jason (Unverified); Jason sets up his own signing key; Claude authors its commits as itself (signed, Verified).
 - **Decision:** Claude authors its commits as Claude <noreply@anthropic.com>, with Jason as co-author in the message. CLAUDE.md updated. Earlier commits keep their authors (rewriting pushed history on `main` would need a force-push).
+
+## 2026-11-04 10:05 EST — On-field rotate and scale handles
+- **Who:** Jason Tiller asked for them; the details below are Claude's calls *(Jason can veto)*.
+- **Context:** Rotate and scale were only in Transform ▾ (typed degrees and percents). Directors coming from Pyware expect to grab handles, and on an iPad that's the natural way.
+- **Options:** Handles always shown for a selection, or only after a "Transform" toggle; corners scale uniformly or stretch one way; snapping the result to the grid or not; free angles or fixed steps.
+- **Decision:**
+  - **Always shown** in Select for 2 or more selected performers in a set (not mid-move, not while playing or editing a shape): a dashed frame, a corner square at each corner (scale) and a round knob above (rotate), in the shape-handle blue. No extra button to press.
+  - **Corners scale evenly** (both directions); stretching one way stays on the plan.
+  - **Angles land on whole degrees and pull to multiples of 15° within 4°; scale lands on whole percents and pulls to 100% within 3%**, so 45° and 90° are easy to hit by finger. The amount shows in the bottom-left readout while dragging.
+  - **No grid snap afterward**, same as the menu: a turned block would otherwise collapse dots onto each other. Snap to grid → Apply rounds them when wanted.
+  - Same center as the menu (the selection's bounding box), FTL turns go along, each drag is one Undo, and a second finger takes the drag back like every other one-finger action. Handles are sized for fingers on touch screens.

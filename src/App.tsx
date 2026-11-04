@@ -5,12 +5,13 @@ import { addInk, hitMark, moveMark, type Mark } from './engine/marks';
 import { assign, fitShape, isControl, moveHandle, samplePath, slots, type Shape, type ShapeKind } from './engine/shapes';
 import { colorOf,
   addPerformer, ftlTrail, setFtlTurns, locate, label, mark, newId, pathFits, setMarks, moveSteps, normalizeFtl, snapPoint, playRange, newShow, parseShow, placeInSet, positionsAt, removePerformers,
-  setAt, setStarts, type Show,
+  rotateScale, setAt, setStarts, type Show,
   showLength,
 } from './engine/show';
 import { pinchView } from './perform/gestures';
 import { coarse } from './perform/device';
 import { HANDLE_PX, drawField, drawMarks, drawPerformers, drawShape, fitView, toScreen, toWorld, type Path, type View } from './field/drawField';
+import { frameDrag, selectionFrame } from './field/frame';
 import { Sidebar, type Snap, type Tool } from './ui/Sidebar';
 import { SetControls, Timeline } from './ui/Timeline';
 import { startingSections } from './ui/startingSections';
@@ -47,7 +48,8 @@ type Drag =
   | { kind: 'handle'; i: number }
   | { kind: 'mark'; id: string; start: Point; orig: Mark; at: [number, number]; moved?: boolean }
   | { kind: 'arrow'; id: string }
-  | { kind: 'ink'; id: string };
+  | { kind: 'ink'; id: string }
+  | { kind: 'frame'; mode: 'rotate' | 'scale'; c: Point; down: Point; orig: Show; ids: string[]; deg: number; k: number };
 
 const snapTo = snapPoint;
 
@@ -205,6 +207,18 @@ export function App() {
   const ftlGroup = onSet > 0 ? show.sets[onSet].ftl?.find((g) => g.order.length === selected.size && g.order.every((id) => selected.has(id))) : undefined;
   useEffect(() => { if (tool === 'turn' && !ftlGroup) setTool('select'); }, [tool, ftlGroup]);
 
+  // The rotate/scale frame around a selection of 2+ in Select: drag a corner to scale, the knob above it to rotate.
+  const framing = tool === 'select' && onSet >= 0 && selected.size >= 2 && !shapeEdit && !playing && !!view;
+  const frameNow = () => {
+    if (!framing) return null;
+    const d = drag.current?.kind === 'frame' ? drag.current : null; // mid-drag: the frame as it was, turned along
+    const pos = (d ? d.orig : show).sets[onSet].pos;
+    const pts = [...selected].flatMap((id) => (pos[id] ? [pos[id]] : []));
+    if (pts.length < 2) return null;
+    const px = (coarse() ? 2 : 1) * dpr / view!.scale; // one CSS pixel (two on touch screens) in steps
+    return selectionFrame(pts, 12 * px, 22 * px, d?.deg, d?.k);
+  };
+
   useEffect(() => {
     if (!view) return;
     const ctx = canvasRef.current!.getContext('2d')!;
@@ -215,6 +229,8 @@ export function App() {
     if (onSet >= 0) drawMarks(ctx, view, show.sets[onSet].marks ?? [], 'screen', selectedMark);
     drawPerformers(ctx, view, dots, selected, paths, box, dpr);
     if (ftlGroup?.turns) drawShape(ctx, view, [], false, ftlGroup.turns); // the selected FTL group's turns: drag to move
+    const fr = frameNow();
+    if (fr) drawShape(ctx, view, fr.corners, true, [...fr.corners, fr.knob], [false, false, false, false, true], [[fr.stem, fr.knob]]);
     if (shapeEdit) {
       const sh = shapeEdit.shape;
       const [a, b] = sh.handles;
@@ -227,7 +243,7 @@ export function App() {
         : [];
       drawShape(ctx, view, guide.pts, guide.closed, h, h.map((_, k) => isControl(sh, k)), arms);
     }
-  }, [view, show, positions, selected, paths, box, shapeEdit, onSet, selectedMark, playing, t, theme]);
+  }, [view, show, positions, selected, paths, box, shapeEdit, onSet, selectedMark, playing, t, theme, tool]);
 
   // Empty text notes are removed as soon as they're not the one being edited (no timing to get wrong).
   useEffect(() => {
@@ -375,6 +391,12 @@ export function App() {
       const k = ftlGroup.turns.findIndex((h) => { const q = toScreen(view, h); return Math.abs(q.x - e.nativeEvent.offsetX * dpr) <= r && Math.abs(q.y - e.nativeEvent.offsetY * dpr) <= r; });
       if (k >= 0) { drag.current = { kind: 'turn', k }; return; }
     }
+    const fr = frameNow();
+    if (fr) {
+      const near = (h: Point) => { const q = toScreen(view, h); return Math.abs(q.x - e.nativeEvent.offsetX * dpr) <= grab && Math.abs(q.y - e.nativeEvent.offsetY * dpr) <= grab; };
+      const mode = near(fr.knob) ? 'rotate' : fr.corners.some(near) ? 'scale' : null;
+      if (mode) { drag.current = { kind: 'frame', mode, c: fr.c, down: p, orig: show, ids: [...selected], deg: 0, k: 1 }; return; }
+    }
     if ((tool === 'text' || tool === 'arrow' || tool === 'draw') && onSet >= 0) {
       e.preventDefault(); // keep the click from pulling focus off the note's text box
       const id = newId('m');
@@ -465,6 +487,11 @@ export function App() {
       if (!ftlGroup?.turns) return;
       const q = snapTo(p, snap), leader = ftlGroup.order[0], turns = ftlGroup.turns.map((x, k) => (k === d.k ? q : x));
       setShow((s) => setFtlTurns(s, onSet, leader, turns));
+    } else if (d.kind === 'frame') {
+      const { deg, k } = frameDrag(d.mode, d.c, d.down, p);
+      d.deg = deg; d.k = k;
+      setShow(() => rotateScale(d.orig, onSet, d.ids, deg, k));
+      setHover(d.mode === 'rotate' ? `Rotate ${Math.abs(deg)}° ${deg > 0 ? 'counterclockwise' : deg < 0 ? 'clockwise' : ''}` : `Scale ${Math.round(k * 100)}%`);
     } else if (d.kind === 'handle') {
       if (!shapeEdit) return;
       updateShape(moveHandle(shapeEdit.shape, d.i, snapTo(p, snap), e.altKey)); // Option/Alt: move this handle alone

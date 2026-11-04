@@ -53,7 +53,7 @@ Every spot reads in standard drill language, e.g. *"2 steps outside the Side 2 4
 - **Who goes where:** each performer is assigned the spot that minimizes total travel from the previous set, so paths never cross.
 - **Bézier joints** stay smooth unless you hold Option/Alt.
 - **Mirror** across the 50 or front to back, or copy one side onto the other.
-- **Rotate and scale** a selection around its center (Transform ▾), and round a selection back onto the grid with **Snap to grid → Apply** (with a warning if two performers land on the same spot).
+- **Rotate and scale** a selection around its center, right on the field or from Transform ▾: select 2 or more performers and a frame appears around them; drag the round knob above it to rotate (it settles on whole degrees and pulls to multiples of 15°) or a corner to scale (whole percents, pulled to 100%). The amount shows at the bottom left while you drag; each drag is one Undo. Then round a selection back onto the grid with **Snap to grid → Apply** (with a warning if two performers land on the same spot).
 
 ### Moves and playback
 - **Timeline:** one segment per move with a tick for every count. Click any count to see exactly where everyone is.
