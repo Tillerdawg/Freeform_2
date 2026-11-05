@@ -4,7 +4,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 're
 import { addBezierSegment, addCurvePoint, coilGap, placeInner, type Shape, type ShapeKind } from '../engine/shapes';
 import { distance } from '../engine/coords';
 import {
-  chainOrder, clearFtl, flip, setFtlTurns, label, mirrorSides, placeInSet, removePerformers, rotateScale, setFtl, setLabelSide, snapSelection,
+  chainOrder, clearFtl, closeCalls, counterMarch, flip, groupTurn, setFtlTurns, setTiming, setTurning, timingOf, label, mirrorSides, placeInSet, removePerformers, rotateScale, setFtl, setLabelSide, snapSelection,
   type LabelSide, type Show,
 } from '../engine/show';
 import { curveSides } from '../field/labels';
@@ -57,7 +57,9 @@ export function Toolbar(p: ToolbarProps) {
   useEffect(() => { setNote(''); setSnapNote(''); }, [selected]);
   const [deg, setDeg] = useState(15);
   const [pct, setPct] = useState(110);
-  const turn = (d: number, k: number) => setShow((s) => rotateScale(s, onSet, ids, d, k));
+  const [pivot, setPivot] = useState(''); // '' = the center; or a selected performer the group turns around (a gate turn)
+  const turn = (d: number, k: number) => setShow((s) => rotateScale(s, onSet, ids, d, k, k, ids.includes(pivot) ? s.sets[onSet].pos[pivot] : undefined));
+  const byName = [...ids].sort((a, b) => label(show, show.performers.find((x) => x.id === a)!).localeCompare(label(show, show.performers.find((x) => x.id === b)!), undefined, { numeric: true }));
   const mirror = (from: 1 | 2) => {
     try { const next = mirrorSides(show, onSet, ids, from); setShow(() => next); setNote(''); } // run here, not in the updater, so a refusal is caught
     catch (e) { setNote(e instanceof Error ? e.message : String(e)); }
@@ -145,7 +147,14 @@ export function Toolbar(p: ToolbarProps) {
             <button onClick={() => mirror(2)} title="Side 1 performers take the mirror image of Side 2">Copy Side 2 → 1</button>
           </>}
           {ids.length > 1 && <>
-            <strong style={{ fontSize: 12, opacity: 0.8, marginTop: 6 }}>Rotate &amp; scale (around the center)</strong>
+            <strong style={{ fontSize: 12, opacity: 0.8, marginTop: 6 }}>Rotate &amp; scale</strong>
+            <label style={{ fontSize: 12 }}>Around{' '}
+              <select aria-label="Rotate around" value={ids.includes(pivot) ? pivot : ''} onChange={(e) => setPivot(e.target.value)}
+                title="The point the group turns around: its center, or one performer's spot (a gate turn on the end of a line)">
+                <option value="">The center</option>
+                {byName.map((id) => <option key={id} value={id}>{label(show, show.performers.find((x) => x.id === id)!)}</option>)}
+              </select>
+            </label>
             <div style={{ ...row, marginTop: 0 }}>
               <NumberField aria-label="Rotation in degrees" min={1} max={180} integer value={deg} style={{ width: 52 }} onValue={setDeg} />°
               <button onClick={() => turn(deg, 1)} title="Rotate counterclockwise">↺</button>
@@ -163,6 +172,10 @@ export function Toolbar(p: ToolbarProps) {
       <Menu label="FTL" disabled={needs(ids.length > 1 && onSet > 0, onSet === 0 ? 'Set 1 has no move into it' : ids.length === 1 ? 'Select 2 or more performers' : pick)}
         title="Follow the leader: followers trace the leader's path in the move into this set">
         {(close) => <FtlPanel {...p} ids={ids} close={close} />}
+      </Menu>
+      <Menu label="Move" disabled={needs(onSet > 0, onSet === 0 ? 'Set 1 has no move into it' : 'Scrub to a set first')}
+        title="The move into this set: when the selected performers step off, whether they turn, and anyone who comes too close">
+        {() => <MovePanel {...p} ids={ids} />}
       </Menu>
       <Menu label="Labels" disabled={needs(any, pick)} title="Where the selected performers' labels sit in this set">
         {() => <>
@@ -306,6 +319,11 @@ function FtlPanel({ show, setShow, onSet, ids, setTool, close }: ToolbarProps & 
   const byLabel = [...ids].sort((a, b) => name(a).localeCompare(name(b), undefined, { numeric: true }));
   const inOther = ids.some((id) => groups.some((g) => g !== current && g.order.includes(id)));
   const make = (leader: string) => setShow((s) => setFtl(s, onSet, chainOrder(s, onSet, leader, ids)));
+  const [cmNote, setCmNote] = useState('');
+  const cm = (order: string[], side: 'left' | 'right') => {
+    try { const next = counterMarch(show, onSet, order, side); setShow(() => next); setCmNote(''); }
+    catch (e) { setCmNote(e instanceof Error ? e.message : String(e)); }
+  };
   const swap = (k: number, j: number) => {
     if (!current || j < 0 || j >= current.order.length) return;
     const order = [...current.order];
@@ -354,9 +372,77 @@ function FtlPanel({ show, setShow, onSet, ids, setTool, close }: ToolbarProps & 
               <button onClick={() => setShow((s) => setFtlTurns(s, onSet, current.order[0], []))}>Straight route</button>
             </>}
           </div>
+          <div style={row}>
+            <span>Counter-march</span>
+            <button onClick={() => cm(current.order, 'left')} title="The leader turns left into the next lane and marches back past the file">Turn left</button>
+            <button onClick={() => cm(current.order, 'right')} title="The leader turns right into the next lane and marches back past the file">Turn right</button>
+          </div>
+          {cmNote && <p role="alert" style={{ ...help, color: 'var(--danger)', opacity: 1 }}>{cmNote}</p>}
           <p style={help}>Move the leader to its end spot; the others follow its trail. For a route with corners, Add turns and click each turn on the field. Picking a new leader re-chains the order from it and starts a straight route.</p>
         </>
       )}
+    </>
+  );
+}
+
+/** The move into the current set: delayed step-offs, turning moves, and performers who come too close. */
+function MovePanel({ show, setShow, onSet, ids, setSelected }: ToolbarProps & { ids: string[] }) {
+  const set = show.sets[onSet], n = set.counts;
+  const name = (id: string) => label(show, show.performers.find((x) => x.id === id)!);
+  const timings = ids.map((id) => timingOf(set, id));
+  const same = timings.length > 0 && timings.every((x) => x.wait === timings[0].wait && x.move === timings[0].move);
+  const [wait, setWait] = useState(same ? timings[0].wait : 0);
+  const [move, setMove] = useState(same ? timings[0].move : n);
+  const inFtl = ids.some((id) => set.ftl?.some((g) => g.order.includes(id)));
+  const group = set.turning?.find((g) => g.length === ids.length && g.every((id) => ids.includes(id)));
+  const fit = ids.length > 1 ? groupTurn(show, onSet, ids) : null;
+  const [turnNote, setTurnNote] = useState('');
+  const calls = closeCalls(show, onSet);
+  const w = Math.min(Math.max(0, wait), n - 1), m = Math.min(Math.max(1, move), n - w);
+  return (
+    <>
+      <strong style={{ fontSize: 13 }}>Move into set {set.name} · {n} counts</strong>
+      {ids.length > 0 && <>
+        <strong style={{ fontSize: 12, opacity: 0.8, marginTop: 6 }}>Step-off</strong>
+        <div style={{ ...row, marginTop: 0 }}>
+          Hold <NumberField aria-label="Counts to hold before stepping off" min={0} max={n - 1} integer value={wait} style={{ width: 48 }} onValue={setWait} />
+          then move <NumberField aria-label="Counts to move" min={1} max={n} integer value={move} style={{ width: 48 }} onValue={setMove} />
+          <button className="primary" onClick={() => setShow((s) => setTiming(s, onSet, ids, w, m))}>Apply</button>
+        </div>
+        <p style={help}>
+          {same ? (timings[0].move === n ? 'Now: they move all the counts.' : `Now: hold ${timings[0].wait}, move ${timings[0].move}${n - timings[0].wait - timings[0].move ? `, hold ${n - timings[0].wait - timings[0].move}` : ''}.`) : 'Now: different step-offs.'}
+          {' '}With these numbers: step off on count {w + 1}{n - w - m ? `, arrive on count ${w + m}, and hold ${n - w - m}` : ''}.
+        </p>
+        {!(same && timings[0].move === n) && <div style={{ ...row, marginTop: 0 }}>
+          <button onClick={() => { setShow((s) => setTiming(s, onSet, ids, 0, n)); setWait(0); setMove(n); }}>Move all counts</button>
+        </div>}
+        {ids.length > 1 && <>
+          <strong style={{ fontSize: 12, opacity: 0.8, marginTop: 6 }}>Route</strong>
+          {inFtl ? <p style={{ ...help, marginTop: 0 }}>Some of these are in an FTL group, which keeps its own route.</p>
+            : group ? <div style={{ ...row, marginTop: 0 }}>
+              <span>Turning {fit ? `${Math.round(Math.abs(fit.angle) * 180 / Math.PI)}° ${fit.angle > 0 ? 'counterclockwise' : 'clockwise'}` : '(they no longer turn)'}</span>
+              <button onClick={() => setShow((s) => setTurning(s, onSet, ids, false))}>Straight instead</button>
+            </div>
+            : <div style={{ ...row, marginTop: 0 }}>
+              <button onClick={() => { if (!fit) { setTurnNote(`They don't turn between set ${show.sets[onSet - 1].name} and set ${set.name}. Rotate them first (Transform, or the knob).`); return; } setTurnNote(''); setShow((s) => setTurning(s, onSet, ids, true)); }}
+                title="March arcs around the turn that takes them from their old spots to their new ones, instead of straight lines">Turn as a group</button>
+              {fit && <span style={{ fontSize: 12, opacity: 0.75 }}>{Math.round(Math.abs(fit.angle) * 180 / Math.PI)}° {fit.angle > 0 ? 'counterclockwise' : 'clockwise'}</span>}
+            </div>}
+          {turnNote && <p role="alert" style={{ ...help, color: 'var(--danger)', opacity: 1 }}>{turnNote}</p>}
+        </>}
+      </>}
+      <strong style={{ fontSize: 12, opacity: 0.8, marginTop: 6 }}>Too close</strong>
+      {!calls.length ? <p style={{ ...help, marginTop: 0 }}>No one comes within a step of anyone else in this move.</p> : <>
+        <ul aria-label="Performers who come too close" style={{ margin: 0, paddingLeft: 18, maxHeight: 160, overflowY: 'auto' }}>
+          {calls.slice(0, 20).map((c) => (
+            <li key={`${c.a} ${c.b}`} style={{ marginBottom: 2 }}>
+              {name(c.a)} and {name(c.b)}: {Math.round(c.d * 10) / 10} steps, count {c.count}{' '}
+              <button onClick={() => setSelected(new Set([c.a, c.b]))}>Select</button>
+            </li>
+          ))}
+        </ul>
+        {calls.length > 20 && <p style={help}>And {calls.length - 20} more pairs.</p>}
+      </>}
     </>
   );
 }

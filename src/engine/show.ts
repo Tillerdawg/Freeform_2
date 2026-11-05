@@ -53,6 +53,10 @@ export interface DrillSet {
    * quietly falls back to a straight line.
    */
   paths?: Record<string, Point[]>;
+  /** Delayed step-offs: hold `wait` counts, then move `move` counts (any counts left over are a hold at the end). Missing = moves all counts. */
+  timing?: Record<string, { wait: number; move: number }>;
+  /** Groups whose move into this set turns (a gate turn, a pivot): each member marches an arc around the one turn that best carries the group from its old spots to its new ones. */
+  turning?: string[][];
 }
 
 /** Sides are on the field: "above" = toward the back sideline (up on the editor's screen). */
@@ -209,6 +213,8 @@ export function removePerformers(show: Show, ids: Set<string>): Show {
       pos: Object.fromEntries(Object.entries(s.pos).filter(([k]) => !ids.has(k))),
       cues: s.cues && Object.fromEntries(Object.entries(s.cues).filter(([k]) => !ids.has(k))),
       labels: s.labels && Object.fromEntries(Object.entries(s.labels).filter(([k]) => !ids.has(k))),
+      timing: s.timing && Object.fromEntries(Object.entries(s.timing).filter(([k]) => !ids.has(k))),
+      turning: s.turning?.map((g) => g.filter((id) => !ids.has(id))).filter((g) => g.length > 1),
     })),
   };
 }
@@ -345,17 +351,25 @@ export function setAt(show: Show, t: number): number {
 /** Every performer's position at time t (float / straight-line moves). */
 export function positionsAt(show: Show, t: number): Record<string, Point> {
   const { to, f } = locate(show, t);
-  const b = show.sets[to].pos;
+  const set = show.sets[to], b = set.pos;
   if (f >= 1 || to === 0) return b;
   const a = show.sets[to - 1].pos;
+  const frac = (id: string) => moveFraction(set, id, f);
   const out: Record<string, Point> = {};
   for (const id of Object.keys(b)) {
-    const p = a[id] ?? b[id], q = b[id];
-    out[id] = { x: p.x + (q.x - p.x) * f, y: p.y + (q.y - p.y) * f };
+    const p = a[id] ?? b[id], q = b[id], g = frac(id);
+    out[id] = { x: p.x + (q.x - p.x) * g, y: p.y + (q.y - p.y) * g };
   }
-  for (const g of show.sets[to].ftl ?? []) {
-    const at = ftlPositions(g.order.map((id) => a[id] ?? b[id]), b[g.order[0]], f, g.turns);
-    g.order.forEach((id, k) => { out[id] = at[k]; });
+  for (const ids of set.turning ?? []) {
+    const fit = groupTurn(show, to, ids);
+    if (fit) for (const id of ids) out[id] = along(turnRoute(a[id] ?? b[id], b[id], fit.center, fit.angle), frac(id));
+  }
+  for (const g of set.ftl ?? []) {
+    const starts = g.order.map((id) => a[id] ?? b[id]);
+    if (!g.order.some((id) => set.timing?.[id])) {
+      const at = ftlPositions(starts, b[g.order[0]], f, g.turns);
+      g.order.forEach((id, k) => { out[id] = at[k]; });
+    } else g.order.forEach((id, k) => { out[id] = ftlPositions(starts, b[g.order[0]], frac(id), g.turns)[k]; }); // each on their own count
   }
   const n = show.sets[to].counts;
   for (const [id, path] of Object.entries(show.sets[to].paths ?? {})) {
@@ -391,6 +405,155 @@ export function evenPath(path: Point[], still = 0.02): Point[] {
     a = b;
   }
   return out;
+}
+
+// ---- Delayed step-offs and turning moves.
+
+/** How far through their move a performer is at fraction f of the move's counts: 0 while holding before stepping off, 1 once there. */
+export function moveFraction(set: DrillSet, id: string, f: number): number {
+  const tm = set.timing?.[id], n = set.counts;
+  if (!tm || n < 1) return f;
+  const w = Math.min(tm.wait, n - 1), m = Math.min(tm.move, n - w); // counts cut after the timing was set: keep it inside the move
+  return Math.min(1, Math.max(0, (f * n - w) / m));
+}
+
+/** The counts a performer holds before stepping off and the counts they move, as playback uses them. */
+export function timingOf(set: DrillSet, id: string): { wait: number; move: number } {
+  const tm = set.timing?.[id], n = set.counts;
+  if (!tm) return { wait: 0, move: n };
+  const w = Math.min(tm.wait, n - 1);
+  return { wait: w, move: Math.min(tm.move, n - w) };
+}
+
+/**
+ * Hold `wait` counts, then move `move` counts, for these performers in the move into set i (kept inside the move's
+ * counts). Moving every count from the start clears it. An imported count-by-count route for them is dropped (it would override).
+ */
+export function setTiming(show: Show, i: number, ids: string[], wait: number, move: number): Show {
+  if (i < 1) return show;
+  return mapSet(show, i, (s) => {
+    const n = s.counts, w = Math.max(0, Math.min(n - 1, Math.round(wait))), m = Math.max(1, Math.min(n - w, Math.round(move)));
+    const timing = { ...s.timing }, paths = { ...s.paths };
+    for (const id of ids) { delete paths[id]; if (w === 0 && m === n) delete timing[id]; else timing[id] = { wait: w, move: m }; }
+    return { ...s, timing: Object.keys(timing).length ? timing : undefined, paths: Object.keys(paths).length ? paths : undefined };
+  });
+}
+
+/** Make these performers' move into set i a turn, as one group (`on`), or straight again. They leave any other turning group. */
+export function setTurning(show: Show, i: number, ids: string[], on: boolean): Show {
+  if (i < 1) return show;
+  return mapSet(show, i, (s) => {
+    const groups = (s.turning ?? []).map((g) => g.filter((id) => !ids.includes(id))).filter((g) => g.length > 1);
+    if (on && ids.length > 1) groups.push([...ids]);
+    const paths = { ...s.paths };
+    for (const id of ids) delete paths[id];
+    return { ...s, turning: groups.length ? groups : undefined, paths: Object.keys(paths).length ? paths : undefined };
+  });
+}
+
+/**
+ * The one turn that best carries `from` onto `to` (least squares, as a rigid turn): the point it turns around and the
+ * angle in radians (positive = counterclockwise as the director sees it). Null when the group hardly turns (under 1°).
+ */
+export function fitTurn(from: Point[], to: Point[]): { center: Point; angle: number } | null {
+  const n = from.length;
+  if (n < 2) return null;
+  const mean = (ps: Point[]) => ({ x: ps.reduce((t, p) => t + p.x, 0) / n, y: ps.reduce((t, p) => t + p.y, 0) / n });
+  const ca = mean(from), cb = mean(to);
+  let dot = 0, cross = 0;
+  for (let k = 0; k < n; k++) {
+    const u = { x: from[k].x - ca.x, y: from[k].y - ca.y }, v = { x: to[k].x - cb.x, y: to[k].y - cb.y };
+    dot += u.x * v.x + u.y * v.y; cross += u.x * v.y - u.y * v.x;
+  }
+  const angle = Math.atan2(cross, dot);
+  if (Math.abs(angle) < Math.PI / 180) return null;
+  // The center stays put under the turn: c = R(c - ca) + cb, so (I - R)c = cb - R·ca.
+  const cos = Math.cos(angle), sin = Math.sin(angle), p = 1 - cos, det = 2 - 2 * cos;
+  const rx = cb.x - (cos * ca.x - sin * ca.y), ry = cb.y - (sin * ca.x + cos * ca.y);
+  return { center: { x: (p * rx - sin * ry) / det, y: (sin * rx + p * ry) / det }, angle };
+}
+
+/** The turn of a turning group in the move into set i (members missing a spot are left out). */
+export function groupTurn(show: Show, i: number, ids: string[]) {
+  const a = show.sets[i - 1].pos, b = show.sets[i].pos, here = ids.filter((id) => b[id]);
+  return fitTurn(here.map((id) => a[id] ?? b[id]), here.map((id) => b[id]));
+}
+
+/**
+ * One performer's arc in a turning move: `k` + 1 spots from `a` to `b`, swinging around `center` by about `angle`
+ * (their own sweep is the one nearest the group's), with the distance from the center changing evenly if it changes.
+ * Spaced evenly along the route, so every step is the same size. A performer on the center itself stands still.
+ */
+export function turnRoute(a: Point, b: Point, center: Point, angle: number, k = 32): Point[] {
+  const u = { x: a.x - center.x, y: a.y - center.y }, v = { x: b.x - center.x, y: b.y - center.y };
+  const r0 = Math.hypot(u.x, u.y), r1 = Math.hypot(v.x, v.y);
+  const raw: Point[] = [];
+  if (r0 < 1e-6 || r1 < 1e-6) for (let j = 0; j <= k; j++) raw.push({ x: a.x + ((b.x - a.x) * j) / k, y: a.y + ((b.y - a.y) * j) / k });
+  else {
+    const p0 = Math.atan2(u.y, u.x);
+    let d = Math.atan2(v.y, v.x) - p0 - angle;
+    d = d - 2 * Math.PI * Math.round(d / (2 * Math.PI)) + angle;
+    for (let j = 0; j <= k; j++) {
+      const g = j / k, r = r0 + (r1 - r0) * g, phi = p0 + d * g;
+      raw.push({ x: center.x + r * Math.cos(phi), y: center.y + r * Math.sin(phi) });
+    }
+  }
+  raw[0] = a; raw[k] = b;
+  return evenPath(raw, 1e-9);
+}
+
+/** The spot a fraction g of the way along an evenly spaced route. */
+const along = (route: Point[], g: number): Point => {
+  const c = g * (route.length - 1), k = Math.min(route.length - 2, Math.floor(c)), h = c - k, p = route[k], q = route[k + 1];
+  return { x: p.x + (q.x - p.x) * h, y: p.y + (q.y - p.y) * h };
+};
+const routeLength = (r: Point[]) => r.slice(1).reduce((t, p, k) => t + distance(r[k], p), 0);
+
+/**
+ * Counter-march the FTL group `order` (order[0] leads, the rest in file behind it) in the move into set i: the leader
+ * turns into the next lane, `lane` steps to its left or right, and marches back past the file, so the file ends
+ * reversed beside where it started. Built on follow-the-leader (a leader route with one turn).
+ */
+export function counterMarch(show: Show, i: number, order: string[], side: 'left' | 'right', lane = 1): Show {
+  if (i < 1 || order.length < 2) return show;
+  const a = show.sets[i - 1].pos, b = show.sets[i].pos, at = (id: string) => a[id] ?? b[id];
+  const head = at(order[0]), back = at(order[1]), tail = at(order.at(-1)!), len = distance(head, back);
+  if (len < 1e-6) throw new Error('The leader and the next in line start on the same spot.');
+  const dir = { x: (head.x - back.x) / len, y: (head.y - back.y) / len };
+  const n = side === 'left' ? { x: -dir.y, y: dir.x } : { x: dir.y, y: -dir.x };
+  const off = (p: Point) => ({ x: p.x + n.x * lane, y: p.y + n.y * lane });
+  const moved = placeInSet(setFtl(show, i, order), i, { [order[0]]: off(tail) });
+  return setFtlTurns(moved, i, order[0], [off(head)]);
+}
+
+// ---- Close calls: performers who come too near each other.
+
+/** Closer than this (in steps), at any point in a move, gets a warning (Jason: under 1 step). */
+export const TOO_CLOSE = 1;
+
+/**
+ * Pairs of performers closer than TOO_CLOSE at any half count of the move into set i (for set 1, its own spots),
+ * each pair once, at its closest, nearest first. `count` is the count of the move it happens on (0 for set 1).
+ */
+export function closeCalls(show: Show, i: number): { a: string; b: string; count: number; d: number }[] {
+  const n = i > 0 ? show.sets[i].counts : 0, from = i > 0 ? setStarts(show)[i - 1] : 0;
+  const best = new Map<string, { a: string; b: string; count: number; d: number }>();
+  for (let h = i > 0 ? 1 : 0; h <= 2 * n; h++) {
+    const c = h / 2, pos = i > 0 ? positionsAt(show, from + c) : show.sets[0].pos;
+    const cells = new Map<string, string[]>(), key = (x: number, y: number) => `${x},${y}`;
+    for (const [id, p] of Object.entries(pos)) {
+      const cx = Math.floor(p.x / TOO_CLOSE), cy = Math.floor(p.y / TOO_CLOSE);
+      for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) for (const o of cells.get(key(cx + dx, cy + dy)) ?? []) {
+        const d = distance(p, pos[o]);
+        if (d >= TOO_CLOSE) continue;
+        const [x, y] = id < o ? [id, o] : [o, id], k = `${x} ${y}`;
+        if (!best.has(k) || d < best.get(k)!.d) best.set(k, { a: x, b: y, count: c, d });
+      }
+      const k = key(cx, cy);
+      cells.set(k, [...(cells.get(k) ?? []), id]);
+    }
+  }
+  return [...best.values()].sort((x, y) => x.d - y.d);
 }
 
 /** A count-by-count path still belongs to its move: one spot per count, ends on the two sets' spots. */
@@ -472,15 +635,21 @@ export function chainOrder(show: Show, i: number, leader: string, ids: string[])
 
 /** Step size per performer for the move into set i (i >= 1). */
 export function moveSteps(show: Show, i: number): Record<string, { per5: number; tier: StepTier }> {
-  const a = show.sets[i - 1].pos, b = show.sets[i].pos;
+  const set = show.sets[i], a = show.sets[i - 1].pos, b = set.pos;
   const dist: Record<string, number> = Object.fromEntries(Object.keys(b).map((id) => [id, distance(a[id] ?? b[id], b[id])]));
+  const counts: Record<string, number> = Object.fromEntries(Object.keys(b).map((id) => [id, timingOf(set, id).move])); // a delayed step-off covers it in fewer counts
+  // A turning move marches the arc, not the straight line.
+  for (const ids of set.turning ?? []) {
+    const fit = groupTurn(show, i, ids);
+    if (fit) for (const id of ids) dist[id] = routeLength(turnRoute(a[id] ?? b[id], b[id], fit.center, fit.angle));
+  }
   // In follow-the-leader everyone marches the leader's distance, whatever the straight line says.
-  for (const g of show.sets[i].ftl ?? []) for (const id of g.order) dist[id] = leaderDistance(show, i, g);
+  for (const g of set.ftl ?? []) for (const id of g.order) dist[id] = leaderDistance(show, i, g);
   // On a count-by-count path, the step size that matters is its biggest single count.
-  const n = show.sets[i].counts;
-  for (const [id, path] of Object.entries(show.sets[i].paths ?? {}))
-    if (pathFits(path, a[id] ?? b[id], b[id], n)) dist[id] = n * Math.max(...path.slice(1).map((p, k) => distance(path[k], p)));
-  return Object.fromEntries(Object.entries(dist).map(([id, d]) => [id, stepSize(d, show.sets[i].counts)]));
+  const n = set.counts;
+  for (const [id, path] of Object.entries(set.paths ?? {}))
+    if (pathFits(path, a[id] ?? b[id], b[id], n)) { dist[id] = n * Math.max(...path.slice(1).map((p, k) => distance(path[k], p))); counts[id] = n; }
+  return Object.fromEntries(Object.entries(dist).map(([id, d]) => [id, stepSize(d, counts[id])]));
 }
 
 /** The largest step (smallest N-to-5) in the move into set i. */
@@ -541,6 +710,12 @@ export function parseShow(text: string): Show {
     for (const p of Object.values(set.pos) as Point[]) if (!Number.isFinite(p?.x) || !Number.isFinite(p?.y)) bad(`position in set ${set.name}`);
     if (set.paths !== undefined && (typeof set.paths !== 'object' || !set.paths || !Object.entries(set.paths).every(([id, path]) =>
       id in set.pos && Array.isArray(path) && path.length <= 2001 && path.every((p) => Number.isFinite(p?.x) && Number.isFinite(p?.y))))) bad('set paths');
+    if (set.timing !== undefined && (typeof set.timing !== 'object' || !set.timing || !Object.entries(set.timing).every(([id, tm]) => {
+      const x = tm as { wait?: unknown; move?: unknown };
+      return id in set.pos && Number.isInteger(x?.wait) && (x.wait as number) >= 0 && Number.isInteger(x.move) && (x.move as number) >= 1;
+    }))) bad('set timing');
+    if (set.turning !== undefined && (!Array.isArray(set.turning) || set.turning.length > 1000 || !set.turning.every((g: unknown) =>
+      Array.isArray(g) && g.length >= 2 && g.every((id) => str(id) && id in set.pos)))) bad('set turning');
   }
   return normalizeFtl(s as Show);
 }
@@ -635,13 +810,14 @@ export function mirrorSides(show: Show, i: number, ids: string[], from: 1 | 2): 
 
 /**
  * Rotate (degrees; positive = counterclockwise as the director sees it) and/or scale the selected performers
- * in set i around the center of their bounding box. `ky` stretches front to back separately (default: same as `scale`).
+ * in set i around the center of their bounding box, or around `pivot` (a gate turn on an end performer's spot).
+ * `ky` stretches front to back separately (default: same as `scale`).
  */
-export function rotateScale(show: Show, i: number, ids: string[], deg: number, scale: number, ky = scale): Show {
+export function rotateScale(show: Show, i: number, ids: string[], deg: number, scale: number, ky = scale, pivot?: Point): Show {
   if (!ids.length) return show;
   const pos = show.sets[i].pos;
   const xs = ids.map((id) => pos[id].x), ys = ids.map((id) => pos[id].y);
-  const cx = (Math.min(...xs) + Math.max(...xs)) / 2, cy = (Math.min(...ys) + Math.max(...ys)) / 2;
+  const cx = pivot ? pivot.x : (Math.min(...xs) + Math.max(...xs)) / 2, cy = pivot ? pivot.y : (Math.min(...ys) + Math.max(...ys)) / 2;
   const a = (deg * Math.PI) / 180, cos = Math.cos(a), sin = Math.sin(a);
   const tidy = (n: number) => Math.round(n * 1e9) / 1e9; // keep 90° turns landing exactly on whole steps
   const f = (p: Point) => { const dx = p.x - cx, dy = p.y - cy; return { x: tidy(cx + scale * (dx * cos - dy * sin)), y: tidy(cy + ky * (dx * sin + dy * cos)) }; };

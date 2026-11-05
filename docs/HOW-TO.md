@@ -17,18 +17,19 @@ The pictures in this guide come from a small sample show (47 performers, 4 sets)
 7. [Shapes: lines, arcs, curves, circles, polygons, stars, spirals, and blocks](#shapes-lines-arcs-curves-circles-polygons-stars-spirals-and-blocks)
 8. [Rotate, stretch, and flip](#rotate-stretch-and-flip)
 9. [Follow-the-leader](#follow-the-leader)
-10. [Step-size warnings](#step-size-warnings)
-11. [Dot labels](#dot-labels)
-12. [Markup and notes](#markup-and-notes)
-13. [Play it back](#play-it-back)
-14. [Add your music](#add-your-music)
-15. [Print dot sheets and drill charts](#print-dot-sheets-and-drill-charts)
-16. [Send the show to your performers](#send-the-show-to-your-performers)
-17. [What performers see on their phones](#what-performers-see-on-their-phones)
-18. [Using an iPad](#using-an-ipad)
-19. [Saving, backing up, and opening files](#saving-backing-up-and-opening-files)
-20. [Keyboard shortcuts](#keyboard-shortcuts)
-21. [If something goes wrong](#if-something-goes-wrong)
+10. [Step-offs and turning moves](#step-offs-and-turning-moves)
+11. [Step-size and too-close warnings](#step-size-and-too-close-warnings)
+12. [Dot labels](#dot-labels)
+13. [Markup and notes](#markup-and-notes)
+14. [Play it back](#play-it-back)
+15. [Add your music](#add-your-music)
+16. [Print dot sheets and drill charts](#print-dot-sheets-and-drill-charts)
+17. [Send the show to your performers](#send-the-show-to-your-performers)
+18. [What performers see on their phones](#what-performers-see-on-their-phones)
+19. [Using an iPad](#using-an-ipad)
+20. [Saving, backing up, and opening files](#saving-backing-up-and-opening-files)
+21. [Keyboard shortcuts](#keyboard-shortcuts)
+22. [If something goes wrong](#if-something-goes-wrong)
 
 ## Before you start
 
@@ -116,6 +117,10 @@ With **Select Performer(s)** on:
 
 On a touch screen there's no Shift key, so turn on **Add to selection** in the sidebar's Selection area. Every tap or box then adds to what's already selected.
 
+The Selection area also has **Select all** (⌘A, or Ctrl+A on Windows) and **Select a section…**, which picks every performer in that section. With two performers selected, it shows how many steps apart they are.
+
+**Copying spots from one set to another.** Select performers, click **Copy spots** (⌘C, or Ctrl+C), go to another set, and click **Paste spots** (⌘V, or Ctrl+V). The same performers go back to the same spots. This is handy for a picture that comes back later in the show.
+
 **Snap to grid** (in the toolbar) sets how dragging and adding land: on whole steps, half steps, or anywhere (free). If performers are already off the grid (after a rotate, a shape, or an import), select them and click **Apply** to round them onto it. FreeFORM warns you if two performers would land on the same spot.
 
 **Reading coordinates.** Click one performer and the sidebar shows exactly where they are, in standard drill language.
@@ -142,7 +147,7 @@ A set is one picture of the drill, and the move into it takes a number of counts
 - **Click a set's button** on the timeline to go to it, or click any count to see where everyone is on that count.
 - **Drag a set's button** to move it to a different count. The sets around it stay where they are.
 
-Each move on the timeline shows its counts, measures, and the biggest step anyone takes (colored if it's too big, see [Step-size warnings](#step-size-warnings)).
+Each move on the timeline shows its counts, measures, and the biggest step anyone takes (colored if it's too big, see [Step-size warnings](#step-size-and-too-close-warnings)).
 
 The timeline scrolls sideways for a long show. Use the mouse wheel or a swipe over it, or right-drag. The magnifying glasses at the right end zoom the timeline in and out, and **Fit** shows the whole show.
 
@@ -188,7 +193,7 @@ The **Transform** menu has the rest:
 
 - **Flip across the 50** swaps Side 1 and Side 2, and **Flip front ↔ back** swaps front and back.
 - **Copy Side 1 → 2** (or 2 → 1) gives the other side the mirror image. FreeFORM pairs each performer with the one in the mirror-opposite spot.
-- **Rotate & scale** turns the selection by a typed number of degrees, and **Expand** and **Contract** scale it evenly by a typed percent.
+- **Rotate & scale** turns the selection by a typed number of degrees, and **Expand** and **Contract** scale it evenly by a typed percent. **Around** picks what it turns around: the center, or one of the selected performers. Pick the performer on the end of a line for a gate turn.
 
 Rotating or stretching usually leaves performers between grid steps. Use **Snap to grid → Apply** if you want them back on whole or half steps.
 
@@ -207,7 +212,21 @@ With the group selected, each turn has a blue handle you can drag. **Remove last
 
 Everyone in an FTL move covers the leader's whole route at one steady step size, so a turn never makes anybody take a giant step.
 
-## Step-size warnings
+**Counter-march.** Make an FTL group from a file, with the leader at the front of the file. Then click **Turn left** or **Turn right** next to **Counter-march**. The leader turns into the next lane, one step over, and marches back past the file. Everyone follows, so the file ends up reversed, one step beside where it started. Check the step size, since the leader marches the whole length of the file.
+
+## Step-offs and turning moves
+
+![The Move menu, with the battery gate-turning into set 2 after a 4-count hold](img/move.png)
+
+The **Move** menu (in the toolbar) is about the move into the set you're on.
+
+**Delayed step-offs.** Not everyone has to move on count 1. Select the performers, open **Move**, type the counts to **Hold** and the counts to **then move**, and click **Apply**. Hold 4, then move 12 means they stand still for 4 counts, step off on count 5, and arrive on count 16. If the two numbers add up to less than the move's counts, they hold at the end. **Move all counts** puts them back to stepping off on count 1. They take one step size the whole time they move, and the step-size warnings count only the counts they move.
+
+**Turning moves.** When you rotate a group, its move into the set is a straight line for each performer by default, so a block turning 90° shrinks through its middle on the way. To march it as a real turn, select the group, open **Move**, and click **Turn as a group**. FreeFORM finds the turn that takes the group from its old spots to its new ones, and each performer marches an arc around it, at one step size. A gate turn on the end of a line keeps the end performer standing still. **Straight instead** goes back to straight lines. Rotate the group first (with **Transform** or the knob on the field); a group that only slides has no turn to march.
+
+A delayed step-off and a turning move work together: hold 4, then turn in 12, for example.
+
+## Step-size and too-close warnings
 
 ![Paths into set 4, too fast on purpose](img/step-warnings.png)
 
@@ -217,6 +236,8 @@ FreeFORM checks every move against the counts it has:
 - **Red** means it's bigger than a 4-to-5, which is about as big a step as anyone should take.
 
 The colors show on the path lines on the field and in the timeline's "max" readout for each move. To fix a red move, add counts, shorten the distance, or split the move with a sub-set.
+
+**Too close.** FreeFORM also checks every half count of every move for two performers less than a step apart, even if they're fine at both ends. The timeline shows how many pairs come too close in each move ("2 too close" in red). Open **Move** to see who they are, how close they get, and on what count. **Select** picks the pair so you can fix them, by spreading their spots, giving one a delayed step-off, or changing who goes to which spot.
 
 ## Dot labels
 
@@ -366,6 +387,8 @@ With a keyboard attached, the [keyboard shortcuts](#keyboard-shortcuts) work too
 | Move the selection half a step | Option (Alt) + arrow |
 | Zoom the field in or out | ⌘+ or ⌘− (Ctrl on Windows) |
 | Fit the whole field | F, or ⌘0 (Ctrl+0) |
+| Select everyone | ⌘A (Ctrl+A on Windows) |
+| Copy or paste the selection's spots | ⌘C or ⌘V (Ctrl+C or Ctrl+V) |
 | Delete the selection (asks first) | Delete |
 | Undo | ⌘Z (Ctrl+Z on Windows) |
 | Redo | ⇧⌘Z (Ctrl+Y or Ctrl+Shift+Z on Windows) |

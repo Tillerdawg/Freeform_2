@@ -26,6 +26,8 @@
 - ✅ Coordinate (dot) sheets, 4 cards per page, and drill charts, one per set (print / Save as PDF).
 - ✅ Measure numbers per set (typed), on dot sheets, chart headers, and the timeline.
 - ✅ Readable dot labels (auto placement and hiding, per-set pinned sides) in the editor, printed charts and phone.
+- ✅ Gaps a Pyware or UDB writer would notice (2026-11-05): delayed step-offs (hold, then move, then hold) in a **Move** menu; turning moves (a rotating group marches arcs around the turn that fits its old and new spots, one step size each); rotate around a chosen performer (gate turns); counter-march (an FTL preset); too-close warnings (under 1 step at any half count) on the timeline and in **Move**; Select all, select a section, copy and paste spots between sets, and the distance between two selected performers. Follow-ups: Copy Side 1 → 2 doesn't copy step-offs or turning yet; a turning move always takes the short way around (no 270° turns); a counter-march lane is always 1 step.
+- Next gaps to look at (from the same review): performer facing and body direction per set; guard equipment and props; text and letter shapes, and tracing a picture under the field; other surfaces (on the list below); and the print follow-ups.
 - Print follow-ups: paths on charts; a notes column; 1-per-page sheets; (done: measures fill in from the score for sets without them).
 - ✅ Page markup: text notes, arrows, freehand drawing, page notes; per-performer cues on dot sheets.
 - Markup follow-ups: markup that spans several sets; text size/color options; editing ink strokes point by point.

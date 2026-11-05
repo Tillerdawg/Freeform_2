@@ -34,9 +34,11 @@ A note on where the ideas came from: FreeFORM is modeled on Pyware and the Ultim
 - Coordinates in standard drill language, like "2 steps outside the Side 2 45, 2 steps in front of Front Hash."
 - Sections with letters and colors, a roster of names (paste it from a spreadsheet), and labels that stay out of each other's way.
 - Shapes: line, arc, curve, Bézier, circle, polygon, star, spiral, and block. FreeFORM assigns spots by least total travel, so paths don't cross.
-- Rotate and stretch a group by dragging handles on the field. Flip across the 50 or front to back, or copy one side to the other.
-- Follow-the-leader moves, with turns.
-- Step-size warnings: yellow past a 6-to-5, red past a 4-to-5.
+- Rotate and stretch a group by dragging handles on the field, or turn it around one performer for a gate turn. Flip across the 50 or front to back, or copy one side to the other.
+- Follow-the-leader moves, with turns, and counter-marches.
+- Delayed step-offs (hold 4, move 12) and turning moves, where a rotating group marches arcs instead of straight lines.
+- Select everyone or a whole section, copy spots from one set and paste them into another, and see how far apart two performers are.
+- Step-size warnings (yellow past a 6-to-5, red past a 4-to-5), and a warning when two performers come within a step of each other at any point in a move.
 - Text, arrows, and freehand markup on each set, plus ensemble notes and per-performer notes.
 - Undo for every edit.
 

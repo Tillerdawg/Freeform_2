@@ -4,7 +4,7 @@ import { Fragment, useEffect, useRef, useState } from 'react';
 import { RosterImport } from './RosterImport';
 import { IconGrip } from './icons';
 import { Menu } from './Toolbar';
-import { readout, type HashPreset } from '../engine/coords';
+import { distance, readout, type HashPreset } from '../engine/coords';
 import type { Shape, ShapeKind } from '../engine/shapes';
 import {
   MAX_NAME, scoreOrder, setCue, setMarks, setNames, setNote, label, locate, newId, moveToSection, removeSection, duplicateLetters, renumberSection, placeInSet, remapHash, positionsAt, xFrom, yFrom,
@@ -49,6 +49,9 @@ interface Props {
   startShape: (k: ShapeKind) => void;
   updateShape: (patch: Partial<Shape>) => void;
   endShape: () => void;
+  clip: number; // how many performers' spots are copied
+  onCopy: () => void;
+  onPaste: () => void;
 }
 
 const PRESETS: [HashPreset, string][] = [['highSchool', 'High school'], ['college', 'College / DCI'], ['nfl', 'NFL']];
@@ -127,6 +130,23 @@ export function Sidebar(p: Props) {
         </div>
         {selected.size === 0 && <p style={{ opacity: 0.7, margin: '6px 0 0' }}>{coarse() ? 'Tap a performer or drag a box around several. Turn on Add to selection to pick more.' : 'Click a performer, shift-click to add, or drag a box.'}</p>}
         {selected.size > 1 && <p style={{ margin: '6px 0 0' }}>{selected.size} performers selected</p>}
+        {selected.size === 2 && (() => {
+          const [x, y] = ids.map((id) => show.performers.find((q) => q.id === id)!), pos = onSet >= 0 ? show.sets[onSet].pos : positionsAt(show, p.t);
+          const d = Math.round(distance(pos[x.id], pos[y.id]) * 4) / 4; // quarter steps, like the coordinates
+          return <p style={{ margin: '4px 0 0' }}>{label(show, x)} to {label(show, y)}: {d} step{d === 1 ? '' : 's'} apart</p>;
+        })()}
+        <div style={row}>
+          <button onClick={() => p.setSelected(new Set(show.performers.map((x) => x.id)))} disabled={!show.performers.length} title="Select every performer (⌘A / Ctrl+A)">Select all</button>
+          <select aria-label="Select a section" value="" disabled={!show.performers.length}
+            onChange={(e) => { const sec = e.target.value; if (sec) p.setSelected(new Set(show.performers.filter((x) => x.section === sec).map((x) => x.id))); }}>
+            <option value="" disabled>Select a section…</option>
+            {show.sections.filter((s) => show.performers.some((x) => x.section === s.id)).map((s) => <option key={s.id} value={s.id}>{s.letter} · {s.name}</option>)}
+          </select>
+        </div>
+        <div style={row}>
+          <button onClick={p.onCopy} disabled={!(selected.size && onSet >= 0)} title="Copy the selected performers' spots in this set (⌘C / Ctrl+C)">Copy spots</button>
+          <button onClick={p.onPaste} disabled={!(p.clip && onSet >= 0)} title="Put the copied performers on the copied spots in this set (⌘V / Ctrl+V)">Paste spots{p.clip ? ` (${p.clip})` : ''}</button>
+        </div>
         {onSet < 0 && <p style={{ color: 'var(--warn)', margin: '6px 0 0' }}>Mid-move: you can select, but scrub to a set to move or add.</p>}
         {one && (
           <label style={{ display: 'block', marginTop: 8 }}>Name

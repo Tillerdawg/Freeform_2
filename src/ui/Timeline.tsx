@@ -1,7 +1,7 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { peakBetween, timeAt } from '../engine/music';
 import { chrome, useTheme } from './palette';
-import { addSetAfter, biggestStep, insertSetAt, locate, MAX_MOVEMENT, movementAt, movementOfSet, movementStarts, moveSetTo, newId, removeSet, setAt, setCounts, setMeasures, playPlan, setStarts, showLength, totalCounts, type Show } from '../engine/show';
+import { addSetAfter, biggestStep, closeCalls, insertSetAt, locate, MAX_MOVEMENT, movementAt, movementOfSet, movementStarts, moveSetTo, newId, removeSet, setAt, setCounts, setMeasures, playPlan, setStarts, showLength, totalCounts, type DrillSet, type Show } from '../engine/show';
 import { Menu } from './Toolbar';
 import { STEP_TEXT } from '../field/drawField';
 import { fmtStep } from './format';
@@ -33,10 +33,21 @@ interface Props {
 }
 
 /** One segment per move, width proportional to its counts; click or drag to scrub by whole counts. */
+/** Close-call counts by move, kept while the move's two sets are unchanged (a whole-show check takes too long to redo on every drag). */
+const closeCache = new WeakMap<DrillSet, { prev: DrillSet; n: number }>();
+
 export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, setBpm, range, setRange, span, music, wave }: Props) {
   const total = showLength(show); // the timeline runs through any part not written yet (count-first)
   const written = totalCounts(show);
   const starts = setStarts(show);
+  const close = useMemo(() => show.sets.map((set, i) => { // pairs under a step apart, per move; only moves whose sets changed are checked again
+    if (!i) return 0;
+    const hit = closeCache.get(set);
+    if (hit?.prev === show.sets[i - 1]) return hit.n;
+    const n = closeCalls(show, i).length;
+    closeCache.set(set, { prev: show.sets[i - 1], n });
+    return n;
+  }), [show]);
   const { to, count } = locate(show, t);
   const onSet = setAt(show, t);
   const past = t > written; // in the part not written yet: performers hold on the last set
@@ -228,8 +239,9 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
               <div key={s.id} style={{ ...box(starts[i - 1], s.counts), background: i === to && onSet < 0 && !past ? 'var(--surface-2)' : 'var(--surface)', boxShadow: i === to && onSet < 0 && !past ? 'inset 0 -3px 0 var(--gold)' : undefined }}>
                 <div style={{ padding: '2px 6px' }}>
                   <div>{show.sets[i - 1].name} → {s.name} · {s.counts} cts{s.measures ? ` · m. ${s.measures}` : ''}{s.ftl?.length ? ' · FTL' : ''}
-                    {big && short && <span style={{ color: STEP_TEXT[big.tier] }}> · max {fmtStep(big.per5)}</span>}</div>
-                  {big && !short && <div style={{ color: STEP_TEXT[big.tier] }}>max {fmtStep(big.per5)}</div>}
+                    {big && short && <span style={{ color: STEP_TEXT[big.tier] }}> · max {fmtStep(big.per5)}</span>}
+                    {!!close[i] && short && <span style={{ color: STEP_TEXT.red }} title="Performers who come within a step of each other: see Move"> · {close[i]} too close</span>}</div>
+                  {big && !short && <div style={{ color: STEP_TEXT[big.tier] }}>max {fmtStep(big.per5)}{!!close[i] && <span style={{ color: STEP_TEXT.red }} title="Performers who come within a step of each other: see Move"> · {close[i]} too close</span>}</div>}
                 </div>
               </div>
             );

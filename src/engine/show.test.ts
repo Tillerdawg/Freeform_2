@@ -3,6 +3,7 @@ import { HASHES, readout } from './coords';
 import {
   addPerformer, addSetAfter, advance, biggestStep, chainOrder, clearFtl, ftlTrail, moveSteps, normalizeFtl, flip, mirrorSides, moveSetTo, remapHash, rotateScale, setFtl, snapSelection, playRange, playPlan, label, locate, newShow, parseShow, placeInSet, positionsAt,
   removePerformers, renumberSets, scoreOrder, DEFAULT_SECTIONS, removeSet, setAt, setCounts, setStarts, totalCounts, xFrom, yFrom, insertSetAt, showLength, movementAt, movementOfSet, setFtlTurns,
+  setTiming, timingOf, fitTurn, setTurning, turnRoute, counterMarch, closeCalls,
 } from './show';
 
 function twoSetShow() {
@@ -590,5 +591,92 @@ describe('moves carry forward through holds', () => {
     const mid = placeInSet(later, 1, { [id]: { x: 4, y: 20 } }, later); // the drag passes over set 3's spot
     const end = placeInSet(mid, 1, { [id]: { x: 12, y: 20 } }, later);
     expect(end.sets.map((x) => x.pos[id].x)).toEqual([0, 12, 4, 4]);
+  });
+});
+
+describe('delayed step-offs, turning moves, counter-march, close calls', () => {
+  const line = (n: number, at: (k: number) => { x: number; y: number }) => {
+    let show = newShow();
+    const sec = show.sections[0].id, ids: string[] = [];
+    for (let k = 0; k < n; k++) { const r = addPerformer(show, sec, at(k)); show = r.show; ids.push(r.id); }
+    return { show: addSetAfter(show, 0, 16), ids };
+  };
+
+  it('holds, then moves in fewer counts, with one step size', () => {
+    let { show, id } = twoSetShow(); // 16 steps in 16 counts
+    show = setTiming(show, 1, [id], 4, 8); // hold 4, move 8, hold 4
+    const x = (c: number) => positionsAt(show, c)[id].x;
+    expect([x(0), x(4), x(8), x(12), x(16)]).toEqual([0, 0, -8, -16, -16]);
+    expect(moveSteps(show, 1)[id].per5).toBeCloseTo(4); // 16 steps in 8 counts: a 4-to-5
+    expect(setTiming(show, 1, [id], 0, 16).sets[1].timing).toBeUndefined(); // all counts again: cleared
+  });
+
+  it('keeps a timing inside the move when its counts are cut', () => {
+    let { show, id } = twoSetShow();
+    show = setCounts(setTiming(show, 1, [id], 8, 8), 1, 8);
+    expect(timingOf(show.sets[1], id)).toEqual({ wait: 7, move: 1 });
+    expect(positionsAt(show, 8)[id].x).toBe(-16);
+  });
+
+  it('finds the turn that carries a group to its new spots', () => {
+    const fit = fitTurn([{ x: 0, y: 0 }, { x: 4, y: 0 }], [{ x: 0, y: 0 }, { x: 0, y: 4 }]);
+    expect(fit!.angle).toBeCloseTo(Math.PI / 2);
+    expect(fit!.center.x).toBeCloseTo(0); expect(fit!.center.y).toBeCloseTo(0);
+    expect(fitTurn([{ x: 0, y: 0 }, { x: 4, y: 0 }], [{ x: 2, y: 2 }, { x: 6, y: 2 }])).toBeNull(); // just slides
+  });
+
+  it('gate-turns a line around its end on arcs, every step the same size', () => {
+    let { show, ids } = line(3, (k) => ({ x: k * 4, y: 40 })); // a line on the 50 going toward Side 2
+    show = rotateScale(show, 1, ids, 90, 1, 1, show.sets[1].pos[ids[0]]); // gate on the first performer
+    expect(show.sets[1].pos[ids[2]]).toEqual({ x: 0, y: 48 });
+    show = setTurning(show, 1, ids, true);
+    const mid = positionsAt(show, 8)[ids[2]]; // halfway: 45° around, still 8 steps from the pivot
+    expect(Math.hypot(mid.x, mid.y - 40)).toBeCloseTo(8, 1);
+    expect(mid.x).toBeCloseTo(8 * Math.SQRT1_2, 1);
+    expect(positionsAt(show, 8)[ids[0]]).toEqual({ x: 0, y: 40 }); // the pivot stands still
+    // The outside end marches a quarter circle (4π steps), not the 11.3-step straight line.
+    expect(moveSteps(show, 1)[ids[2]].per5).toBeCloseTo((8 * 16) / (4 * Math.PI), 1);
+    const r = turnRoute({ x: 8, y: 40 }, { x: 0, y: 48 }, { x: 0, y: 40 }, Math.PI / 2, 16);
+    const steps = r.slice(1).map((p, k) => Math.hypot(p.x - r[k].x, p.y - r[k].y));
+    expect(Math.max(...steps) - Math.min(...steps)).toBeLessThan(1e-6);
+    expect(setTurning(show, 1, ids, false).sets[1].turning).toBeUndefined();
+  });
+
+  it('counter-marches a file into the next lane, reversed', () => {
+    let { show, ids } = line(4, (k) => ({ x: 0, y: 40 - k * 2 })); // a file facing the back sideline, leader at the back
+    show = counterMarch(show, 1, ids, 'right', 1);
+    const end = show.sets[1].pos;
+    expect(end[ids[0]].x).toBeCloseTo(1); expect(end[ids[0]].y).toBeCloseTo(34); // leader ends where the tail was, one lane over
+    expect(end[ids[3]].x).toBeCloseTo(1); expect(end[ids[3]].y).toBeCloseTo(40); // the tail ends beside the old head
+  });
+
+  it('finds performers who come within a step of each other mid-move', () => {
+    let { show, ids } = line(2, (k) => ({ x: k ? 8 : -8, y: 40 }));
+    show = placeInSet(show, 1, { [ids[0]]: { x: 8, y: 42 }, [ids[1]]: { x: -8, y: 42 } }); // they swap and pass each other
+    const calls = closeCalls(show, 1);
+    expect(calls).toHaveLength(1);
+    expect(calls[0].count).toBe(8);
+    expect(closeCalls(show, 0)).toEqual([]);
+  });
+
+  it('checks a big show quickly', () => {
+    let { show, ids } = line(200, (k) => ({ x: (k % 20) * 2 - 20, y: 20 + Math.floor(k / 20) * 2 }));
+    show = placeInSet(show, 1, Object.fromEntries(ids.map((id, k) => [id, { x: -((k % 20) * 2 - 20), y: 20 + Math.floor(k / 20) * 2 }])));
+    const t0 = performance.now();
+    closeCalls(show, 1);
+    expect(performance.now() - t0).toBeLessThan(500);
+  });
+
+  it('reads and checks timing and turning from files, and forgets removed performers', () => {
+    let { show, ids } = line(3, (k) => ({ x: k * 4, y: 40 }));
+    show = setTurning(setTiming(show, 1, [ids[0]], 2, 8), 1, ids, true);
+    expect(parseShow(JSON.stringify(show)).sets[1].timing).toEqual({ [ids[0]]: { wait: 2, move: 8 } });
+    const bad = JSON.parse(JSON.stringify(show)); bad.sets[1].timing[ids[0]].move = 0;
+    expect(() => parseShow(JSON.stringify(bad))).toThrow(/timing/);
+    const bad2 = JSON.parse(JSON.stringify(show)); bad2.sets[1].turning = [['nobody', ids[0]]];
+    expect(() => parseShow(JSON.stringify(bad2))).toThrow(/turning/);
+    const gone = removePerformers(show, new Set([ids[0], ids[1]]));
+    expect(gone.sets[1].timing).toEqual({});
+    expect(gone.sets[1].turning).toEqual([]);
   });
 });

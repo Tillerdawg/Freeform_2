@@ -4,7 +4,7 @@ import { emptyHistory, record, redo, undo } from './engine/history';
 import { addInk, hitMark, moveMark, type Mark } from './engine/marks';
 import { assign, fitShape, isControl, moveHandle, samplePath, slots, type Shape, type ShapeKind } from './engine/shapes';
 import { colorOf,
-  addPerformer, ftlTrail, setFtlTurns, locate, label, mark, newId, pathFits, setMarks, moveSteps, normalizeFtl, snapPoint, playRange, newShow, parseShow, placeInSet, positionsAt, removePerformers,
+  addPerformer, ftlTrail, setFtlTurns, locate, label, mark, newId, pathFits, setMarks, moveSteps, groupTurn, turnRoute, normalizeFtl, snapPoint, playRange, newShow, parseShow, placeInSet, positionsAt, removePerformers,
   rotateScale, setAt, setStarts, type Show,
   showLength,
 } from './engine/show';
@@ -181,6 +181,17 @@ export function App() {
     return () => ro.disconnect();
   }, [dpr]);
 
+  // Copy and paste spots: the selected performers' spots in one set, put back on the same performers in another.
+  const [clip, setClip] = useState<Record<string, Point> | null>(null);
+  const copySpots = () => { if (onSet >= 0 && selected.size) setClip(Object.fromEntries([...selected].flatMap((id) => (show.sets[onSet].pos[id] ? [[id, show.sets[onSet].pos[id]]] : [])))); };
+  const pasteSpots = () => {
+    if (!clip || onSet < 0) return;
+    const moves = Object.fromEntries(Object.entries(clip).filter(([id]) => show.sets[onSet].pos[id]));
+    setShapeEdit(null); // a shape still open would put them back on its spots
+    setShow((s) => placeInSet(s, onSet, moves));
+    setSelected(new Set(Object.keys(moves)));
+  };
+
   // Paths into the current set, colored by step size. Mid-move, the move being made (so FTL trails show there too).
   const pathSet = onSet >= 0 ? onSet : t < starts.at(-1)! ? locate(show, t).to : -1;
   const paths: Path[] = useMemo(() => {
@@ -191,9 +202,16 @@ export function App() {
     const groups = show.sets[onSet].ftl ?? [];
     const inFtl = new Set(groups.flatMap((g) => g.order));
     const own = show.sets[onSet].paths ?? {}, n = show.sets[onSet].counts;
+    // A turning move is drawn along each member's arc.
+    const arcs = new Map<string, Point[]>();
+    for (const ids of show.sets[onSet].turning ?? []) {
+      const fit = groupTurn(show, onSet, ids);
+      if (fit) for (const id of ids) if (a[id] && !inFtl.has(id)) arcs.set(id, turnRoute(a[id], b[id], fit.center, fit.angle));
+    }
     const straight = Object.keys(b).filter((id) => !inFtl.has(id) && a[id] && (a[id].x !== b[id].x || a[id].y !== b[id].y || own[id]))
       .flatMap((id) => {
-        const path = own[id];
+        const path = arcs.get(id) ?? own[id];
+        if (arcs.has(id)) return path.slice(1).map((q, k) => ({ from: path[k], to: q, tier: steps[id].tier }));
         // A count-by-count move (from Pyware) is drawn along its real route; still counts (holds) add nothing.
         if (path && pathFits(path, a[id], b[id], n))
           return path.slice(1).flatMap((q, k) => (q.x !== path[k].x || q.y !== path[k].y ? [{ from: path[k], to: q, tier: steps[id].tier }] : []));
@@ -332,7 +350,10 @@ export function App() {
       else if (mod && (e.key === 'y' || e.key === 'Y')) { e.preventDefault(); step('redo'); }
       else if (mod && (e.key === '=' || e.key === '+' || e.key === '-' || e.key === '_')) { e.preventDefault(); zoomBy(e.key === '-' || e.key === '_' ? 1 / 1.25 : 1.25); } // the field, not the page
       else if (mod && e.key === '0') { e.preventDefault(); fit(); }
-      else if (mod) return; // leave other shortcuts (copy, select all, ...) to the browser
+      else if (mod && (e.key === 'a' || e.key === 'A')) { e.preventDefault(); setSelected(new Set(show.performers.map((p) => p.id))); }
+      else if (mod && (e.key === 'c' || e.key === 'C') && selected.size && onSet >= 0) { e.preventDefault(); copySpots(); }
+      else if (mod && (e.key === 'v' || e.key === 'V') && clip && onSet >= 0) { e.preventDefault(); pasteSpots(); }
+      else if (mod) return; // leave other shortcuts to the browser
       else if (e.key === ' ') { e.preventDefault(); setPlaying((p) => !p); }
       else if (e.key.startsWith('Arrow') && selected.size && onSet >= 0 && !playing) {
         // Nudge the selection: 1 step, Shift 4 steps, Option/Alt half a step. Up is up on the screen.
@@ -364,7 +385,7 @@ export function App() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [selected, total, hist, show, shapeEdit, printing, selectedMark, onSet, tool, playing, view]);
+  }, [selected, total, hist, show, shapeEdit, printing, selectedMark, onSet, tool, playing, view, clip]);
 
   const world = (e: React.PointerEvent) => toWorld(view!, e.nativeEvent.offsetX * dpr, e.nativeEvent.offsetY * dpr);
 
@@ -659,6 +680,7 @@ export function App() {
         section={section} setSection={setSection} snap={snap} setSnap={setSnap} starts={starts}
         onNew={fresh} onOpen={() => fileRef.current?.click()} onSave={save} onPrint={() => setPrinting(true)} onShare={() => setSharing(true)} fileError={fileError}
         selectedMark={selectedMark} setSelectedMark={setSelectedMark} adding={adding} setAdding={setAdding}
+        clip={clip ? Object.keys(clip).length : 0} onCopy={copySpots} onPaste={pasteSpots}
         onUndo={() => step('undo')} onRedo={() => step('redo')} canUndo={!!hist.past.length} canRedo={!!hist.future.length}
         onFit={fit} shape={shapeEdit?.shape ?? null} startShape={startShape} updateShape={updateShape} endShape={() => setShapeEdit(null)}
       />

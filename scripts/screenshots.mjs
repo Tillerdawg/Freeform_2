@@ -121,6 +121,27 @@ shot('ftl', async () => {
   await menu(page, 'FTL');
   await save(page, 'ftl', { x: 360, y: 110, width: 720, height: 600 });
 });
+shot('move', async () => {
+  // The battery's line gate-turns on its Side 1 end into set 2, marching arcs, and the Move menu shows it.
+  const page = await editor();
+  await goSet(page, 2);
+  await box(page, { x: -17, y: 50 }, { x: 19, y: 54 });
+  await menu(page, 'Transform');
+  await page.getByRole('combobox', { name: 'Rotate around' }).selectOption({ label: 'S1' });
+  await page.getByRole('spinbutton', { name: 'Rotation in degrees' }).fill('90');
+  await page.getByRole('spinbutton', { name: 'Rotation in degrees' }).press('Enter');
+  await page.getByTitle('Rotate counterclockwise').click();
+  await page.keyboard.press('Escape');
+  await menu(page, 'Move');
+  await page.getByRole('button', { name: 'Turn as a group' }).click();
+  await page.getByRole('spinbutton', { name: 'Counts to hold before stepping off' }).fill('4');
+  await page.getByRole('spinbutton', { name: 'Counts to hold before stepping off' }).press('Tab');
+  await page.getByRole('spinbutton', { name: 'Counts to move' }).fill('12');
+  await page.getByRole('spinbutton', { name: 'Counts to move' }).press('Tab');
+  await page.getByRole('button', { name: 'Apply', exact: true }).last().click();
+  await page.waitForTimeout(200);
+  await save(page, 'move', { x: 120, y: 60, width: 1000, height: 560 });
+});
 shot('sections', async () => {
   const page = await editor();
   const head = page.getByText('Sections', { exact: true });
