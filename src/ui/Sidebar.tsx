@@ -7,7 +7,7 @@ import { Menu } from './Toolbar';
 import { distance, readout, type HashPreset } from '../engine/coords';
 import type { Shape, ShapeKind } from '../engine/shapes';
 import {
-  MAX_NAME, scoreOrder, setCue, setMarks, setNames, setNote, label, locate, newId, moveToSection, removeSection, duplicateLetters, renumberSection, placeInSet, remapHash, positionsAt, xFrom, yFrom,
+  FACINGS, facingIn, facingName, setFacing, type Facing, MAX_NAME, scoreOrder, setCue, setMarks, setNames, setNote, label, locate, newId, moveToSection, removeSection, duplicateLetters, renumberSection, placeInSet, remapHash, positionsAt, xFrom, yFrom,
   type FrontDir, type FrontRef, type Section, type Show, type SideDir,
 } from '../engine/show';
 import { NumberField } from './NumberField';
@@ -163,6 +163,22 @@ export function Sidebar(p: Props) {
                 onChange={(e) => e.target.value && setShow((s) => moveToSection(s, [...selected], e.target.value))}>
                 {secs.size > 1 && <option value="" disabled>Mixed</option>}
                 {show.sections.map((s) => <option key={s.id} value={s.id}>{s.letter} · {s.name}</option>)}
+              </select>
+            </label>
+          );
+        })()}
+        {selected.size > 0 && onSet >= 0 && (() => {
+          // Facing set here, or carried on from an earlier set ('' = carried on).
+          const own = new Set(ids.map((id) => show.sets[onSet].facing?.[id] ?? ''));
+          const before = new Set(ids.map((id) => (onSet ? facingIn(show, onSet - 1, id) ?? '' : '')));
+          const carried = before.size === 1 ? [...before][0] : 'mixed';
+          return (
+            <label style={{ display: 'block', marginTop: 8 }} title="Which way they face in this set. It carries on into later sets until you change it.">Facing{' '}
+              <select aria-label="Facing of selected performers" value={own.size === 1 ? [...own][0] : 'mixed'}
+                onChange={(e) => e.target.value !== 'mixed' && setShow((s) => setFacing(s, onSet, ids, (e.target.value || null) as Facing | null))}>
+                {own.size > 1 && <option value="mixed" disabled>Mixed</option>}
+                <option value="">{onSet === 0 ? 'Not set' : carried === 'mixed' ? 'As in the set before (mixed)' : carried ? `As in the set before (${facingName(carried as Facing)})` : 'Not set'}</option>
+                {FACINGS.map(([k, name]) => <option key={k} value={k}>{name}</option>)}
               </select>
             </label>
           );

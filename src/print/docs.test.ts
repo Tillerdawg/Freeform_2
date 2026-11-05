@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addPerformer, addSetAfter, newShow, parseShow, placeInSet, setCue, setMeasures } from '../engine/show';
+import { addPerformer, addSetAfter, newShow, parseShow, placeInSet, setCue, setFacing, setMeasures } from '../engine/show';
 import { ROWS_PER_CARD, chartTitle, chunk, dotCards, hasMeasures, sortedPerformers } from './docs';
 
 function show3() {
@@ -28,6 +28,13 @@ describe('dot sheets', () => {
       { set: '1', counts: '—', measures: '', side: '2 steps outside the Side 2 45', front: '2 steps in front of Front Hash', cue: '' },
       { set: '2', counts: '16', measures: '', side: 'Splitting 35 and 40 on Side 1', front: 'On Back Hash', cue: '' },
     ]);
+  });
+  it('notes a facing on the set where it changes, before the performer note', () => {
+    let { s, t1 } = show3();
+    s = addSetAfter(s, 1, 8);
+    s = setCue(setFacing(s, 1, [t1], 'side2'), 1, [t1], 'Slide L');
+    const [card] = dotCards(s, s.performers.filter((p) => p.id === t1));
+    expect(card.rows.map((r) => r.cue)).toEqual(['', 'Face Side 2 · Slide L', '']);
   });
   it('long shows continue onto more cards', () => {
     let { s, t1 } = show3();

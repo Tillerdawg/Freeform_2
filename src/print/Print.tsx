@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { colorOf, mark, type Show } from '../engine/show';
-import { drawField, drawGlyph, drawLabels, drawMarks, fitView, toScreen } from '../field/drawField';
+import { colorOf, facingIn, facingVector, mark, type Show } from '../engine/show';
+import { drawFacing, drawField, drawGlyph, drawLabels, drawMarks, fitView, toScreen } from '../field/drawField';
 import { chartTitle, chunk, dotCards, hasMeasures, sortedPerformers } from './docs';
 
 type Kind = 'dots' | 'charts';
@@ -19,6 +19,7 @@ function chartImage(show: Show, i: number): string {
   const s = v.scale, pos = show.sets[i].pos;
   const here = show.performers.filter((p) => pos[p.id]);
   const letters = show.symbols !== 'dots';
+  for (const p of here) { const f = facingIn(show, i, p.id); if (f) drawFacing(ctx, v, pos[p.id], facingVector(f), (letters ? 1 : 0.6) * s, '#000', '#fff'); }
   for (const p of here) {
     const q = toScreen(v, pos[p.id]);
     const color = colorOf(show, p);

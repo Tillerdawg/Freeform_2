@@ -120,7 +120,7 @@ export const TIER_COLOR = { ok: PALETTE['bg-deep'], yellow: PALETTE.warn, red: P
 /** The same tiers as text on the dark panels (the field's bright red is too dim for text there). */
 export const STEP_TEXT = { ok: 'var(--text)', yellow: 'var(--warn)', red: 'var(--danger)' } as const;
 
-export interface Dot { id: string; label: string; at: Point; pin?: LabelSide; color?: string; glyph?: string } // glyph: draw this letter instead of a dot
+export interface Dot { id: string; label: string; at: Point; pin?: LabelSide; color?: string; glyph?: string; facing?: Point } // glyph: draw this letter instead of a dot; facing: a unit direction on the field
 export interface Path { from: Point; to: Point; tier: keyof typeof TIER_COLOR }
 
 /**
@@ -183,6 +183,23 @@ export function drawGlyph(ctx: CanvasRenderingContext2D, at: Point, glyph: strin
   ctx.restore();
 }
 
+/**
+ * Which way a performer faces: a small pointer just outside its mark (radius r, in screen px), toward field direction
+ * `dir`. Drawn through the canvas's transform, so it turns with a field that's turned around (Facing front).
+ */
+export function drawFacing(ctx: CanvasRenderingContext2D, v: View, at: Point, dir: Point, r: number, fill: string, edge: string) {
+  const c = toScreen(v, at), e = toScreen(v, { x: at.x + dir.x, y: at.y + dir.y });
+  const len = Math.hypot(e.x - c.x, e.y - c.y) || 1, ux = (e.x - c.x) / len, uy = (e.y - c.y) / len;
+  const L = Math.max(6, r * 1.3), base = r + Math.max(1.5, r * 0.2), w = L * 0.55;
+  ctx.beginPath();
+  ctx.moveTo(c.x + ux * (base + L), c.y + uy * (base + L));
+  ctx.lineTo(c.x + ux * base - uy * w, c.y + uy * base + ux * w);
+  ctx.lineTo(c.x + ux * base + uy * w, c.y + uy * base - ux * w);
+  ctx.closePath();
+  ctx.lineJoin = 'round'; ctx.lineWidth = Math.max(1.5, L * 0.25); ctx.strokeStyle = edge; ctx.stroke();
+  ctx.fillStyle = fill; ctx.fill();
+}
+
 /** Performers, their incoming paths, and an optional selection box. */
 export function drawPerformers(
   ctx: CanvasRenderingContext2D, v: View, dots: Dot[], selected: Set<string>, paths: Path[], box?: [Point, Point], dpr = 1,
@@ -205,6 +222,7 @@ export function drawPerformers(
 
   const letters = dots.some((d) => d.glyph), f = Math.max(11 * dpr, s * 1.2); // letter height
   const r = letters ? f * 0.45 : Math.max(4, s * 0.45);
+  for (const d of dots) if (d.facing) drawFacing(ctx, v, d.at, d.facing, r, selected.has(d.id) ? PALETTE.gold : '#fff', 'rgba(0,0,0,0.85)');
   for (const d of dots) {
     const c = toScreen(v, d.at);
     const sel = selected.has(d.id);

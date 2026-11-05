@@ -1,6 +1,6 @@
 // What goes on printed dot sheets and drill charts (pure data; layout is in Print.tsx).
 import { frontToBack, sideToSide } from '../engine/coords';
-import { label, movementOfSet, setStarts, type Performer, type Show } from '../engine/show';
+import { facingIn, facingName, label, movementOfSet, setStarts, type Performer, type Show } from '../engine/show';
 
 export const ROWS_PER_CARD = 24; // what fits a quarter-letter card at a readable size
 
@@ -15,6 +15,12 @@ export function sortedPerformers(show: Show, ids?: Set<string>): Performer[] {
     .sort((a, b) => (order.get(a.section) ?? 0) - (order.get(b.section) ?? 0) || a.number - b.number);
 }
 
+/** "Face Side 2" on the set where a performer's facing changes (it carries on until the next change). */
+function faceChange(show: Show, i: number, id: string): string {
+  const f = facingIn(show, i, id);
+  return f && f !== (i ? facingIn(show, i - 1, id) : undefined) ? `Face ${facingName(f)}` : '';
+}
+
 /** One or more cards per performer (long shows continue onto another card). */
 export function dotCards(show: Show, performers: Performer[]): Card[] {
   const cards: Card[] = [];
@@ -23,7 +29,7 @@ export function dotCards(show: Show, performers: Performer[]): Card[] {
       set: s.name,
       counts: i === 0 ? '—' : String(s.counts),
       measures: s.measures ?? '',
-      cue: s.cues?.[p.id] ?? '',
+      cue: [faceChange(show, i, p.id), s.cues?.[p.id]].filter(Boolean).join(' · '),
       side: sideToSide(s.pos[p.id].x),
       front: frontToBack(s.pos[p.id].y, show.hash),
     }));

@@ -18,18 +18,19 @@ The pictures in this guide come from a small sample show (47 performers, 4 sets)
 8. [Rotate, stretch, and flip](#rotate-stretch-and-flip)
 9. [Follow-the-leader](#follow-the-leader)
 10. [Step-offs and turning moves](#step-offs-and-turning-moves)
-11. [Step-size and too-close warnings](#step-size-and-too-close-warnings)
-12. [Dot labels](#dot-labels)
-13. [Markup and notes](#markup-and-notes)
-14. [Play it back](#play-it-back)
-15. [Add your music](#add-your-music)
-16. [Print dot sheets and drill charts](#print-dot-sheets-and-drill-charts)
-17. [Send the show to your performers](#send-the-show-to-your-performers)
-18. [What performers see on their phones](#what-performers-see-on-their-phones)
-19. [Using an iPad](#using-an-ipad)
-20. [Saving, backing up, and opening files](#saving-backing-up-and-opening-files)
-21. [Keyboard shortcuts](#keyboard-shortcuts)
-22. [If something goes wrong](#if-something-goes-wrong)
+11. [Facing](#facing)
+12. [Step-size and too-close warnings](#step-size-and-too-close-warnings)
+13. [Dot labels](#dot-labels)
+14. [Markup and notes](#markup-and-notes)
+15. [Play it back](#play-it-back)
+16. [Add your music](#add-your-music)
+17. [Print dot sheets and drill charts](#print-dot-sheets-and-drill-charts)
+18. [Send the show to your performers](#send-the-show-to-your-performers)
+19. [What performers see on their phones](#what-performers-see-on-their-phones)
+20. [Using an iPad](#using-an-ipad)
+21. [Saving, backing up, and opening files](#saving-backing-up-and-opening-files)
+22. [Keyboard shortcuts](#keyboard-shortcuts)
+23. [If something goes wrong](#if-something-goes-wrong)
 
 ## Before you start
 
@@ -225,6 +226,14 @@ The **Move** menu (in the toolbar) is about the move into the set you're on.
 **Turning moves.** When you rotate a group, its move into the set is a straight line for each performer by default, so a block turning 90° shrinks through its middle on the way. To march it as a real turn, select the group, open **Move**, and click **Turn as a group**. FreeFORM finds the turn that takes the group from its old spots to its new ones, and each performer marches an arc around it, at one step size. A gate turn on the end of a line keeps the end performer standing still. **Straight instead** goes back to straight lines. Rotate the group first (with **Transform** or the knob on the field); a group that only slides has no turn to march.
 
 A delayed step-off and a turning move work together: hold 4, then turn in 12, for example.
+
+## Facing
+
+Select performers, go to a set, and pick which way they face from **Facing** in the sidebar's Selection area: **Front**, **Back**, **Side 1**, **Side 2**, or one of the four diagonals (**Front-Side 2** and so on). Front is toward the front sideline, where the box is.
+
+A small pointer beside each dot shows which way it faces, on the field, on printed charts, and on phones. A facing carries on into later sets until you change it, so you only set it where it changes. **As in the set before** takes back a change. Performers you never set have no pointer.
+
+Dot sheets say "Face Side 2" on the set where a performer's facing changes, and the phone view shows "facing Side 2" with their spot and "face Back" with their next set when it's about to change.
 
 ## Step-size and too-close warnings
 

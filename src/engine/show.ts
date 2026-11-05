@@ -57,7 +57,33 @@ export interface DrillSet {
   timing?: Record<string, { wait: number; move: number }>;
   /** Groups whose move into this set turns (a gate turn, a pivot): each member marches an arc around the one turn that best carries the group from its old spots to its new ones. */
   turning?: string[][];
+  /** Which way performers face in this set, where it changes; a performer keeps facing that way in later sets until it changes again. */
+  facing?: Record<string, Facing>;
 }
+
+/** Eight ways to face, named from the field: Front is toward the front sideline (the box), Side 2 toward Side 2. */
+export type Facing = 'front' | 'back' | 'side1' | 'side2' | 'front-side1' | 'front-side2' | 'back-side1' | 'back-side2';
+export const FACINGS: [Facing, string][] = [['front', 'Front'], ['front-side2', 'Front-Side 2'], ['side2', 'Side 2'], ['back-side2', 'Back-Side 2'],
+  ['back', 'Back'], ['back-side1', 'Back-Side 1'], ['side1', 'Side 1'], ['front-side1', 'Front-Side 1']];
+export const facingName = (f: Facing) => FACINGS.find(([k]) => k === f)![1];
+/** A facing as a unit direction on the field (+x toward Side 2, +y toward the back sideline). */
+export function facingVector(f: Facing): Point {
+  const x = f.includes('side2') ? 1 : f.includes('side1') ? -1 : 0, y = f.startsWith('front') ? -1 : f.startsWith('back') ? 1 : 0, n = Math.hypot(x, y);
+  return { x: x / n, y: y / n };
+}
+
+/** Which way a performer faces in set i: the last set up to i where it was set, or undefined if it never was. */
+export function facingIn(show: Show, i: number, id: string): Facing | undefined {
+  for (let j = Math.min(i, show.sets.length - 1); j >= 0; j--) { const f = show.sets[j].facing?.[id]; if (f) return f; }
+}
+
+/** These performers face `f` from set i on (until a later set changes it); null goes back to whatever the set before had. */
+export const setFacing = (show: Show, i: number, ids: string[], f: Facing | null): Show =>
+  mapSet(show, i, (s) => {
+    const facing = { ...s.facing };
+    for (const id of ids) { if (f) facing[id] = f; else delete facing[id]; }
+    return { ...s, facing: Object.keys(facing).length ? facing : undefined };
+  });
 
 /** Sides are on the field: "above" = toward the back sideline (up on the editor's screen). */
 export type LabelSide = 'above' | 'above-right' | 'right' | 'below-right' | 'below' | 'below-left' | 'left' | 'above-left' | 'hidden';
@@ -214,6 +240,7 @@ export function removePerformers(show: Show, ids: Set<string>): Show {
       cues: s.cues && Object.fromEntries(Object.entries(s.cues).filter(([k]) => !ids.has(k))),
       labels: s.labels && Object.fromEntries(Object.entries(s.labels).filter(([k]) => !ids.has(k))),
       timing: s.timing && Object.fromEntries(Object.entries(s.timing).filter(([k]) => !ids.has(k))),
+      facing: s.facing && Object.fromEntries(Object.entries(s.facing).filter(([k]) => !ids.has(k))),
       turning: s.turning?.map((g) => g.filter((id) => !ids.has(id))).filter((g) => g.length > 1),
     })),
   };
@@ -716,6 +743,8 @@ export function parseShow(text: string): Show {
     }))) bad('set timing');
     if (set.turning !== undefined && (!Array.isArray(set.turning) || set.turning.length > 1000 || !set.turning.every((g: unknown) =>
       Array.isArray(g) && g.length >= 2 && g.every((id) => str(id) && id in set.pos)))) bad('set turning');
+    if (set.facing !== undefined && (typeof set.facing !== 'object' || !set.facing || !Object.entries(set.facing).every(([id, f]) =>
+      id in set.pos && FACINGS.some(([k]) => k === f)))) bad('set facing');
   }
   return normalizeFtl(s as Show);
 }

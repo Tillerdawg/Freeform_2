@@ -3,7 +3,7 @@ import { HASHES, readout } from './coords';
 import {
   addPerformer, addSetAfter, advance, biggestStep, chainOrder, clearFtl, ftlTrail, moveSteps, normalizeFtl, flip, mirrorSides, moveSetTo, remapHash, rotateScale, setFtl, snapSelection, playRange, playPlan, label, locate, newShow, parseShow, placeInSet, positionsAt,
   removePerformers, renumberSets, scoreOrder, DEFAULT_SECTIONS, removeSet, setAt, setCounts, setStarts, totalCounts, xFrom, yFrom, insertSetAt, showLength, movementAt, movementOfSet, setFtlTurns,
-  setTiming, timingOf, fitTurn, setTurning, turnRoute, counterMarch, closeCalls,
+  setTiming, timingOf, fitTurn, setTurning, turnRoute, counterMarch, closeCalls, facingIn, setFacing, facingVector,
 } from './show';
 
 function twoSetShow() {
@@ -678,5 +678,24 @@ describe('delayed step-offs, turning moves, counter-march, close calls', () => {
     const gone = removePerformers(show, new Set([ids[0], ids[1]]));
     expect(gone.sets[1].timing).toEqual({});
     expect(gone.sets[1].turning).toEqual([]);
+  });
+});
+
+describe('facing', () => {
+  it('carries forward until it changes, and checks files', () => {
+    let { show, id } = twoSetShow();
+    show = addSetAfter(show, 1, 8);
+    expect(facingIn(show, 2, id)).toBeUndefined();
+    show = setFacing(show, 1, [id], 'side2');
+    expect([facingIn(show, 0, id), facingIn(show, 1, id), facingIn(show, 2, id)]).toEqual([undefined, 'side2', 'side2']);
+    show = setFacing(show, 2, [id], 'back');
+    expect(facingIn(show, 2, id)).toBe('back');
+    expect(facingIn(setFacing(show, 2, [id], null), 2, id)).toBe('side2');
+    expect(facingVector('front-side2').x).toBeCloseTo(Math.SQRT1_2);
+    expect(facingVector('front-side2').y).toBeCloseTo(-Math.SQRT1_2);
+    expect(parseShow(JSON.stringify(show)).sets[2].facing).toEqual({ [id]: 'back' });
+    const bad = JSON.parse(JSON.stringify(show)); bad.sets[2].facing[id] = 'up';
+    expect(() => parseShow(JSON.stringify(bad))).toThrow(/facing/);
+    expect(removePerformers(show, new Set([id])).sets[2].facing).toEqual({});
   });
 });

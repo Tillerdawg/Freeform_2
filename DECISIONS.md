@@ -1082,3 +1082,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Context:** GitHub warned that `actions/checkout@v4`, `actions/setup-node@v4`, and the artifact upload inside `actions/upload-pages-artifact@v3` target Node 20, which is deprecated on its runners.
 - **Options:** Pin each to the oldest version that runs on Node 24, or move to each one's latest.
 - **Decision:** Latest major of each, all of which run on Node 24: `checkout@v7`, `setup-node@v7`, `upload-pages-artifact@v5` (uses `upload-artifact` v7), and `deploy-pages@v5`. The app itself still builds with Node 22, as before.
+
+## 2026-11-05 15:40 EST — Facing
+- **Who:** Jason Tiller chose eight directions; the rest is Claude's *(Jason can veto)*.
+- **Context:** Writers need to say "horns to the box" or "face Side 2" per set, not only in a typed note.
+- **Options:** Eight directions or any angle (Jason: eight). Store a facing in every set, or only where it changes.
+- **Decision:** Stored only where it changes and carried forward (like a hold), named from the field: Front (toward the front sideline), Back, Side 1, Side 2, and the four diagonals. Shown as a small pointer beside the dot on the field, printed charts, and phones, sized up from the dot so it reads at full-field zoom. Mid-move, performers show the facing of the set they left (they usually turn at the end). Dot sheets add "Face Side 2" to the set's note line where it changes; the phone shows the current facing and "face …" for the next set when it changes. Flips and Copy Side 1 → 2 leave facings alone: flipping a company front front to back shouldn't turn everyone around. The sample show's guard faces Side 2 from set 2.
