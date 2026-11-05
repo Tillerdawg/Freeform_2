@@ -225,13 +225,13 @@ export function drawGlyph(ctx: CanvasRenderingContext2D, at: Point, glyph: strin
 }
 
 /**
- * Which way a performer faces: a small pointer just outside its mark (radius r, in screen px), toward field direction
+ * Which way a performer faces: a small pointer on the edge of its mark (radius r, in screen px), toward field direction
  * `dir`. Drawn through the canvas's transform, so it turns with a field that's turned around (Facing front).
  */
 export function drawFacing(ctx: CanvasRenderingContext2D, v: View, at: Point, dir: Point, r: number, fill: string, edge: string) {
   const c = toScreen(v, at), e = toScreen(v, { x: at.x + dir.x, y: at.y + dir.y });
   const len = Math.hypot(e.x - c.x, e.y - c.y) || 1, ux = (e.x - c.x) / len, uy = (e.y - c.y) / len;
-  const L = Math.max(6, r * 1.3), base = r + Math.max(1.5, r * 0.2), w = L * 0.55;
+  const L = Math.max(6, r * 0.75), base = r - Math.max(1, r * 0.1), w = L * 0.6; // its base tucked into the mark's edge: one mark, not two
   ctx.beginPath();
   ctx.moveTo(c.x + ux * (base + L), c.y + uy * (base + L));
   ctx.lineTo(c.x + ux * base - uy * w, c.y + uy * base + ux * w);
@@ -239,36 +239,6 @@ export function drawFacing(ctx: CanvasRenderingContext2D, v: View, at: Point, di
   ctx.closePath();
   ctx.lineJoin = 'round'; ctx.lineWidth = Math.max(1.5, L * 0.25); ctx.strokeStyle = edge; ctx.stroke();
   ctx.fillStyle = fill; ctx.fill();
-}
-
-/** A small flag, rifle, or saber up and to the left of a mark (radius r, screen px), outlined so it reads on turf or paper. */
-export function drawEquipment(ctx: CanvasRenderingContext2D, v: View, at: Point, kind: 'flag' | 'rifle' | 'saber', r: number, color: string, edge: string) {
-  const c = toScreen(v, at), k = Math.max(5, r * 0.9), x = c.x - r - k * 0.9, y = c.y - r - k * 0.5; // the icon's center
-  const line = (pts: [number, number][], w: number) => { ctx.beginPath(); pts.forEach(([a, b], j) => (j ? ctx.lineTo(x + a * k, y + b * k) : ctx.moveTo(x + a * k, y + b * k))); ctx.lineWidth = w; ctx.stroke(); };
-  ctx.save();
-  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-  for (const pass of [0, 1]) { // a dark (or light) edge first, then the color on top
-    ctx.strokeStyle = pass ? color : edge; ctx.fillStyle = pass ? color : edge;
-    const grow = pass ? 0 : Math.max(2, k * 0.35);
-    if (kind === 'flag') {
-      line([[-0.5, 1], [-0.5, -1]], k * 0.22 + grow);
-      ctx.beginPath(); ctx.moveTo(x - 0.5 * k, y - k); ctx.lineTo(x + 0.9 * k, y - 0.55 * k); ctx.lineTo(x - 0.5 * k, y - 0.1 * k); ctx.closePath();
-      if (!pass) { ctx.lineWidth = grow; ctx.stroke(); } else ctx.fill();
-    } else if (kind === 'rifle') {
-      // A rifle's outline along the diagonal: a thin barrel, then a stock that widens to a flat, slanted butt. Square
-      // corners everywhere (round ends made it read as something else).
-      const u = Math.SQRT1_2, at = (a: number, n: number): [number, number] => [x + (a + n) * u * k, y + (n - a) * u * k]; // a: along the gun, n: across it
-      const outline = [at(1.3, -0.06), at(-0.2, -0.06), at(-0.35, -0.16), at(-1.3, -0.3), at(-1.2, 0.2), at(-0.2, 0.06), at(1.3, 0.06)];
-      ctx.beginPath(); outline.forEach(([px, py], j) => (j ? ctx.lineTo(px, py) : ctx.moveTo(px, py))); ctx.closePath();
-      ctx.lineJoin = 'miter'; ctx.lineCap = 'butt';
-      if (!pass) { ctx.lineWidth = grow; ctx.stroke(); } else ctx.fill();
-      ctx.lineJoin = 'round'; ctx.lineCap = 'round';
-    } else {
-      line([[-0.7, 0.9], [0.9, -0.9]], k * 0.14 + grow);
-      line([[-0.6, 0.5], [-0.25, 0.85]], k * 0.22 + grow); // the guard
-    }
-  }
-  ctx.restore();
 }
 
 /** Props under the performers: a shape with its name in the middle; `print` is black on white. */
@@ -307,6 +277,37 @@ export function drawProps(
   }
 }
 
+/**
+ * A flag, rifle, or saber drawn in place of a performer's letter, centered on the spot (so the icon is the dot), `size`
+ * px tall, in `color` with a contrasting `edge`. `badge`: a filled circle behind it (selected). Upright on screen.
+ */
+export function drawEquipment(ctx: CanvasRenderingContext2D, at: Point, kind: 'flag' | 'rifle' | 'saber', size: number, color: string, edge: string, badge?: string) {
+  const m = ctx.getTransform(), c = m.transformPoint(at), k = (size * Math.hypot(m.a, m.b)) / 2; // half the height, device px
+  ctx.save();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  if (badge) { ctx.fillStyle = badge; ctx.beginPath(); ctx.arc(c.x, c.y, k * 1.25, 0, Math.PI * 2); ctx.fill(); }
+  const P = (u: number, w: number): [number, number] => [c.x + u * k, c.y + w * k]; // in half-heights from the center, y down
+  const poly = (pts: [number, number][], close: boolean) => { ctx.beginPath(); pts.forEach(([x, y], j) => (j ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); if (close) ctx.closePath(); };
+  const along = (a: number, n: number) => P((a + n) * Math.SQRT1_2, (n - a) * Math.SQRT1_2); // up and to the right, for rifles and sabers
+  for (const pass of [0, 1]) { // the edge first, then the color on top
+    const grow = pass ? 0 : Math.max(2, k * 0.35);
+    ctx.strokeStyle = ctx.fillStyle = pass ? color : edge;
+    ctx.lineJoin = 'miter'; ctx.lineCap = 'butt';
+    if (kind === 'flag') { // the pole through the middle of the spot, the pennant flying from its top
+      poly([P(-0.3, 1), P(-0.3, -1)], false); ctx.lineWidth = k * 0.22 + grow; ctx.stroke();
+      poly([P(-0.3, -1), P(0.95, -0.55), P(-0.3, -0.1)], true);
+      if (pass) ctx.fill(); else { ctx.lineWidth = grow; ctx.stroke(); }
+    } else if (kind === 'rifle') { // a thin barrel and a stock that widens to a flat, slanted butt; square corners
+      poly([along(1.2, -0.07), along(-0.15, -0.07), along(-0.3, -0.18), along(-1.2, -0.32), along(-1.1, 0.2), along(-0.15, 0.07), along(1.2, 0.07)], true);
+      if (pass) ctx.fill(); else { ctx.lineWidth = grow; ctx.stroke(); }
+    } else { // a thin blade with a crossguard near the grip
+      poly([along(-1.15, 0), along(1.2, 0)], false); ctx.lineWidth = k * 0.2 + grow; ctx.stroke();
+      poly([along(-0.6, -0.38), along(-0.6, 0.38)], false); ctx.lineWidth = k * 0.26 + grow; ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+
 /** Performers, their incoming paths, and an optional selection box. */
 export function drawPerformers(
   ctx: CanvasRenderingContext2D, v: View, dots: Dot[], selected: Set<string>, paths: Path[], box?: [Point, Point], dpr = 1,
@@ -329,11 +330,13 @@ export function drawPerformers(
 
   const letters = dots.some((d) => d.glyph), f = Math.max(11 * dpr, s * 1.2); // letter height
   const r = letters ? f * 0.45 : Math.max(4, s * 0.45);
-  for (const d of dots) if (d.equip) drawEquipment(ctx, v, d.at, d.equip, r, selected.has(d.id) ? PALETTE.gold : '#fff', 'rgba(0,0,0,0.85)');
-  for (const d of dots) if (d.facing) drawFacing(ctx, v, d.at, d.facing, r, selected.has(d.id) ? PALETTE.gold : '#fff', 'rgba(0,0,0,0.85)');
   for (const d of dots) {
     const c = toScreen(v, d.at);
     const sel = selected.has(d.id);
+    if (d.equip) { // the equipment is the mark (Jason): no letter or dot beside it to confuse which is the spot
+      drawEquipment(ctx, c, d.equip, d.glyph ? f : r * 2.6, sel ? '#111' : d.color ?? '#fff', sel ? PALETTE.gold : 'rgba(0,0,0,0.85)', sel ? PALETTE.gold : undefined);
+      continue;
+    }
     if (d.glyph) {
       drawGlyph(ctx, c, d.glyph, f, sel ? '#111' : d.color ?? '#fff', sel ? PALETTE.gold : undefined);
       continue;
@@ -345,6 +348,10 @@ export function drawPerformers(
     ctx.strokeStyle = sel ? '#fff' : d.color ? '#111' : PALETTE.gold; // a colored dot gets a dark ring so light colors show on the turf
     ctx.stroke();
   }
+  // Facing, only where the caller gives it (the editor: selected performers), attached to the mark so the letter stays
+  // the spot (Jason): a pointer on the badge's edge.
+  const edge = (d0: Dot) => (d0.equip ? (d0.glyph ? f : r * 2.6) * 0.625 : d0.glyph ? f * 0.62 : r) + Math.max(1, s * 0.05);
+  for (const d of dots) if (d.facing) drawFacing(ctx, v, d.at, d.facing, edge(d), PALETTE.gold, 'rgba(0,0,0,0.85)');
   drawLabels(ctx, dots.map((d) => ({ ...d, first: selected.has(d.id) })), v, r, Math.max(10 * dpr, s * 0.8), '#fff', 'rgba(0,0,0,0.85)'); // at least 10 CSS px: smaller isn't readable; black outline so yard lines don't swallow them
 
   if (box) {

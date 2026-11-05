@@ -244,11 +244,11 @@ A delayed step-off and a turning move work together: hold 4, then turn in 12, fo
 
 Select performers, go to a set, and pick which way they face from **Facing** in the sidebar's Selection area: **Front**, **Back**, **Side 1**, **Side 2**, or one of the four diagonals (**Front-Side 2** and so on). Front is toward the front sideline, where the box is.
 
-A small pointer beside each dot shows which way it faces, on the field, on printed charts, and on phones. A facing carries on into later sets until you change it, so you only set it where it changes. **As in the set before** takes back a change. Performers you never set have no pointer.
+When you select performers, a small pointer on the edge of each one's gold badge shows which way it faces. Unselected performers don't show it, so the field stays easy to read. On a phone, performers see the pointer on their own mark. A facing carries on into later sets until you change it, so you only set it where it changes. **As in the set before** takes back a change. Performers you never set have no pointer. To check a whole section's facing at once, use **Select a section…**.
 
 Dot sheets say "Face Side 2" on the set where a performer's facing changes, and the phone view shows "facing Side 2" with their spot and "face Back" with their next set when it's about to change.
 
-**Guard equipment.** **Carries** (just under **Facing**) works the same way: pick **Flag**, **Rifle**, or **Saber** on the set where they pick it up, and **Nothing** where they put it down. A small flag, rifle, or saber shows beside each dot that carries one, on the field, on printed charts, and on phones. Dot sheets say "Flag" or "Put down equipment" on the set where it changes, and the phone says "pick up rifle" with the next set.
+**Guard equipment.** **Carries** (just under **Facing**) works the same way: pick **Flag**, **Rifle**, or **Saber** on the set where they pick it up, and **Nothing** where they put it down. A performer who carries something is drawn as that flag, rifle, or saber instead of their letter or dot, centered on their spot, on the field, on printed charts, and on phones. Their number still labels it. Dot sheets say "Flag" or "Put down equipment" on the set where it changes, and the phone says "pick up rifle" with the next set.
 
 ## Props
 
