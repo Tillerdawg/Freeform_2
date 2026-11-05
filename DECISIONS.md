@@ -1028,3 +1028,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Context:** Deleting or adding sets leaves gaps or out-of-order names.
 - **Options:** Renumber automatically on every delete; a button.
 - **Decision:** A **Renumber sets** button beside Delete set, grayed out when the sets are already in order. Not automatic, because renaming sets behind the director's back would stop printed dot sheets, charts, and notes from matching. Main sets become 1, 2, 3…; sub-sets (4A) follow the set before them, lettered A, B… in order. One Undo reverses it.
+
+## 2026-11-04 21:25 EST — Sets renumber themselves
+- **Who:** Jason Tiller (replaces the Renumber sets button from the entry above).
+- **Context:** Jason would rather not have to click a button after deleting a set.
+- **Options:** The button; automatic.
+- **Decision:** Automatic. Deleting a set, adding one mid-show, or adding a sub-set keeps every set numbered in order (main sets 1, 2, 3…; sub-sets lettered A, B… after the set before them), and the button is gone. Printed sheets made before a delete will show the old numbers, so reprint after deleting or adding sets. Imported Pyware names are left as they came in until the first set is added or deleted.

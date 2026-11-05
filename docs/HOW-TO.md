@@ -136,8 +136,7 @@ A set is one picture of the drill, and the move into it takes a number of counts
 
 - **+ Add set** (top bar) adds a set 16 counts after the one you're on, and the sets after it move along. The new set starts as a copy of the one you were on, so you only move the people who move.
 - Change a set's **Counts** and **Measures** in the top bar. New counts take effect when you press Enter or tap away, so the set doesn't jump around while you type. Type measures the way the score numbers them (a pickup bar is m. 1).
-- **Delete set** removes the set you're on. The sets after it keep their numbers (delete set 7 of 8 and you have 1 to 6, then 8), so anything you've already printed or written still matches.
-- **Renumber sets** numbers the sets 1, 2, 3… in order again whenever you're ready. Sub-sets keep their place after the set before them and are lettered in order (the old 8A becomes 7A). Undo reverses it.
+- **Delete set** removes the set you're on. The sets always stay numbered in order: delete set 7 of 8 and the old 8 becomes 7. Adding a set in the middle moves the later ones up a number the same way. Sub-sets keep their place after the set before them and stay lettered in order (the old 8A becomes 7A).
 - **Click a set's button** on the timeline to go to it, or click any count to see where everyone is on that count.
 - **Drag a set's button** to move it to a different count. The sets around it stay where they are.
 

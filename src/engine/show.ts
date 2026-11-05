@@ -226,12 +226,12 @@ export function addSetAfter(show: Show, i: number, counts = 16): Show {
   while (names.has(String(n))) n++;
   const sets = [...show.sets];
   sets.splice(i + 1, 0, { id: newId('set'), name: String(n), counts, pos: { ...src.pos } });
-  return { ...show, sets };
+  return renumberSets({ ...show, sets }); // added mid-show: later sets move up a number
 }
 
 export function removeSet(show: Show, i: number): Show {
   if (show.sets.length <= 1) return show;
-  return { ...show, sets: show.sets.filter((_, j) => j !== i) };
+  return renumberSets({ ...show, sets: show.sets.filter((_, j) => j !== i) }); // no gap left behind
 }
 
 export const setCounts = (show: Show, i: number, counts: number): Show =>
@@ -257,7 +257,7 @@ export function subSetName(names: Set<string>, before: string): string {
 }
 
 /**
- * Name the sets in order again after deletes and inserts: main sets 1, 2, 3…, and sub-sets (4A) lettered A, B… after
+ * Name the sets in order (adding and deleting sets do this automatically): main sets 1, 2, 3…, and sub-sets (4A) lettered A, B… after
  * the set before them. Names that aren't a number (none today) stay as they are. Returns the same show if nothing changes.
  */
 export function renumberSets(show: Show): Show {
@@ -307,7 +307,7 @@ export function insertSetAt(show: Show, at: number): { show: Show; index: number
   const fresh = { id: newId('set'), name: subSetName(names, show.sets[i - 1].name), counts: c - starts[i - 1], pos: positionsAt(show, c) };
   const sets = show.sets.map((x, j) => (j === i ? { ...x, counts: starts[i] - c } : x));
   sets.splice(i, 0, fresh);
-  return { show: { ...show, sets }, index: i };
+  return { show: renumberSets({ ...show, sets }), index: i }; // a sub-set before an existing 4A becomes 4A, the old one 4B
 }
 
 /** Where time `t` falls: the set being moved into (`to`) and the fraction of that move. f = 1 means "on set `to`". */
