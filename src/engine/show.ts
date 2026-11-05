@@ -256,6 +256,22 @@ export function subSetName(names: Set<string>, before: string): string {
   return name;
 }
 
+/**
+ * Name the sets in order again after deletes and inserts: main sets 1, 2, 3…, and sub-sets (4A) lettered A, B… after
+ * the set before them. Names that aren't a number (none today) stay as they are. Returns the same show if nothing changes.
+ */
+export function renumberSets(show: Show): Show {
+  let n = 0, k = 0;
+  const names = show.sets.map((s) => {
+    const sub = /^\d+([A-Z]+)?$/.exec(s.name);
+    if (!sub) return s.name;
+    if (sub[1] && n) return `${n}${String.fromCharCode(65 + Math.min(k++, 25))}`;
+    n++; k = 0;
+    return String(n);
+  });
+  return names.every((x, i) => x === show.sets[i].name) ? show : { ...show, sets: show.sets.map((s, i) => ({ ...s, name: names[i] })) };
+}
+
 /** The timeline's length: the written sets, or the movements' total if that's longer (the part not written yet). */
 export const showLength = (show: Show) => Math.max(totalCounts(show), (show.movements ?? []).reduce((n, m) => n + m.counts, 0));
 

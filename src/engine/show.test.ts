@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { HASHES, readout } from './coords';
 import {
   addPerformer, addSetAfter, advance, biggestStep, chainOrder, clearFtl, ftlTrail, moveSteps, normalizeFtl, flip, mirrorSides, moveSetTo, remapHash, rotateScale, setFtl, snapSelection, playRange, playPlan, label, locate, newShow, parseShow, placeInSet, positionsAt,
-  removePerformers, scoreOrder, DEFAULT_SECTIONS, removeSet, setAt, setCounts, setStarts, totalCounts, xFrom, yFrom, insertSetAt, showLength, movementAt, movementOfSet, setFtlTurns,
+  removePerformers, renumberSets, scoreOrder, DEFAULT_SECTIONS, removeSet, setAt, setCounts, setStarts, totalCounts, xFrom, yFrom, insertSetAt, showLength, movementAt, movementOfSet, setFtlTurns,
 } from './show';
 
 function twoSetShow() {
@@ -551,5 +551,17 @@ describe('score order', () => {
   });
   it("leaves FreeFORM's starting list as it is", () => {
     expect(scoreOrder([...DEFAULT_SECTIONS])).toEqual([...DEFAULT_SECTIONS]);
+  });
+});
+
+describe('renumbering sets', () => {
+  const named = (...names: string[]) => ({ ...newShow(), sets: names.map((name) => ({ id: name, name, counts: 8, pos: {} })) });
+  it('closes the gap a deleted set leaves; sub-sets follow their set, lettered in order', () => {
+    expect(renumberSets(named('1', '2', '3', '4', '5', '6', '8')).sets.map((s) => s.name)).toEqual(['1', '2', '3', '4', '5', '6', '7']);
+    expect(renumberSets(named('1', '2', '4', '4B', '4C', '6', '6A')).sets.map((s) => s.name)).toEqual(['1', '2', '3', '3A', '3B', '4', '4A']);
+  });
+  it('leaves a show already in order alone', () => {
+    const s = named('1', '1A', '2', '3');
+    expect(renumberSets(s)).toBe(s);
   });
 });

@@ -1022,3 +1022,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Context:** Every number box cleaned up its number on every keystroke, so an empty box jumped to a default or minimum (typing 150 into the scale box couldn't get past the 1), and a set's Counts changed with each digit, which moved the set while you typed.
 - **Options:** Fix Tempo alone; one shared number box for the whole app.
 - **Decision:** One shared `NumberField` (`src/ui/NumberField.tsx`) for Tempo (editor and phone), Counts, movement counts, rotation, scale percent, shape interval and columns, Redo from count, and Place exactly. It shows the number keyboard on phones and iPads, can sit empty while you type, applies each valid number as you type, and when you leave it empty puts the last good number back (a number out of range is pulled into range: 400 bpm becomes 300). Counts apply only on Enter or tapping away.
+
+## 2026-11-04 21:20 EST — Renumber sets
+- **Who:** Jason Tiller asked for it (deleting set 7 of 8 leaves 1-6 and 8); the details are Claude's *(Jason can veto)*.
+- **Context:** Deleting or adding sets leaves gaps or out-of-order names.
+- **Options:** Renumber automatically on every delete; a button.
+- **Decision:** A **Renumber sets** button beside Delete set, grayed out when the sets are already in order. Not automatic, because renaming sets behind the director's back would stop printed dot sheets, charts, and notes from matching. Main sets become 1, 2, 3…; sub-sets (4A) follow the set before them, lettered A, B… in order. One Undo reverses it.

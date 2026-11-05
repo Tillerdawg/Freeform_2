@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { peakBetween, timeAt } from '../engine/music';
 import { chrome, useTheme } from './palette';
-import { addSetAfter, biggestStep, insertSetAt, locate, MAX_MOVEMENT, movementAt, movementOfSet, movementStarts, moveSetTo, newId, removeSet, setAt, setCounts, setMeasures, playPlan, setStarts, showLength, totalCounts, type Show } from '../engine/show';
+import { addSetAfter, biggestStep, insertSetAt, locate, MAX_MOVEMENT, movementAt, movementOfSet, movementStarts, moveSetTo, newId, removeSet, renumberSets, setAt, setCounts, setMeasures, playPlan, setStarts, showLength, totalCounts, type Show } from '../engine/show';
 import { Menu } from './Toolbar';
 import { STEP_TEXT } from '../field/drawField';
 import { fmtStep } from './format';
@@ -314,6 +314,8 @@ export function SetControls({ show, setShow, t, setT }: { show: Show; setShow: (
           onChange={(e) => setAtCount(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') add(); }} />
       </label>
       <button disabled={show.sets.length < 2} onClick={() => { setShow((s) => removeSet(s, cur)); setT(starts[Math.max(0, cur - 1)]); }}>Delete set</button>
+      <button disabled={renumberSets(show) === show} onClick={() => setShow(renumberSets)}
+        title="Number the sets 1, 2, 3… in order again (after deleting or adding sets). Sub-sets like 4A follow the set before them. Undo reverses it.">Renumber sets</button>
     </div>
   );
 }
