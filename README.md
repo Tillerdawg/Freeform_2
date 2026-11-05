@@ -38,7 +38,7 @@ A note on where the ideas came from: FreeFORM is modeled on Pyware and the Ultim
 - Follow-the-leader moves, with turns, and counter-marches.
 - Delayed step-offs (hold 4, move 12) and turning moves, where a rotating group marches arcs instead of straight lines.
 - Which way each performer faces (eight directions) and what guard equipment they carry (flag, rifle, or saber), carried from set to set.
-- Performers drawn as section letters, dots, or icons (their instrument, or the equipment they carry), switchable any time.
+- Performers drawn as section letters, dots, or letters with equipment icons (a flag, rifle, or saber in place of the letter), switchable any time.
 - Props (platforms, backdrops) that sit in a different spot each set and move between sets.
 - Select everyone or a whole section, copy spots from one set and paste them into another, and see how far apart two performers are.
 - Step-size warnings (yellow past a 6-to-5, red past a 4-to-5), and a warning when two performers come within a step of each other at any point in a move.

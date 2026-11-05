@@ -277,25 +277,13 @@ export function drawProps(
   }
 }
 
-// Each icon in a box from -1 to 1 (y down), as lines (with a width), filled shapes, disks, and rings. Drawn for FreeFORM.
-type Op = ['line', number, ...number[]] | ['fill', ...number[]] | ['disk', number, number, number] | ['ring', number, number, number, number];
+// Each icon in a box from -1 to 1 (y down), as lines (with a width) and filled shapes. Drawn for FreeFORM.
+type Op = ['line', number, ...number[]] | ['fill', ...number[]];
 const D = (a: number, n: number) => [(a + n) * Math.SQRT1_2, (n - a) * Math.SQRT1_2]; // up and to the right, for rifles and sabers
 const ICONS: Record<IconKind, Op[]> = {
   flag: [['line', 0.22, -0.3, 1, -0.3, -1], ['fill', -0.3, -1, 0.95, -0.55, -0.3, -0.1]], // the pole through the spot, the pennant at its top
   rifle: [['fill', ...D(1.2, -0.07), ...D(-0.15, -0.07), ...D(-0.3, -0.18), ...D(-1.2, -0.32), ...D(-1.1, 0.2), ...D(-0.15, 0.07), ...D(1.2, 0.07)]], // barrel and a flat, wedge stock
   saber: [['line', 0.2, ...D(-1.15, 0), ...D(1.2, 0)], ['line', 0.26, ...D(-0.6, -0.38), ...D(-0.6, 0.38)]], // blade and crossguard
-  flute: [['line', 0.24, -1, 0, 1, 0], ['line', 0.2, -0.75, -0.3, -0.75, 0.3]], // held sideways, with the lip plate
-  clarinet: [['line', 0.26, 0, -1, 0, 0.6], ['fill', -0.18, 0.55, 0.18, 0.55, 0.45, 1, -0.45, 1]], // straight down to a small bell
-  sax: [['line', 0.26, 0.3, -1, 0.3, 0.5, 0, 0.9, -0.35, 0.9, -0.5, 0.5], ['fill', -0.8, 0, -0.25, 0, -0.38, 0.55, -0.62, 0.55]], // the curve up to a bell
-  trumpet: [['line', 0.22, -1, 0, 0.35, 0], ['fill', 0.3, -0.12, 1, -0.55, 1, 0.55, 0.3, 0.12]], // a bell facing Side 2
-  mellophone: [['line', 0.22, -1, 0, 0.15, 0], ['ring', 0.55, 0, 0.42, 0.22]], // a round bell facing front
-  trombone: [['line', 0.16, -1, -0.25, 0.4, -0.25], ['line', 0.16, -1, 0.25, 0.4, 0.25], ['line', 0.16, -1, -0.25, -1, 0.25], ['fill', 0.35, -0.4, 1, -0.75, 1, 0.75, 0.35, 0.4]], // the slide and a bell
-  baritone: [['ring', 0, -0.35, 0.55, 0.24], ['line', 0.26, 0, 0.2, 0, 1]], // a bell up on its tubing
-  tuba: [['ring', 0, 0, 0.82, 0.34]], // a big round bell, as a sousaphone faces the box
-  snare: [['line', 0.2, -0.9, -0.4, 0.9, -0.4, 0.9, 0.45, -0.9, 0.45, -0.9, -0.4], ['line', 0.14, -0.9, -0.4, -0.45, 0.45, 0, -0.4, 0.45, 0.45, 0.9, -0.4]], // the shell with its zigzag
-  quads: [['disk', -0.78, 0.25, 0.21], ['disk', -0.27, -0.2, 0.24], ['disk', 0.27, -0.2, 0.24], ['disk', 0.78, 0.25, 0.21]], // four drums in an arc, apart
-  bass: [['disk', 0, 0, 0.85]], // a solid round head
-  cymbals: [['line', 0.2, -1, -0.3, 0, -0.6, 1, -0.3], ['line', 0.2, -1, 0.3, 0, 0.6, 1, 0.3]], // a pair, edges out
 };
 
 /**
@@ -318,9 +306,7 @@ export function drawIcon(ctx: CanvasRenderingContext2D, at: Point, kind: IconKin
     ctx.strokeStyle = ctx.fillStyle = pass ? color : edge;
     for (const op of ICONS[kind]) {
       if (op[0] === 'line') { path(op.slice(2) as number[], false); ctx.lineWidth = k * op[1] + grow; ctx.stroke(); }
-      else if (op[0] === 'fill') { path(op.slice(1) as number[], true); if (pass) ctx.fill(); else { ctx.lineWidth = grow; ctx.stroke(); } }
-      else if (op[0] === 'disk') { ctx.beginPath(); ctx.arc(c.x + op[1] * k, c.y + op[2] * k, op[3] * k + (pass ? 0 : grow / 2), 0, Math.PI * 2); ctx.fill(); }
-      else { ctx.beginPath(); ctx.arc(c.x + op[1] * k, c.y + op[2] * k, op[3] * k, 0, Math.PI * 2); ctx.lineWidth = k * op[4] + grow; ctx.stroke(); }
+      else { path(op.slice(1) as number[], true); if (pass) ctx.fill(); else { ctx.lineWidth = grow; ctx.stroke(); } }
     }
   }
   ctx.restore();

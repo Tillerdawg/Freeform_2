@@ -95,11 +95,11 @@ export function Sidebar(p: Props) {
           <option value="court">Basketball court</option>
           <option value="floor">Custom floor</option>
         </select>
-        <select aria-label="Draw performers as" title="On the field, printed charts, and phones: the section letter labeled with the number, a dot labeled P4, or an icon of the instrument or the equipment they carry"
+        <select aria-label="Draw performers as" title="On the field, printed charts, and phones: the section letter labeled with the number, a dot labeled P4, or letters with the flag, rifle, or saber drawn in place of the letter for anyone carrying one"
           value={show.symbols ?? 'letters'} onChange={(e) => setShow((s) => { const { symbols: _, ...rest } = s, v = e.target.value; return v === 'dots' || v === 'icons' ? { ...rest, symbols: v } : rest; })}>
           <option value="letters">Letters</option>
           <option value="dots">Dots</option>
-          <option value="icons">Icons</option>
+          <option value="icons">Equipment icons</option>
         </select>
       </div>
       {show.surface?.kind === 'floor' && (

@@ -198,7 +198,7 @@ shot('court', async () => {
   await save(page, 'court', { x: 0, y: 125, width: W, height: 640 });
 });
 shot('icons', async () => {
-  // The sample show in set 2 drawn as Icons: instruments, and the guard's flags.
+  // The sample show in set 2 with equipment icons: the guard's flags in place of their letters.
   const page = await editor();
   await goSet(page, 2);
   await page.getByRole('combobox', { name: 'Draw performers as' }).selectOption('icons');

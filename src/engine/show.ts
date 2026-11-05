@@ -185,25 +185,18 @@ export function label(show: Show, p: Performer) {
   return `${show.sections.find((s) => s.id === p.section)?.letter ?? '?'}${p.number}`;
 }
 
-/** A mark drawn in place of a performer's letter: their equipment, or their instrument. */
-export type IconKind = Equipment | 'flute' | 'clarinet' | 'sax' | 'trumpet' | 'mellophone' | 'trombone' | 'baritone' | 'tuba'
-  | 'snare' | 'quads' | 'bass' | 'cymbals';
-
-/** The instrument icon for a section, from its name (as in score order, saxes and drums matched first); undefined keeps its letter. */
-const ICON_FOR: [RegExp, IconKind][] = [[/sax/i, 'sax'], [/bass drum|^bass(es)?$/i, 'bass'], [/piccolo|flute/i, 'flute'], [/clarinet|oboe|bassoon/i, 'clarinet'],
-  [/trumpet|cornet|flugel/i, 'trumpet'], [/mello|french horn|^horn/i, 'mellophone'], [/trombone/i, 'trombone'], [/baritone|euphonium/i, 'baritone'],
-  [/tuba|sousa/i, 'tuba'], [/snare/i, 'snare'], [/quad|tenor|quint|tom/i, 'quads'], [/cymbal/i, 'cymbals']];
-export const instrumentIcon = (name: string) => ICON_FOR.find(([r]) => r.test(name))?.[1];
+/** A mark drawn in place of a performer's letter: the equipment they carry. */
+export type IconKind = Equipment;
 
 /**
  * What marks a performer on a chart in set i: their section letter (centered on the spot) labeled with the number; a dot
- * labeled P4; or with 'icons', what they carry, else their instrument's icon (a section FreeFORM can't name keeps its letter).
+ * labeled P4; or with 'icons', the equipment they carry in its place (everyone else keeps their letter).
  */
 export function mark(show: Show, p: Performer, i = 0): { glyph?: string; icon?: IconKind; label: string } {
   if (show.symbols === 'dots') return { label: label(show, p) };
   const sec = show.sections.find((s) => s.id === p.section), letter = { glyph: sec?.letter ?? '?', label: String(p.number) };
   if (show.symbols !== 'icons') return letter;
-  const icon = equipmentIn(show, i, p.id) ?? instrumentIcon(sec?.name ?? '');
+  const icon = equipmentIn(show, i, p.id);
   return icon ? { icon, label: String(p.number) } : letter;
 }
 
