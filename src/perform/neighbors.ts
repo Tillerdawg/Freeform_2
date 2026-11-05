@@ -15,17 +15,6 @@ export function nearest(pos: Record<string, Point>, me: string, n = 4, within = 
     .slice(0, n);
 }
 
-const q = (v: number) => Math.round(Math.abs(v) * 4) / 4;
-const steps = (v: number) => `${q(v)} step${q(v) === 1 ? '' : 's'}`;
-
-/** e.g. "4 steps toward Side 1", "2 steps toward Side 2, 4 steps in front", "same spot". Front = toward the front sideline. */
-export function describe(dx: number, dy: number): string {
-  const parts: string[] = [];
-  if (q(dx)) parts.push(`${steps(dx)} toward Side ${dx < 0 ? 1 : 2}`);
-  if (q(dy)) parts.push(`${steps(dy)} ${dy < 0 ? 'in front' : 'behind'}`);
-  return parts.join(', ') || 'same spot';
-}
-
 /** Ruler label for the yard line at x steps from the 50 (multiples of 8): "50", "S1 40", "G" for goal lines. */
 export function yardLabel(x: number): string {
   const yd = 50 - Math.abs(x) / 1.6;

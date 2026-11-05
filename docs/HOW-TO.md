@@ -388,8 +388,7 @@ On the performer screen:
 
 - **My view** follows their dot through each move. **Whole field** shows everything, and pinch-zoom works in both.
 - **Director view** shows the field the way the editor does. Tap it to switch to **Facing front**, which turns the field around to match what they see facing the audience.
-- Under the field they see their spot now and in the next set, with counts, measures, and step size, plus their notes and the ensemble notes.
-- **Around you** lists their nearest neighbors (up to four, within 10 steps) and where each one is, like "P5 · 4 steps toward Side 1."
+- Under the field they see the spot they're standing on, then their next spot and how many counts it takes to get there (with measures and step size), plus their notes and the ensemble notes. On the field, the performers closest to them are drawn a little brighter and labeled.
 - They can play at any tempo, step count by count, scrub, or tap a set number to jump to it. If the show has music, Play follows it, and **♪ Music** switches back to a tempo.
 
 Students can add FreeFORM to their home screen. In the home-screen app, they open a show with **Scan QR code** or by pasting the link.

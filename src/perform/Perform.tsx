@@ -6,14 +6,14 @@ import { fieldDepth, readout, type Point } from '../engine/coords';
 import { decodeShow, fetchHosted, LOAD_PREFIX, linkHash, parseHosted, SHARE_PREFIX } from '../engine/share';
 import { Scanner } from './Scanner';
 import { isPhone } from './device';
-import { colorOf, equipmentIn, fieldOf, propsAt, equipmentName, facingIn, facingName, facingVector, label, locate, mark, moveSteps, timingOf, parseShow, positionsAt, setAt, setStarts, showLength, type Show } from '../engine/show';
+import { colorOf, equipmentIn, fieldOf, propsAt, equipmentName, facingIn, facingName, facingVector, locate, mark, moveSteps, timingOf, parseShow, positionsAt, setAt, setStarts, showLength, type Show } from '../engine/show';
 import { drawField, drawGlyph, drawLabels, drawMarks, drawFacing, drawIcon, drawPerformers, drawProps, fitView, STEP_TEXT, toScreen, type View } from '../field/drawField';
 import { fmtStep } from '../ui/format';
 import { usePlayback } from '../ui/usePlayback';
 import { synced } from '../engine/music';
 import { deleteAudio, getAudio, putAudio } from '../ui/audioStore';
 import { IconNext, IconPause, IconPlay, IconPrev } from '../ui/icons';
-import { describe, nearest, yardLabel } from './neighbors';
+import { nearest, yardLabel } from './neighbors';
 import { panCenter, pinchZoom, ZOOM_MAX } from './gestures';
 import { WhoPicker } from './WhoPicker';
 import { NumberField } from '../ui/NumberField';
@@ -373,16 +373,6 @@ export function Perform() {
                 {facingIn(show, next, me.id) && facingIn(show, next, me.id) !== facingIn(show, cur, me.id) && <span> · face {facingName(facingIn(show, next, me.id)!)}</span>}
                 {equipmentIn(show, next, me.id) !== equipmentIn(show, cur, me.id) && <span> · {equipmentIn(show, next, me.id) ? `pick up ${equipmentName(equipmentIn(show, next, me.id)!).toLowerCase()}` : 'put down equipment'}</span>}
               </p>
-            )}
-            {around.length > 0 && (
-              <div className="perform-note">
-                <span className="perform-k">Around you</span>
-                <ul className="perform-around">
-                  {around.map((n) => (
-                    <li key={n.id}><strong>{label(show, show.performers.find((x) => x.id === n.id)!)}</strong> · {describe(n.dx, n.dy)}</li>
-                  ))}
-                </ul>
-              </div>
             )}
             {myCue(cur) && <p className="perform-note"><span className="perform-k">My notes</span> {myCue(cur)}</p>}
           </>
