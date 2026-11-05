@@ -324,13 +324,21 @@ Click **Print…** in the sidebar.
 
 Choose **Dot sheets** or **Drill charts**, and who to print for: **Everyone**, one **Section**, or the performers you have **Selected**. FreeFORM opens your browser's print dialog. To get a PDF instead of paper, pick **Save as PDF** there.
 
-Dot sheets come four cards to a page. Each card has the performer's label, name, and section, then every set with its counts, measures, and coordinates, plus any performer notes.
+Dot sheets come four cards to a page. Each card has the performer's label, name, and section, then every set with its counts, measures, and coordinates. Under a set go any notes for it: a delayed step-off ("Hold 4, move 12"), a change of facing or equipment, and the performer notes.
 
 ![A page of dot sheets](img/dot-sheet.png)
 
-Drill charts are one page per set, with every dot labeled, the set's markup, and its ensemble notes underneath. They're black on white so they copy well. Sections with a color print as colored dots, which come out as shades of gray on a black-and-white printer.
+For bigger print, choose **1 per page, bigger, with a notes column** under **Layout**. Each performer gets a whole page, and the notes go in their own column.
+
+![The top of a one-per-page dot sheet](img/dot-sheet-page.png)
+
+Drill charts are one page per set, with every dot labeled, the set's markup, props, and its ensemble notes underneath. They're black on white so they copy well. Sections with a color print as colored dots, which come out as shades of gray on a black-and-white printer.
 
 ![A drill chart for set 2](img/drill-chart.png)
+
+Check **Show the paths into each set** to add a thin dashed line from where each performer was in the set before, along the route they march (follow-the-leader trails and turning moves included).
+
+![Set 3's chart with its paths](img/drill-chart-paths.png)
 
 ## Send the show to your performers
 

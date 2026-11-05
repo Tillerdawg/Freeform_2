@@ -227,20 +227,30 @@ shot('phone', async () => {
   await save(page, 'phone');
 });
 /** A printed page (US Letter width at 96 dpi), as the browser would print it. */
-async function printed(kind, name) {
+async function printed(kind, name, opts = {}) {
   const page = await editor();
   await page.evaluate(() => { window.print = () => {}; });
   await page.getByRole('button', { name: 'Print…' }).click();
   if (kind === 'charts') await page.getByLabel(/Drill charts/).check();
+  if (opts.single) await page.getByLabel(/1 per page/).check();
+  if (opts.section) await page.getByRole('combobox', { name: 'Section to print' }).selectOption({ label: opts.section });
+  if (opts.paths) await page.getByLabel(/Show the paths/).check();
   await page.getByRole('dialog').getByRole('button', { name: /^Print/ }).click();
   await page.setViewportSize({ width: 816, height: 1056 });
   await page.emulateMedia({ media: 'print' });
   await page.waitForTimeout(800);
   // The first dot-sheet page; set 2's chart (it has markup and a note).
-  await page.locator(kind === 'charts' ? '.chart-page' : '.dot-page').nth(kind === 'charts' ? 1 : 0).screenshot({ path: `${OUT}${name}.png` });
+  if (opts.single) { // just the top of the page: the rest is blank for a short show
+    const card = await page.locator('.dot-card').first().boundingBox(), table = await page.locator('.dot-card table').first().boundingBox();
+    await page.screenshot({ path: `${OUT}${name}.png`, clip: { x: card.x, y: card.y, width: card.width, height: table.y + table.height - card.y + 8 } });
+    return;
+  }
+  await page.locator(kind === 'charts' ? '.chart-page' : '.dot-page').nth(kind === 'charts' ? opts.set ?? 1 : 0).screenshot({ path: `${OUT}${name}.png` });
 }
 shot('dot-sheet', () => printed('dots', 'dot-sheet'));
 shot('drill-chart', () => printed('charts', 'drill-chart'));
+shot('dot-sheet-page', () => printed('dots', 'dot-sheet-page', { single: true, section: 'Color Guard' }));
+shot('drill-chart-paths', () => printed('charts', 'drill-chart-paths', { paths: true, set: 2 })); // set 3: the guard's FTL and the platform's move
 
 for (const [name, f] of Object.entries(shots)) {
   if (only.length && !only.includes(name)) continue;

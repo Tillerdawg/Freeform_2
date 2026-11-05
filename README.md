@@ -50,7 +50,7 @@ A note on where the ideas came from: FreeFORM is modeled on Pyware and the Ultim
 - Sync to a recording: take every count's timing from the MuseScore score (or MusicXML or MIDI), or tap the counts along with any mp3.
 
 **Getting it to the band**
-- Dot sheets (four cards per page) and drill charts (one per set), printed or saved as PDF.
+- Dot sheets (four cards per page, or one per page with a notes column) and drill charts (one per set, with or without the paths into it), printed or saved as PDF.
 - Share links with a QR code. The whole show is in the link, with no server involved.
 - Locked hosted links that update themselves on phones, can carry the music, and keep names private. One-click publishing to your own GitHub repository.
 - A performer view for phones: pick who you are, follow your dot, see your next spot and step size, and see who's around you. It works offline once it's opened.
@@ -66,7 +66,6 @@ It runs on a current Chrome, Edge, Firefox, or Safari, and on iPadOS/iOS 16.4 or
 The full list is in [PLAN.md](PLAN.md). What's next, roughly:
 
 - Touch versions of the few actions that still need a keyboard key
-- Paths on printed charts, a notes column on dot sheets, and one dot sheet per page
 - Faster count entry for recordings that weren't made from the score (tap a few downbeats, FreeFORM fills in the rest)
 - Markup that spans several sets
 - Basketball courts and custom surfaces

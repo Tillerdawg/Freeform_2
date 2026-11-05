@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { addPerformer, addSetAfter, newShow, parseShow, placeInSet, setCue, setEquipment, setFacing, setMeasures } from '../engine/show';
-import { ROWS_PER_CARD, chartTitle, chunk, dotCards, hasMeasures, sortedPerformers } from './docs';
+import { addPerformer, addSetAfter, newShow, parseShow, placeInSet, setCue, setEquipment, setFacing, setMeasures, setTiming } from '../engine/show';
+import { ROWS_PER_CARD, ROWS_PER_PAGE, chartTitle, chunk, dotCards, hasMeasures, sortedPerformers } from './docs';
 
 function show3() {
   let s = newShow();
@@ -36,12 +36,22 @@ describe('dot sheets', () => {
     const [card] = dotCards(s, s.performers.filter((p) => p.id === t1));
     expect(card.rows.map((r) => r.cue)).toEqual(['', 'Face Side 2 · Slide L', '']);
   });
+  it('notes a delayed step-off', () => {
+    const { s, t1 } = show3();
+    const [card] = dotCards(setTiming(s, 1, [t1], 4, 8), s.performers.filter((p) => p.id === t1));
+    expect(card.rows[1].cue).toBe('Hold 4, move 8, hold 4');
+  });
   it('notes equipment where it changes', () => {
     let { s, t1 } = show3();
     s = addSetAfter(s, 1, 8);
     s = setEquipment(setEquipment(s, 0, [t1], 'flag'), 2, [t1], 'none');
     const [card] = dotCards(s, s.performers.filter((p) => p.id === t1));
     expect(card.rows.map((r) => r.cue)).toEqual(['Flag', '', 'Put down equipment']);
+  });
+  it('one per page holds more sets on a card', () => {
+    let { s, t1 } = show3();
+    for (let k = 0; k < ROWS_PER_CARD + 5; k++) s = addSetAfter(s, s.sets.length - 1, 8);
+    expect(dotCards(s, s.performers.filter((p) => p.id === t1), ROWS_PER_PAGE).map((c) => c.rows.length)).toEqual([s.sets.length]);
   });
   it('long shows continue onto more cards', () => {
     let { s, t1 } = show3();

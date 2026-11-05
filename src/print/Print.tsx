@@ -1,15 +1,15 @@
 import { Fragment, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { colorOf, equipmentIn, facingIn, facingVector, mark, type Show } from '../engine/show';
+import { colorOf, equipmentIn, facingIn, facingVector, mark, moveSegments, type Show } from '../engine/show';
 import { drawEquipment, drawFacing, drawProps, drawField, drawGlyph, drawLabels, drawMarks, fitView, toScreen } from '../field/drawField';
-import { chartTitle, chunk, dotCards, hasMeasures, sortedPerformers } from './docs';
+import { ROWS_PER_PAGE, chartTitle, chunk, dotCards, hasMeasures, sortedPerformers } from './docs';
 
 type Kind = 'dots' | 'charts';
 type Who = 'all' | 'section' | 'selected';
-interface Job { kind: Kind; ids: Set<string> | undefined }
+interface Job { kind: Kind; ids: Set<string> | undefined; single: boolean; paths: boolean } // single: one dot sheet per page; paths: the moves into each set on its chart
 
 /** A set's field chart as a high-resolution black-on-white image. */
-function chartImage(show: Show, i: number): string {
+function chartImage(show: Show, i: number, paths: boolean): string {
   const c = document.createElement('canvas');
   c.width = 3000;
   c.height = 1500;
@@ -18,6 +18,11 @@ function chartImage(show: Show, i: number): string {
   drawField(ctx, v, show.hash, 'print');
   drawProps(ctx, v, show.props ?? [], show.sets[i].props ?? {}, null, 'print', 1.4 * v.scale);
   const s = v.scale, pos = show.sets[i].pos;
+  if (paths && i > 0) { // where everyone came from: thin dashed lines, under the dots
+    ctx.save(); ctx.strokeStyle = '#000'; ctx.lineWidth = 0.1 * s; ctx.setLineDash([0.5 * s, 0.35 * s]);
+    for (const seg of moveSegments(show, i)) { const a = toScreen(v, seg.from), b = toScreen(v, seg.to); ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke(); }
+    ctx.restore();
+  }
   const here = show.performers.filter((p) => pos[p.id]);
   const letters = show.symbols !== 'dots';
   for (const p of here) { const f = facingIn(show, i, p.id); if (f) drawFacing(ctx, v, pos[p.id], facingVector(f), (letters ? 1 : 0.6) * s, '#000', '#fff'); }
@@ -48,6 +53,8 @@ export function PrintDialog({ show, selected, onClose }: Props) {
   const [who, setWho] = useState<Who>(selected.size ? 'selected' : 'all');
   const [section, setSection] = useState(show.sections[0]?.id ?? '');
   const [job, setJob] = useState<Job | null>(null);
+  const [single, setSingle] = useState(false);
+  const [paths, setPaths] = useState(false); // off by default: charts have shown only each set's spots (Jason)
 
   const ids = who === 'all' ? undefined
     : who === 'selected' ? selected
@@ -74,9 +81,19 @@ export function PrintDialog({ show, selected, onClose }: Props) {
         <h2 style={{ margin: '0 0 12px', fontSize: 18 }}>Print</h2>
         <fieldset style={{ border: 'none', padding: 0, margin: '0 0 12px' }}>
           <legend style={{ fontWeight: 700, marginBottom: 4 }}>What</legend>
-          <label style={{ display: 'block' }}><input type="radio" name="kind" checked={kind === 'dots'} onChange={() => setKind('dots')} /> Dot sheets (4 cards per page)</label>
+          <label style={{ display: 'block' }}><input type="radio" name="kind" checked={kind === 'dots'} onChange={() => setKind('dots')} /> Dot sheets</label>
           <label style={{ display: 'block' }}><input type="radio" name="kind" checked={kind === 'charts'} onChange={() => setKind('charts')} /> Drill charts (one page per set, {show.sets.length} pages)</label>
         </fieldset>
+        {kind === 'dots' && (
+          <fieldset style={{ border: 'none', padding: 0, margin: '0 0 12px' }}>
+            <legend style={{ fontWeight: 700, marginBottom: 4 }}>Layout</legend>
+            <label style={{ display: 'block' }}><input type="radio" name="layout" checked={!single} onChange={() => setSingle(false)} /> 4 cards per page</label>
+            <label style={{ display: 'block' }}><input type="radio" name="layout" checked={single} onChange={() => setSingle(true)} /> 1 per page, bigger, with a notes column</label>
+          </fieldset>
+        )}
+        {kind === 'charts' && (
+          <label style={{ display: 'block', margin: '0 0 12px' }}><input type="checkbox" checked={paths} onChange={(e) => setPaths(e.target.checked)} /> Show the paths into each set</label>
+        )}
         {kind === 'dots' && (
           <fieldset style={{ border: 'none', padding: 0, margin: '0 0 12px' }}>
             <legend style={{ fontWeight: 700, marginBottom: 4 }}>Who</legend>
@@ -93,7 +110,7 @@ export function PrintDialog({ show, selected, onClose }: Props) {
         <p style={{ opacity: 0.75, fontSize: 12, margin: '0 0 12px' }}>Opens your browser's print dialog. Choose "Save as PDF" there to get a PDF.</p>
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
           <button onClick={onClose}>Cancel</button>
-          <button onClick={() => setJob({ kind, ids })} disabled={kind === 'dots' && !count}>Print{kind === 'dots' ? ` ${count}` : ''}</button>
+          <button onClick={() => setJob({ kind, ids, single, paths })} disabled={kind === 'dots' && !count}>Print{kind === 'dots' ? ` ${count}` : ''}</button>
         </div>
       </div>
       {job && createPortal(<Pages show={show} job={job} />, document.getElementById('print-root')!)}
@@ -102,15 +119,15 @@ export function PrintDialog({ show, selected, onClose }: Props) {
 }
 
 function Pages({ show, job }: { show: Show; job: Job }) {
-  const charts = useMemo(() => (job.kind === 'charts' ? show.sets.map((_, i) => chartImage(show, i)) : []), [show, job]);
+  const charts = useMemo(() => (job.kind === 'charts' ? show.sets.map((_, i) => chartImage(show, i, job.paths)) : []), [show, job]);
   const meas = hasMeasures(show);
   const pageStyle = job.kind === 'charts' ? '@page { size: letter landscape; margin: 0.4in; }' : '@page { size: letter portrait; margin: 0.4in; }';
   return (
     <>
       <style>{pageStyle}</style>
       {job.kind === 'dots'
-        ? chunk(dotCards(show, sortedPerformers(show, job.ids)), 4).map((page, k) => (
-          <div className="dot-page" key={k}>
+        ? chunk(dotCards(show, sortedPerformers(show, job.ids), job.single ? ROWS_PER_PAGE : undefined), job.single ? 1 : 4).map((page, k) => (
+          <div className={job.single ? 'dot-page single' : 'dot-page'} key={k}>
             {page.map((c, j) => (
               <section className="dot-card" key={j}>
                 <header>
@@ -118,11 +135,11 @@ function Pages({ show, job }: { show: Show; job: Job }) {
                   <span className="dot-show">{show.title}{c.parts > 1 ? ` · card ${c.part} of ${c.parts}` : ''}</span>
                 </header>
                 <table className={meas ? "with-meas" : undefined}>
-                  <thead><tr><th>Set</th><th>Cts</th>{meas && <th>Meas.</th>}<th>Side to side</th><th>Front to back</th></tr></thead>
+                  <thead><tr><th>Set</th><th>Cts</th>{meas && <th>Meas.</th>}<th>Side to side</th><th>Front to back</th>{job.single && <th>Notes</th>}</tr></thead>
                   <tbody>{c.rows.map((r) => (
                     <Fragment key={r.set}>
-                      <tr className={r.cue ? 'has-cue' : undefined}><td>{r.set}</td><td>{r.counts}</td>{meas && <td className="meas">{r.measures}</td>}<td>{keep(r.side)}</td><td>{keep(r.front)}</td></tr>
-                      {r.cue && <tr className="cue"><td></td><td colSpan={meas ? 4 : 3}>{r.cue}</td></tr>}
+                      <tr className={r.cue && !job.single ? 'has-cue' : undefined}><td>{r.set}</td><td>{r.counts}</td>{meas && <td className="meas">{r.measures}</td>}<td>{keep(r.side)}</td><td>{keep(r.front)}</td>{job.single && <td className="notes">{r.cue}</td>}</tr>
+                      {r.cue && !job.single && <tr className="cue"><td></td><td colSpan={meas ? 4 : 3}>{r.cue}</td></tr>}
                     </Fragment>
                   ))}</tbody>
                 </table>

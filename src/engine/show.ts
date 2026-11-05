@@ -584,6 +584,36 @@ export function counterMarch(show: Show, i: number, order: string[], side: 'left
   return setFtlTurns(moved, i, order[0], [off(head)]);
 }
 
+/** The paths into set i to draw, each piece colored by its step size: straight lines, arcs for turning moves, imported routes, and one trail per FTL group. */
+export function moveSegments(show: Show, i: number): { from: Point; to: Point; tier: StepTier }[] {
+  const steps = moveSteps(show, i);
+  const a = show.sets[i - 1].pos, b = show.sets[i].pos;
+  const groups = show.sets[i].ftl ?? [];
+  const inFtl = new Set(groups.flatMap((g) => g.order));
+  const own = show.sets[i].paths ?? {}, n = show.sets[i].counts;
+  // A turning move is drawn along each member's arc.
+  const arcs = new Map<string, Point[]>();
+  for (const ids of show.sets[i].turning ?? []) {
+    const fit = groupTurn(show, i, ids);
+    if (fit) for (const id of ids) if (a[id] && !inFtl.has(id)) arcs.set(id, turnRoute(a[id], b[id], fit.center, fit.angle));
+  }
+  const straight = Object.keys(b).filter((id) => !inFtl.has(id) && a[id] && (a[id].x !== b[id].x || a[id].y !== b[id].y || own[id]))
+    .flatMap((id) => {
+      const path = arcs.get(id) ?? own[id];
+      if (arcs.has(id)) return path.slice(1).map((q, k) => ({ from: path[k], to: q, tier: steps[id].tier }));
+      // A count-by-count move (from Pyware) is drawn along its real route; still counts (holds) add nothing.
+      if (path && pathFits(path, a[id], b[id], n))
+        return path.slice(1).flatMap((q, k) => (q.x !== path[k].x || q.y !== path[k].y ? [{ from: path[k], to: q, tier: steps[id].tier }] : []));
+      return [{ from: a[id], to: b[id], tier: steps[id].tier }];
+    });
+  // A follow-the-leader group draws its trail once, in the leader's step-size color.
+  const trails = groups.flatMap((g) => {
+    const t = ftlTrail(show, i, g.order);
+    return t.slice(1).map((p, k) => ({ from: t[k], to: p, tier: steps[g.order[0]].tier }));
+  });
+  return [...straight, ...trails];
+}
+
 // ---- Close calls: performers who come too near each other.
 
 /** Closer than this (in steps), at any point in a move, gets a warning (Jason: under 1 step). */

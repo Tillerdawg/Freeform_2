@@ -1,8 +1,9 @@
 // What goes on printed dot sheets and drill charts (pure data; layout is in Print.tsx).
 import { frontToBack, sideToSide } from '../engine/coords';
-import { equipmentIn, equipmentName, facingIn, facingName, label, movementOfSet, setStarts, type Performer, type Show } from '../engine/show';
+import { equipmentIn, equipmentName, facingIn, facingName, timingOf, label, movementOfSet, setStarts, type Performer, type Show } from '../engine/show';
 
 export const ROWS_PER_CARD = 24; // what fits a quarter-letter card at a readable size
+export const ROWS_PER_PAGE = 34; // one sheet per page, at a bigger size, with a notes column
 
 export interface CardRow { set: string; counts: string; measures: string; side: string; front: string; cue: string }
 export interface Card { label: string; name: string; section: string; part: number; parts: number; rows: CardRow[] }
@@ -13,6 +14,13 @@ export function sortedPerformers(show: Show, ids?: Set<string>): Performer[] {
   return show.performers
     .filter((p) => !ids || ids.has(p.id))
     .sort((a, b) => (order.get(a.section) ?? 0) - (order.get(b.section) ?? 0) || a.number - b.number);
+}
+
+/** "Hold 4, move 12" for a delayed step-off into set i. */
+function stepOff(show: Show, i: number, id: string): string {
+  if (!i) return '';
+  const n = show.sets[i].counts, t = timingOf(show.sets[i], id);
+  return t.move < n ? `Hold ${t.wait}, move ${t.move}${n - t.wait - t.move ? `, hold ${n - t.wait - t.move}` : ''}` : '';
 }
 
 /** "Face Side 2" on the set where a performer's facing changes (it carries on until the next change). */
@@ -28,21 +36,21 @@ function equipChange(show: Show, i: number, id: string): string {
 }
 
 /** One or more cards per performer (long shows continue onto another card). */
-export function dotCards(show: Show, performers: Performer[]): Card[] {
+export function dotCards(show: Show, performers: Performer[], perCard = ROWS_PER_CARD): Card[] {
   const cards: Card[] = [];
   for (const p of performers) {
     const rows: CardRow[] = show.sets.map((s, i) => ({
       set: s.name,
       counts: i === 0 ? '—' : String(s.counts),
       measures: s.measures ?? '',
-      cue: [faceChange(show, i, p.id), equipChange(show, i, p.id), s.cues?.[p.id]].filter(Boolean).join(' · '),
+      cue: [stepOff(show, i, p.id), faceChange(show, i, p.id), equipChange(show, i, p.id), s.cues?.[p.id]].filter(Boolean).join(' · '),
       side: sideToSide(s.pos[p.id].x),
       front: frontToBack(s.pos[p.id].y, show.hash),
     }));
-    const parts = Math.max(1, Math.ceil(rows.length / ROWS_PER_CARD));
+    const parts = Math.max(1, Math.ceil(rows.length / perCard));
     const section = show.sections.find((s) => s.id === p.section)?.name ?? '';
     for (let k = 0; k < parts; k++) {
-      cards.push({ label: label(show, p), name: p.name ?? '', section, part: k + 1, parts, rows: rows.slice(k * ROWS_PER_CARD, (k + 1) * ROWS_PER_CARD) });
+      cards.push({ label: label(show, p), name: p.name ?? '', section, part: k + 1, parts, rows: rows.slice(k * perCard, (k + 1) * perCard) });
     }
   }
   return cards;

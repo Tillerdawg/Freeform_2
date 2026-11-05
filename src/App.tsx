@@ -4,7 +4,7 @@ import { emptyHistory, record, redo, undo } from './engine/history';
 import { addInk, hitMark, moveMark, type Mark } from './engine/marks';
 import { assign, fitShape, isControl, moveHandle, samplePath, slots, type Shape, type ShapeKind } from './engine/shapes';
 import { colorOf,
-  addPerformer, ftlTrail, setFtlTurns, locate, label, mark, newId, pathFits, setMarks, moveSteps, groupTurn, turnRoute, facingIn, facingVector, equipmentIn, hitProp, placeProp, propsAt, removeProp, normalizeFtl, snapPoint, playRange, newShow, parseShow, placeInSet, positionsAt, removePerformers,
+  addPerformer, setFtlTurns, locate, label, mark, newId, setMarks, moveSegments, facingIn, facingVector, equipmentIn, hitProp, placeProp, propsAt, removeProp, normalizeFtl, snapPoint, playRange, newShow, parseShow, placeInSet, positionsAt, removePerformers,
   rotateScale, setAt, setStarts, type Show,
   showLength,
 } from './engine/show';
@@ -196,36 +196,7 @@ export function App() {
 
   // Paths into the current set, colored by step size. Mid-move, the move being made (so FTL trails show there too).
   const pathSet = onSet >= 0 ? onSet : t < starts.at(-1)! ? locate(show, t).to : -1;
-  const paths: Path[] = useMemo(() => {
-    const onSet = pathSet;
-    if (onSet < 1) return [];
-    const steps = moveSteps(show, onSet);
-    const a = show.sets[onSet - 1].pos, b = show.sets[onSet].pos;
-    const groups = show.sets[onSet].ftl ?? [];
-    const inFtl = new Set(groups.flatMap((g) => g.order));
-    const own = show.sets[onSet].paths ?? {}, n = show.sets[onSet].counts;
-    // A turning move is drawn along each member's arc.
-    const arcs = new Map<string, Point[]>();
-    for (const ids of show.sets[onSet].turning ?? []) {
-      const fit = groupTurn(show, onSet, ids);
-      if (fit) for (const id of ids) if (a[id] && !inFtl.has(id)) arcs.set(id, turnRoute(a[id], b[id], fit.center, fit.angle));
-    }
-    const straight = Object.keys(b).filter((id) => !inFtl.has(id) && a[id] && (a[id].x !== b[id].x || a[id].y !== b[id].y || own[id]))
-      .flatMap((id) => {
-        const path = arcs.get(id) ?? own[id];
-        if (arcs.has(id)) return path.slice(1).map((q, k) => ({ from: path[k], to: q, tier: steps[id].tier }));
-        // A count-by-count move (from Pyware) is drawn along its real route; still counts (holds) add nothing.
-        if (path && pathFits(path, a[id], b[id], n))
-          return path.slice(1).flatMap((q, k) => (q.x !== path[k].x || q.y !== path[k].y ? [{ from: path[k], to: q, tier: steps[id].tier }] : []));
-        return [{ from: a[id], to: b[id], tier: steps[id].tier }];
-      });
-    // A follow-the-leader group draws its trail once, in the leader's step-size color.
-    const trails = groups.flatMap((g) => {
-      const t = ftlTrail(show, onSet, g.order);
-      return t.slice(1).map((p, k) => ({ from: t[k], to: p, tier: steps[g.order[0]].tier }));
-    });
-    return [...straight, ...trails];
-  }, [show, pathSet]);
+  const paths: Path[] = useMemo(() => (pathSet < 1 ? [] : moveSegments(show, pathSet)), [show, pathSet]);
   // The FTL group the selection is, exactly, in the move into this set (where Add turns puts the leader's turning points).
   const ftlGroup = onSet > 0 ? show.sets[onSet].ftl?.find((g) => g.order.length === selected.size && g.order.every((id) => selected.has(id))) : undefined;
   useEffect(() => { if (tool === 'turn' && !ftlGroup) setTool('select'); }, [tool, ftlGroup]);
