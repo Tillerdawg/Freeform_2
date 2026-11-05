@@ -92,6 +92,14 @@ shot('shape-spiral', async () => {
   await page.waitForTimeout(200);
   await save(page, 'shape-spiral', { x: 240, y: 110, width: 700, height: 640 });
 });
+shot('shape-star', async () => {
+  const page = await editor();
+  await box(page, { x: -13, y: 51 }, { x: 13, y: 29 });
+  await page.keyboard.press('x'); // the Star shortcut
+  await menu(page, 'Shape');
+  await page.waitForTimeout(200);
+  await save(page, 'shape-star', { x: 240, y: 110, width: 700, height: 640 });
+});
 shot('coordinates', async () => {
   const page = await editor();
   await goSet(page, 2);

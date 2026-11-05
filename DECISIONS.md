@@ -1052,3 +1052,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Context:** Jason suggested ⌘/Ctrl + a letter for tools and ⌘/Ctrl + arrow for a 4-step nudge. In a browser, ⌘L jumps to the address bar and ⌘B opens bookmarks in some browsers, and on a Mac ⌘+arrow is a text-editing key.
 - **Options:** ⌘/Ctrl + letter; single letters (as Figma and Illustrator do); for the big nudge, ⌘/Ctrl or Shift.
 - **Decision:** Single letters, which only start a shape when 2 or more performers are selected: L Line, R Arc, U Curve, B Bézier, O Circle, S Spiral, K Block (A stays Add performer, T Text, V Select; F fits the field). Arrows move the selection 1 step, Shift + arrow 4 steps (half of 5 yards at 8 to 5), and Option/Alt + arrow half a step; with no one selected, ← and → still step through counts. ⌘/Ctrl + and − zoom the field instead of the page, and ⌘/Ctrl 0 fits it. A nudge ends an open shape and carries a selected FTL group's turns along, the same as dragging.
+
+## 2026-11-04 23:40 EST — Polygon and star shapes
+- **Who:** Jason Tiller asked for them; the details are Claude's *(Jason can veto)*.
+- **Context:** Regular polygons and stars are common forms. They need a way to set the corner count and, for a star, how deep its inside corners go.
+- **Options:** Corner handles you drag one by one; a center and one corner handle with a number of sides. Performers only on the corners, or evenly around the outline.
+- **Decision:** Center and one corner handle (dragging it sizes and turns the shape), **Sides** 3 to 12 for a polygon, **Points** 3 to 12 and **Inner** 10 to 90% for a star (default 5 and 40%). Both start with a corner straight up the field. Performers go evenly around the outline from the handle's corner, so every corner gets someone when the count is a multiple of the corners. Shortcuts: **P** Polygon, **X** Star (S was already Spiral).

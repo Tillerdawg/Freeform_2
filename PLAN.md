@@ -16,7 +16,7 @@
 - ✅ Touch support pass (tablets): two-finger pan and pinch on the field (a second finger takes back what the first started), fingertip hit areas, Add to selection (no Shift key), 44 pt controls with fixed rows sized once per device, sideways-scrolling rows with Undo/Redo/Fit pinned, hold-to-pick-up set buttons on the timeline. Checked in emulated iPads (Playwright, real touch events). ✅ Sidebar show/hide button; on narrow windows it starts hidden and opens over the field. ✅ Timeline show/hide button, so a tablet can give the whole screen to the field. ✅ Real iPad check (Jason, 2026-11-04: looks and feels right; the Apple Pencil works like a finger). ✅ Apple Pencil (Jason's report): once a pen has touched the field, one finger or a resting palm does nothing there, two fingers still pan and zoom, and fingers or a system cancel never take back the Pencil's work. Follow-ups: touch alternatives for Option-drag (move one shape handle) and other modifier-key actions; Jason to recheck the Pencil-then-pinch case on the real iPad.
 
 ## Later milestones (rough order)
-- ✅ Shape tools: line, arc, curve, Bézier, circle, spiral, block (select, then shape; even or interval spacing; least-travel assignment).
+- ✅ Shape tools: line, arc, curve, Bézier, circle, polygon, star, spiral, block (select, then shape; even or interval spacing; least-travel assignment).
 - ✅ Keyboard shortcuts for drill writing: one letter per shape, arrow-key nudges (1 step, Shift 4, Option/Alt half), ⌘/Ctrl +/− zoom the field, F or ⌘0 fit. Later: a **?** cheat sheet and a customizable keymap.
 - ✅ Mirror: flip across the 50 or front to back; copy Side 1 → 2 (or 2 → 1) with least-travel pairing.
 - ✅ Rotate and scale a selection around its center.

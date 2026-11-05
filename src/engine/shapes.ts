@@ -1,15 +1,16 @@
-// Shape tools: lay selected performers out along a line, arc, curve, circle, spiral, or block. All units are steps.
+// Shape tools: lay selected performers out along a line, arc, curve, circle, polygon, star, spiral, or block. All units are steps.
 import { distance, type Point } from './coords';
 
-export type ShapeKind = 'line' | 'arc' | 'curve' | 'bezier' | 'circle' | 'spiral' | 'block';
+export type ShapeKind = 'line' | 'arc' | 'curve' | 'bezier' | 'circle' | 'polygon' | 'star' | 'spiral' | 'block';
 /**
  * Handles by kind: line [a, b]; arc [a, bend, b] (the arc passes through all three);
  * curve [p0..pn] (smooth curve through every point); circle [center, edge]; block [corner, opposite corner];
+ * polygon [center, a corner]: `sides` equal sides; star [center, a point]: `sides` points, inner corners at `inner` x the radius;
  * spiral [center, outer end]: `turns` coils, counterclockwise going out (clockwise when `turns` is negative);
  * bezier [anchor, control, control, anchor, control, control, anchor, ...]: cubic segments that pass through the
  * anchors and are pulled toward (not through) the controls.
  */
-export interface Shape { kind: ShapeKind; handles: Point[]; interval: number | null; cols: number; turns?: number }
+export interface Shape { kind: ShapeKind; handles: Point[]; interval: number | null; cols: number; turns?: number; sides?: number; inner?: number }
 
 /** Distance between neighboring coils of a spiral, in steps. */
 export const coilGap = (s: Shape) => distance(s.handles[0], s.handles[1]) / Math.max(0.25, Math.abs(s.turns ?? 2));
@@ -25,6 +26,15 @@ export function samplePath(s: Shape): { pts: Point[]; closed: boolean } {
     const a0 = Math.atan2(h[1].y - h[0].y, h[1].x - h[0].x);
     const n = 256;
     return { pts: Array.from({ length: n }, (_, i) => ({ x: h[0].x + r * Math.cos(a0 + (2 * Math.PI * i) / n), y: h[0].y + r * Math.sin(a0 + (2 * Math.PI * i) / n) })), closed: true };
+  }
+  if (s.kind === 'polygon' || s.kind === 'star') {
+    // Just the corners: spots go evenly around the outline, starting on the corner under the second handle.
+    const R = distance(h[0], h[1]), a0 = Math.atan2(h[1].y - h[0].y, h[1].x - h[0].x);
+    const star = s.kind === 'star', n = Math.max(3, Math.round(s.sides ?? 5)) * (star ? 2 : 1);
+    return { pts: Array.from({ length: n }, (_, i) => {
+      const r = star && i % 2 ? R * (s.inner ?? 0.4) : R, a = a0 + (2 * Math.PI * i) / n;
+      return { x: h[0].x + r * Math.cos(a), y: h[0].y + r * Math.sin(a) };
+    }), closed: true };
   }
   if (s.kind === 'spiral') {
     // Archimedean: the radius grows by the same amount every turn, so the coils stay evenly apart. Starts at the center.
@@ -207,6 +217,7 @@ export function fitShape(kind: ShapeKind, pts: Point[]): Shape {
     case 'curve': return { kind, handles: [P(x0, cy), P(x0 + span / 3, cy + span / 6), P(x0 + (2 * span) / 3, cy - span / 6), P(x1, cy)], ...base };
     case 'bezier': return { kind, handles: [P(x0, cy), P(x0 + span / 3, cy + span / 3), P(x0 + (2 * span) / 3, cy - span / 3), P(x1, cy)], ...base };
     case 'circle': return { kind, handles: [P(cx, cy), P(cx + span / 2, cy)], ...base };
+    case 'polygon': case 'star': return { kind, handles: [P(cx, cy), P(cx, cy + span / 2)], ...base, sides: 5, inner: 0.4 }; // a corner straight up the field
     case 'spiral': return { kind, handles: [P(cx, cy), P(cx + span / 2, cy)], ...base, turns: 2 };
     case 'block': {
       const c = base.cols, r = Math.ceil(pts.length / c);

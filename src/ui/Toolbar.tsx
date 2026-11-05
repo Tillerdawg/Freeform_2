@@ -38,7 +38,7 @@ export interface ToolbarProps {
 
 /** Shape, its name, and its one-letter shortcut (pressed with 2 or more performers selected). */
 export const SHAPES: [ShapeKind, string, string][] = [['line', 'Line', 'L'], ['arc', 'Arc', 'R'], ['curve', 'Curve', 'U'], ['bezier', 'Bézier', 'B'],
-  ['circle', 'Circle', 'O'], ['spiral', 'Spiral', 'S'], ['block', 'Block', 'K']];
+  ['circle', 'Circle', 'O'], ['polygon', 'Polygon', 'P'], ['star', 'Star', 'X'], ['spiral', 'Spiral', 'S'], ['block', 'Block', 'K']];
 const MARKUP: [Tool, string][] = [['text', 'Text (T)'], ['arrow', 'Arrow'], ['draw', 'Draw']];
 const row: React.CSSProperties = { display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', marginTop: 6 };
 const help: React.CSSProperties = { margin: '6px 0 0', opacity: 0.75, fontSize: 12, whiteSpace: 'normal' };
@@ -131,7 +131,7 @@ export function Toolbar(p: ToolbarProps) {
       <span className="tb-sep" />
 
       <Menu label="Shape" disabled={needs(many, ids.length === 1 ? 'Select 2 or more performers' : pick)} keepOpen={!!p.shape} pressed={!!p.shape}
-        title="Shape the selection into a line, arc, curve, Bézier, circle, spiral, or block">
+        title="Shape the selection into a line, arc, curve, Bézier, circle, polygon, star, spiral, or block">
         {() => <ShapePanel {...p} />}
       </Menu>
       <Menu label="Transform" disabled={needs(any, pick)} title="Flip, mirror, rotate, or scale the selection">
@@ -251,6 +251,15 @@ function ShapePanel({ shape, startShape, updateShape, endShape }: ToolbarProps) 
                 onValue={(n) => updateShape({ interval: n })} /> steps
             </label>
           </div>
+          {(shape.kind === 'polygon' || shape.kind === 'star') && (
+            <div style={row}>
+              <label>{shape.kind === 'star' ? 'Points' : 'Sides'} <NumberField aria-label={shape.kind === 'star' ? 'Points' : 'Sides'} min={3} max={12} integer
+                value={shape.sides ?? 5} style={{ width: 48 }} onValue={(n) => updateShape({ sides: n })} /></label>
+              {shape.kind === 'star' && <label title="How far in the inside corners sit, as a percent of the points' distance from the center">Inner{' '}
+                <NumberField aria-label="Inner corners, percent" min={10} max={90} integer value={Math.round((shape.inner ?? 0.4) * 100)} style={{ width: 48 }}
+                  onValue={(n) => updateShape({ inner: n / 100 })} />%</label>}
+            </div>
+          )}
           {shape.kind === 'spiral' && (
             <div style={row}>
               <label>Turns <NumberField aria-label="Turns" min={0.5} max={20} step={0.5} value={Math.abs(shape.turns ?? 2)} style={{ width: 48 }}
@@ -276,6 +285,7 @@ function ShapePanel({ shape, startShape, updateShape, endShape }: ToolbarProps) 
           </div>
           <p style={help}>
             Drag the blue handles on the field. Performers keep their order along the shape.
+            {(shape.kind === 'polygon' || shape.kind === 'star') && ` The first handle is the center; drag the second to size and turn it. Performers go evenly around the outline, starting at that ${shape.kind === 'star' ? 'point' : 'corner'}.`}
             {shape.kind === 'spiral' && ' The first handle is the center; the second is the outer end. Intervals are measured performer to performer.'}
             {shape.kind === 'bezier' && ' Squares are points the curve passes through; circles pull the curve toward them. Hold Option (Alt) while dragging to move one handle by itself, e.g. to make a corner.'}
           </p>

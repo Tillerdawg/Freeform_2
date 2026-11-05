@@ -16,6 +16,18 @@ describe('slots', () => {
     // The radius grows steadily with the angle: halfway along the turns, halfway out.
     near(samplePath(sp).pts[128], 8, 0); // one whole turn in from the end: straight in toward the center
   });
+  it('polygon: a square, one spot per corner and between them, evenly around', () => {
+    const p = slots(S('polygon', [{ x: 0, y: 0 }, { x: 8, y: 0 }], { sides: 4 }), 8);
+    near(p[0], 8, 0); near(p[2], 0, 8); near(p[4], -8, 0); near(p[6], 0, -8); near(p[1], 4, 4);
+  });
+  it('star: points at the radius, inner corners at inner x the radius', () => {
+    const { pts, closed } = samplePath(S('star', [{ x: 0, y: 0 }, { x: 0, y: 10 }], { sides: 5, inner: 0.4 }));
+    expect(closed).toBe(true); expect(pts).toHaveLength(10);
+    pts.forEach((q, i) => expect(Math.hypot(q.x, q.y)).toBeCloseTo(i % 2 ? 4 : 10, 6));
+    near(pts[0], 0, 10);
+    expect(slots(S('star', [{ x: 0, y: 0 }, { x: 0, y: 10 }], { sides: 5, inner: 0.4 }), 10).map((q) => Math.round(Math.hypot(q.x, q.y))))
+      .toEqual([10, 4, 10, 4, 10, 4, 10, 4, 10, 4]); // one performer per corner when there are just enough
+  });
   it('spiral: a set interval, performer to performer, from the center', () => {
     const p = slots(S('spiral', [{ x: 0, y: 0 }, { x: 16, y: 0 }], { turns: 2, interval: 2 }), 30);
     near(p[0], 0, 0);
