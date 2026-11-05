@@ -1076,3 +1076,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
   - **Too close** is checked at every half count of every move, for any two performers under 1 step apart (Jason), including at the sets themselves. Each pair is listed once, at its closest. The timeline shows a count per move, and **Move** lists the pairs with a **Select** button. The timeline remembers each move's result until one of its two sets changes, because checking a big show from scratch took about half a second, too slow to redo while dragging.
   - **Selection:** **Select all** (⌘A), **Select a section…** in the sidebar, the distance between two selected performers (to the quarter step), and **Copy spots** / **Paste spots** (⌘C / ⌘V), which put the same performers back on the copied spots in another set (through holds, like any move). Copying is inside FreeFORM only, not the system clipboard.
   - **Not done yet:** Copy Side 1 → 2 doesn't copy step-offs or turning groups to the partners.
+
+## 2026-11-05 15:10 EST — Deploy workflow actions on Node 24
+- **Who:** Jason Tiller asked to fix GitHub's warning; the versions are Claude's *(Jason can veto)*.
+- **Context:** GitHub warned that `actions/checkout@v4`, `actions/setup-node@v4`, and the artifact upload inside `actions/upload-pages-artifact@v3` target Node 20, which is deprecated on its runners.
+- **Options:** Pin each to the oldest version that runs on Node 24, or move to each one's latest.
+- **Decision:** Latest major of each, all of which run on Node 24: `checkout@v7`, `setup-node@v7`, `upload-pages-artifact@v5` (uses `upload-artifact` v7), and `deploy-pages@v5`. The app itself still builds with Node 22, as before.
