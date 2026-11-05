@@ -1034,3 +1034,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Context:** Jason would rather not have to click a button after deleting a set.
 - **Options:** The button; automatic.
 - **Decision:** Automatic. Deleting a set, adding one mid-show, or adding a sub-set keeps every set numbered in order (main sets 1, 2, 3…; sub-sets lettered A, B… after the set before them), and the button is gone. Printed sheets made before a delete will show the old numbers, so reprint after deleting or adding sets. Imported Pyware names are left as they came in until the first set is added or deleted.
+
+## 2026-11-04 22:20 EST — Moves carry forward through holds
+- **Who:** Jason Tiller reported it (new performers moved in set 2 jumped back to their set 1 spots in set 3); the rule below is Claude's *(Jason can veto)*.
+- **Context:** A performer added to the show gets the same spot in every set, and moving them changed only the set being edited, so every later set still had the old spot.
+- **Options:** Carry a move into every later set; carry it only through later sets where the performer was holding (still on their old spot); copy only when adding sets (as before).
+- **Decision:** Through holds. A move in set i also moves the performer in each later set where they still stood on their old set-i spot, stopping at the first set where they'd been placed somewhere else, so drill already written for later sets is never changed. It applies to every way of moving performers (`placeInSet`). Holds are judged from the show as it was when the edit began (a drag or a shape), so dragging across a performer's later spot doesn't pick it up. Earlier sets never change. Side effect: the docs' sample show had its drumline left on the 50 in set 4 for this reason; it now holds where it should, and the screenshots were retaken.

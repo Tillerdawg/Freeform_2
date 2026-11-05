@@ -48,7 +48,7 @@ export function sampleShow(): Show {
   show = normalizeFtl(setFtlTurns(normalizeFtl(setFtl(show, 2, [lead, ...guard.slice(0, 5).reverse()])), 2, lead, [{ x: 32, y: 14 }]));
   show = setMeasures(show, 2, '5–8');
   // Set 4: back into the block in only 8 counts, too fast on purpose so the step-size warnings show.
-  show = placeInSet(show, 3, near(3, winds, block));
+  show = placeInSet(show, 3, { ...near(3, winds, block), ...at(battery, (k) => ({ x: -10 + 2 * k, y: 54 })) }); // battery back behind the block
   show = setMeasures(show, 3, '9–10');
   return show;
 }

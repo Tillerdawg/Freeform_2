@@ -74,7 +74,7 @@ export function App() {
   const [range, setRange] = useState<{ from: string | null; to: string | null; loop: boolean }>({ from: null, to: null, loop: false });
   // Shape being edited: performers in slot order (order[k] takes slot k), in the set it was started in.
   const [selectedMark, setSelectedMark] = useState<string | null>(null);
-  const [shapeEdit, setShapeEdit] = useState<{ shape: Shape; order: string[]; set: number } | null>(null);
+  const [shapeEdit, setShapeEdit] = useState<{ shape: Shape; order: string[]; set: number; base: Show } | null>(null); // base: the show before this shape began
   const [fileError, setFileError] = useState('');
   const [printing, setPrinting] = useState(false);
   const [sharing, setSharing] = useState(false);
@@ -265,9 +265,9 @@ export function App() {
   }, [onSet, show, shapeEdit]);
 
   /** Lay the shape's performers onto its spots in the current set. */
-  const applyShape = (shape: Shape, order: string[]) => {
+  const applyShape = (shape: Shape, order: string[], base: Show) => {
     const spots = slots(shape, order.length);
-    setShow((s) => placeInSet(s, onSet, Object.fromEntries(order.map((id, k) => [id, spots[k]]))));
+    setShow((s) => placeInSet(s, onSet, Object.fromEntries(order.map((id, k) => [id, spots[k]])), base));
   };
 
   const startShape = (kind: ShapeKind) => {
@@ -281,15 +281,16 @@ export function App() {
     const slotOf = assign(origin, slots(shape, ids.length));
     const order: string[] = [];
     ids.forEach((id, i) => { order[slotOf[i]] = id; });
-    setShapeEdit({ shape, order, set: onSet });
-    applyShape(shape, order);
+    const base = shapeEdit?.set === onSet ? shapeEdit.base : show; // switching shapes keeps the show from before the first one
+    setShapeEdit({ shape, order, set: onSet, base });
+    applyShape(shape, order, base);
   };
 
   const updateShape = (patch: Partial<Shape>) => {
     if (!shapeEdit) return;
     const shape = { ...shapeEdit.shape, ...patch };
     setShapeEdit({ ...shapeEdit, shape });
-    applyShape(shape, shapeEdit.order);
+    applyShape(shape, shapeEdit.order, shapeEdit.base);
   };
 
   // Trackpad/mouse wheel pans; pinch or ctrl+wheel zooms around the cursor.
@@ -514,7 +515,7 @@ export function App() {
       const dx = a1.x - a0.x, dy = a1.y - a0.y;
       const moves = Object.fromEntries(Object.entries(d.orig).map(([k, q]) => [k, { x: q.x + dx, y: q.y + dy }]));
       const leader = d.turns && ftlGroup?.order[0];
-      setShow((s) => { const m = placeInSet(s, onSet, moves); return leader ? setFtlTurns(m, onSet, leader, d.turns!.map((q) => ({ x: q.x + dx, y: q.y + dy }))) : m; });
+      setShow((s) => { const m = placeInSet(s, onSet, moves, atDown.current?.show); return leader ? setFtlTurns(m, onSet, leader, d.turns!.map((q) => ({ x: q.x + dx, y: q.y + dy }))) : m; });
     }
   };
 
@@ -526,9 +527,9 @@ export function App() {
     const finger = touches.current.has(e.pointerId);
     liftFinger(e);
     if (finger && penSeen.current) return; // fingers only pan and zoom: what's under way belongs to the Pencil
-    atDown.current = null;
     // Apply the release point too: a fast release can arrive without a final pointermove, landing the drag short.
     if (drag.current && drag.current.kind !== 'pan') onPointerMove(e);
+    atDown.current = null; // after the last move: it still needs the show from when the drag began
     const d = drag.current;
     drag.current = null;
     if (d?.kind === 'arrow' || d?.kind === 'ink') {

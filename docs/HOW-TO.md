@@ -126,6 +126,8 @@ Coordinates read side to side first, then front to back, from the nearest yard l
 
 **Placing someone exactly.** Open **Place exactly (this set)** under the coordinate, fill in the steps, inside or outside, the side and yard line, then the steps in front of or behind a sideline or hash, and click **Place**.
 
+**Moves carry forward through holds.** When you move someone in a set, every later set where they were still standing on their old spot (holding) moves with them, up to the first set where you'd already put them somewhere else. So if you add performers, then place them in set 2, they stay there in sets 3, 4 and on until you move them again, and drill you've already written for later sets is never changed. This works the same for dragging, shapes, flips, rotating and stretching, snapping, and **Place exactly**.
+
 **Reset to set** in the toolbar puts the selected performers back where they were in the set before, so you can start their move over.
 
 ## Sets, counts, and the timeline

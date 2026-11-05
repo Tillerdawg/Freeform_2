@@ -565,3 +565,30 @@ describe('renumbering sets', () => {
     expect(renumberSets(s)).toBe(s);
   });
 });
+
+describe('moves carry forward through holds', () => {
+  const three = () => {
+    let s = newShow();
+    const r = addPerformer(s, s.sections[0].id, { x: 0, y: 20 }); s = r.show;
+    s = addSetAfter(addSetAfter(addSetAfter(s, 0), 1), 2); // 4 sets, the performer standing on (0, 20) in all of them
+    return { s, id: r.id };
+  };
+  it('a performer added in set 1 and moved in set 2 stays there in the sets after', () => {
+    const { s, id } = three();
+    const m = placeInSet(s, 1, { [id]: { x: 8, y: 20 } });
+    expect(m.sets.map((x) => x.pos[id].x)).toEqual([0, 8, 8, 8]);
+  });
+  it('stops at the first set where they were placed somewhere else, and never touches earlier sets', () => {
+    const { s, id } = three();
+    const placed = placeInSet(s, 3, { [id]: { x: -10, y: 30 } }); // set 4 written already
+    const m = placeInSet(placed, 1, { [id]: { x: 8, y: 20 } });
+    expect(m.sets.map((x) => x.pos[id])).toEqual([{ x: 0, y: 20 }, { x: 8, y: 20 }, { x: 8, y: 20 }, { x: -10, y: 30 }]);
+  });
+  it('judges holds from where the edit began (a drag passing over a later spot leaves it alone)', () => {
+    const { s, id } = three();
+    const later = placeInSet(s, 2, { [id]: { x: 4, y: 20 } }); // set 3 elsewhere; set 4 holds from it
+    const mid = placeInSet(later, 1, { [id]: { x: 4, y: 20 } }, later); // the drag passes over set 3's spot
+    const end = placeInSet(mid, 1, { [id]: { x: 12, y: 20 } }, later);
+    expect(end.sets.map((x) => x.pos[id].x)).toEqual([0, 12, 4, 4]);
+  });
+});

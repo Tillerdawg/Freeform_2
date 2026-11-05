@@ -213,9 +213,23 @@ export function removePerformers(show: Show, ids: Set<string>): Show {
   };
 }
 
-/** Sets positions in set `i` for the given performers. */
-export function placeInSet(show: Show, i: number, moves: Record<string, Point>): Show {
-  return mapSet(show, i, (s) => ({ ...s, pos: { ...s.pos, ...moves } }));
+/**
+ * Sets positions in set `i` for the given performers. A performer who was holding (standing still) from set i into
+ * later sets goes along: each later set where they still stood on their old set-i spot gets the new spot too, up to
+ * the first set where they'd been placed somewhere else. Holds are judged from `base`, the show before the edit began
+ * (a drag passes the show from when it started, so passing over a later spot mid-drag doesn't pick it up).
+ */
+export function placeInSet(show: Show, i: number, moves: Record<string, Point>, base: Show = show): Show {
+  const was = base.sets[i]?.pos ?? {};
+  const held = (j: number, id: string) => { const p = base.sets[j]?.pos[id], q = was[id]; return !!p && !!q && p.x === q.x && p.y === q.y; };
+  return { ...show, sets: show.sets.map((s, j) => {
+    if (j < i) return s;
+    const follow = j === i ? moves : Object.fromEntries(Object.entries(moves).filter(([id]) => {
+      for (let k = i + 1; k <= j; k++) if (!held(k, id)) return false;
+      return true;
+    }));
+    return Object.keys(follow).length ? { ...s, pos: { ...s.pos, ...follow } } : s;
+  }) };
 }
 
 /** New set after `i`, starting as a copy of set i's positions. */
