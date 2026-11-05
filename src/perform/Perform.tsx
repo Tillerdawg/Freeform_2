@@ -18,23 +18,13 @@ import { panCenter, pinchZoom, ZOOM_MAX } from './gestures';
 import { WhoPicker } from './WhoPicker';
 import { NumberField } from '../ui/NumberField';
 import { AUTOSAVE } from '../App';
+import { addShow, readLibrary, removeShow, STAFF, type Library, type Saved } from './library';
 
 const STORE = 'freeform:performer'; // separate from the editor's autosave, so opening a link never touches a director's work
-const STAFF = 'staff';
 const FOLLOW_STEPS = 36; // how much field fits across the screen when following a performer
 
-/** `source`: the hosted link ("#load=…", with its key) a show came from, so the phone can pick up updates when online. */
-interface Saved { show: Show; me: string | null; facingFront: boolean; follow: boolean; source?: string }
-
-function loadSaved(): Saved | null {
-  try {
-    const raw = localStorage.getItem(STORE);
-    if (!raw) return null;
-    const s = JSON.parse(raw);
-    return { show: parseShow(JSON.stringify(s.show)), me: s.me ?? null, facingFront: !!s.facingFront, follow: s.follow !== false, source: typeof s.source === 'string' && parseHosted(s.source) ? s.source : undefined };
-  } catch { return null; }
-}
-const save = (s: Saved) => { try { localStorage.setItem(STORE, JSON.stringify(s)); } catch { /* private mode: nothing kept */ } };
+const loadLib = (): Library => { try { return readLibrary(localStorage.getItem(STORE)); } catch { return { shows: [], current: 0 }; } };
+const saveLib = (l: Library) => { try { localStorage.setItem(STORE, JSON.stringify(l)); } catch { /* private mode: nothing kept */ } };
 
 /** The editor's Performer view: "#perform-editor=<performer id>" shows the editor's own show from that performer, kept off this device's saved show. */
 export const PREVIEW = '#perform-editor';
@@ -47,8 +37,12 @@ function loadPreview(): Saved | null {
 }
 
 export function Perform() {
-  const [state, setState] = useState<Saved | null>(() => loadPreview() ?? loadSaved());
-  const preview = useRef(location.hash.startsWith(PREVIEW) && !!state).current; // the editor's show: never saved over this device's show
+  const [previewState, setPreviewState] = useState<Saved | null>(loadPreview); // the editor's show: never saved over this device's shows
+  const preview = !!previewState;
+  const [lib, setLibState] = useState<Library>(loadLib);
+  const libRef = useRef(lib); libRef.current = lib; // for downloads that finish later
+  const setLib = (l: Library) => { libRef.current = l; saveLib(l); setLibState(l); };
+  const state = previewState ?? lib.shows[lib.current] ?? null;
   const theme = useTheme();
   const [error, setError] = useState('');
   const [t, setT] = useState(0);
@@ -67,14 +61,34 @@ export function Perform() {
     const old = prev?.music?.audioId;
     if (old && old !== show.music.audioId) deleteAudio(old);
   };
-  // Keep a newly arrived show on this phone; keep "who I am" if that performer is still in it.
+  // A recording no show on the phone uses any more goes too.
+  const dropAudio = (gone: Saved | undefined, l: Library) => {
+    const id = gone?.show.music?.audioId;
+    if (id && !l.shows.some((s) => s.show.music?.audioId === id)) deleteAudio(id);
+  };
+  // Keep a newly arrived show in the phone's list and open it (the same show again replaces itself; see addShow).
   const adopt = (show: Show, source: string | undefined, fresh: boolean, audio?: Blob) => {
-    const prev = loadSaved();
-    keepAudio(show, audio, prev?.show);
-    const keepMe = prev?.me && (prev.me === STAFF || show.performers.some((p) => p.id === prev.me)) ? prev.me : null;
-    const next = { show, me: keepMe, facingFront: prev?.facingFront ?? false, follow: prev?.follow ?? true, source };
-    save(next); setState(next); setError('');
+    const r = addShow(libRef.current, show, source);
+    setLib(r.lib); setError('');
+    keepAudio(show, audio, r.replaced?.show);
+    dropAudio(r.dropped, r.lib);
     if (fresh) setT(0);
+  };
+  // Opening a hosted show: quietly check for a newer version when online. Offline, the saved copy is used.
+  const checkHosted = () => {
+    const saved = libRef.current.shows[libRef.current.current];
+    if (!saved?.source || !navigator.onLine) return;
+    // An unchanged file isn't downloaded again: the fetch revalidates (cache: 'no-cache'), and GitHub answers 304 for the same ETag.
+    fetchHosted(saved.source).then(({ show, audio }) => {
+      if (JSON.stringify(show) !== JSON.stringify(saved.show)) { adopt(show, saved.source, false, audio); setNotice('Show updated.'); }
+      else keepAudio(show, audio, saved.show); // same show; the recording may be new (added to the file later)
+    }).catch(() => { /* keep the saved copy */ });
+  };
+  const switchTo = (i: number) => { setLib({ ...libRef.current, current: i }); setT(0); setPlaying(false); setNotice(''); setError(''); checkHosted(); };
+  const [adding, setAdding] = useState(false); // the paste-a-link / scan panel, to add another show
+  const remove = (i: number) => {
+    const l = removeShow(libRef.current, i);
+    setLib(l); dropAudio(libRef.current.shows[i], l); setT(0); setPlaying(false);
   };
 
   // Opening a link: a share link carries the show; a hosted link (#load=) says where to download it.
@@ -91,18 +105,14 @@ export function Perform() {
       fetchHosted(hash).then((r) => { adopt(r.show, hash, true, r.audio); done(); }).catch(fail);
       return;
     }
-    // Reopening a hosted show: quietly check for a newer version when online. Offline, the saved copy is used.
-    const saved = loadSaved();
-    if (saved?.source && navigator.onLine) {
-      // An unchanged file isn't downloaded again: the fetch revalidates (cache: 'no-cache'), and GitHub answers 304 for the same ETag.
-      fetchHosted(saved.source).then(({ show, audio }) => {
-        if (JSON.stringify(show) !== JSON.stringify(saved.show)) { adopt(show, saved.source, false, audio); setNotice('Show updated.'); }
-        else keepAudio(show, audio, saved.show); // same show; the recording may be new (added to the file later)
-      }).catch(() => { /* keep the saved copy */ });
-    }
+    checkHosted();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const update = (patch: Partial<Saved>) => setState((s) => { if (!s) return s; const n = { ...s, ...patch }; if (!preview) save(n); return n; });
+  const update = (patch: Partial<Saved>) => {
+    if (preview) { setPreviewState((s) => s && { ...s, ...patch }); return; }
+    const l = libRef.current;
+    if (l.shows[l.current]) setLib({ ...l, shows: l.shows.map((s, i) => (i === l.current ? { ...s, ...patch } : s)) });
+  };
 
   const show = state?.show;
   const starts = useMemo(() => (show ? setStarts(show) : [0]), [show]);
@@ -329,9 +339,23 @@ export function Perform() {
       <header className="perform-bar">
         <div className="perform-titlebar">
           <span className="perform-title">{error ? <span role="alert" title={error} style={{ color: 'var(--danger)' }}>{error} Showing your saved copy. </span>
-            : notice ? <span role="status" style={{ color: 'var(--green-line)' }}>{notice} </span> : null}{show.title}</span>
+            : notice ? <span role="status" style={{ color: 'var(--green-line)' }}>{notice} </span> : null}
+            {preview ? show.title : (
+              // The shows on this phone: pick one to open it (an Opener, a Ballad, a Closer…), or add or remove one.
+              <select aria-label="Show" className="perform-shows" value={lib.current} onChange={(e) => {
+                const v = e.target.value;
+                if (v === 'add') setAdding(true);
+                else if (v === 'remove') { if (confirm(`Remove "${show.title}" from this phone? You can open its link again later.`)) remove(lib.current); }
+                else switchTo(Number(v));
+              }}>
+                {lib.shows.map((x, i) => <option key={i} value={i}>{x.show.title}</option>)}
+                <option value="add">＋ Add a show…</option>
+                <option value="remove">Remove this show…</option>
+              </select>
+            )}</span>
           {!isPhone() && <button onClick={toEditor} title="Back to the drill editor" style={{ fontSize: 14 }}>← Editor</button>}
         </div>
+        {adding && <div className="perform-add" role="dialog" aria-label="Add a show"><span>Open another show's link, or paste it or scan its QR code here. It's added to this phone's list.</span><PasteLink /><button onClick={() => setAdding(false)}>Cancel</button></div>}
         <WhoPicker show={show} value={state!.me} staff={STAFF} onPick={(v) => { update({ me: v }); setZoom(1); setCenter({ x: 0, y: 42 }); }} />
       </header>
       <div className="perform-field">

@@ -91,6 +91,9 @@
       /* Room at the top: newer iOS blurs a band just below the status bar (over the page), which blurred the title. */
       .perform-bar { display: flex; flex-direction: column; gap: 6px; padding: 24px 12px 8px; flex-shrink: 0; }
       .perform-titlebar { display: flex; align-items: center; gap: 8px; }
+      .perform-shows { font: inherit; font-weight: 600; max-width: 100%; min-height: 36px; } /* the show picker: big enough to tap */
+      .perform-add { position: fixed; top: 0; left: 0; right: 0; z-index: 20; display: grid; gap: 8px; padding: 16px; font-size: 15px; background: var(--bg); border-bottom: 1px solid var(--line-strong); box-shadow: 0 6px 16px rgba(0,0,0,0.45); } /* over the field: opening it doesn't resize the field */
+      .perform-add > button { justify-self: start; }
       .perform-title { flex: 1; min-width: 0; font-size: 15px; font-weight: 600; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
       .who-button { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-height: 44px; font-size: 17px; text-align: left; }
       .who-current { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

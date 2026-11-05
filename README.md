@@ -53,7 +53,7 @@ A note on where the ideas came from: FreeFORM is modeled on Pyware and the Ultim
 - Dot sheets (four cards per page, or one per page with a notes column) and drill charts (one per set, with or without the paths into it), printed or saved as PDF.
 - Share links with a QR code. The whole show is in the link, with no server involved.
 - Locked hosted links that update themselves on phones, can carry the music, and keep names private. One-click publishing to your own GitHub repository.
-- A performer view for phones: pick who you are, follow your dot, and see your spot now, your next spot, and the counts to get there. It works offline once it's opened.
+- A performer view for phones: pick who you are, follow your dot, and see your spot now, your next spot, and the counts to get there. A phone keeps several shows (the Opener, Ballad, and Closer as separate files) and switches between them from a menu. It works offline once it's opened.
 
 **Files**
 - Autosave in your browser, plus export and import of `.freeform` files.
