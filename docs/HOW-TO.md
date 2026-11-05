@@ -71,9 +71,7 @@ Click **New** in the sidebar to start a show. (If you already have one open, Fre
    **Indoor shows.** **Basketball court** draws a 94 by 50 foot court with its lines. **Custom floor** is a plain floor or tarp: type how **Wide** and **Deep** it is in feet. Indoors, coordinates read from the center line and the nearer front or back edge, like "3 steps Side 1 of center, 2.5 steps behind Front Sideline" on a court or "… behind Front Edge" on a floor. The step grid works the same as outside. If you switch a show you've already written onto a floor, performers keep their spots in steps, and FreeFORM tells you if any end up off the floor. **Place exactly** is for football fields only for now.
 
    ![An indoor show on a basketball court](img/court.png)
-3. **Letters, dots, or equipment icons.** By default each performer is drawn as their section letter with their number beside it (a P with a 4). Switch the menu beside the field to **Dots** for plain dots labeled P4, or to **Equipment icons** to draw anyone carrying a flag, rifle, or saber as that instead of their letter (see [Facing and equipment](#facing-and-equipment)). Everyone else keeps their letter. You can switch at any time; it changes only how performers are drawn, on the field, on printed charts, and on phones.
-
-   ![The sample show with equipment icons](img/icons.png)
+3. **Letters or dots.** By default each performer is drawn as their section letter with their number beside it (a P with a 4). Switch the menu beside the field to **Dots** if you'd rather see plain dots labeled P4.
 4. **Check your sections.** Open **Sections** in the sidebar.
 
 ![The Sections list](img/sections.png)
@@ -250,7 +248,7 @@ When you select performers, a small pointer on the edge of each one's gold badge
 
 Dot sheets say "Face Side 2" on the set where a performer's facing changes, and the phone view shows "facing Side 2" with their spot and "face Back" with their next set when it's about to change.
 
-**Guard equipment.** **Carries** (just under **Facing**) works the same way: pick **Flag**, **Rifle**, or **Saber** on the set where they pick it up, and **Nothing** where they put it down. When the show is drawn with **Equipment icons**, a performer who carries something is drawn as that flag, rifle, or saber, centered on their spot, on the field, on printed charts, and on phones. Their number still labels it. With **Letters** or **Dots**, they keep their letter or dot, and the equipment shows in the sidebar, on dot sheets, and on phones. Dot sheets say "Flag" or "Put down equipment" on the set where it changes, and the phone says "pick up rifle" with the next set.
+**Guard equipment.** **Carries** (just under **Facing**) works the same way: pick **Flag**, **Rifle**, or **Saber** on the set where they pick it up, and **Nothing** where they put it down. It shows in the sidebar for the selected performers, and the field keeps their letter or dot. Dot sheets say "Flag" or "Put down equipment" on the set where it changes, and the phone says "pick up rifle" with the next set.
 
 ## Props
 

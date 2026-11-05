@@ -197,14 +197,6 @@ shot('court', async () => {
   await page.reload(); await page.waitForSelector('canvas'); await page.waitForTimeout(500);
   await save(page, 'court', { x: 0, y: 125, width: W, height: 640 });
 });
-shot('icons', async () => {
-  // The sample show in set 2 with equipment icons: the guard's flags in place of their letters.
-  const page = await editor();
-  await goSet(page, 2);
-  await page.getByRole('combobox', { name: 'Draw performers as' }).selectOption('icons');
-  await page.waitForTimeout(300);
-  await save(page, 'icons', await fieldClip(page, { x: -26, y: 60 }, { x: 26, y: 8 }, 10));
-});
 shot('sections', async () => {
   const page = await editor();
   const head = page.getByText('Sections', { exact: true });

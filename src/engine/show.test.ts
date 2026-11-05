@@ -3,7 +3,7 @@ import { HASHES, readout } from './coords';
 import {
   addPerformer, addSetAfter, advance, biggestStep, chainOrder, clearFtl, ftlTrail, moveSteps, normalizeFtl, flip, mirrorSides, moveSetTo, remapHash, rotateScale, setFtl, snapSelection, playRange, playPlan, label, locate, newShow, parseShow, placeInSet, positionsAt,
   removePerformers, renumberSets, scoreOrder, DEFAULT_SECTIONS, removeSet, setAt, setCounts, setStarts, totalCounts, xFrom, yFrom, insertSetAt, showLength, movementAt, movementOfSet, setFtlTurns,
-  setTiming, timingOf, fitTurn, setTurning, turnRoute, counterMarch, closeCalls, facingIn, setFacing, facingVector, equipmentIn, setEquipment, addProp, placeProp, propsAt, hitProp, removeProp, fieldOf, mark,
+  setTiming, timingOf, fitTurn, setTurning, turnRoute, counterMarch, closeCalls, facingIn, setFacing, facingVector, equipmentIn, setEquipment, addProp, placeProp, propsAt, hitProp, removeProp, fieldOf,
 } from './show';
 
 function twoSetShow() {
@@ -748,19 +748,9 @@ describe('surfaces', () => {
   });
 });
 
-describe('equipment icons', () => {
-  it('draws what they carry in place of the letter, and the letter for everyone else', () => {
-    let show: ReturnType<typeof newShow> = { ...newShow(), symbols: 'icons' };
-    const sec = (l: string) => show.sections.find((s) => s.letter === l)!.id;
-    const t = addPerformer(show, sec('P'), { x: 0, y: 0 }); show = t.show;
-    const g = addPerformer(show, sec('G'), { x: 4, y: 0 }); show = g.show;
-    show = addSetAfter(show, 0, 8);
-    show = setEquipment(show, 1, [g.id], 'rifle');
-    const p = (id: string) => show.performers.find((x) => x.id === id)!;
-    expect(mark(show, p(t.id))).toEqual({ glyph: 'P', label: '1' });
-    expect(mark(show, p(g.id), 0)).toEqual({ glyph: 'G', label: '1' }); // nothing in hand yet
-    expect(mark(show, p(g.id), 1)).toEqual({ icon: 'rifle', label: '1' });
-    expect(mark({ ...show, symbols: undefined }, p(g.id), 1)).toEqual({ glyph: 'G', label: '1' }); // letters: just the letter
-    expect(parseShow(JSON.stringify(show)).symbols).toBe('icons');
+describe('equipment icons (removed)', () => {
+  it('opens a show saved with them, with letters', () => {
+    const { show } = twoSetShow();
+    expect(parseShow(JSON.stringify({ ...show, symbols: 'icons' })).symbols).toBeUndefined();
   });
 });

@@ -1135,3 +1135,7 @@ Each entry: timestamp, who decided, context, options considered, decision.
 ## 2026-11-05 19:00 EST — A simpler performer view
 - **Who:** Jason Tiller: marchers don't need the list of who's around them; they need the spot they're on, their next spot, and the counts to get there.
 - **Decision:** The **Around you** list is gone from the phone's performer view (and its helper). The current spot and the next spot with its counts lead the panel. Kept, as Claude's call *(Jason can veto)*: the nearest neighbors still drawn brighter and labeled on the field, and the short extras on the next-spot line (step size, a step-off, a facing or equipment change) and the notes, since they're part of getting to that spot.
+
+## 2026-11-05 19:10 EST — No icons on the field
+- **Who:** Jason Tiller: simplify, and remove the flag, rifle, and saber icons too.
+- **Decision:** Performers are drawn as letters or dots only. **Carries** stays: equipment shows in the sidebar, on dot sheets ("Flag"), and on phones ("pick up rifle"). A show saved with equipment icons opens with letters (`parseShow` drops the old setting).

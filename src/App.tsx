@@ -238,7 +238,7 @@ export function App() {
     const pins = onSet >= 0 ? show.sets[onSet].labels : undefined;
     const shown = !playing; // labels jump around as dots move; selected performers keep theirs either way
     const faceSet = onSet >= 0 ? onSet : Math.max(0, locate(show, t).to - 1); // mid-move: they face as they did in the set they left
-    const dots = show.performers.filter((p) => positions[p.id]).map((p) => { const m = mark(show, p, faceSet), f = facingIn(show, faceSet, p.id); return { id: p.id, label: shown || selected.has(p.id) ? m.label : '', glyph: m.glyph, icon: m.icon, at: positions[p.id], pin: pins?.[p.id], color: colorOf(show, p), ...(selected.has(p.id) && f ? { facing: facingVector(f) } : {}) }; }); // facing shows on selected performers only (Jason)
+    const dots = show.performers.filter((p) => positions[p.id]).map((p) => { const m = mark(show, p), f = facingIn(show, faceSet, p.id); return { id: p.id, label: shown || selected.has(p.id) ? m.label : '', glyph: m.glyph, at: positions[p.id], pin: pins?.[p.id], color: colorOf(show, p), ...(selected.has(p.id) && f ? { facing: facingVector(f) } : {}) }; }); // facing shows on selected performers only (Jason)
     if (onSet >= 0) drawMarks(ctx, view, show.sets[onSet].marks ?? [], 'screen', selectedMark);
     drawPerformers(ctx, view, dots, selected, paths, box, dpr);
     if (ftlGroup?.turns) drawShape(ctx, view, [], false, ftlGroup.turns); // the selected FTL group's turns: drag to move

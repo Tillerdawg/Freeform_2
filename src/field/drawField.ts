@@ -1,6 +1,6 @@
 import { chrome, PALETTE } from '../ui/palette';
 import { placeLabels, turned } from './labels';
-import type { IconKind, LabelSide } from '../engine/show';
+import type { LabelSide } from '../engine/show';
 import { FEET, FIELD_WIDTH, GOAL_LINE_X, HASHES, STEP_IN, type FieldSpec, type Floor, type Point } from '../engine/coords';
 import { TEXT_STEPS, type Mark } from '../engine/marks';
 
@@ -161,7 +161,7 @@ export const TIER_COLOR = { ok: PALETTE['bg-deep'], yellow: PALETTE.warn, red: P
 /** The same tiers as text on the dark panels (the field's bright red is too dim for text there). */
 export const STEP_TEXT = { ok: 'var(--text)', yellow: 'var(--warn)', red: 'var(--danger)' } as const;
 
-export interface Dot { id: string; label: string; at: Point; pin?: LabelSide; color?: string; glyph?: string; facing?: Point; icon?: IconKind } // glyph: draw this letter instead of a dot; facing: a unit direction on the field
+export interface Dot { id: string; label: string; at: Point; pin?: LabelSide; color?: string; glyph?: string; facing?: Point } // glyph: draw this letter instead of a dot; facing: a unit direction on the field
 export interface Path { from: Point; to: Point; tier: keyof typeof TIER_COLOR }
 
 /**
@@ -277,41 +277,6 @@ export function drawProps(
   }
 }
 
-// Each icon in a box from -1 to 1 (y down), as lines (with a width) and filled shapes. Drawn for FreeFORM.
-type Op = ['line', number, ...number[]] | ['fill', ...number[]];
-const D = (a: number, n: number) => [(a + n) * Math.SQRT1_2, (n - a) * Math.SQRT1_2]; // up and to the right, for rifles and sabers
-const ICONS: Record<IconKind, Op[]> = {
-  flag: [['line', 0.22, -0.3, 1, -0.3, -1], ['fill', -0.3, -1, 0.95, -0.55, -0.3, -0.1]], // the pole through the spot, the pennant at its top
-  rifle: [['fill', ...D(1.2, -0.07), ...D(-0.15, -0.07), ...D(-0.3, -0.18), ...D(-1.2, -0.32), ...D(-1.1, 0.2), ...D(-0.15, 0.07), ...D(1.2, 0.07)]], // barrel and a flat, wedge stock
-  saber: [['line', 0.2, ...D(-1.15, 0), ...D(1.2, 0)], ['line', 0.26, ...D(-0.6, -0.38), ...D(-0.6, 0.38)]], // blade and crossguard
-};
-
-/**
- * An icon drawn in place of a performer's letter or dot, centered on the spot (so the icon is the dot), `size` px tall,
- * in `color` with a contrasting `edge`. `badge`: a filled circle behind it (selected). Upright on screen.
- */
-export function drawIcon(ctx: CanvasRenderingContext2D, at: Point, kind: IconKind, size: number, color: string, edge: string, badge?: string) {
-  const m = ctx.getTransform(), c = m.transformPoint(at), k = (size * Math.hypot(m.a, m.b)) / 2; // half the height, device px
-  ctx.save();
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
-  if (badge) { ctx.fillStyle = badge; ctx.beginPath(); ctx.arc(c.x, c.y, k * 1.25, 0, Math.PI * 2); ctx.fill(); }
-  const path = (xy: number[], close: boolean) => {
-    ctx.beginPath();
-    for (let j = 0; j < xy.length; j += 2) (j ? ctx.lineTo : ctx.moveTo).call(ctx, c.x + xy[j] * k, c.y + xy[j + 1] * k);
-    if (close) ctx.closePath();
-  };
-  ctx.lineJoin = 'miter'; ctx.lineCap = 'butt'; // square corners: rounded ends made the first rifle read badly
-  for (const pass of [0, 1]) { // the edge first, then the color on top
-    const grow = pass ? 0 : Math.max(2, k * 0.35);
-    ctx.strokeStyle = ctx.fillStyle = pass ? color : edge;
-    for (const op of ICONS[kind]) {
-      if (op[0] === 'line') { path(op.slice(2) as number[], false); ctx.lineWidth = k * op[1] + grow; ctx.stroke(); }
-      else { path(op.slice(1) as number[], true); if (pass) ctx.fill(); else { ctx.lineWidth = grow; ctx.stroke(); } }
-    }
-  }
-  ctx.restore();
-}
-
 /** Performers, their incoming paths, and an optional selection box. */
 export function drawPerformers(
   ctx: CanvasRenderingContext2D, v: View, dots: Dot[], selected: Set<string>, paths: Path[], box?: [Point, Point], dpr = 1,
@@ -332,15 +297,11 @@ export function drawPerformers(
   }
   ctx.setLineDash([]);
 
-  const letters = dots.some((d) => d.glyph || d.icon), f = Math.max(11 * dpr, s * 1.2); // letter height
+  const letters = dots.some((d) => d.glyph), f = Math.max(11 * dpr, s * 1.2); // letter height
   const r = letters ? f * 0.45 : Math.max(4, s * 0.45);
   for (const d of dots) {
     const c = toScreen(v, d.at);
     const sel = selected.has(d.id);
-    if (d.icon) { // the icon is the mark (Jason): no letter or dot beside it to confuse which is the spot
-      drawIcon(ctx, c, d.icon, f, sel ? '#111' : d.color ?? '#fff', sel ? PALETTE.gold : 'rgba(0,0,0,0.85)', sel ? PALETTE.gold : undefined);
-      continue;
-    }
     if (d.glyph) {
       drawGlyph(ctx, c, d.glyph, f, sel ? '#111' : d.color ?? '#fff', sel ? PALETTE.gold : undefined);
       continue;
@@ -354,7 +315,7 @@ export function drawPerformers(
   }
   // Facing, only where the caller gives it (the editor: selected performers), attached to the mark so the letter stays
   // the spot (Jason): a pointer on the badge's edge.
-  const edge = (d0: Dot) => (d0.icon ? f * 0.625 : d0.glyph ? f * 0.62 : r) + Math.max(1, s * 0.05);
+  const edge = (d0: Dot) => (d0.glyph ? f * 0.62 : r) + Math.max(1, s * 0.05);
   for (const d of dots) if (d.facing) drawFacing(ctx, v, d.at, d.facing, edge(d), PALETTE.gold, 'rgba(0,0,0,0.85)');
   drawLabels(ctx, dots.map((d) => ({ ...d, first: selected.has(d.id) })), v, r, Math.max(10 * dpr, s * 0.8), '#fff', 'rgba(0,0,0,0.85)'); // at least 10 CSS px: smaller isn't readable; black outline so yard lines don't swallow them
 

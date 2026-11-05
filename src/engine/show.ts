@@ -126,7 +126,7 @@ export interface Show {
   /** The show's recording and the tapped count timings (the audio itself stays in the browser). */
   music?: Music;
   /** How performers are drawn: their section letter with the number as the label (default), or 'dots' with the full label. */
-  symbols?: 'dots' | 'icons';
+  symbols?: 'dots';
   /** Count-first layout: the show's music in named stretches (one per tune, or one for a one-tune file), typed up front.
    * The timeline runs to their total even before every set is written; past the last set, performers hold. */
   movements?: Movement[];
@@ -185,19 +185,9 @@ export function label(show: Show, p: Performer) {
   return `${show.sections.find((s) => s.id === p.section)?.letter ?? '?'}${p.number}`;
 }
 
-/** A mark drawn in place of a performer's letter: the equipment they carry. */
-export type IconKind = Equipment;
-
-/**
- * What marks a performer on a chart in set i: their section letter (centered on the spot) labeled with the number; a dot
- * labeled P4; or with 'icons', the equipment they carry in its place (everyone else keeps their letter).
- */
-export function mark(show: Show, p: Performer, i = 0): { glyph?: string; icon?: IconKind; label: string } {
-  if (show.symbols === 'dots') return { label: label(show, p) };
-  const sec = show.sections.find((s) => s.id === p.section), letter = { glyph: sec?.letter ?? '?', label: String(p.number) };
-  if (show.symbols !== 'icons') return letter;
-  const icon = equipmentIn(show, i, p.id);
-  return icon ? { icon, label: String(p.number) } : letter;
+/** What marks a performer on a chart: their section letter (centered on the spot) labeled with the number, or a dot labeled P4. */
+export function mark(show: Show, p: Performer): { glyph?: string; label: string } {
+  return show.symbols === 'dots' ? { label: label(show, p) } : { glyph: show.sections.find((s) => s.id === p.section)?.letter ?? '?', label: String(p.number) };
 }
 
 const mapSet = (show: Show, i: number, f: (s: DrillSet) => DrillSet): Show => ({
@@ -853,7 +843,8 @@ export function parseShow(text: string): Show {
   const str = (v: unknown) => typeof v === 'string';
   if (typeof s.title !== 'string') bad('title');
   if (s.music !== undefined && !validMusic(s.music)) bad('music');
-  if (s.symbols !== undefined && s.symbols !== 'dots' && s.symbols !== 'icons') bad('symbols');
+  if (s.symbols === 'icons') delete s.symbols; // equipment icons were a choice for a day (2026-11-05): such a show opens with letters
+  if (s.symbols !== undefined && s.symbols !== 'dots') bad('symbols');
   if (s.movements !== undefined && (!Array.isArray(s.movements) || s.movements.length > 100 || !s.movements.every((m: Movement) =>
     str(m?.id) && str(m.name) && m.name.length <= MAX_NAME && Number.isInteger(m.counts) && m.counts >= 1 && m.counts <= MAX_MOVEMENT))) bad('movements');
   for (const x of s.sections) if (!str(x?.id) || !str(x.name) || !str(x.letter) || (x.color !== undefined && !COLOR_RE.test(x.color))) bad('section');
