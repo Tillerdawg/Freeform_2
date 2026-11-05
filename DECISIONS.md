@@ -1139,3 +1139,8 @@ Each entry: timestamp, who decided, context, options considered, decision.
 ## 2026-11-05 19:10 EST — No icons on the field
 - **Who:** Jason Tiller: simplify, and remove the flag, rifle, and saber icons too.
 - **Decision:** Performers are drawn as letters or dots only. **Carries** stays: equipment shows in the sidebar, on dot sheets ("Flag"), and on phones ("pick up rifle"). A show saved with equipment icons opens with letters (`parseShow` drops the old setting).
+
+## 2026-11-05 19:25 EST — Performer view from the editor
+- **Who:** Jason Tiller reported it: with a show open and one performer selected, **Performer view** showed the "open the show link your director sent you" screen. The fix is Claude's *(Jason can veto)*.
+- **Context:** The button opened the phone screen (`#perform`), which only knows a show saved from a link.
+- **Decision:** It opens `#perform-editor=<performer>`: the editor's own show (its autosave), starting on the selected performer, or on Staff (the whole band) with none selected. It's a preview: nothing is saved to the device's performer storage, so a show a student opened from a link on the same device stays. With no readable show in the editor, it falls back to the old screen.

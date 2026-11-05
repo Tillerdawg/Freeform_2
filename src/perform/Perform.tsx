@@ -17,6 +17,7 @@ import { nearest, yardLabel } from './neighbors';
 import { panCenter, pinchZoom, ZOOM_MAX } from './gestures';
 import { WhoPicker } from './WhoPicker';
 import { NumberField } from '../ui/NumberField';
+import { AUTOSAVE } from '../App';
 
 const STORE = 'freeform:performer'; // separate from the editor's autosave, so opening a link never touches a director's work
 const STAFF = 'staff';
@@ -35,8 +36,19 @@ function loadSaved(): Saved | null {
 }
 const save = (s: Saved) => { try { localStorage.setItem(STORE, JSON.stringify(s)); } catch { /* private mode: nothing kept */ } };
 
+/** The editor's Performer view: "#perform-editor=<performer id>" shows the editor's own show from that performer, kept off this device's saved show. */
+export const PREVIEW = '#perform-editor';
+function loadPreview(): Saved | null {
+  if (!location.hash.startsWith(PREVIEW)) return null;
+  try {
+    const show = parseShow(localStorage.getItem(AUTOSAVE) ?? ''), id = decodeURIComponent(location.hash.slice(PREVIEW.length + 1));
+    return { show, me: show.performers.some((p) => p.id === id) ? id : STAFF, facingFront: false, follow: true };
+  } catch { return null; } // no readable show in the editor: the saved-show screen, as before
+}
+
 export function Perform() {
-  const [state, setState] = useState<Saved | null>(loadSaved);
+  const [state, setState] = useState<Saved | null>(() => loadPreview() ?? loadSaved());
+  const preview = useRef(location.hash.startsWith(PREVIEW) && !!state).current; // the editor's show: never saved over this device's show
   const theme = useTheme();
   const [error, setError] = useState('');
   const [t, setT] = useState(0);
@@ -67,6 +79,7 @@ export function Perform() {
 
   // Opening a link: a share link carries the show; a hosted link (#load=) says where to download it.
   useEffect(() => {
+    if (preview) return;
     const done = () => history.replaceState(null, '', location.pathname + '#perform');
     const fail = (e: unknown) => setError(e instanceof Error ? e.message : String(e));
     if (location.hash.startsWith(SHARE_PREFIX)) {
@@ -89,7 +102,7 @@ export function Perform() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const update = (patch: Partial<Saved>) => setState((s) => { if (!s) return s; const n = { ...s, ...patch }; save(n); return n; });
+  const update = (patch: Partial<Saved>) => setState((s) => { if (!s) return s; const n = { ...s, ...patch }; if (!preview) save(n); return n; });
 
   const show = state?.show;
   const starts = useMemo(() => (show ? setStarts(show) : [0]), [show]);

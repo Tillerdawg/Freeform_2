@@ -1,5 +1,6 @@
 import { clearStartingSections, hasOwnStartingSections, saveStartingSections } from './startingSections';
 import { coarse } from '../perform/device';
+import { PREVIEW } from '../perform/Perform';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { RosterImport } from './RosterImport';
 import { deleteAudio, putAudio } from './audioStore';
@@ -78,7 +79,8 @@ export function Sidebar(p: Props) {
         <button onClick={p.onSave} title="Download this show as a .freeform file: a backup, or a copy to share or open in another browser">Export</button>
         <button onClick={p.onPrint} disabled={!show.performers.length} title="Dot sheets and drill charts (print or save as PDF)">Print…</button>
         <button onClick={p.onShare} disabled={!show.performers.length} title="A link that opens this show on performers' and staff phones">Share…</button>
-        <button onClick={() => { location.hash = '#perform'; }} title="Open the performer view: your saved show, or scan / paste a show link">Performer view</button>
+        <button onClick={() => { location.hash = `${PREVIEW}${one ? `=${encodeURIComponent(one.id)}` : ''}`; }} disabled={!show.performers.length}
+          title={one ? `See this show the way ${label(show, one)} sees it on a phone` : 'See this show the way performers see it on a phone (select one performer first to start on them)'}>Performer view</button>
       </div>
       {p.fileError && <div role="alert" style={{ color: 'var(--danger)', marginTop: 6 }}>{p.fileError}</div>}
       <div style={{ ...row, marginBottom: 10 }}>

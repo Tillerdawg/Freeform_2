@@ -391,7 +391,7 @@ On the performer screen:
 
 Students can add FreeFORM to their home screen. In the home-screen app, they open a show with **Scan QR code** or by pasting the link.
 
-On a computer or iPad, **Performer view** in the sidebar (or **Open performer view here** in the Share dialog) shows you the same screen, and **← Editor** takes you back.
+To check a performer's view while you write, select them and click **Performer view** in the sidebar. You see the show you're editing the way they see it on their phone, starting on them (with no one selected, it starts on the whole band), and you can pick someone else from the list at the top. It's a preview: it doesn't replace a show saved on that computer or iPad from a link. **← Editor** takes you back. **Open performer view here** in the Share dialog opens a share link on the same screen.
 
 ## Using an iPad
 
