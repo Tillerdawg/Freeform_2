@@ -1040,3 +1040,15 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Context:** A performer added to the show gets the same spot in every set, and moving them changed only the set being edited, so every later set still had the old spot.
 - **Options:** Carry a move into every later set; carry it only through later sets where the performer was holding (still on their old spot); copy only when adding sets (as before).
 - **Decision:** Through holds. A move in set i also moves the performer in each later set where they still stood on their old set-i spot, stopping at the first set where they'd been placed somewhere else, so drill already written for later sets is never changed. It applies to every way of moving performers (`placeInSet`). Holds are judged from the show as it was when the edit began (a drag or a shape), so dragging across a performer's later spot doesn't pick it up. Earlier sets never change. Side effect: the docs' sample show had its drumline left on the 50 in set 4 for this reason; it now holds where it should, and the screenshots were retaken.
+
+## 2026-11-04 23:15 EST — Spiral shape
+- **Who:** Jason Tiller asked for a spiral; the details are Claude's *(Jason can veto)*.
+- **Context:** Spirals are a standard form, and the existing shapes space performers by distance along the curve. At a spiral's tight center that puts performers closer together than their interval.
+- **Options:** Archimedean spiral (coils evenly apart) or logarithmic (flares out); spacing along the curve or performer to performer.
+- **Decision:** Archimedean, from the center out, with handles for the center and the outer end, a **Turns** number, and a direction button. Spacing for spirals is measured in a straight line, performer to performer, so the interval is the same at the center as on the outside. A warning shows when the coils are less than 2 steps apart. Other shapes keep spacing along the curve (their curves are gentle enough that the two match).
+
+## 2026-11-04 23:15 EST — One-letter shortcuts and arrow nudges
+- **Who:** Jason Tiller asked for tool shortcuts, arrow nudges, and ⌘/Ctrl +/− zoom; the details are Claude's *(Jason can veto)*.
+- **Context:** Jason suggested ⌘/Ctrl + a letter for tools and ⌘/Ctrl + arrow for a 4-step nudge. In a browser, ⌘L jumps to the address bar and ⌘B opens bookmarks in some browsers, and on a Mac ⌘+arrow is a text-editing key.
+- **Options:** ⌘/Ctrl + letter; single letters (as Figma and Illustrator do); for the big nudge, ⌘/Ctrl or Shift.
+- **Decision:** Single letters, which only start a shape when 2 or more performers are selected: L Line, R Arc, U Curve, B Bézier, O Circle, S Spiral, K Block (A stays Add performer, T Text, V Select; F fits the field). Arrows move the selection 1 step, Shift + arrow 4 steps (half of 5 yards at 8 to 5), and Option/Alt + arrow half a step; with no one selected, ← and → still step through counts. ⌘/Ctrl + and − zoom the field instead of the page, and ⌘/Ctrl 0 fits it. A nudge ends an open shape and carries a selected FTL group's turns along, the same as dragging.

@@ -1,14 +1,18 @@
-// Shape tools: lay selected performers out along a line, arc, curve, circle, or block. All units are steps.
+// Shape tools: lay selected performers out along a line, arc, curve, circle, spiral, or block. All units are steps.
 import { distance, type Point } from './coords';
 
-export type ShapeKind = 'line' | 'arc' | 'curve' | 'bezier' | 'circle' | 'block';
+export type ShapeKind = 'line' | 'arc' | 'curve' | 'bezier' | 'circle' | 'spiral' | 'block';
 /**
  * Handles by kind: line [a, b]; arc [a, bend, b] (the arc passes through all three);
  * curve [p0..pn] (smooth curve through every point); circle [center, edge]; block [corner, opposite corner];
+ * spiral [center, outer end]: `turns` coils, counterclockwise going out (clockwise when `turns` is negative);
  * bezier [anchor, control, control, anchor, control, control, anchor, ...]: cubic segments that pass through the
  * anchors and are pulled toward (not through) the controls.
  */
-export interface Shape { kind: ShapeKind; handles: Point[]; interval: number | null; cols: number }
+export interface Shape { kind: ShapeKind; handles: Point[]; interval: number | null; cols: number; turns?: number }
+
+/** Distance between neighboring coils of a spiral, in steps. */
+export const coilGap = (s: Shape) => distance(s.handles[0], s.handles[1]) / Math.max(0.25, Math.abs(s.turns ?? 2));
 
 const lerp = (a: Point, b: Point, t: number): Point => ({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t });
 
@@ -21,6 +25,15 @@ export function samplePath(s: Shape): { pts: Point[]; closed: boolean } {
     const a0 = Math.atan2(h[1].y - h[0].y, h[1].x - h[0].x);
     const n = 256;
     return { pts: Array.from({ length: n }, (_, i) => ({ x: h[0].x + r * Math.cos(a0 + (2 * Math.PI * i) / n), y: h[0].y + r * Math.sin(a0 + (2 * Math.PI * i) / n) })), closed: true };
+  }
+  if (s.kind === 'spiral') {
+    // Archimedean: the radius grows by the same amount every turn, so the coils stay evenly apart. Starts at the center.
+    const R = distance(h[0], h[1]), turns = s.turns ?? 2, a1 = Math.atan2(h[1].y - h[0].y, h[1].x - h[0].x);
+    const n = Math.ceil(128 * Math.max(1, Math.abs(turns)));
+    return { pts: Array.from({ length: n + 1 }, (_, i) => {
+      const u = i / n, a = a1 + 2 * Math.PI * turns * (u - 1);
+      return { x: h[0].x + R * u * Math.cos(a), y: h[0].y + R * u * Math.sin(a) };
+    }), closed: false };
   }
   if (s.kind === 'arc') {
     const [a, m, b] = h;
@@ -94,6 +107,7 @@ export function slots(s: Shape, n: number): Point[] {
     return Array.from({ length: n }, (_, i) => ({ x: a.x + (i % cols) * dx, y: a.y + Math.floor(i / cols) * dy }));
   }
   const { pts, closed } = samplePath(s);
+  if (s.kind === 'spiral') return spiralSlots(pts, n, s.interval);
   const ring = closed ? [...pts, pts[0]] : pts;
   const cum = [0];
   for (let i = 1; i < ring.length; i++) cum.push(cum[i - 1] + distance(ring[i - 1], ring[i]));
@@ -101,6 +115,46 @@ export function slots(s: Shape, n: number): Point[] {
   const gap = s.interval ?? (closed ? L / n : n > 1 ? L / (n - 1) : 0);
   const start = s.interval == null && !closed && n === 1 ? L / 2 : 0;
   return Array.from({ length: n }, (_, i) => along(ring, cum, start + i * gap));
+}
+
+/**
+ * Spots `d` apart in a straight line (not along the curve), walking from pts[0]; past the end, straight on.
+ * Returns the spots and how far along the path (in samples) the last one landed.
+ */
+function chordWalk(pts: Point[], n: number, d: number): { spots: Point[]; end: number } {
+  const spots = [pts[0]];
+  let i = 0, t = 0; // position: on segment i (pts[i] to pts[i+1]), fraction t
+  while (spots.length < n) {
+    const c = spots.at(-1)!;
+    for (;;) {
+      const a = pts[Math.min(i, pts.length - 2)], b = pts[Math.min(i + 1, pts.length - 1)];
+      const last = i >= pts.length - 2;
+      // Where the circle of radius d around c crosses this segment, at or after t (on the last one, past its end too).
+      const ux = b.x - a.x, uy = b.y - a.y, wx = a.x - c.x, wy = a.y - c.y;
+      const A = ux * ux + uy * uy, B = 2 * (ux * wx + uy * wy), C = wx * wx + wy * wy - d * d;
+      const disc = B * B - 4 * A * C;
+      const r = A && disc >= 0 ? (-B + Math.sqrt(disc)) / (2 * A) : NaN;
+      if (r >= t && (r <= 1 || last)) { t = r; spots.push({ x: a.x + ux * r, y: a.y + uy * r }); break; }
+      if (last) { spots.push(b); break; } // zero-length end: nowhere to go
+      i++; t = 0;
+    }
+  }
+  return { spots, end: i + t };
+}
+
+/**
+ * A spiral's spots. Its center curls tighter than a performer's interval, so spacing is measured in a straight line,
+ * performer to performer (what a drill writer means by an interval), not along the curve.
+ */
+function spiralSlots(pts: Point[], n: number, interval: number | null): Point[] {
+  if (interval != null) return chordWalk(pts, n, interval).spots;
+  if (n === 1) return [pts[0]];
+  // Even: the interval whose last spot lands on the outer end. Bigger intervals land farther along.
+  let lo = 0, hi = pts.slice(1).reduce((L, q, k) => L + distance(pts[k], q), 0) / (n - 1) * 2;
+  for (let k = 0; k < 40; k++) { const mid = (lo + hi) / 2; if (chordWalk(pts, n, mid).end < pts.length - 1) lo = mid; else hi = mid; }
+  const spots = chordWalk(pts, n, lo).spots;
+  spots[n - 1] = pts.at(-1)!;
+  return spots;
 }
 
 /**
@@ -153,6 +207,7 @@ export function fitShape(kind: ShapeKind, pts: Point[]): Shape {
     case 'curve': return { kind, handles: [P(x0, cy), P(x0 + span / 3, cy + span / 6), P(x0 + (2 * span) / 3, cy - span / 6), P(x1, cy)], ...base };
     case 'bezier': return { kind, handles: [P(x0, cy), P(x0 + span / 3, cy + span / 3), P(x0 + (2 * span) / 3, cy - span / 3), P(x1, cy)], ...base };
     case 'circle': return { kind, handles: [P(cx, cy), P(cx + span / 2, cy)], ...base };
+    case 'spiral': return { kind, handles: [P(cx, cy), P(cx + span / 2, cy)], ...base, turns: 2 };
     case 'block': {
       const c = base.cols, r = Math.ceil(pts.length / c);
       return { kind, handles: [P(cx - (c - 1), cy + (r - 1)), P(cx + (c - 1), cy - (r - 1))], ...base, interval: 2 };

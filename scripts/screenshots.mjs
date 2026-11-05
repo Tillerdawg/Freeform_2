@@ -11,7 +11,7 @@ const only = process.argv.slice(2);
 const server = await createServer({ server: { port: 5199, strictPort: true }, logLevel: 'error' });
 await server.listen();
 const URL_ = 'http://localhost:5199/';
-const browser = await chromium.launch();
+const browser = await chromium.launch(process.env.CHROME ? { executablePath: process.env.CHROME } : {}); // CHROME: use an installed Chrome instead
 
 /** A fresh editor (1440 × 900, at 2× for sharp images) with the sample show loaded. */
 async function editor(opts = {}) {
@@ -83,6 +83,14 @@ shot('shape-arc', async () => {
   await page.getByRole('radio', { name: 'Arc' }).click();
   await page.waitForTimeout(200);
   await save(page, 'shape-arc', { x: 240, y: 110, width: 660, height: 450 });
+});
+shot('shape-spiral', async () => {
+  const page = await editor();
+  await box(page, { x: -13, y: 51 }, { x: 13, y: 29 });
+  await page.keyboard.press('s'); // the Spiral shortcut
+  await menu(page, 'Shape');
+  await page.waitForTimeout(200);
+  await save(page, 'shape-spiral', { x: 240, y: 110, width: 700, height: 640 });
 });
 shot('coordinates', async () => {
   const page = await editor();

@@ -18,7 +18,7 @@ import { startingSections } from './ui/startingSections';
 import { MusicMenu } from './ui/Music';
 import { getAudio } from './ui/audioStore';
 import { peaks } from './engine/music';
-import { confirmDelete, Toolbar } from './ui/Toolbar';
+import { confirmDelete, SHAPES, Toolbar } from './ui/Toolbar';
 import { parse3dj } from './engine/pyware';
 import { usePlayback } from './ui/usePlayback';
 import { PrintDialog } from './print/Print';
@@ -311,17 +311,40 @@ export function App() {
     return () => c.removeEventListener('wheel', onWheel);
   }, [dpr]);
 
+  const fit = () => { const c = canvasRef.current!; setView(fitView(c.width, c.height)); };
+  /** Zoom around the middle of the field's window, within the wheel's limits. */
+  const zoomBy = (k: number) => setView((v) => {
+    if (!v) return v;
+    const c = canvasRef.current!, sx = c.width / 2, sy = c.height / 2;
+    const scale = Math.min(Math.max(v.scale * k, 2 * dpr), 120 * dpr), r = scale / v.scale;
+    return { scale, ox: sx - (sx - v.ox) * r, oy: sy - (sy - v.oy) * r };
+  });
+
   // Keyboard shortcuts (ignored while typing in a field).
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const el = e.target as HTMLElement;
       if (printing || document.querySelector('[role=dialog]') || el.closest('input, select, textarea')) return; // text fields keep the browser's own undo
+      if (e.defaultPrevented) return; // a control used the key itself (arrows reordering sections)
       boundary.current = true;
       const mod = e.metaKey || e.ctrlKey;
       if (mod && (e.key === 'z' || e.key === 'Z')) { e.preventDefault(); step(e.shiftKey ? 'redo' : 'undo'); }
       else if (mod && (e.key === 'y' || e.key === 'Y')) { e.preventDefault(); step('redo'); }
+      else if (mod && (e.key === '=' || e.key === '+' || e.key === '-' || e.key === '_')) { e.preventDefault(); zoomBy(e.key === '-' || e.key === '_' ? 1 / 1.25 : 1.25); } // the field, not the page
+      else if (mod && e.key === '0') { e.preventDefault(); fit(); }
       else if (mod) return; // leave other shortcuts (copy, select all, ...) to the browser
       else if (e.key === ' ') { e.preventDefault(); setPlaying((p) => !p); }
+      else if (e.key.startsWith('Arrow') && selected.size && onSet >= 0 && !playing) {
+        // Nudge the selection: 1 step, Shift 4 steps, Option/Alt half a step. Up is up on the screen.
+        e.preventDefault();
+        const n = e.shiftKey ? 4 : e.altKey ? 0.5 : 1;
+        const dx = e.key === 'ArrowRight' ? n : e.key === 'ArrowLeft' ? -n : 0, dy = e.key === 'ArrowUp' ? n : e.key === 'ArrowDown' ? -n : 0;
+        const pos = show.sets[onSet].pos, by = (q: Point) => ({ x: q.x + dx, y: q.y + dy });
+        const moves = Object.fromEntries([...selected].flatMap((id) => (pos[id] ? [[id, by(pos[id])]] : [])));
+        const group = ftlGroup?.turns ? ftlGroup : undefined; // a whole FTL group brings its leader's turns along, as when dragged
+        setShapeEdit(null); // a shape still open would put them back on its spots
+        setShow((s) => { const m = placeInSet(s, onSet, moves); return group ? setFtlTurns(m, onSet, group.order[0], group.turns!.map(by)) : m; });
+      }
       else if (e.key === 'ArrowRight') { e.preventDefault(); setT((x) => Math.min(total, Math.floor(x) + 1)); }
       else if (e.key === 'ArrowLeft') { e.preventDefault(); setT((x) => Math.max(0, Math.ceil(x) - 1)); }
       else if ((e.key === 'Delete' || e.key === 'Backspace') && selectedMark && onSet >= 0) {
@@ -333,10 +356,15 @@ export function App() {
       else if (e.key === 'v' || e.key === 'V') setTool('select');
       else if (e.key === 'a' || e.key === 'A') setTool('add');
       else if (e.key === 't' || e.key === 'T') setTool('text');
+      else if (e.key === 'f' || e.key === 'F') fit();
+      else {
+        const sh = SHAPES.find(([, , key]) => key === e.key.toUpperCase());
+        if (sh) startShape(sh[0]); // does nothing without 2 or more performers selected in a set
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [selected, total, hist, show, shapeEdit, printing, selectedMark, onSet, tool]);
+  }, [selected, total, hist, show, shapeEdit, printing, selectedMark, onSet, tool, playing, view]);
 
   const world = (e: React.PointerEvent) => toWorld(view!, e.nativeEvent.offsetX * dpr, e.nativeEvent.offsetY * dpr);
 
@@ -588,7 +616,7 @@ export function App() {
       <Toolbar show={show} setShow={setShow} onSet={onSet} selected={selected} setSelected={setSelected} tool={tool} setTool={setTool}
         section={section} setSection={setSection} snap={snap} setSnap={setSnap}
         onUndo={() => step('undo')} onRedo={() => step('redo')} canUndo={!!hist.past.length} canRedo={!!hist.future.length}
-        onFit={() => { const c = canvasRef.current!; setView(fitView(c.width, c.height)); }} sidebar={{ open: sideOpen, toggle: () => setSideChoice(!sideOpen) }}
+        onFit={fit} sidebar={{ open: sideOpen, toggle: () => setSideChoice(!sideOpen) }}
         timeline={{ open: timelineOpen, toggle: () => setTimelineOpen(!timelineOpen) }}
         shape={shapeEdit?.shape ?? null} startShape={startShape} updateShape={updateShape} endShape={() => setShapeEdit(null)} />
       <div style={{ flex: 1, display: 'flex', minHeight: 0, position: 'relative' }}>
@@ -632,7 +660,7 @@ export function App() {
         onNew={fresh} onOpen={() => fileRef.current?.click()} onSave={save} onPrint={() => setPrinting(true)} onShare={() => setSharing(true)} fileError={fileError}
         selectedMark={selectedMark} setSelectedMark={setSelectedMark} adding={adding} setAdding={setAdding}
         onUndo={() => step('undo')} onRedo={() => step('redo')} canUndo={!!hist.past.length} canRedo={!!hist.future.length}
-        onFit={() => { const c = canvasRef.current!; setView(fitView(c.width, c.height)); }} shape={shapeEdit?.shape ?? null} startShape={startShape} updateShape={updateShape} endShape={() => setShapeEdit(null)}
+        onFit={fit} shape={shapeEdit?.shape ?? null} startShape={startShape} updateShape={updateShape} endShape={() => setShapeEdit(null)}
       />
       </div>
       </div>

@@ -14,7 +14,7 @@ The pictures in this guide come from a small sample show (47 performers, 4 sets)
 4. [Add performers](#add-performers)
 5. [Select and move performers](#select-and-move-performers)
 6. [Sets, counts, and the timeline](#sets-counts-and-the-timeline)
-7. [Shapes: lines, arcs, curves, circles, and blocks](#shapes-lines-arcs-curves-circles-and-blocks)
+7. [Shapes: lines, arcs, curves, circles, spirals, and blocks](#shapes-lines-arcs-curves-circles-spirals-and-blocks)
 8. [Rotate, stretch, and flip](#rotate-stretch-and-flip)
 9. [Follow-the-leader](#follow-the-leader)
 10. [Step-size warnings](#step-size-warnings)
@@ -152,16 +152,20 @@ The timeline scrolls sideways for a long show. Use the mouse wheel or a swipe ov
 
 The timeline then runs the full length, with the part you haven't written yet striped *Not written yet*. To add a set at a particular count, click that count on the timeline and press **+ Add set**, or type the count in the **at count** box. No other set moves. A set added in the middle of a move splits it and gets a sub-set name (1A after 1), the way Pyware names them.
 
-## Shapes: lines, arcs, curves, circles, and blocks
+## Shapes: lines, arcs, curves, circles, spirals, and blocks
 
 ![Shaping a block into an arc](img/shape-arc.png)
 
 1. Select the performers you want in the shape.
-2. Open **Shape** and pick **Line**, **Arc**, **Curve**, **Bézier**, **Circle**, or **Block**.
+2. Open **Shape** and pick **Line**, **Arc**, **Curve**, **Bézier**, **Circle**, **Spiral**, or **Block**. Or press its letter (see [Keyboard shortcuts](#keyboard-shortcuts)).
 3. Drag the blue handles on the field to adjust the shape. Choose **Even** spacing, or **Every** so many steps.
 4. Click **Done** (or press Esc) when it looks right.
 
 FreeFORM decides who goes to which spot by keeping total travel from the previous set as short as it can, so the paths don't cross. Curves can take extra points (**+ Curve point**) and Béziers extra segments (**+ Segment**). Bézier joints stay smooth unless you hold Option (Alt on Windows) while you drag a handle. Blocks also take a number of **Columns**.
+
+**Spirals** start in the center and wind out to the outer end. The first handle is the center and the second is the outer end. Set the number of **Turns**, and click the direction button to wind it **Counterclockwise** or **Clockwise**. The coils stay the same distance apart all the way out. Spacing is measured in a straight line from one performer to the next, so performers near the tight center get the same interval as everyone else. If the coils get closer than 2 steps, FreeFORM warns you, because performers on neighboring coils would be too close. Use fewer turns or make the spiral bigger.
+
+![A block shaped into a spiral](img/shape-spiral.png)
 
 ## Rotate, stretch, and flip
 
@@ -238,7 +242,7 @@ The play controls are at the left end of the timeline: back to the start, back o
 - Play starts where you are and goes forward. Pick a set, then press Play (or Space).
 - Set the speed with **Tempo**.
 - **Play set … to …** limits playback to a range of sets. Check **Loop** to repeat it.
-- The left and right arrow keys step one count at a time.
+- The left and right arrow keys step one count at a time (when no one is selected).
 
 ## Add your music
 
@@ -348,14 +352,22 @@ With a keyboard attached, the [keyboard shortcuts](#keyboard-shortcuts) work too
 | Select tool | V |
 | Add performer tool | A |
 | Text note tool | T |
+| Shape the selection (2 or more): Line, Arc, cUrve, Bézier, circle (O), Spiral, blocK | L, R, U, B, O, S, K |
 | Play or pause | Space |
-| Back or forward one count | ← or → |
+| Back or forward one count (no one selected) | ← or → |
+| Move the selection 1 step | ← → ↑ ↓ |
+| Move the selection 4 steps | Shift + arrow |
+| Move the selection half a step | Option (Alt) + arrow |
+| Zoom the field in or out | ⌘+ or ⌘− (Ctrl on Windows) |
+| Fit the whole field | F, or ⌘0 (Ctrl+0) |
 | Delete the selection (asks first) | Delete |
 | Undo | ⌘Z (Ctrl+Z on Windows) |
 | Redo | ⇧⌘Z (Ctrl+Y or Ctrl+Shift+Z on Windows) |
 | Close a menu, then clear the selection | Esc |
 | Move around the field | Scroll, or right-drag |
 | Zoom | Pinch, or ⌘/Ctrl + scroll |
+
+Arrows move the selection the way it looks on screen: ↑ is toward the back sideline. Shortcuts don't fire while you're typing in a box.
 
 ## If something goes wrong
 

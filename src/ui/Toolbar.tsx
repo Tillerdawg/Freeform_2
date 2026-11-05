@@ -1,7 +1,7 @@
 import { createPortal } from 'react-dom';
 import { IconFit, IconRedo, IconSidebar, IconTimeline, IconUndo } from './icons';
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
-import { addBezierSegment, addCurvePoint, type Shape, type ShapeKind } from '../engine/shapes';
+import { addBezierSegment, addCurvePoint, coilGap, type Shape, type ShapeKind } from '../engine/shapes';
 import {
   chainOrder, clearFtl, flip, setFtlTurns, label, mirrorSides, placeInSet, removePerformers, rotateScale, setFtl, setLabelSide, snapSelection,
   type LabelSide, type Show,
@@ -36,7 +36,9 @@ export interface ToolbarProps {
   endShape: () => void;
 }
 
-const SHAPES: [ShapeKind, string][] = [['line', 'Line'], ['arc', 'Arc'], ['curve', 'Curve'], ['bezier', 'Bézier'], ['circle', 'Circle'], ['block', 'Block']];
+/** Shape, its name, and its one-letter shortcut (pressed with 2 or more performers selected). */
+export const SHAPES: [ShapeKind, string, string][] = [['line', 'Line', 'L'], ['arc', 'Arc', 'R'], ['curve', 'Curve', 'U'], ['bezier', 'Bézier', 'B'],
+  ['circle', 'Circle', 'O'], ['spiral', 'Spiral', 'S'], ['block', 'Block', 'K']];
 const MARKUP: [Tool, string][] = [['text', 'Text (T)'], ['arrow', 'Arrow'], ['draw', 'Draw']];
 const row: React.CSSProperties = { display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', marginTop: 6 };
 const help: React.CSSProperties = { margin: '6px 0 0', opacity: 0.75, fontSize: 12, whiteSpace: 'normal' };
@@ -129,7 +131,7 @@ export function Toolbar(p: ToolbarProps) {
       <span className="tb-sep" />
 
       <Menu label="Shape" disabled={needs(many, ids.length === 1 ? 'Select 2 or more performers' : pick)} keepOpen={!!p.shape} pressed={!!p.shape}
-        title="Shape the selection into a line, arc, curve, Bézier, circle, or block">
+        title="Shape the selection into a line, arc, curve, Bézier, circle, spiral, or block">
         {() => <ShapePanel {...p} />}
       </Menu>
       <Menu label="Transform" disabled={needs(any, pick)} title="Flip, mirror, rotate, or scale the selection">
@@ -235,8 +237,8 @@ function ShapePanel({ shape, startShape, updateShape, endShape }: ToolbarProps) 
   return (
     <>
       <div style={{ ...row, marginTop: 0 }} role="radiogroup" aria-label="Shape">
-        {SHAPES.map(([k, l]) => (
-          <button key={k} role="radio" aria-checked={shape?.kind === k} onClick={() => startShape(k)}>{l}</button>
+        {SHAPES.map(([k, l, key]) => (
+          <button key={k} role="radio" aria-checked={shape?.kind === k} onClick={() => startShape(k)} title={`${l} (${key})`}>{l}</button>
         ))}
       </div>
       {shape && (
@@ -249,6 +251,18 @@ function ShapePanel({ shape, startShape, updateShape, endShape }: ToolbarProps) 
                 onValue={(n) => updateShape({ interval: n })} /> steps
             </label>
           </div>
+          {shape.kind === 'spiral' && (
+            <div style={row}>
+              <label>Turns <NumberField aria-label="Turns" min={0.5} max={20} step={0.5} value={Math.abs(shape.turns ?? 2)} style={{ width: 48 }}
+                onValue={(n) => updateShape({ turns: Math.sign(shape.turns ?? 2) * n })} /></label>
+              <button onClick={() => updateShape({ turns: -(shape.turns ?? 2) })} title="Wind the spiral the other way">
+                {(shape.turns ?? 2) > 0 ? '↺ Counterclockwise' : '↻ Clockwise'}</button>
+            </div>
+          )}
+          {shape.kind === 'spiral' && coilGap(shape) < 2 && (
+            <p role="alert" style={{ ...help, color: 'var(--danger)', opacity: 1 }}>
+              The coils are only {Math.round(coilGap(shape) * 10) / 10} steps apart. Performers on neighboring coils will be too close: fewer turns or a bigger spiral.</p>
+          )}
           {shape.kind === 'block' && (
             <div style={row}>
               <label>Columns <NumberField aria-label="Columns" min={1} integer value={shape.cols} style={{ width: 48 }}
@@ -262,6 +276,7 @@ function ShapePanel({ shape, startShape, updateShape, endShape }: ToolbarProps) 
           </div>
           <p style={help}>
             Drag the blue handles on the field. Performers keep their order along the shape.
+            {shape.kind === 'spiral' && ' The first handle is the center; the second is the outer end. Intervals are measured performer to performer.'}
             {shape.kind === 'bezier' && ' Squares are points the curve passes through; circles pull the curve toward them. Hold Option (Alt) while dragging to move one handle by itself, e.g. to make a corner.'}
           </p>
         </>

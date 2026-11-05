@@ -1,11 +1,32 @@
 import { describe, expect, it } from 'vitest';
 import { distance, type Point } from './coords';
-import { addBezierSegment, addCurvePoint, assign, fitShape, isControl, moveHandle, samplePath, slots, type Shape } from './shapes';
+import { addBezierSegment, addCurvePoint, assign, coilGap, fitShape, isControl, moveHandle, samplePath, slots, type Shape } from './shapes';
 
 const near = (p: Point, x: number, y: number) => { expect(p.x).toBeCloseTo(x, 4); expect(p.y).toBeCloseTo(y, 4); };
 const S = (kind: Shape['kind'], handles: Point[], extra: Partial<Shape> = {}): Shape => ({ kind, handles, interval: null, cols: 3, ...extra });
 
 describe('slots', () => {
+  it('spiral: center to outer end, the same straight-line interval everywhere, even at the tight center', () => {
+    const sp = S('spiral', [{ x: 0, y: 0 }, { x: 16, y: 0 }], { turns: 2 });
+    const p = slots(sp, 20);
+    near(p[0], 0, 0); near(p[19], 16, 0);
+    const gaps = p.slice(1).map((q, i) => distance(p[i], q));
+    gaps.forEach((g) => expect(g).toBeCloseTo(gaps[0], 2)); // straight-line intervals, even at the tight center
+    expect(coilGap(sp)).toBe(8);
+    // The radius grows steadily with the angle: halfway along the turns, halfway out.
+    near(samplePath(sp).pts[128], 8, 0); // one whole turn in from the end: straight in toward the center
+  });
+  it('spiral: a set interval, performer to performer, from the center', () => {
+    const p = slots(S('spiral', [{ x: 0, y: 0 }, { x: 16, y: 0 }], { turns: 2, interval: 2 }), 30);
+    near(p[0], 0, 0);
+    p.slice(1).forEach((q, i) => expect(distance(p[i], q)).toBeCloseTo(2, 4));
+  });
+  it('spiral: negative turns wind the other way', () => {
+    const ccw = samplePath(S('spiral', [{ x: 0, y: 0 }, { x: 8, y: 0 }], { turns: 1 })).pts[96];
+    const cw = samplePath(S('spiral', [{ x: 0, y: 0 }, { x: 8, y: 0 }], { turns: -1 })).pts[96];
+    expect(ccw.y).toBeLessThan(0); // three quarters out, a quarter turn before the end: below the center going counterclockwise
+    expect(cw.y).toBeGreaterThan(0);
+  });
   it('line: even spacing end to end', () => {
     const p = slots(S('line', [{ x: -16, y: 10 }, { x: 0, y: 10 }]), 5);
     p.forEach((q, i) => near(q, -16 + 4 * i, 10));
