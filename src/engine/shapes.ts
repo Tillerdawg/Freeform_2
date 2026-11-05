@@ -5,12 +5,13 @@ export type ShapeKind = 'line' | 'arc' | 'curve' | 'bezier' | 'circle' | 'polygo
 /**
  * Handles by kind: line [a, b]; arc [a, bend, b] (the arc passes through all three);
  * curve [p0..pn] (smooth curve through every point); circle [center, edge]; block [corner, opposite corner];
- * polygon [center, a corner]: `sides` equal sides; star [center, a point]: `sides` points, inner corners at `inner` x the radius;
+ * polygon [center, a corner]: `sides` equal sides; star [center, a point, an inside corner]: `sides` points; the inside
+ * corner handle sets how far in the inside corners sit (kept on the corner by `placeInner`);
  * spiral [center, outer end]: `turns` coils, counterclockwise going out (clockwise when `turns` is negative);
  * bezier [anchor, control, control, anchor, control, control, anchor, ...]: cubic segments that pass through the
  * anchors and are pulled toward (not through) the controls.
  */
-export interface Shape { kind: ShapeKind; handles: Point[]; interval: number | null; cols: number; turns?: number; sides?: number; inner?: number }
+export interface Shape { kind: ShapeKind; handles: Point[]; interval: number | null; cols: number; turns?: number; sides?: number }
 
 /** Distance between neighboring coils of a spiral, in steps. */
 export const coilGap = (s: Shape) => distance(s.handles[0], s.handles[1]) / Math.max(0.25, Math.abs(s.turns ?? 2));
@@ -32,7 +33,7 @@ export function samplePath(s: Shape): { pts: Point[]; closed: boolean } {
     const R = distance(h[0], h[1]), a0 = Math.atan2(h[1].y - h[0].y, h[1].x - h[0].x);
     const star = s.kind === 'star', n = Math.max(3, Math.round(s.sides ?? 5)) * (star ? 2 : 1);
     return { pts: Array.from({ length: n }, (_, i) => {
-      const r = star && i % 2 ? R * (s.inner ?? 0.4) : R, a = a0 + (2 * Math.PI * i) / n;
+      const r = star && i % 2 ? distance(h[0], h[2]) : R, a = a0 + (2 * Math.PI * i) / n;
       return { x: h[0].x + r * Math.cos(a), y: h[0].y + r * Math.sin(a) };
     }), closed: true };
   }
@@ -217,13 +218,23 @@ export function fitShape(kind: ShapeKind, pts: Point[]): Shape {
     case 'curve': return { kind, handles: [P(x0, cy), P(x0 + span / 3, cy + span / 6), P(x0 + (2 * span) / 3, cy - span / 6), P(x1, cy)], ...base };
     case 'bezier': return { kind, handles: [P(x0, cy), P(x0 + span / 3, cy + span / 3), P(x0 + (2 * span) / 3, cy - span / 3), P(x1, cy)], ...base };
     case 'circle': return { kind, handles: [P(cx, cy), P(cx + span / 2, cy)], ...base };
-    case 'polygon': case 'star': return { kind, handles: [P(cx, cy), P(cx, cy + span / 2)], ...base, sides: 5, inner: 0.4 }; // a corner straight up the field
+    case 'polygon': return { kind, handles: [P(cx, cy), P(cx, cy + span / 2)], ...base, sides: 5 }; // a corner straight up the field
+    case 'star': return placeInner({ kind, handles: [P(cx, cy), P(cx, cy + span / 2)], ...base, sides: 5 }, 0.4 * (span / 2));
     case 'spiral': return { kind, handles: [P(cx, cy), P(cx + span / 2, cy)], ...base, turns: 2 };
     case 'block': {
       const c = base.cols, r = Math.ceil(pts.length / c);
       return { kind, handles: [P(cx - (c - 1), cy + (r - 1)), P(cx + (c - 1), cy - (r - 1))], ...base, interval: 2 };
     }
   }
+}
+
+/**
+ * A star's inside-corner handle, put back on the inside corner just after the point handle, at distance `r` from the
+ * center (default: where it is now). Used after anything that turns the star or changes its points.
+ */
+export function placeInner(s: Shape, r = distance(s.handles[0], s.handles[2] ?? s.handles[0])): Shape {
+  const [c, tip] = s.handles, a = Math.atan2(tip.y - c.y, tip.x - c.x) + Math.PI / Math.max(3, Math.round(s.sides ?? 5));
+  return { ...s, handles: [c, tip, { x: c.x + r * Math.cos(a), y: c.y + r * Math.sin(a) }] };
 }
 
 /** Adds a curve point in the middle of its longest segment. */
@@ -265,6 +276,11 @@ function smoothAt(h: Point[], k: number): boolean {
  */
 export function moveHandle(s: Shape, k: number, p: Point, free = false): Shape {
   const h = [...s.handles];
+  if (s.kind === 'star') { // the inside-corner handle only sets a distance; it stays on its corner as the star turns
+    const r = distance(k === 2 ? p : s.handles[2], s.handles[0]); // moving the center or the point keeps the inside depth
+    h[k] = p;
+    return placeInner({ ...s, handles: h }, r);
+  }
   if (s.kind !== 'bezier' || free) { h[k] = p; return { ...s, handles: h }; }
   if (k % 3 === 0) {
     const dx = p.x - h[k].x, dy = p.y - h[k].y;

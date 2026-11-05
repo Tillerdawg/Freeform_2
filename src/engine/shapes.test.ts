@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { distance, type Point } from './coords';
-import { addBezierSegment, addCurvePoint, assign, coilGap, fitShape, isControl, moveHandle, samplePath, slots, type Shape } from './shapes';
+import { addBezierSegment, addCurvePoint, assign, coilGap, fitShape, isControl, moveHandle, placeInner, samplePath, slots, type Shape } from './shapes';
 
 const near = (p: Point, x: number, y: number) => { expect(p.x).toBeCloseTo(x, 4); expect(p.y).toBeCloseTo(y, 4); };
 const S = (kind: Shape['kind'], handles: Point[], extra: Partial<Shape> = {}): Shape => ({ kind, handles, interval: null, cols: 3, ...extra });
@@ -20,13 +20,22 @@ describe('slots', () => {
     const p = slots(S('polygon', [{ x: 0, y: 0 }, { x: 8, y: 0 }], { sides: 4 }), 8);
     near(p[0], 8, 0); near(p[2], 0, 8); near(p[4], -8, 0); near(p[6], 0, -8); near(p[1], 4, 4);
   });
-  it('star: points at the radius, inner corners at inner x the radius', () => {
-    const { pts, closed } = samplePath(S('star', [{ x: 0, y: 0 }, { x: 0, y: 10 }], { sides: 5, inner: 0.4 }));
+  it('star: points at the outer handle, inside corners at the inner handle', () => {
+    const star = placeInner(S('star', [{ x: 0, y: 0 }, { x: 0, y: 10 }], { sides: 5 }), 4);
+    near(star.handles[2], -4 * Math.sin(Math.PI / 5), 4 * Math.cos(Math.PI / 5)); // on the first inside corner
+    const { pts, closed } = samplePath(star);
     expect(closed).toBe(true); expect(pts).toHaveLength(10);
     pts.forEach((q, i) => expect(Math.hypot(q.x, q.y)).toBeCloseTo(i % 2 ? 4 : 10, 6));
-    near(pts[0], 0, 10);
-    expect(slots(S('star', [{ x: 0, y: 0 }, { x: 0, y: 10 }], { sides: 5, inner: 0.4 }), 10).map((q) => Math.round(Math.hypot(q.x, q.y))))
-      .toEqual([10, 4, 10, 4, 10, 4, 10, 4, 10, 4]); // one performer per corner when there are just enough
+    expect(slots(star, 10).map((q) => Math.round(Math.hypot(q.x, q.y)))).toEqual([10, 4, 10, 4, 10, 4, 10, 4, 10, 4]); // one per corner
+  });
+  it('star: dragging the inner handle sets only the inside depth; turning the star carries it along', () => {
+    const star = placeInner(S('star', [{ x: 0, y: 0 }, { x: 0, y: 10 }], { sides: 5 }), 4);
+    const deeper = moveHandle(star, 2, { x: 6, y: 0 }); // dragged off its corner: snaps back onto it, 6 out
+    near(deeper.handles[2], -6 * Math.sin(Math.PI / 5), 6 * Math.cos(Math.PI / 5));
+    const turned = moveHandle(star, 1, { x: 10, y: 0 }); // point now to the right: inner corner a fifth of a half turn on
+    near(turned.handles[2], 4 * Math.cos(Math.PI / 5), 4 * Math.sin(Math.PI / 5));
+    const moved = moveHandle(star, 0, { x: 2, y: 0 }); // moving the center keeps the inside depth
+    expect(distance(moved.handles[0], moved.handles[2])).toBeCloseTo(4, 6);
   });
   it('spiral: a set interval, performer to performer, from the center', () => {
     const p = slots(S('spiral', [{ x: 0, y: 0 }, { x: 16, y: 0 }], { turns: 2, interval: 2 }), 30);

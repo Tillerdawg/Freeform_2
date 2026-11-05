@@ -96,6 +96,7 @@ shot('shape-star', async () => {
   const page = await editor();
   await box(page, { x: -13, y: 51 }, { x: 13, y: 29 });
   await page.keyboard.press('x'); // the Star shortcut
+  await page.mouse.move(1000, 600); await page.mouse.wheel(0, -260); // pan down so the top point's handles clear the panel
   await menu(page, 'Shape');
   await page.waitForTimeout(200);
   await save(page, 'shape-star', { x: 240, y: 110, width: 700, height: 640 });

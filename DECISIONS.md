@@ -1058,3 +1058,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Context:** Regular polygons and stars are common forms. They need a way to set the corner count and, for a star, how deep its inside corners go.
 - **Options:** Corner handles you drag one by one; a center and one corner handle with a number of sides. Performers only on the corners, or evenly around the outline.
 - **Decision:** Center and one corner handle (dragging it sizes and turns the shape), **Sides** 3 to 12 for a polygon, **Points** 3 to 12 and **Inner** 10 to 90% for a star (default 5 and 40%). Both start with a corner straight up the field. Performers go evenly around the outline from the handle's corner, so every corner gets someone when the count is a multiple of the corners. Shortcuts: **P** Polygon, **X** Star (S was already Spiral).
+
+## 2026-11-04 23:55 EST — Star inside-corner handle
+- **Who:** Jason Tiller asked for handles for the star's inner and outer size.
+- **Context:** The star had a point handle (outer size) but set its inner size only by a percent.
+- **Options:** Keep the inside depth as a percent of the outer size, so it grows with the star; or as a distance set by its own handle.
+- **Decision:** A third handle on the first inside corner. Dragging it sets only the inside distance from the center, and it snaps back onto its corner. Turning or resizing the star with the point handle, moving the center, or changing **Points** keeps that distance. **Inner** % still works and moves the handle. *(The fixed distance, not a percent, is Claude's call; Jason can veto.)*

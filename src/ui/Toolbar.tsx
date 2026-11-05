@@ -1,7 +1,8 @@
 import { createPortal } from 'react-dom';
 import { IconFit, IconRedo, IconSidebar, IconTimeline, IconUndo } from './icons';
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
-import { addBezierSegment, addCurvePoint, coilGap, type Shape, type ShapeKind } from '../engine/shapes';
+import { addBezierSegment, addCurvePoint, coilGap, placeInner, type Shape, type ShapeKind } from '../engine/shapes';
+import { distance } from '../engine/coords';
 import {
   chainOrder, clearFtl, flip, setFtlTurns, label, mirrorSides, placeInSet, removePerformers, rotateScale, setFtl, setLabelSide, snapSelection,
   type LabelSide, type Show,
@@ -254,10 +255,11 @@ function ShapePanel({ shape, startShape, updateShape, endShape }: ToolbarProps) 
           {(shape.kind === 'polygon' || shape.kind === 'star') && (
             <div style={row}>
               <label>{shape.kind === 'star' ? 'Points' : 'Sides'} <NumberField aria-label={shape.kind === 'star' ? 'Points' : 'Sides'} min={3} max={12} integer
-                value={shape.sides ?? 5} style={{ width: 48 }} onValue={(n) => updateShape({ sides: n })} /></label>
+                value={shape.sides ?? 5} style={{ width: 48 }} onValue={(n) => updateShape(shape.kind === 'star' ? placeInner({ ...shape, sides: n }) : { sides: n })} /></label>
               {shape.kind === 'star' && <label title="How far in the inside corners sit, as a percent of the points' distance from the center">Inner{' '}
-                <NumberField aria-label="Inner corners, percent" min={10} max={90} integer value={Math.round((shape.inner ?? 0.4) * 100)} style={{ width: 48 }}
-                  onValue={(n) => updateShape({ inner: n / 100 })} />%</label>}
+                <NumberField aria-label="Inner corners, percent" min={5} max={100} integer style={{ width: 48 }}
+                  value={Math.round((distance(shape.handles[0], shape.handles[2]) / (distance(shape.handles[0], shape.handles[1]) || 1)) * 100)}
+                  onValue={(n) => updateShape(placeInner(shape, (n / 100) * distance(shape.handles[0], shape.handles[1])))} />%</label>}
             </div>
           )}
           {shape.kind === 'spiral' && (
@@ -285,7 +287,7 @@ function ShapePanel({ shape, startShape, updateShape, endShape }: ToolbarProps) 
           </div>
           <p style={help}>
             Drag the blue handles on the field. Performers keep their order along the shape.
-            {(shape.kind === 'polygon' || shape.kind === 'star') && ` The first handle is the center; drag the second to size and turn it. Performers go evenly around the outline, starting at that ${shape.kind === 'star' ? 'point' : 'corner'}.`}
+            {(shape.kind === 'polygon' || shape.kind === 'star') && ` ${shape.kind === 'star' ? 'The middle handle is the center. Drag the point handle to size and turn the star, and the inside-corner handle to make the points longer or shorter.' : 'The first handle is the center; drag the corner handle to size and turn it.'} Performers go evenly around the outline, starting at the ${shape.kind === 'star' ? 'point' : 'corner'} handle.`}
             {shape.kind === 'spiral' && ' The first handle is the center; the second is the outer end. Intervals are measured performer to performer.'}
             {shape.kind === 'bezier' && ' Squares are points the curve passes through; circles pull the curve toward them. Hold Option (Alt) while dragging to move one handle by itself, e.g. to make a corner.'}
           </p>
