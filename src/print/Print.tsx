@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { colorOf, equipmentIn, fieldOf, mark, moveSegments, type Show } from '../engine/show';
-import { drawEquipment, drawProps, drawField, drawGlyph, drawLabels, drawMarks, fitView, toScreen } from '../field/drawField';
+import { colorOf, fieldOf, mark, moveSegments, type Show } from '../engine/show';
+import { drawIcon, drawProps, drawField, drawGlyph, drawLabels, drawMarks, fitView, toScreen } from '../field/drawField';
 import { ROWS_PER_PAGE, chartTitle, chunk, dotCards, hasMeasures, sortedPerformers } from './docs';
 
 type Kind = 'dots' | 'charts';
@@ -27,9 +27,9 @@ function chartImage(show: Show, i: number, paths: boolean): string {
   const letters = show.symbols !== 'dots';
   for (const p of here) {
     const q = toScreen(v, pos[p.id]);
-    const color = colorOf(show, p), eq = equipmentIn(show, i, p.id);
-    if (eq) { drawEquipment(ctx, q, eq, (letters ? 1.7 : 1.3) * s, color ?? '#000', '#fff'); continue; } // the equipment is the mark
-    if (letters) { drawGlyph(ctx, q, mark(show, p).glyph!, 1.7 * s, color ?? '#000', undefined, color ? '#000' : '#fff'); continue; } // white edge on plain black letters keeps lines from running through
+    const color = colorOf(show, p), m = mark(show, p, i);
+    if (m.icon) { drawIcon(ctx, q, m.icon, 1.7 * s, color ?? '#000', '#fff'); continue; } // Icons: the icon is the mark
+    if (letters) { drawGlyph(ctx, q, m.glyph!, 1.7 * s, color ?? '#000', undefined, color ? '#000' : '#fff'); continue; } // white edge on plain black letters keeps lines from running through
     ctx.fillStyle = color ?? '#000';
     ctx.beginPath(); ctx.arc(q.x, q.y, 0.5 * s, 0, Math.PI * 2); ctx.fill();
     if (color) { ctx.lineWidth = 0.12 * s; ctx.strokeStyle = '#000'; ctx.stroke(); } // outlined, so pale colors still show on white

@@ -7,7 +7,7 @@ import { decodeShow, fetchHosted, LOAD_PREFIX, linkHash, parseHosted, SHARE_PREF
 import { Scanner } from './Scanner';
 import { isPhone } from './device';
 import { colorOf, equipmentIn, fieldOf, propsAt, equipmentName, facingIn, facingName, facingVector, label, locate, mark, moveSteps, timingOf, parseShow, positionsAt, setAt, setStarts, showLength, type Show } from '../engine/show';
-import { drawField, drawGlyph, drawLabels, drawMarks, drawFacing, drawPerformers, drawProps, fitView, STEP_TEXT, toScreen, type View } from '../field/drawField';
+import { drawField, drawGlyph, drawLabels, drawMarks, drawFacing, drawIcon, drawPerformers, drawProps, fitView, STEP_TEXT, toScreen, type View } from '../field/drawField';
 import { fmtStep } from '../ui/format';
 import { usePlayback } from '../ui/usePlayback';
 import { synced } from '../engine/music';
@@ -223,15 +223,19 @@ export function Perform() {
     if (!me) {
       const shown = !playing; // labels would jump around as dots move
       const eqSet = onSet >= 0 ? onSet : Math.max(0, locate(show, t).to - 1); // mid-move: what they carried in the set they left
-      drawPerformers(ctx, v, show.performers.filter((p) => positions[p.id]).map((p) => { const m = mark(show, p); return { id: p.id, label: shown ? m.label : '', glyph: m.glyph, at: positions[p.id], pin: onSet >= 0 ? show.sets[onSet].labels?.[p.id] : undefined, color: colorOf(show, p), equip: equipmentIn(show, eqSet, p.id) }; }), new Set(), [], undefined, dpr);
+      drawPerformers(ctx, v, show.performers.filter((p) => positions[p.id]).map((p) => { const m = mark(show, p, eqSet); return { id: p.id, label: shown ? m.label : '', glyph: m.glyph, icon: m.icon, at: positions[p.id], pin: onSet >= 0 ? show.sets[onSet].labels?.[p.id] : undefined, color: colorOf(show, p) }; }), new Set(), [], undefined, dpr);
     } else {
       const s = v.scale, letters = show.symbols !== 'dots', f = Math.max(11 * dpr, s * 1.1); // letter height, as in the staff view
-      const glyph = (id: string) => mark(show, show.performers.find((x) => x.id === id)!).glyph!;
+      const markSet = onSet >= 0 ? onSet : Math.max(0, locate(show, t).to - 1); // mid-move: as in the set they left
+      const drawMark = (q: Point, id: string, size: number, color: string, badge?: string) => { // a letter, or an icon in its place
+        const m = mark(show, show.performers.find((x) => x.id === id)!, markSet);
+        if (m.icon) drawIcon(ctx, q, m.icon, size, color, 'rgba(0,0,0,0.85)', badge); else drawGlyph(ctx, q, m.glyph!, size, color, badge);
+      };
       const near = new Set(around.map((n) => n.id));
       for (const p of show.performers) {
         if (p.id === me.id || !positions[p.id]) continue;
         const q = toScreen(v, positions[p.id]);
-        if (letters) { if (!near.has(p.id)) drawGlyph(ctx, q, glyph(p.id), f, 'rgba(255,255,255,0.6)'); continue; } // the rest of the band, quieter
+        if (letters) { if (!near.has(p.id)) drawMark(q, p.id, f, 'rgba(255,255,255,0.6)'); continue; } // the rest of the band, quieter
         ctx.fillStyle = 'rgba(255,255,255,0.45)';
         ctx.beginPath(); ctx.arc(q.x, q.y, Math.max(3, s * 0.3), 0, Math.PI * 2); ctx.fill();
       }
@@ -245,17 +249,17 @@ export function Perform() {
         ctx.beginPath(); ctx.arc(end.x, end.y, Math.max(6, s * 0.55), 0, Math.PI * 2); ctx.stroke();
       }
       const q = toScreen(v, positions[me.id]);
-      if (letters) drawGlyph(ctx, q, glyph(me.id), Math.max(16 * dpr, s * 1.3), '#111', PALETTE.gold); // me: my letter on a gold badge
+      if (letters) drawMark(q, me.id, Math.max(16 * dpr, s * 1.3), '#111', PALETTE.gold); // me: my letter (or icon) on a gold badge
       else {
         ctx.fillStyle = PALETTE.gold; ctx.strokeStyle = '#fff'; ctx.lineWidth = Math.max(2, s * 0.15);
         ctx.beginPath(); ctx.arc(q.x, q.y, Math.max(7, s * 0.6), 0, Math.PI * 2); ctx.fill(); ctx.stroke();
       }
-      const faceSet = onSet >= 0 ? onSet : Math.max(0, locate(show, t).to - 1), myFace = facingIn(show, faceSet, me.id); // mid-move: as I faced in the set I left
+      const myFace = facingIn(show, markSet, me.id);
       if (myFace) drawFacing(ctx, v, positions[me.id], facingVector(myFace), (letters ? Math.max(16 * dpr, s * 1.3) * 0.62 : Math.max(7, s * 0.6)) + 1, PALETTE.gold, 'rgba(0,0,0,0.85)'); // only on my own mark
       // Neighbors: brighter, so "who I'm next to" stands out from the rest of the band.
       for (const n of around) {
         const nq = toScreen(v, positions[n.id]);
-        if (letters) { drawGlyph(ctx, nq, glyph(n.id), f, PALETTE.text); continue; }
+        if (letters) { drawMark(nq, n.id, f, PALETTE.text); continue; }
         ctx.fillStyle = PALETTE.text;
         ctx.beginPath(); ctx.arc(nq.x, nq.y, Math.max(4, s * 0.38), 0, Math.PI * 2); ctx.fill();
       }

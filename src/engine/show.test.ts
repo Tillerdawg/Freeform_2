@@ -3,7 +3,7 @@ import { HASHES, readout } from './coords';
 import {
   addPerformer, addSetAfter, advance, biggestStep, chainOrder, clearFtl, ftlTrail, moveSteps, normalizeFtl, flip, mirrorSides, moveSetTo, remapHash, rotateScale, setFtl, snapSelection, playRange, playPlan, label, locate, newShow, parseShow, placeInSet, positionsAt,
   removePerformers, renumberSets, scoreOrder, DEFAULT_SECTIONS, removeSet, setAt, setCounts, setStarts, totalCounts, xFrom, yFrom, insertSetAt, showLength, movementAt, movementOfSet, setFtlTurns,
-  setTiming, timingOf, fitTurn, setTurning, turnRoute, counterMarch, closeCalls, facingIn, setFacing, facingVector, equipmentIn, setEquipment, addProp, placeProp, propsAt, hitProp, removeProp, fieldOf,
+  setTiming, timingOf, fitTurn, setTurning, turnRoute, counterMarch, closeCalls, facingIn, setFacing, facingVector, equipmentIn, setEquipment, addProp, placeProp, propsAt, hitProp, removeProp, fieldOf, mark, instrumentIcon,
 } from './show';
 
 function twoSetShow() {
@@ -745,5 +745,23 @@ describe('surfaces', () => {
     expect(() => parseShow(JSON.stringify({ ...show, surface: { kind: 'pool', w: 30, d: 20 } }))).toThrow(/surface/);
     expect(fieldOf(show)).toEqual(show.surface);
     expect(fieldOf({ ...show, surface: undefined })).toBe('highSchool');
+  });
+});
+
+describe('icons', () => {
+  it('draws the instrument, or what they carry, and keeps the letter for a section it can\'t name', () => {
+    let show: ReturnType<typeof newShow> = { ...newShow(), symbols: 'icons' };
+    const sec = (l: string) => show.sections.find((s) => s.letter === l)!.id;
+    const t = addPerformer(show, sec('P'), { x: 0, y: 0 }); show = t.show;
+    const g = addPerformer(show, sec('G'), { x: 4, y: 0 }); show = g.show;
+    show = addSetAfter(show, 0, 8);
+    show = setEquipment(show, 1, [g.id], 'rifle');
+    const p = (id: string) => show.performers.find((x) => x.id === id)!;
+    expect(mark(show, p(t.id))).toEqual({ icon: 'trumpet', label: '1' });
+    expect(mark(show, p(g.id), 0)).toEqual({ glyph: 'G', label: '1' }); // no equipment yet: the guard has no instrument icon
+    expect(mark(show, p(g.id), 1)).toEqual({ icon: 'rifle', label: '1' });
+    expect(mark({ ...show, symbols: undefined }, p(g.id), 1)).toEqual({ glyph: 'G', label: '1' }); // letters mode: just the letter
+    expect(['Tenor Sax', 'Bass Drum', 'Tenors', 'Sousaphone'].map(instrumentIcon)).toEqual(['sax', 'bass', 'quads', 'tuba']);
+    expect(parseShow(JSON.stringify(show)).symbols).toBe('icons');
   });
 });
