@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { colorOf, equipmentIn, facingIn, facingVector, mark, moveSegments, type Show } from '../engine/show';
+import { colorOf, equipmentIn, fieldOf, facingIn, facingVector, mark, moveSegments, type Show } from '../engine/show';
 import { drawEquipment, drawFacing, drawProps, drawField, drawGlyph, drawLabels, drawMarks, fitView, toScreen } from '../field/drawField';
 import { ROWS_PER_PAGE, chartTitle, chunk, dotCards, hasMeasures, sortedPerformers } from './docs';
 
@@ -14,8 +14,8 @@ function chartImage(show: Show, i: number, paths: boolean): string {
   c.width = 3000;
   c.height = 1500;
   const ctx = c.getContext('2d')!;
-  const v = fitView(c.width, c.height);
-  drawField(ctx, v, show.hash, 'print');
+  const v = fitView(c.width, c.height, fieldOf(show));
+  drawField(ctx, v, fieldOf(show), 'print');
   drawProps(ctx, v, show.props ?? [], show.sets[i].props ?? {}, null, 'print', 1.4 * v.scale);
   const s = v.scale, pos = show.sets[i].pos;
   if (paths && i > 0) { // where everyone came from: thin dashed lines, under the dots

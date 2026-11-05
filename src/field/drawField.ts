@@ -1,7 +1,7 @@
 import { chrome, PALETTE } from '../ui/palette';
 import { placeLabels, turned } from './labels';
 import type { LabelSide } from '../engine/show';
-import { FIELD_WIDTH, GOAL_LINE_X, HASHES, STEP_IN, type HashPreset, type Point } from '../engine/coords';
+import { FEET, FIELD_WIDTH, GOAL_LINE_X, HASHES, STEP_IN, type FieldSpec, type Floor, type Point } from '../engine/coords';
 import { TEXT_STEPS, type Mark } from '../engine/marks';
 
 /** Screen transform: px per step, plus screen position of world origin (50 yd line, front sideline). */
@@ -16,20 +16,61 @@ const END_X = GOAL_LINE_X + 10 * YARD; // back of end zone
 export const toScreen = (v: View, p: Point) => ({ x: v.ox + p.x * v.scale, y: v.oy - p.y * v.scale });
 export const toWorld = (v: View, sx: number, sy: number): Point => ({ x: (sx - v.ox) / v.scale, y: (v.oy - sy) / v.scale });
 
-/** View that fits the whole field (end zones included) into w x h px. */
-export function fitView(w: number, h: number): View {
+/** View that fits the whole field (end zones included), or the whole floor, into w x h px. */
+export function fitView(w: number, h: number, f: FieldSpec = 'highSchool'): View {
+  if (typeof f !== 'string') {
+    const scale = Math.min(w / (f.w + 4), h / (f.d + 4));
+    return { scale, ox: w / 2, oy: h / 2 + (f.d / 2) * scale };
+  }
   const scale = Math.min(w / (2 * END_X + 8), h / (FIELD_WIDTH + 16)); // room for the yard numbers outside the sidelines
   return { scale, ox: w / 2, oy: h / 2 + (FIELD_WIDTH / 2) * scale };
 }
 
 /** Colors for the screen (green turf) and for paper (black on white, easy on toner and copiers). */
 export const THEMES = {
-  screen: { get bg() { return chrome('bg'); }, turf: PALETTE.turf, gridMinor: 'rgba(255,255,255,0.15)', gridMajor: 'rgba(255,255,255,0.32)', line: '#fff', get number() { return chrome('text'); } }, // bg and number sit off the turf, so they follow light/dark mode
-  print: { bg: '#fff', turf: '#fff', gridMinor: 'rgba(0,0,0,0.07)', gridMajor: 'rgba(0,0,0,0.2)', line: '#000', number: '#555' },
+  screen: { get bg() { return chrome('bg'); }, turf: PALETTE.turf, floor: PALETTE.floor, gridMinor: 'rgba(255,255,255,0.15)', gridMajor: 'rgba(255,255,255,0.32)', line: '#fff', get number() { return chrome('text'); } }, // bg and number sit off the turf, so they follow light/dark mode
+  print: { bg: '#fff', turf: '#fff', floor: '#fff', gridMinor: 'rgba(0,0,0,0.07)', gridMajor: 'rgba(0,0,0,0.2)', line: '#000', number: '#555' },
 };
 export type Theme = keyof typeof THEMES;
 
-export function drawField(ctx: CanvasRenderingContext2D, v: View, hash: HashPreset, theme: Theme = 'screen') {
+/** An indoor floor: its grid and edge, and for a court the center line, circles, lanes, three-point lines, and hoops. */
+function drawFloor(ctx: CanvasRenderingContext2D, v: View, f: Floor, theme: Theme) {
+  const T = THEMES[theme], s = v.scale, hw = f.w / 2;
+  ctx.fillStyle = T.bg; ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  const tl = toScreen(v, { x: -hw, y: f.d });
+  ctx.fillStyle = T.floor; ctx.fillRect(tl.x, tl.y, f.w * s, f.d * s);
+  const seg = (a: Point, b: Point) => { const p = toScreen(v, a), q = toScreen(v, b); ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke(); };
+  if (s >= 4) { // the step grid from the center line and the front edge; every 4th step a bit stronger
+    ctx.lineWidth = 1;
+    for (let i = Math.ceil(-hw); i <= hw; i++) { ctx.strokeStyle = i % 4 === 0 ? T.gridMajor : T.gridMinor; seg({ x: i, y: 0 }, { x: i, y: f.d }); }
+    for (let j = 1; j < f.d; j++) { ctx.strokeStyle = j % 4 === 0 ? T.gridMajor : T.gridMinor; seg({ x: -hw, y: j }, { x: hw, y: j }); }
+  }
+  ctx.strokeStyle = T.line; ctx.lineWidth = Math.max(1, s * LINE * 0.5); // court lines are 2 in
+  ctx.strokeRect(tl.x, tl.y, f.w * s, f.d * s);
+  const arc = (c: Point, r: number, a0 = 0, a1 = Math.PI * 2) => { const p = toScreen(v, c); ctx.beginPath(); ctx.arc(p.x, p.y, r * s, a0, a1); ctx.stroke(); };
+  const my = f.d / 2;
+  if (f.kind !== 'court') { // a plain floor: ticks where the center line meets the edges
+    ctx.lineWidth = Math.max(1, s * LINE);
+    seg({ x: 0, y: 0 }, { x: 0, y: 1 }); seg({ x: 0, y: f.d - 1 }, { x: 0, y: f.d });
+    return;
+  }
+  seg({ x: 0, y: 0 }, { x: 0, y: f.d });
+  arc({ x: 0, y: my }, 6 * FEET);
+  for (const side of [-1, 1]) { // each end, in feet from its baseline
+    const bx = side * hw, inward = -side, at = (ft: number, y: number) => ({ x: bx + inward * ft * FEET, y });
+    const lane = 8 * FEET;
+    seg(at(0, my - lane), at(19, my - lane)); seg(at(19, my - lane), at(19, my + lane)); seg(at(19, my + lane), at(0, my + lane)); // the lane
+    arc(at(19, my), 6 * FEET); // the free-throw circle
+    const hoop = at(5.25, my), r3 = 19.75 * FEET; // the three-point line (high school): an arc around the hoop, straight to the baseline
+    seg(at(0, my - r3), at(5.25, my - r3)); seg(at(0, my + r3), at(5.25, my + r3));
+    const p = toScreen(v, hoop); ctx.beginPath(); ctx.arc(p.x, p.y, r3 * s, side > 0 ? Math.PI / 2 : -Math.PI / 2, side > 0 ? (3 * Math.PI) / 2 : Math.PI / 2); ctx.stroke();
+    arc(hoop, 0.75 * FEET);
+  }
+}
+
+export function drawField(ctx: CanvasRenderingContext2D, v: View, field: FieldSpec, theme: Theme = 'screen') {
+  if (typeof field !== 'string') { drawFloor(ctx, v, field, theme); return; }
+  const hash = field;
   const T = THEMES[theme];
   const { width, height } = ctx.canvas;
   ctx.fillStyle = T.bg;

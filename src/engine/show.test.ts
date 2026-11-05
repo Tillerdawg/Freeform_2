@@ -3,7 +3,7 @@ import { HASHES, readout } from './coords';
 import {
   addPerformer, addSetAfter, advance, biggestStep, chainOrder, clearFtl, ftlTrail, moveSteps, normalizeFtl, flip, mirrorSides, moveSetTo, remapHash, rotateScale, setFtl, snapSelection, playRange, playPlan, label, locate, newShow, parseShow, placeInSet, positionsAt,
   removePerformers, renumberSets, scoreOrder, DEFAULT_SECTIONS, removeSet, setAt, setCounts, setStarts, totalCounts, xFrom, yFrom, insertSetAt, showLength, movementAt, movementOfSet, setFtlTurns,
-  setTiming, timingOf, fitTurn, setTurning, turnRoute, counterMarch, closeCalls, facingIn, setFacing, facingVector, equipmentIn, setEquipment, addProp, placeProp, propsAt, hitProp, removeProp,
+  setTiming, timingOf, fitTurn, setTurning, turnRoute, counterMarch, closeCalls, facingIn, setFacing, facingVector, equipmentIn, setEquipment, addProp, placeProp, propsAt, hitProp, removeProp, fieldOf,
 } from './show';
 
 function twoSetShow() {
@@ -732,5 +732,18 @@ describe('props', () => {
     const gone = removeProp(show, r.id);
     expect(gone.props).toBeUndefined();
     expect(gone.sets.every((s) => !s.props)).toBe(true);
+  });
+});
+
+describe('surfaces', () => {
+  it('checks a floor in files, and flips front to back across its own depth', () => {
+    let { show, id } = twoSetShow();
+    show = { ...show, surface: { kind: 'floor', w: 30, d: 20 } };
+    show = placeInSet(show, 1, { [id]: { x: 2, y: 5 } });
+    expect(flip(show, 1, [id], 'y').sets[1].pos[id]).toEqual({ x: 2, y: 15 });
+    expect(parseShow(JSON.stringify(show)).surface).toEqual({ kind: 'floor', w: 30, d: 20 });
+    expect(() => parseShow(JSON.stringify({ ...show, surface: { kind: 'pool', w: 30, d: 20 } }))).toThrow(/surface/);
+    expect(fieldOf(show)).toEqual(show.surface);
+    expect(fieldOf({ ...show, surface: undefined })).toBe('highSchool');
   });
 });

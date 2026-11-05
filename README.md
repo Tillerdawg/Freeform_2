@@ -30,7 +30,7 @@ A note on where the ideas came from: FreeFORM is modeled on Pyware and the Ultim
 ## What it does
 
 **Writing drill**
-- A football field with high school, college/DCI, or NFL hashes and an 8-to-5 grid, seen from the press box (Side 1 on the left).
+- A football field with high school, college/DCI, or NFL hashes and an 8-to-5 grid, seen from the press box (Side 1 on the left), or a basketball court or custom floor for indoor shows.
 - Coordinates in standard drill language, like "2 steps outside the Side 2 45, 2 steps in front of Front Hash."
 - Sections with letters and colors, a roster of names (paste it from a spreadsheet), and labels that stay out of each other's way.
 - Shapes: line, arc, curve, Bézier, circle, polygon, star, spiral, block, and letters (spell a word). A picture under the field to trace. FreeFORM assigns spots by least total travel, so paths don't cross.
@@ -68,7 +68,6 @@ The full list is in [PLAN.md](PLAN.md). What's next, roughly:
 - Touch versions of the few actions that still need a keyboard key
 - Faster count entry for recordings that weren't made from the score (tap a few downbeats, FreeFORM fills in the rest)
 - Markup that spans several sets
-- Basketball courts and custom surfaces
 - Later: optional cloud sync and app-store versions
 
 ## Running it yourself

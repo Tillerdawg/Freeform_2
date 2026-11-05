@@ -4,7 +4,7 @@ import { emptyHistory, record, redo, undo } from './engine/history';
 import { addInk, hitMark, moveMark, type Mark } from './engine/marks';
 import { assign, fitShape, fitText, isControl, moveHandle, samplePath, slots, type Shape, type ShapeKind } from './engine/shapes';
 import { colorOf,
-  addPerformer, setFtlTurns, locate, label, mark, newId, setMarks, moveSegments, facingIn, facingVector, equipmentIn, hitProp, placeProp, propsAt, removeProp, normalizeFtl, snapPoint, playRange, newShow, parseShow, placeInSet, positionsAt, removePerformers,
+  addPerformer, setFtlTurns, locate, label, mark, newId, setMarks, moveSegments, fieldOf, facingIn, facingVector, equipmentIn, hitProp, placeProp, propsAt, removeProp, normalizeFtl, snapPoint, playRange, newShow, parseShow, placeInSet, positionsAt, removePerformers,
   rotateScale, setAt, setStarts, type Show,
   showLength,
 } from './engine/show';
@@ -182,12 +182,15 @@ export function App() {
   const clock = useMemo(() => (audio && useMusic && taps && taps.length >= 2 ? { audio, taps } : null), [audio, useMusic, taps]);
   usePlayback(playing, setPlaying, t, setT, bpm, span, range.loop, showLength(show), clock);
 
+  const showRef = useRef(show); showRef.current = show; // for the resize observer, which outlives renders
+  const fieldKey = JSON.stringify(fieldOf(show));
+  useEffect(() => { const c = canvasRef.current; if (c?.width) setView(fitView(c.width, c.height, fieldOf(showRef.current))); }, [fieldKey]); // a new surface: fit it
   useEffect(() => {
     const c = canvasRef.current!;
     const ro = new ResizeObserver(() => {
       c.width = c.clientWidth * dpr;
       c.height = c.clientHeight * dpr;
-      setView(fitView(c.width, c.height));
+      setView(fitView(c.width, c.height, fieldOf(showRef.current)));
     });
     ro.observe(c);
     return () => ro.disconnect();
@@ -226,7 +229,7 @@ export function App() {
   useEffect(() => {
     if (!view) return;
     const ctx = canvasRef.current!.getContext('2d')!;
-    drawField(ctx, view, show.hash);
+    drawField(ctx, view, fieldOf(show));
     if (trace && show.trace) { // under everything else, see-through
       const tr = show.trace, h = (tr.w * trace.height) / trace.width, tl = toScreen(view, { x: tr.x - tr.w / 2, y: tr.y + h / 2 });
       ctx.save(); ctx.globalAlpha = tr.opacity; ctx.drawImage(trace, tl.x, tl.y, tr.w * view.scale, h * view.scale); ctx.restore();
@@ -325,7 +328,7 @@ export function App() {
     return () => c.removeEventListener('wheel', onWheel);
   }, [dpr]);
 
-  const fit = () => { const c = canvasRef.current!; setView(fitView(c.width, c.height)); };
+  const fit = () => { const c = canvasRef.current!; setView(fitView(c.width, c.height, fieldOf(show))); };
   /** Zoom around the middle of the field's window, within the wheel's limits. */
   const zoomBy = (k: number) => setView((v) => {
     if (!v) return v;
@@ -528,7 +531,7 @@ export function App() {
       if (penSeen.current) return; // a lone finger or palm while the Pencil is in use
     }
     const p = world(e);
-    setHover(readout(p, show.hash));
+    setHover(readout(p, fieldOf(show)));
     const d = drag.current;
     if (!d) return;
     // A click isn't a drag: nothing moves (or snaps to the grid) until the pointer has really traveled.

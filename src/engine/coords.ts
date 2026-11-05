@@ -18,14 +18,27 @@ export const HASHES = {
 } as const;
 export type HashPreset = keyof typeof HASHES;
 
+/**
+ * An indoor surface instead of a football field: a basketball court ('court', with its lines) or a plain floor or tarp
+ * ('floor'), `w` steps side to side and `d` front to back. Same origin as the field: x from the center line, y from the front edge.
+ */
+export interface Floor { kind: 'court' | 'floor'; w: number; d: number }
+/** What a show is written on: a football field (named by its hashes) or a floor. */
+export type FieldSpec = HashPreset | Floor;
+export const FEET = 12 / STEP_IN; // steps per foot
+export const COURT: Floor = { kind: 'court', w: 94 * FEET, d: 50 * FEET }; // a high school or college court, 94 by 50 feet
+/** How deep the surface is, front to back, in steps. */
+export const fieldDepth = (f: FieldSpec) => (typeof f === 'string' ? FIELD_WIDTH : f.d);
+
 const EPS = 1e-9;
 const quarter = (n: number) => Math.round(n * 4) / 4;
 const steps = (n: number) => `${n} step${n === 1 ? '' : 's'}`;
 const lineName = (k: number) => (k === 10 ? 'Goal Line' : String(50 - 5 * k));
 
-/** Side-to-side part, e.g. "2 steps outside the Side 2 45". */
-export function sideToSide(x: number): string {
+/** Side-to-side part, e.g. "2 steps outside the Side 2 45" (on a floor, "3 steps Side 1 of center"). */
+export function sideToSide(x: number, f: FieldSpec = 'highSchool'): string {
   const ax = quarter(Math.abs(x));
+  if (typeof f !== 'string') return ax === 0 ? 'On center' : `${steps(ax)} Side ${x < 0 ? 1 : 2} of center`;
   if (ax === 0) return 'On the 50';
   const side = `Side ${x < 0 ? 1 : 2}`;
   // Nearest yard line (index from the 50), capped at the goal line.
@@ -42,7 +55,12 @@ export function sideToSide(x: number): string {
 }
 
 /** Front-to-back part, e.g. "2 steps in front of Front Hash". */
-export function frontToBack(y: number, hash: HashPreset): string {
+export function frontToBack(y: number, hash: FieldSpec): string {
+  if (typeof hash !== 'string') { // a floor: the nearer of its front and back edges
+    const edge = hash.kind === 'court' ? 'Sideline' : 'Edge', back = y > hash.d / 2 + EPS; // ties go to the front
+    const d = quarter(back ? y - hash.d : y), name = `${back ? 'Back' : 'Front'} ${edge}`;
+    return d === 0 ? `On ${name}` : `${steps(Math.abs(d))} ${d < 0 ? 'in front of' : 'behind'} ${name}`;
+  }
   const h = HASHES[hash];
   const refs: [string, number][] = [
     ['Front Sideline', 0],
@@ -58,8 +76,8 @@ export function frontToBack(y: number, hash: HashPreset): string {
   return `${steps(Math.abs(d))} ${d < 0 ? 'in front of' : 'behind'} ${name}`;
 }
 
-export const readout = (p: Point, hash: HashPreset) =>
-  `${sideToSide(p.x)}, ${frontToBack(p.y, hash).replace(/^On /, 'on ')}`;
+export const readout = (p: Point, f: FieldSpec) =>
+  `${sideToSide(p.x, f)}, ${frontToBack(p.y, f).replace(/^On /, 'on ')}`;
 
 export type StepTier = 'ok' | 'yellow' | 'red';
 

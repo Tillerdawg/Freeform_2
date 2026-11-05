@@ -1,5 +1,5 @@
 // Show data model and the pure operations on it. All positions are in steps (see coords.ts).
-import { HASHES, FIELD_WIDTH, distance, ftlPositions, stepSize, type HashPreset, type Point, type StepTier } from './coords';
+import { HASHES, FIELD_WIDTH, distance, fieldDepth, ftlPositions, stepSize, type FieldSpec, type Floor, type HashPreset, type Point, type StepTier } from './coords';
 import { assign } from './shapes';
 import { validMusic, type Music } from './music';
 import { validMark, type Mark } from './marks';
@@ -134,7 +134,12 @@ export interface Show {
   props?: Prop[];
   /** A picture under the field to trace (a logo, a sketch): centered on (x, y), `w` steps wide. The picture itself stays in the browser that added it. */
   trace?: Trace;
+  /** An indoor surface instead of the football field; `hash` is kept (and used again) if the show goes back outside. */
+  surface?: Floor;
 }
+
+/** What the show is written on: its floor, or the football field with its hashes. */
+export const fieldOf = (show: Show): FieldSpec => show.surface ?? show.hash;
 
 export interface Trace { id: string; x: number; y: number; w: number; opacity: number }
 
@@ -847,6 +852,8 @@ export function parseShow(text: string): Show {
     && Number.isFinite(p.w) && p.w > 0 && p.w <= 200 && Number.isFinite(p.h) && p.h > 0 && p.h <= 200 && (p.round === undefined || typeof p.round === 'boolean')))) bad('props');
   if (s.trace !== undefined && !(str(s.trace?.id) && Number.isFinite(s.trace.x) && Number.isFinite(s.trace.y) && Number.isFinite(s.trace.w) && s.trace.w > 0
     && Number.isFinite(s.trace.opacity) && s.trace.opacity >= 0 && s.trace.opacity <= 1)) bad('trace');
+  if (s.surface !== undefined && !((s.surface?.kind === 'court' || s.surface?.kind === 'floor') && Number.isFinite(s.surface.w) && s.surface.w >= 4 && s.surface.w <= 400
+    && Number.isFinite(s.surface.d) && s.surface.d >= 4 && s.surface.d <= 400)) bad('surface');
   const propIds = new Set((s.props ?? []).map((p: Prop) => p.id));
   for (const set of s.sets) {
     if (!str(set?.id) || !str(set.name) || !Number.isFinite(set.counts) || typeof set.pos !== 'object' || !set.pos) bad('set');
@@ -917,7 +924,7 @@ export function advance(t: number, counts: number, [lo, hi]: [number, number], l
 /** Flip performers in set i across the 50 ('x') or across the field's front-to-back center ('y'). */
 export function flip(show: Show, i: number, ids: string[], axis: 'x' | 'y'): Show {
   const pos = show.sets[i].pos, pins = show.sets[i].labels;
-  const f = (p: Point) => (axis === 'x' ? { x: -p.x, y: p.y } : { x: p.x, y: FIELD_WIDTH - p.y });
+  const depth = fieldDepth(fieldOf(show)), f = (p: Point) => (axis === 'x' ? { x: -p.x, y: p.y } : { x: p.x, y: depth - p.y });
   const moved = mapTurns(placeInSet(show, i, Object.fromEntries(ids.map((id) => [id, f(pos[id])]))), i, ids, f);
   return withPins(moved, i, Object.fromEntries(ids.filter((id) => pins?.[id]).map((id) => [id, mirrorSide(pins![id], axis)])));
 }

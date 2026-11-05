@@ -58,7 +58,7 @@ From top to bottom:
 Click **New** in the sidebar to start a show. (If you already have one open, FreeFORM asks first, and Undo brings it back.)
 
 1. **Name it.** Type the title in the box under the file buttons. It prints on every dot sheet and chart.
-2. **Pick your hash marks.** The menu under the title has **High school**, **College / DCI**, and **NFL**. FreeFORM draws the field the way drill software does, with whole-step hashes:
+2. **Pick your field.** The menu under the title has **High school**, **College / DCI**, and **NFL** for a football field, plus **Basketball court** and **Custom floor** for indoor shows (more on those just below). For a football field FreeFORM draws the field the way drill software does, with whole-step hashes:
 
    | Level | Sideline to hash / hash to hash / hash to sideline |
    |---|---|
@@ -67,7 +67,11 @@ Click **New** in the sidebar to start a show. (If you already have one open, Fre
    | NFL | 36 / 12 / 36 steps |
 
    If you change the hashes after you've written drill, FreeFORM asks whether performers should keep their places relative to the hashes (on the hash stays on the hash) or keep their exact spots on the field.
-3. **Letters or dots.** By default each performer is drawn as their section letter with their number beside it (a P with a 4). Switch the menu beside the hashes to **Dots** if you'd rather see plain dots labeled P4.
+
+   **Indoor shows.** **Basketball court** draws a 94 by 50 foot court with its lines. **Custom floor** is a plain floor or tarp: type how **Wide** and **Deep** it is in feet. Indoors, coordinates read from the center line and the nearer front or back edge, like "3 steps Side 1 of center, 2.5 steps behind Front Sideline" on a court or "… behind Front Edge" on a floor. The step grid works the same as outside. If you switch a show you've already written onto a floor, performers keep their spots in steps, and FreeFORM tells you if any end up off the floor. **Place exactly** is for football fields only for now.
+
+   ![An indoor show on a basketball court](img/court.png)
+3. **Letters or dots.** By default each performer is drawn as their section letter with their number beside it (a P with a 4). Switch the menu beside the field to **Dots** if you'd rather see plain dots labeled P4.
 4. **Check your sections.** Open **Sections** in the sidebar.
 
 ![The Sections list](img/sections.png)

@@ -28,6 +28,8 @@ describe('one palette', () => {
     expect(ratio('#111111', P.gold)).toBeGreaterThanOrEqual(4.5); // pressed toggles, selected letters
     expect(ratio('#ffffff', P.turf)).toBeGreaterThanOrEqual(4.5); // letters and numbers on the field
     expect(ratio(P['bg-deep'], P.turf)).toBeGreaterThanOrEqual(3); // normal paths
+    expect(ratio('#ffffff', P.floor)).toBeGreaterThanOrEqual(4.5); // letters and numbers on an indoor floor
+    expect(ratio(P['bg-deep'], P.floor)).toBeGreaterThanOrEqual(3); // normal paths on a floor
     expect(ratio(P.warn, P['bg-deep'])).toBeGreaterThanOrEqual(3); // warning paths against their casing
     expect(ratio(P['step-red'], P['bg-deep'])).toBeGreaterThanOrEqual(3); // (as text on panels, steps use warn/danger: STEP_TEXT)
   });

@@ -1,6 +1,6 @@
 // What goes on printed dot sheets and drill charts (pure data; layout is in Print.tsx).
 import { frontToBack, sideToSide } from '../engine/coords';
-import { equipmentIn, equipmentName, facingIn, facingName, timingOf, label, movementOfSet, setStarts, type Performer, type Show } from '../engine/show';
+import { fieldOf, equipmentIn, equipmentName, facingIn, facingName, timingOf, label, movementOfSet, setStarts, type Performer, type Show } from '../engine/show';
 
 export const ROWS_PER_CARD = 24; // what fits a quarter-letter card at a readable size
 export const ROWS_PER_PAGE = 34; // one sheet per page, at a bigger size, with a notes column
@@ -44,8 +44,8 @@ export function dotCards(show: Show, performers: Performer[], perCard = ROWS_PER
       counts: i === 0 ? '—' : String(s.counts),
       measures: s.measures ?? '',
       cue: [stepOff(show, i, p.id), faceChange(show, i, p.id), equipChange(show, i, p.id), s.cues?.[p.id]].filter(Boolean).join(' · '),
-      side: sideToSide(s.pos[p.id].x),
-      front: frontToBack(s.pos[p.id].y, show.hash),
+      side: sideToSide(s.pos[p.id].x, fieldOf(show)),
+      front: frontToBack(s.pos[p.id].y, fieldOf(show)),
     }));
     const parts = Math.max(1, Math.ceil(rows.length / perCard));
     const section = show.sections.find((s) => s.id === p.section)?.name ?? '';

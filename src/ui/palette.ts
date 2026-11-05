@@ -25,6 +25,7 @@ export const PALETTE = {
   'danger-line': '#a04848',
   blue: '#5ad1ff', // shape guides, links
   turf: '#357842',
+  floor: '#8a6a45', // an indoor floor or tarp, under white lines and labels
 } as const;
 
 export type PaletteName = keyof typeof PALETTE;
@@ -57,6 +58,7 @@ export const LIGHT: Record<PaletteName, string> = {
   'danger-line': '#c96a64',
   blue: '#075f85',
   turf: '#357842',
+  floor: '#8a6a45',
 };
 
 export type ThemeName = 'dark' | 'light';

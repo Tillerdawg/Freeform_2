@@ -2,11 +2,11 @@ import { PALETTE, useTheme } from '../ui/palette';
 import { ThemeButton } from '../ui/ThemeButton';
 // Performer / staff view: read-only playback of a shared show, centered on "my" dot. Built for phones (portrait).
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { readout, type Point } from '../engine/coords';
+import { fieldDepth, readout, type Point } from '../engine/coords';
 import { decodeShow, fetchHosted, LOAD_PREFIX, linkHash, parseHosted, SHARE_PREFIX } from '../engine/share';
 import { Scanner } from './Scanner';
 import { isPhone } from './device';
-import { colorOf, equipmentIn, propsAt, equipmentName, facingIn, facingName, facingVector, label, locate, mark, moveSteps, timingOf, parseShow, positionsAt, setAt, setStarts, showLength, type Show } from '../engine/show';
+import { colorOf, equipmentIn, fieldOf, propsAt, equipmentName, facingIn, facingName, facingVector, label, locate, mark, moveSteps, timingOf, parseShow, positionsAt, setAt, setStarts, showLength, type Show } from '../engine/show';
 import { drawField, drawGlyph, drawLabels, drawMarks, drawPerformers, drawProps, fitView, STEP_TEXT, toScreen, type View } from '../field/drawField';
 import { fmtStep } from '../ui/format';
 import { usePlayback } from '../ui/usePlayback';
@@ -166,7 +166,7 @@ export function Perform() {
 
   const me = state?.me && state.me !== STAFF ? show?.performers.find((p) => p.id === state.me) : undefined;
   // Both views zoom in as close as My view does at its max (the whole field starts much further out).
-  const maxZoom = me && state?.follow ? ZOOM_MAX : size[0] ? (ZOOM_MAX * size[0]) / FOLLOW_STEPS / fitView(size[0], size[1]).scale : ZOOM_MAX;
+  const maxZoom = me && state?.follow ? ZOOM_MAX : size[0] ? (ZOOM_MAX * size[0]) / FOLLOW_STEPS / fitView(size[0], size[1], show ? fieldOf(show) : undefined).scale : ZOOM_MAX;
   maxRef.current = maxZoom;
   const positions = useMemo(() => (show ? positionsAt(show, t) : {}), [show, t]);
   const onSet = show ? (t > starts.at(-1)! ? show.sets.length - 1 : setAt(show, t)) : -1; // past the written sets: holding on the last one
@@ -210,13 +210,14 @@ export function Perform() {
       const p = positions[me!.id], scale = (W / FOLLOW_STEPS) * zoom;
       v = { scale, ox: W / 2 - p.x * scale, oy: H / 2 + p.y * scale };
     } else {
-      const scale = fitView(W, H).scale * zoom;
-      v = { scale, ox: W / 2 - center.x * scale, oy: H / 2 + center.y * scale };
+      const scale = fitView(W, H, fieldOf(show)).scale * zoom;
+      const mid = fieldDepth(fieldOf(show)) / 2; // `center` is kept relative to a football field's middle (42): an indoor floor's middle is elsewhere
+      v = { scale, ox: W / 2 - center.x * scale, oy: H / 2 + (center.y - 42 + mid) * scale };
     }
     viewRef.current = v;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     if (state!.facingFront) ctx.setTransform(-1, 0, 0, -1, W, H); // turn the field around: front sideline at the top
-    drawField(ctx, v, show.hash);
+    drawField(ctx, v, fieldOf(show));
     drawProps(ctx, v, show.props ?? [], propsAt(show, t), null, 'screen', 12 * dpr);
     if (onSet >= 0) drawMarks(ctx, v, show.sets[onSet].marks ?? [], 'screen');
     if (!me) {
@@ -356,11 +357,11 @@ export function Perform() {
         </div>
         {me ? (
           <>
-            <p className="perform-coord"><span className="perform-k">{onSet >= 0 ? 'My spot' : 'Now'}</span> {readout(positions[me.id], show.hash)}{facingIn(show, cur, me.id) && <> · facing {facingName(facingIn(show, cur, me.id)!)}</>}{equipmentIn(show, cur, me.id) && <> · {equipmentName(equipmentIn(show, cur, me.id)!).toLowerCase()}</>}</p>
+            <p className="perform-coord"><span className="perform-k">{onSet >= 0 ? 'My spot' : 'Now'}</span> {readout(positions[me.id], fieldOf(show))}{facingIn(show, cur, me.id) && <> · facing {facingName(facingIn(show, cur, me.id)!)}</>}{equipmentIn(show, cur, me.id) && <> · {equipmentName(equipmentIn(show, cur, me.id)!).toLowerCase()}</>}</p>
             {nx && (
               <p className="perform-coord">
                 <span className="perform-k">Next: set {nx.name} in {nx.counts} cts{nx.measures ? ` (m. ${nx.measures})` : ''}</span>{' '}
-                {readout(nx.pos[me.id], show.hash)}
+                {readout(nx.pos[me.id], fieldOf(show))}
                 {steps && <span style={{ color: STEP_TEXT[steps.tier] }}> · {fmtStep(steps.per5)}</span>}
                 {(() => { const tm = timingOf(nx, me.id); return tm.move < nx.counts ? <span> · hold {tm.wait}, move {tm.move}{nx.counts - tm.wait - tm.move ? `, hold ${nx.counts - tm.wait - tm.move}` : ''}</span> : null; })()}
                 {facingIn(show, next, me.id) && facingIn(show, next, me.id) !== facingIn(show, cur, me.id) && <span> · face {facingName(facingIn(show, next, me.id)!)}</span>}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { HASHES, frontToBack, ftlPositions, readout, sideToSide, stepSize } from './coords';
+import { HASHES, frontToBack, ftlPositions, readout, sideToSide, stepSize, COURT, fieldDepth } from './coords';
 
 describe('readouts (IDEA.md examples)', () => {
   it('45" right of Side 2 45, 45" in front of front hash', () => {
@@ -68,4 +68,16 @@ describe('follow-the-leader (IDEA.md example)', () => {
     near(ftlPositions(starts, end, 8 / 16)[1], -16, h - 4);
   });
   it('E takes 16 counts left', () => near(ftlPositions(starts, end, 8 / 16)[4], -8, h));
+});
+
+describe('indoor floors', () => {
+  it('reads from the center line and the nearer front or back edge', () => {
+    expect(readout({ x: 0, y: 0 }, COURT)).toBe('On center, on Front Sideline');
+    expect(readout({ x: -3, y: 2.5 }, COURT)).toBe('3 steps Side 1 of center, 2.5 steps behind Front Sideline');
+    expect(readout({ x: 4, y: COURT.d - 1 }, COURT)).toBe('4 steps Side 2 of center, 1 step in front of Back Sideline');
+    const tarp = { kind: 'floor' as const, w: 30, d: 20 };
+    expect(readout({ x: 1, y: 10 }, tarp)).toBe('1 step Side 2 of center, 10 steps behind Front Edge'); // the middle goes to the front
+    expect(fieldDepth(tarp)).toBe(20);
+    expect(fieldDepth('college')).toBe(84);
+  });
 });

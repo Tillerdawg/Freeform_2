@@ -183,6 +183,20 @@ shot('trace', async () => {
   await page.waitForTimeout(200);
   await save(page, 'trace', { x: 0, y: 125, width: W, height: 640 });
 });
+shot('court', async () => {
+  // An indoor show on a basketball court: two arcs of guard.
+  const page = await editor();
+  await page.evaluate(async () => {
+    const { newShow, addPerformer } = await import('/src/engine/show.ts');
+    const { COURT } = await import('/src/engine/coords.ts');
+    let show = { ...newShow(), title: 'Indoor Sample', surface: COURT };
+    const g = show.sections.find((x) => x.letter === 'G').id;
+    for (let k = 0; k < 16; k++) { const a = (Math.PI * (k % 8)) / 7, r = k < 8 ? 9 : 5; show = addPerformer(show, g, { x: Math.round(-r * Math.cos(a) * 4) / 4, y: Math.round((6 + r * Math.sin(a)) * 4) / 4 }).show; }
+    localStorage.setItem('freeform:autosave', JSON.stringify(show));
+  });
+  await page.reload(); await page.waitForSelector('canvas'); await page.waitForTimeout(500);
+  await save(page, 'court', { x: 0, y: 125, width: W, height: 640 });
+});
 shot('sections', async () => {
   const page = await editor();
   const head = page.getByText('Sections', { exact: true });

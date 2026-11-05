@@ -5,10 +5,10 @@ import { RosterImport } from './RosterImport';
 import { deleteAudio, putAudio } from './audioStore';
 import { IconGrip } from './icons';
 import { Menu } from './Toolbar';
-import { HASHES, distance, readout, type HashPreset } from '../engine/coords';
+import { COURT, FEET, HASHES, distance, fieldDepth, readout, type HashPreset } from '../engine/coords';
 import type { Shape, ShapeKind } from '../engine/shapes';
 import {
-  addProp, MAX_PROPS, placeProp, removeProp, updateProp, EQUIPMENT, equipmentIn, equipmentName, setEquipment, type Equipment, FACINGS, facingIn, facingName, setFacing, type Facing, MAX_NAME, scoreOrder, setCue, setMarks, setNames, setNote, label, locate, newId, moveToSection, removeSection, duplicateLetters, renumberSection, placeInSet, remapHash, positionsAt, xFrom, yFrom,
+  fieldOf, addProp, MAX_PROPS, placeProp, removeProp, updateProp, EQUIPMENT, equipmentIn, equipmentName, setEquipment, type Equipment, FACINGS, facingIn, facingName, setFacing, type Facing, MAX_NAME, scoreOrder, setCue, setMarks, setNames, setNote, label, locate, newId, moveToSection, removeSection, duplicateLetters, renumberSection, placeInSet, remapHash, positionsAt, xFrom, yFrom,
   type FrontDir, type FrontRef, type Section, type Show, type SideDir,
 } from '../engine/show';
 import { NumberField } from './NumberField';
@@ -83,12 +83,17 @@ export function Sidebar(p: Props) {
       {p.fileError && <div role="alert" style={{ color: 'var(--danger)', marginTop: 6 }}>{p.fileError}</div>}
       <div style={{ ...row, marginBottom: 10 }}>
         <input aria-label="Show title" value={show.title} onChange={(e) => setShow((s) => ({ ...s, title: e.target.value }))} style={{ flex: 1 }} />
-        <select aria-label="Hashes" value={show.hash} onChange={(e) => {
-          const to = e.target.value as HashPreset;
-          if (show.performers.length) setPendingHash(to); // ask what should happen to the drill
-          else setShow((s) => ({ ...s, hash: to }));
+        <select aria-label="Field" title="What the show is written on: a football field (by its hashes), a basketball court, or a floor or tarp you size" value={show.surface ? show.surface.kind : show.hash} onChange={(e) => {
+          const to = e.target.value;
+          if (to === 'court') setShow((s) => ({ ...s, surface: COURT }));
+          else if (to === 'floor') setShow((s) => ({ ...s, surface: { kind: 'floor', w: Math.round(60 * FEET * 4) / 4, d: Math.round(40 * FEET * 4) / 4 } }));
+          else if (show.surface) setShow(({ surface: _, ...s }) => ({ ...s, hash: to as HashPreset })); // back outside: spots stay put
+          else if (show.performers.length) setPendingHash(to as HashPreset); // ask what should happen to the drill
+          else setShow((s) => ({ ...s, hash: to as HashPreset }));
         }}>
           {PRESETS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+          <option value="court">Basketball court</option>
+          <option value="floor">Custom floor</option>
         </select>
         <select aria-label="Draw performers as" title="On the field, printed charts, and phones: the section letter labeled with the number, or a dot labeled P4"
           value={show.symbols ?? 'letters'} onChange={(e) => setShow((s) => { const { symbols: _, ...rest } = s; return e.target.value === 'dots' ? { ...rest, symbols: 'dots' } : rest; })}>
@@ -96,6 +101,18 @@ export function Sidebar(p: Props) {
           <option value="dots">Dots</option>
         </select>
       </div>
+      {show.surface?.kind === 'floor' && (
+        <div style={{ ...row, marginTop: -4, marginBottom: 10 }}>
+          <label>Wide <NumberField aria-label="Floor width in feet" min={8} max={700} step={1} value={Math.round(show.surface.w / FEET)} style={{ width: 56 }}
+            onValue={(n) => setShow((s) => (s.surface ? { ...s, surface: { ...s.surface, w: n * FEET } } : s))} /></label>
+          <label>Deep <NumberField aria-label="Floor depth in feet" min={8} max={700} step={1} value={Math.round(show.surface.d / FEET)} style={{ width: 56 }}
+            onValue={(n) => setShow((s) => (s.surface ? { ...s, surface: { ...s.surface, d: n * FEET } } : s))} /></label>
+          <span style={{ fontSize: 12, opacity: 0.75 }}>feet</span>
+        </div>
+      )}
+      {show.surface && show.performers.some((x) => show.sets.some((st) => { const q = st.pos[x.id]; return q && (Math.abs(q.x) > show.surface!.w / 2 || q.y < 0 || q.y > show.surface!.d); })) && (
+        <p role="status" style={{ color: 'var(--warn)', fontSize: 12, margin: '-4px 0 10px' }}>Some performers are off the floor in some sets. They kept their spots in steps from the center and the front.</p>
+      )}
       {pendingHash && (
         <div role="dialog" aria-modal="true" aria-label="Change hash marks" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'grid', placeItems: 'center', zIndex: 10 }}>
           <div style={{ background: 'var(--bg)', border: '1px solid var(--line)', padding: 20, width: 420, maxWidth: 'calc(100vw - 32px)' }}>
@@ -245,12 +262,12 @@ export function Sidebar(p: Props) {
             {onSet < 0 && (
               <p style={{ margin: '8px 0 4px' }}>
                 <strong>{label(show, one)}</strong> at count {Math.round(locate(show, p.t).count * 100) / 100} of move into set {show.sets[cur].name}:<br />
-                {readout(positionsAt(show, p.t)[one.id], show.hash)}
+                {readout(positionsAt(show, p.t)[one.id], fieldOf(show))}
               </p>
             )}
             {onSet >= 0 && (
               <p style={{ margin: '8px 0 4px' }}>
-                <strong>{label(show, one)}</strong> on set {show.sets[onSet].name}:<br />{readout(show.sets[onSet].pos[one.id], show.hash)}
+                <strong>{label(show, one)}</strong> on set {show.sets[onSet].name}:<br />{readout(show.sets[onSet].pos[one.id], fieldOf(show))}
               </p>
             )}
             <details style={{ margin: '4px 0 0' }}>
@@ -258,12 +275,12 @@ export function Sidebar(p: Props) {
               <ol style={{ margin: '4px 0 0', paddingLeft: 18 }}>
                 {show.sets.map((s, i) => (
                   <li key={s.id} value={Number(s.name) || undefined} style={{ fontWeight: i === onSet ? 700 : 400, marginBottom: 2 }}>
-                    {readout(s.pos[one.id], show.hash)}
+                    {readout(s.pos[one.id], fieldOf(show))}
                   </li>
                 ))}
               </ol>
             </details>
-            {onSet >= 0 && <CoordEntry onPlace={(x, y) => setShow((s) => placeInSet(s, onSet, { [one.id]: { x, y: y(s.hash) } }))} />}
+            {onSet >= 0 && !show.surface && <CoordEntry onPlace={(x, y) => setShow((s) => placeInSet(s, onSet, { [one.id]: { x, y: y(s.hash) } }))} />}
           </>
         )}
       </section>
@@ -505,8 +522,8 @@ function PropsEditor({ show, setShow, onSet, selected, setSelected }: { show: Sh
         );
       })}
       <div style={row}>
-        <button disabled={props.length >= MAX_PROPS} onClick={() => { const r = addProp(show, `Prop ${props.length + 1}`, 8, 4, false, { x: 0, y: 42 }); setShow(() => r.show); setSelected(r.id); }}
-          title="A new prop, 8 steps wide and 4 deep, on the 50 between the hashes">+ Prop</button>
+        <button disabled={props.length >= MAX_PROPS} onClick={() => { const r = addProp(show, `Prop ${props.length + 1}`, 8, 4, false, { x: 0, y: fieldDepth(fieldOf(show)) / 2 }); setShow(() => r.show); setSelected(r.id); }}
+          title="A new prop, 8 steps wide and 4 deep, in the middle">+ Prop</button>
       </div>
     </details>
   );
@@ -520,7 +537,7 @@ function TraceEditor({ show, setShow, onTrace }: { show: Show; setShow: Props['s
     const id = tr?.id ?? newId('trace');
     if (!(await putAudio(id, f))) { setErr("This browser wouldn't save the picture (private browsing?)."); return; }
     setErr('');
-    setShow((s) => ({ ...s, trace: s.trace ? { ...s.trace, id } : { id, x: 0, y: 42, w: 40, opacity: 0.5 } }));
+    setShow((s) => ({ ...s, trace: s.trace ? { ...s.trace, id } : { id, x: 0, y: fieldDepth(fieldOf(s)) / 2, w: 40, opacity: 0.5 } }));
     onTrace();
   };
   const set = (patch: Partial<NonNullable<Show['trace']>>) => setShow((s) => (s.trace ? { ...s, trace: { ...s.trace, ...patch } } : s));
@@ -545,7 +562,7 @@ function TraceEditor({ show, setShow, onTrace }: { show: Show; setShow: Props['s
         <div style={row}>
           <label>See-through <input type="range" aria-label="Picture strength" min={10} max={100} value={Math.round(tr.opacity * 100)} onChange={(e) => set({ opacity: Number(e.target.value) / 100 })} /></label>
         </div>
-        <p style={{ fontSize: 12, opacity: 0.75, margin: '4px 0 0' }}>Across is steps from the 50 (minus toward Side 1). Up is steps from the front sideline; the front hash is {HASHES[show.hash]} up.</p>
+        <p style={{ fontSize: 12, opacity: 0.75, margin: '4px 0 0' }}>{show.surface ? 'Across is steps from the center line (minus toward Side 1). Up is steps from the front edge.' : `Across is steps from the 50 (minus toward Side 1). Up is steps from the front sideline; the front hash is ${HASHES[show.hash]} up.`}</p>
       </>}
     </details>
   );
