@@ -120,7 +120,7 @@ export const TIER_COLOR = { ok: PALETTE['bg-deep'], yellow: PALETTE.warn, red: P
 /** The same tiers as text on the dark panels (the field's bright red is too dim for text there). */
 export const STEP_TEXT = { ok: 'var(--text)', yellow: 'var(--warn)', red: 'var(--danger)' } as const;
 
-export interface Dot { id: string; label: string; at: Point; pin?: LabelSide; color?: string; glyph?: string; facing?: Point } // glyph: draw this letter instead of a dot; facing: a unit direction on the field
+export interface Dot { id: string; label: string; at: Point; pin?: LabelSide; color?: string; glyph?: string; facing?: Point; equip?: 'flag' | 'rifle' | 'saber' } // glyph: draw this letter instead of a dot; facing: a unit direction on the field
 export interface Path { from: Point; to: Point; tier: keyof typeof TIER_COLOR }
 
 /**
@@ -200,6 +200,30 @@ export function drawFacing(ctx: CanvasRenderingContext2D, v: View, at: Point, di
   ctx.fillStyle = fill; ctx.fill();
 }
 
+/** A small flag, rifle, or saber up and to the left of a mark (radius r, screen px), outlined so it reads on turf or paper. */
+export function drawEquipment(ctx: CanvasRenderingContext2D, v: View, at: Point, kind: 'flag' | 'rifle' | 'saber', r: number, color: string, edge: string) {
+  const c = toScreen(v, at), k = Math.max(5, r * 0.9), x = c.x - r - k * 0.9, y = c.y - r - k * 0.5; // the icon's center
+  const line = (pts: [number, number][], w: number) => { ctx.beginPath(); pts.forEach(([a, b], j) => (j ? ctx.lineTo(x + a * k, y + b * k) : ctx.moveTo(x + a * k, y + b * k))); ctx.lineWidth = w; ctx.stroke(); };
+  ctx.save();
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  for (const pass of [0, 1]) { // a dark (or light) edge first, then the color on top
+    ctx.strokeStyle = pass ? color : edge; ctx.fillStyle = pass ? color : edge;
+    const grow = pass ? 0 : Math.max(2, k * 0.35);
+    if (kind === 'flag') {
+      line([[-0.5, 1], [-0.5, -1]], k * 0.22 + grow);
+      ctx.beginPath(); ctx.moveTo(x - 0.5 * k, y - k); ctx.lineTo(x + 0.9 * k, y - 0.55 * k); ctx.lineTo(x - 0.5 * k, y - 0.1 * k); ctx.closePath();
+      if (!pass) { ctx.lineWidth = grow; ctx.stroke(); } else ctx.fill();
+    } else if (kind === 'rifle') {
+      line([[-0.8, 0.8], [0.8, -0.8]], k * 0.32 + grow);
+      line([[-0.8, 0.8], [-0.45, 1.05]], k * 0.5 + grow); // the stock
+    } else {
+      line([[-0.7, 0.9], [0.9, -0.9]], k * 0.14 + grow);
+      line([[-0.6, 0.5], [-0.25, 0.85]], k * 0.22 + grow); // the guard
+    }
+  }
+  ctx.restore();
+}
+
 /** Performers, their incoming paths, and an optional selection box. */
 export function drawPerformers(
   ctx: CanvasRenderingContext2D, v: View, dots: Dot[], selected: Set<string>, paths: Path[], box?: [Point, Point], dpr = 1,
@@ -222,6 +246,7 @@ export function drawPerformers(
 
   const letters = dots.some((d) => d.glyph), f = Math.max(11 * dpr, s * 1.2); // letter height
   const r = letters ? f * 0.45 : Math.max(4, s * 0.45);
+  for (const d of dots) if (d.equip) drawEquipment(ctx, v, d.at, d.equip, r, selected.has(d.id) ? PALETTE.gold : '#fff', 'rgba(0,0,0,0.85)');
   for (const d of dots) if (d.facing) drawFacing(ctx, v, d.at, d.facing, r, selected.has(d.id) ? PALETTE.gold : '#fff', 'rgba(0,0,0,0.85)');
   for (const d of dots) {
     const c = toScreen(v, d.at);

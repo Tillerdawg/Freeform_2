@@ -1088,3 +1088,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Context:** Writers need to say "horns to the box" or "face Side 2" per set, not only in a typed note.
 - **Options:** Eight directions or any angle (Jason: eight). Store a facing in every set, or only where it changes.
 - **Decision:** Stored only where it changes and carried forward (like a hold), named from the field: Front (toward the front sideline), Back, Side 1, Side 2, and the four diagonals. Shown as a small pointer beside the dot on the field, printed charts, and phones, sized up from the dot so it reads at full-field zoom. Mid-move, performers show the facing of the set they left (they usually turn at the end). Dot sheets add "Face Side 2" to the set's note line where it changes; the phone shows the current facing and "face …" for the next set when it changes. Flips and Copy Side 1 → 2 leave facings alone: flipping a company front front to back shouldn't turn everyone around. The sample show's guard faces Side 2 from set 2.
+
+## 2026-11-05 15:55 EST — Guard equipment
+- **Who:** Jason Tiller asked for flag, rifle, and saber marks; the details are Claude's *(Jason can veto)*.
+- **Context:** Guard members switch equipment during a show (flags in the opener, rifles in the ballad), so a fixed mark per performer isn't enough.
+- **Options:** One piece of equipment per performer for the whole show; or per set, carried forward like facing.
+- **Decision:** Per set, carried forward, with **Nothing** to put it down. Drawn as a small outlined icon (a pennant, a thick bar with a stock, a thin blade with a guard) up and to the left of the dot, so it doesn't sit where the facing pointer goes. Dot sheets note "Flag" or "Put down equipment" where it changes, and the phone says "pick up …" for the next set. Any performer can carry equipment, not only the guard section. The sample show's guard carries flags.

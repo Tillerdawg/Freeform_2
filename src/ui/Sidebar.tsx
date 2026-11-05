@@ -7,7 +7,7 @@ import { Menu } from './Toolbar';
 import { distance, readout, type HashPreset } from '../engine/coords';
 import type { Shape, ShapeKind } from '../engine/shapes';
 import {
-  FACINGS, facingIn, facingName, setFacing, type Facing, MAX_NAME, scoreOrder, setCue, setMarks, setNames, setNote, label, locate, newId, moveToSection, removeSection, duplicateLetters, renumberSection, placeInSet, remapHash, positionsAt, xFrom, yFrom,
+  EQUIPMENT, equipmentIn, equipmentName, setEquipment, type Equipment, FACINGS, facingIn, facingName, setFacing, type Facing, MAX_NAME, scoreOrder, setCue, setMarks, setNames, setNote, label, locate, newId, moveToSection, removeSection, duplicateLetters, renumberSection, placeInSet, remapHash, positionsAt, xFrom, yFrom,
   type FrontDir, type FrontRef, type Section, type Show, type SideDir,
 } from '../engine/show';
 import { NumberField } from './NumberField';
@@ -179,6 +179,23 @@ export function Sidebar(p: Props) {
                 {own.size > 1 && <option value="mixed" disabled>Mixed</option>}
                 <option value="">{onSet === 0 ? 'Not set' : carried === 'mixed' ? 'As in the set before (mixed)' : carried ? `As in the set before (${facingName(carried as Facing)})` : 'Not set'}</option>
                 {FACINGS.map(([k, name]) => <option key={k} value={k}>{name}</option>)}
+              </select>
+            </label>
+          );
+        })()}
+        {selected.size > 0 && onSet >= 0 && (() => {
+          // Equipment set here, or carried on from an earlier set ('' = carried on).
+          const own = new Set(ids.map((id) => show.sets[onSet].equipment?.[id] ?? ''));
+          const before = new Set(ids.map((id) => (onSet ? equipmentIn(show, onSet - 1, id) ?? 'none' : 'none')));
+          const carried = before.size === 1 ? [...before][0] : 'mixed';
+          return (
+            <label style={{ display: 'block', marginTop: 8 }} title="A flag, rifle, or saber they carry from this set on, until you change it">Carries{' '}
+              <select aria-label="Equipment of selected performers" value={own.size === 1 ? [...own][0] : 'mixed'}
+                onChange={(e) => e.target.value !== 'mixed' && setShow((s) => setEquipment(s, onSet, ids, (e.target.value || null) as Equipment | 'none' | null))}>
+                {own.size > 1 && <option value="mixed" disabled>Mixed</option>}
+                {onSet > 0 && <option value="">{carried === 'mixed' ? 'As in the set before (mixed)' : `As in the set before (${carried === 'none' ? 'nothing' : equipmentName(carried as Equipment).toLowerCase()})`}</option>}
+                <option value={onSet > 0 ? 'none' : ''}>Nothing</option>
+                {EQUIPMENT.map(([k, name]) => <option key={k} value={k}>{name}</option>)}
               </select>
             </label>
           );

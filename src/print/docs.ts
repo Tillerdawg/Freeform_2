@@ -1,6 +1,6 @@
 // What goes on printed dot sheets and drill charts (pure data; layout is in Print.tsx).
 import { frontToBack, sideToSide } from '../engine/coords';
-import { facingIn, facingName, label, movementOfSet, setStarts, type Performer, type Show } from '../engine/show';
+import { equipmentIn, equipmentName, facingIn, facingName, label, movementOfSet, setStarts, type Performer, type Show } from '../engine/show';
 
 export const ROWS_PER_CARD = 24; // what fits a quarter-letter card at a readable size
 
@@ -21,6 +21,12 @@ function faceChange(show: Show, i: number, id: string): string {
   return f && f !== (i ? facingIn(show, i - 1, id) : undefined) ? `Face ${facingName(f)}` : '';
 }
 
+/** "Flag" (or "Put down equipment") on the set where what a performer carries changes. */
+function equipChange(show: Show, i: number, id: string): string {
+  const e = equipmentIn(show, i, id), was = i ? equipmentIn(show, i - 1, id) : undefined;
+  return e === was ? '' : e ? equipmentName(e) : 'Put down equipment';
+}
+
 /** One or more cards per performer (long shows continue onto another card). */
 export function dotCards(show: Show, performers: Performer[]): Card[] {
   const cards: Card[] = [];
@@ -29,7 +35,7 @@ export function dotCards(show: Show, performers: Performer[]): Card[] {
       set: s.name,
       counts: i === 0 ? '—' : String(s.counts),
       measures: s.measures ?? '',
-      cue: [faceChange(show, i, p.id), s.cues?.[p.id]].filter(Boolean).join(' · '),
+      cue: [faceChange(show, i, p.id), equipChange(show, i, p.id), s.cues?.[p.id]].filter(Boolean).join(' · '),
       side: sideToSide(s.pos[p.id].x),
       front: frontToBack(s.pos[p.id].y, show.hash),
     }));

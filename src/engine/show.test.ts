@@ -3,7 +3,7 @@ import { HASHES, readout } from './coords';
 import {
   addPerformer, addSetAfter, advance, biggestStep, chainOrder, clearFtl, ftlTrail, moveSteps, normalizeFtl, flip, mirrorSides, moveSetTo, remapHash, rotateScale, setFtl, snapSelection, playRange, playPlan, label, locate, newShow, parseShow, placeInSet, positionsAt,
   removePerformers, renumberSets, scoreOrder, DEFAULT_SECTIONS, removeSet, setAt, setCounts, setStarts, totalCounts, xFrom, yFrom, insertSetAt, showLength, movementAt, movementOfSet, setFtlTurns,
-  setTiming, timingOf, fitTurn, setTurning, turnRoute, counterMarch, closeCalls, facingIn, setFacing, facingVector,
+  setTiming, timingOf, fitTurn, setTurning, turnRoute, counterMarch, closeCalls, facingIn, setFacing, facingVector, equipmentIn, setEquipment,
 } from './show';
 
 function twoSetShow() {
@@ -697,5 +697,18 @@ describe('facing', () => {
     const bad = JSON.parse(JSON.stringify(show)); bad.sets[2].facing[id] = 'up';
     expect(() => parseShow(JSON.stringify(bad))).toThrow(/facing/);
     expect(removePerformers(show, new Set([id])).sets[2].facing).toEqual({});
+  });
+});
+
+describe('equipment', () => {
+  it('carries forward, can be put down, and checks files', () => {
+    let { show, id } = twoSetShow();
+    show = addSetAfter(show, 1, 8);
+    show = setEquipment(setEquipment(show, 0, [id], 'flag'), 2, [id], 'none');
+    expect([0, 1, 2].map((i) => equipmentIn(show, i, id))).toEqual(['flag', 'flag', undefined]);
+    expect(equipmentIn(setEquipment(show, 2, [id], null), 2, id)).toBe('flag');
+    const bad = JSON.parse(JSON.stringify(show)); bad.sets[0].equipment[id] = 'tuba';
+    expect(() => parseShow(JSON.stringify(bad))).toThrow(/equipment/);
+    expect(parseShow(JSON.stringify(show)).sets[2].equipment).toEqual({ [id]: 'none' });
   });
 });

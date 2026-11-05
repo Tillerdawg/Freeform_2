@@ -4,7 +4,7 @@ import { emptyHistory, record, redo, undo } from './engine/history';
 import { addInk, hitMark, moveMark, type Mark } from './engine/marks';
 import { assign, fitShape, isControl, moveHandle, samplePath, slots, type Shape, type ShapeKind } from './engine/shapes';
 import { colorOf,
-  addPerformer, ftlTrail, setFtlTurns, locate, label, mark, newId, pathFits, setMarks, moveSteps, groupTurn, turnRoute, facingIn, facingVector, normalizeFtl, snapPoint, playRange, newShow, parseShow, placeInSet, positionsAt, removePerformers,
+  addPerformer, ftlTrail, setFtlTurns, locate, label, mark, newId, pathFits, setMarks, moveSteps, groupTurn, turnRoute, facingIn, facingVector, equipmentIn, normalizeFtl, snapPoint, playRange, newShow, parseShow, placeInSet, positionsAt, removePerformers,
   rotateScale, setAt, setStarts, type Show,
   showLength,
 } from './engine/show';
@@ -247,7 +247,7 @@ export function App() {
     const pins = onSet >= 0 ? show.sets[onSet].labels : undefined;
     const shown = !playing; // labels jump around as dots move; selected performers keep theirs either way
     const faceSet = onSet >= 0 ? onSet : Math.max(0, locate(show, t).to - 1); // mid-move: they face as they did in the set they left
-    const dots = show.performers.filter((p) => positions[p.id]).map((p) => { const m = mark(show, p), f = facingIn(show, faceSet, p.id); return { id: p.id, label: shown || selected.has(p.id) ? m.label : '', glyph: m.glyph, at: positions[p.id], pin: pins?.[p.id], color: colorOf(show, p), facing: f && facingVector(f) }; });
+    const dots = show.performers.filter((p) => positions[p.id]).map((p) => { const m = mark(show, p), f = facingIn(show, faceSet, p.id); return { id: p.id, label: shown || selected.has(p.id) ? m.label : '', glyph: m.glyph, at: positions[p.id], pin: pins?.[p.id], color: colorOf(show, p), facing: f && facingVector(f), equip: equipmentIn(show, faceSet, p.id) }; });
     if (onSet >= 0) drawMarks(ctx, view, show.sets[onSet].marks ?? [], 'screen', selectedMark);
     drawPerformers(ctx, view, dots, selected, paths, box, dpr);
     if (ftlGroup?.turns) drawShape(ctx, view, [], false, ftlGroup.turns); // the selected FTL group's turns: drag to move

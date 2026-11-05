@@ -6,7 +6,7 @@ import { readout, type Point } from '../engine/coords';
 import { decodeShow, fetchHosted, LOAD_PREFIX, linkHash, parseHosted, SHARE_PREFIX } from '../engine/share';
 import { Scanner } from './Scanner';
 import { isPhone } from './device';
-import { colorOf, facingIn, facingName, facingVector, label, locate, mark, moveSteps, timingOf, parseShow, positionsAt, setAt, setStarts, showLength, type Show } from '../engine/show';
+import { colorOf, equipmentIn, equipmentName, facingIn, facingName, facingVector, label, locate, mark, moveSteps, timingOf, parseShow, positionsAt, setAt, setStarts, showLength, type Show } from '../engine/show';
 import { drawField, drawGlyph, drawLabels, drawMarks, drawPerformers, fitView, STEP_TEXT, toScreen, type View } from '../field/drawField';
 import { fmtStep } from '../ui/format';
 import { usePlayback } from '../ui/usePlayback';
@@ -221,7 +221,7 @@ export function Perform() {
     if (!me) {
       const shown = !playing; // labels would jump around as dots move
       const faceSet = onSet >= 0 ? onSet : Math.max(0, locate(show, t).to - 1); // mid-move: as they faced in the set they left
-      drawPerformers(ctx, v, show.performers.filter((p) => positions[p.id]).map((p) => { const m = mark(show, p), f = facingIn(show, faceSet, p.id); return { id: p.id, label: shown ? m.label : '', glyph: m.glyph, at: positions[p.id], pin: onSet >= 0 ? show.sets[onSet].labels?.[p.id] : undefined, color: colorOf(show, p), facing: f && facingVector(f) }; }), new Set(), [], undefined, dpr);
+      drawPerformers(ctx, v, show.performers.filter((p) => positions[p.id]).map((p) => { const m = mark(show, p), f = facingIn(show, faceSet, p.id); return { id: p.id, label: shown ? m.label : '', glyph: m.glyph, at: positions[p.id], pin: onSet >= 0 ? show.sets[onSet].labels?.[p.id] : undefined, color: colorOf(show, p), facing: f && facingVector(f), equip: equipmentIn(show, faceSet, p.id) }; }), new Set(), [], undefined, dpr);
     } else {
       const s = v.scale, letters = show.symbols !== 'dots', f = Math.max(11 * dpr, s * 1.1); // letter height, as in the staff view
       const glyph = (id: string) => mark(show, show.performers.find((x) => x.id === id)!).glyph!;
@@ -355,7 +355,7 @@ export function Perform() {
         </div>
         {me ? (
           <>
-            <p className="perform-coord"><span className="perform-k">{onSet >= 0 ? 'My spot' : 'Now'}</span> {readout(positions[me.id], show.hash)}{facingIn(show, cur, me.id) && <> · facing {facingName(facingIn(show, cur, me.id)!)}</>}</p>
+            <p className="perform-coord"><span className="perform-k">{onSet >= 0 ? 'My spot' : 'Now'}</span> {readout(positions[me.id], show.hash)}{facingIn(show, cur, me.id) && <> · facing {facingName(facingIn(show, cur, me.id)!)}</>}{equipmentIn(show, cur, me.id) && <> · {equipmentName(equipmentIn(show, cur, me.id)!).toLowerCase()}</>}</p>
             {nx && (
               <p className="perform-coord">
                 <span className="perform-k">Next: set {nx.name} in {nx.counts} cts{nx.measures ? ` (m. ${nx.measures})` : ''}</span>{' '}
@@ -363,6 +363,7 @@ export function Perform() {
                 {steps && <span style={{ color: STEP_TEXT[steps.tier] }}> · {fmtStep(steps.per5)}</span>}
                 {(() => { const tm = timingOf(nx, me.id); return tm.move < nx.counts ? <span> · hold {tm.wait}, move {tm.move}{nx.counts - tm.wait - tm.move ? `, hold ${nx.counts - tm.wait - tm.move}` : ''}</span> : null; })()}
                 {facingIn(show, next, me.id) && facingIn(show, next, me.id) !== facingIn(show, cur, me.id) && <span> · face {facingName(facingIn(show, next, me.id)!)}</span>}
+                {equipmentIn(show, next, me.id) !== equipmentIn(show, cur, me.id) && <span> · {equipmentIn(show, next, me.id) ? `pick up ${equipmentName(equipmentIn(show, next, me.id)!).toLowerCase()}` : 'put down equipment'}</span>}
               </p>
             )}
             {around.length > 0 && (

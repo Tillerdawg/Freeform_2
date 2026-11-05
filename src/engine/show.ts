@@ -59,7 +59,26 @@ export interface DrillSet {
   turning?: string[][];
   /** Which way performers face in this set, where it changes; a performer keeps facing that way in later sets until it changes again. */
   facing?: Record<string, Facing>;
+  /** Equipment performers carry from this set on, where it changes ('none' = they put it down); carried forward like facing. */
+  equipment?: Record<string, Equipment | 'none'>;
 }
+
+export type Equipment = 'flag' | 'rifle' | 'saber';
+export const EQUIPMENT: [Equipment, string][] = [['flag', 'Flag'], ['rifle', 'Rifle'], ['saber', 'Saber']];
+export const equipmentName = (e: Equipment) => EQUIPMENT.find(([k]) => k === e)![1];
+
+/** What a performer carries in set i (the last set up to i that says), or undefined for nothing. */
+export function equipmentIn(show: Show, i: number, id: string): Equipment | undefined {
+  for (let j = Math.min(i, show.sets.length - 1); j >= 0; j--) { const e = show.sets[j].equipment?.[id]; if (e) return e === 'none' ? undefined : e; }
+}
+
+/** These performers carry `e` ('none' = nothing) from set i on; null goes back to whatever the set before had. */
+export const setEquipment = (show: Show, i: number, ids: string[], e: Equipment | 'none' | null): Show =>
+  mapSet(show, i, (s) => {
+    const equipment = { ...s.equipment };
+    for (const id of ids) { if (e) equipment[id] = e; else delete equipment[id]; }
+    return { ...s, equipment: Object.keys(equipment).length ? equipment : undefined };
+  });
 
 /** Eight ways to face, named from the field: Front is toward the front sideline (the box), Side 2 toward Side 2. */
 export type Facing = 'front' | 'back' | 'side1' | 'side2' | 'front-side1' | 'front-side2' | 'back-side1' | 'back-side2';
@@ -241,6 +260,7 @@ export function removePerformers(show: Show, ids: Set<string>): Show {
       labels: s.labels && Object.fromEntries(Object.entries(s.labels).filter(([k]) => !ids.has(k))),
       timing: s.timing && Object.fromEntries(Object.entries(s.timing).filter(([k]) => !ids.has(k))),
       facing: s.facing && Object.fromEntries(Object.entries(s.facing).filter(([k]) => !ids.has(k))),
+      equipment: s.equipment && Object.fromEntries(Object.entries(s.equipment).filter(([k]) => !ids.has(k))),
       turning: s.turning?.map((g) => g.filter((id) => !ids.has(id))).filter((g) => g.length > 1),
     })),
   };
@@ -745,6 +765,8 @@ export function parseShow(text: string): Show {
       Array.isArray(g) && g.length >= 2 && g.every((id) => str(id) && id in set.pos)))) bad('set turning');
     if (set.facing !== undefined && (typeof set.facing !== 'object' || !set.facing || !Object.entries(set.facing).every(([id, f]) =>
       id in set.pos && FACINGS.some(([k]) => k === f)))) bad('set facing');
+    if (set.equipment !== undefined && (typeof set.equipment !== 'object' || !set.equipment || !Object.entries(set.equipment).every(([id, e]) =>
+      id in set.pos && (e === 'none' || EQUIPMENT.some(([k]) => k === e))))) bad('set equipment');
   }
   return normalizeFtl(s as Show);
 }

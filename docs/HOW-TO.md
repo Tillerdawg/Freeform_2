@@ -18,7 +18,7 @@ The pictures in this guide come from a small sample show (47 performers, 4 sets)
 8. [Rotate, stretch, and flip](#rotate-stretch-and-flip)
 9. [Follow-the-leader](#follow-the-leader)
 10. [Step-offs and turning moves](#step-offs-and-turning-moves)
-11. [Facing](#facing)
+11. [Facing and equipment](#facing-and-equipment)
 12. [Step-size and too-close warnings](#step-size-and-too-close-warnings)
 13. [Dot labels](#dot-labels)
 14. [Markup and notes](#markup-and-notes)
@@ -227,13 +227,15 @@ The **Move** menu (in the toolbar) is about the move into the set you're on.
 
 A delayed step-off and a turning move work together: hold 4, then turn in 12, for example.
 
-## Facing
+## Facing and equipment
 
 Select performers, go to a set, and pick which way they face from **Facing** in the sidebar's Selection area: **Front**, **Back**, **Side 1**, **Side 2**, or one of the four diagonals (**Front-Side 2** and so on). Front is toward the front sideline, where the box is.
 
 A small pointer beside each dot shows which way it faces, on the field, on printed charts, and on phones. A facing carries on into later sets until you change it, so you only set it where it changes. **As in the set before** takes back a change. Performers you never set have no pointer.
 
 Dot sheets say "Face Side 2" on the set where a performer's facing changes, and the phone view shows "facing Side 2" with their spot and "face Back" with their next set when it's about to change.
+
+**Guard equipment.** **Carries** (just under **Facing**) works the same way: pick **Flag**, **Rifle**, or **Saber** on the set where they pick it up, and **Nothing** where they put it down. A small flag, rifle, or saber shows beside each dot that carries one, on the field, on printed charts, and on phones. Dot sheets say "Flag" or "Put down equipment" on the set where it changes, and the phone says "pick up rifle" with the next set.
 
 ## Step-size and too-close warnings
 
