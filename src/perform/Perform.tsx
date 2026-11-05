@@ -389,10 +389,6 @@ export function Perform() {
           <p className="perform-note">Pick who you are above to see your spot.</p>
         )}
         {s.note && <p className="perform-note"><span className="perform-k">Ensemble</span> {s.note}</p>}
-        <details style={{ marginTop: 10, fontSize: 14 }}>
-          <summary>Open a different show</summary>
-          <PasteLink />
-        </details>
       </section>
       <footer className="perform-controls">
         <div className="perform-sets" data-more={more} ref={setStrip} onScroll={checkMore} role="group" aria-label="Go to set">

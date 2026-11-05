@@ -1144,3 +1144,7 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Who:** Jason Tiller reported it: with a show open and one performer selected, **Performer view** showed the "open the show link your director sent you" screen. The fix is Claude's *(Jason can veto)*.
 - **Context:** The button opened the phone screen (`#perform`), which only knows a show saved from a link.
 - **Decision:** It opens `#perform-editor=<performer>`: the editor's own show (its autosave), starting on the selected performer, or on Staff (the whole band) with none selected. It's a preview: nothing is saved to the device's performer storage, so a show a student opened from a link on the same device stays. With no readable show in the editor, it falls back to the old screen.
+
+## 2026-11-05 19:35 EST — No "Open a different show" on the performer screen
+- **Who:** Jason Tiller: performers don't need it.
+- **Decision:** Removed from the screen with a show open. The paste box and **Scan QR code** stay on the empty screen, where a phone opens its first show. Hosted links still update themselves. Trade-off: a student using the home-screen app can't switch it to a different show from inside the app once one is open.
