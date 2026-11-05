@@ -1093,7 +1093,7 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Who:** Jason Tiller asked for flag, rifle, and saber marks; the details are Claude's *(Jason can veto)*.
 - **Context:** Guard members switch equipment during a show (flags in the opener, rifles in the ballad), so a fixed mark per performer isn't enough.
 - **Options:** One piece of equipment per performer for the whole show; or per set, carried forward like facing.
-- **Decision:** Per set, carried forward, with **Nothing** to put it down. Drawn as a small outlined icon (a pennant, a thick bar with a stock, a thin blade with a guard) up and to the left of the dot, so it doesn't sit where the facing pointer goes. Dot sheets note "Flag" or "Put down equipment" where it changes, and the phone says "pick up …" for the next set. Any performer can carry equipment, not only the guard section. The sample show's guard carries flags.
+- **Decision:** Per set, carried forward, with **Nothing** to put it down. Drawn as a small outlined icon (a pennant; a rifle outline with a thin barrel and a flat, wedge-shaped stock, redrawn at Jason's request because the first version's rounded ends read badly; a thin blade with a guard) up and to the left of the dot, so it doesn't sit where the facing pointer goes. Dot sheets note "Flag" or "Put down equipment" where it changes, and the phone says "pick up …" for the next set. Any performer can carry equipment, not only the guard section. The sample show's guard carries flags.
 
 ## 2026-11-05 16:20 EST — Props
 - **Who:** Jason Tiller chose movable props; the details are Claude's *(Jason can veto)*.

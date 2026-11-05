@@ -214,8 +214,14 @@ export function drawEquipment(ctx: CanvasRenderingContext2D, v: View, at: Point,
       ctx.beginPath(); ctx.moveTo(x - 0.5 * k, y - k); ctx.lineTo(x + 0.9 * k, y - 0.55 * k); ctx.lineTo(x - 0.5 * k, y - 0.1 * k); ctx.closePath();
       if (!pass) { ctx.lineWidth = grow; ctx.stroke(); } else ctx.fill();
     } else if (kind === 'rifle') {
-      line([[-0.8, 0.8], [0.8, -0.8]], k * 0.32 + grow);
-      line([[-0.8, 0.8], [-0.45, 1.05]], k * 0.5 + grow); // the stock
+      // A rifle's outline along the diagonal: a thin barrel, then a stock that widens to a flat, slanted butt. Square
+      // corners everywhere (round ends made it read as something else).
+      const u = Math.SQRT1_2, at = (a: number, n: number): [number, number] => [x + (a + n) * u * k, y + (n - a) * u * k]; // a: along the gun, n: across it
+      const outline = [at(1.3, -0.06), at(-0.2, -0.06), at(-0.35, -0.16), at(-1.3, -0.3), at(-1.2, 0.2), at(-0.2, 0.06), at(1.3, 0.06)];
+      ctx.beginPath(); outline.forEach(([px, py], j) => (j ? ctx.lineTo(px, py) : ctx.moveTo(px, py))); ctx.closePath();
+      ctx.lineJoin = 'miter'; ctx.lineCap = 'butt';
+      if (!pass) { ctx.lineWidth = grow; ctx.stroke(); } else ctx.fill();
+      ctx.lineJoin = 'round'; ctx.lineCap = 'round';
     } else {
       line([[-0.7, 0.9], [0.9, -0.9]], k * 0.14 + grow);
       line([[-0.6, 0.5], [-0.25, 0.85]], k * 0.22 + grow); // the guard
