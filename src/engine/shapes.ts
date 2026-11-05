@@ -1,7 +1,7 @@
 // Shape tools: lay selected performers out along a line, arc, curve, circle, polygon, star, spiral, or block. All units are steps.
 import { distance, type Point } from './coords';
 
-export type ShapeKind = 'line' | 'arc' | 'curve' | 'bezier' | 'circle' | 'polygon' | 'star' | 'spiral' | 'block';
+export type ShapeKind = 'line' | 'arc' | 'curve' | 'bezier' | 'circle' | 'polygon' | 'star' | 'spiral' | 'block' | 'text';
 /**
  * Handles by kind: line [a, b]; arc [a, bend, b] (the arc passes through all three);
  * curve [p0..pn] (smooth curve through every point); circle [center, edge]; block [corner, opposite corner];
@@ -10,8 +10,9 @@ export type ShapeKind = 'line' | 'arc' | 'curve' | 'bezier' | 'circle' | 'polygo
  * spiral [center, outer end]: `turns` coils, counterclockwise going out (clockwise when `turns` is negative);
  * bezier [anchor, control, control, anchor, control, control, anchor, ...]: cubic segments that pass through the
  * anchors and are pulled toward (not through) the controls.
+ * text [one corner, the opposite corner]: the letters of `text` fill the box between them.
  */
-export interface Shape { kind: ShapeKind; handles: Point[]; interval: number | null; cols: number; turns?: number; sides?: number }
+export interface Shape { kind: ShapeKind; handles: Point[]; interval: number | null; cols: number; turns?: number; sides?: number; text?: string }
 
 /** Distance between neighboring coils of a spiral, in steps. */
 export const coilGap = (s: Shape) => distance(s.handles[0], s.handles[1]) / Math.max(0.25, Math.abs(s.turns ?? 2));
@@ -105,9 +106,102 @@ function along(pts: Point[], cum: number[], s: number): Point {
   return seg === 0 ? pts[i] : lerp(pts[i - 1], pts[i], (s - cum[i - 1]) / seg);
 }
 
+// ---- Text: block capitals drawn as strokes on a grid 4 wide and 6 tall (y up), spelled with performers.
+
+const O = [[1, 0], [0, 1], [0, 5], [1, 6], [3, 6], [4, 5], [4, 1], [3, 0], [1, 0]];
+const P = [[0, 0], [0, 6], [3, 6], [4, 5], [4, 4], [3, 3], [0, 3]];
+/** Each character's strokes; every stroke is a line performers stand along. Written for FreeFORM. */
+export const GLYPHS: Record<string, number[][][]> = {
+  A: [[[0, 0], [2, 6], [4, 0]], [[1, 3], [3, 3]]],
+  B: [[[0, 3], [3, 3], [4, 4], [4, 5], [3, 6], [0, 6], [0, 0], [3, 0], [4, 1], [4, 2], [3, 3]]],
+  C: [[[4, 5], [3, 6], [1, 6], [0, 5], [0, 1], [1, 0], [3, 0], [4, 1]]],
+  D: [[[0, 0], [0, 6], [2, 6], [4, 4], [4, 2], [2, 0], [0, 0]]],
+  E: [[[4, 6], [0, 6], [0, 0], [4, 0]], [[0, 3], [3, 3]]],
+  F: [[[4, 6], [0, 6], [0, 0]], [[0, 3], [3, 3]]],
+  G: [[[4, 5], [3, 6], [1, 6], [0, 5], [0, 1], [1, 0], [3, 0], [4, 1], [4, 3], [2, 3]]],
+  H: [[[0, 0], [0, 6]], [[4, 0], [4, 6]], [[0, 3], [4, 3]]],
+  I: [[[1, 6], [3, 6]], [[2, 6], [2, 0]], [[1, 0], [3, 0]]],
+  J: [[[4, 6], [4, 1], [3, 0], [1, 0], [0, 1]]],
+  K: [[[0, 0], [0, 6]], [[4, 6], [0, 2]], [[1.5, 3.5], [4, 0]]],
+  L: [[[0, 6], [0, 0], [4, 0]]],
+  M: [[[0, 0], [0, 6], [2, 3], [4, 6], [4, 0]]],
+  N: [[[0, 0], [0, 6], [4, 0], [4, 6]]],
+  O: [O],
+  P: [P],
+  Q: [O, [[2.5, 1.5], [4.5, -0.5]]],
+  R: [P, [[2, 3], [4, 0]]],
+  S: [[[4, 5], [3, 6], [1, 6], [0, 5], [0, 4], [1, 3], [3, 3], [4, 2], [4, 1], [3, 0], [1, 0], [0, 1]]],
+  T: [[[0, 6], [4, 6]], [[2, 6], [2, 0]]],
+  U: [[[0, 6], [0, 1], [1, 0], [3, 0], [4, 1], [4, 6]]],
+  V: [[[0, 6], [2, 0], [4, 6]]],
+  W: [[[0, 6], [1, 0], [2, 4], [3, 0], [4, 6]]],
+  X: [[[0, 6], [4, 0]], [[4, 6], [0, 0]]],
+  Y: [[[0, 6], [2, 3], [4, 6]], [[2, 3], [2, 0]]],
+  Z: [[[0, 6], [4, 6], [0, 0], [4, 0]]],
+  0: [O],
+  1: [[[1, 5], [2, 6], [2, 0]], [[1, 0], [3, 0]]],
+  2: [[[0, 5], [1, 6], [3, 6], [4, 5], [4, 4], [0, 0], [4, 0]]],
+  3: [[[0, 5], [1, 6], [3, 6], [4, 5], [4, 4], [3, 3], [4, 2], [4, 1], [3, 0], [1, 0], [0, 1]], [[1.5, 3], [3, 3]]],
+  4: [[[3, 0], [3, 6], [0, 2], [4, 2]]],
+  5: [[[4, 6], [0, 6], [0, 3], [3, 3], [4, 2], [4, 1], [3, 0], [0, 0]]],
+  6: [[[4, 5], [3, 6], [1, 6], [0, 5], [0, 1], [1, 0], [3, 0], [4, 1], [4, 2], [3, 3], [0, 3]]],
+  7: [[[0, 6], [4, 6], [1, 0]]],
+  8: [[[1, 3], [0, 4], [0, 5], [1, 6], [3, 6], [4, 5], [4, 4], [3, 3], [1, 3], [0, 2], [0, 1], [1, 0], [3, 0], [4, 1], [4, 2], [3, 3]]],
+  9: [[[0, 1], [1, 0], [3, 0], [4, 1], [4, 5], [3, 6], [1, 6], [0, 5], [0, 4], [1, 3], [4, 3]]],
+  '-': [[[1, 3], [3, 3]]],
+};
+const ADVANCE = 5, SPACE = 3; // a letter is 4 wide with 1 between letters; a space adds 3
+
+/** The text a text shape can spell: capitals, digits, hyphens, and spaces (anything else is dropped). */
+export const cleanText = (t: string) => t.toUpperCase().replace(/[^A-Z0-9 -]/g, '').replace(/ +/g, ' ').trim().slice(0, 40);
+
+/** How wide the text is on the letters' grid (6 tall). */
+const textWidth = (text: string) => Math.max(1, [...cleanText(text)].reduce((x, ch) => x + (ch === ' ' ? SPACE : ADVANCE), 0) - (ADVANCE - 4));
+
+/** The text box made as wide as its letters need at its height, so they keep their shape (it grows from the first handle). */
+export function fitText(s: Shape): Shape {
+  const [a, b] = s.handles, h = Math.abs(b.y - a.y) || 16, w = (h * textWidth(s.text ?? '')) / 6;
+  return { ...s, handles: [a, { x: a.x + (b.x >= a.x ? w : -w), y: b.y }] };
+}
+
+/** A text shape's strokes on the field: the letters stretched to fill the box between its two handles. */
+export function textStrokes(s: Shape): Point[][] {
+  const text = cleanText(s.text ?? '');
+  let x = 0;
+  const laid: number[][][] = [];
+  for (const ch of text) {
+    if (ch === ' ') { x += SPACE; continue; }
+    for (const st of GLYPHS[ch]) laid.push(st.map(([u, v]) => [u + x, v]));
+    x += ADVANCE;
+  }
+  const width = textWidth(text), [a, b] = s.handles;
+  const x0 = Math.min(a.x, b.x), y0 = Math.min(a.y, b.y), kx = Math.abs(b.x - a.x) / width, ky = Math.abs(b.y - a.y) / 6;
+  return laid.map((st) => st.map(([u, v]) => ({ x: x0 + u * kx, y: y0 + v * ky })));
+}
+
+/**
+ * Spots spelling the text: shared out over the strokes by length (largest remainder), each stroke's spots spread
+ * evenly from end to end, so long strokes get more performers and every letter reaches its corners.
+ */
+function textSlots(s: Shape, n: number): Point[] {
+  const strokes = textStrokes(s);
+  if (!strokes.length) return Array.from({ length: n }, () => ({ ...s.handles[0] }));
+  const len = strokes.map((st) => st.slice(1).reduce((t, q, k) => t + distance(st[k], q), 0));
+  const L = len.reduce((t, l) => t + l, 0) || 1;
+  const want = len.map((l) => (l / L) * n), count = want.map(Math.floor);
+  const order = want.map((w, k) => [w - Math.floor(w), k]).sort((p, q) => q[0] - p[0]);
+  for (let k = 0, left = n - count.reduce((t, c) => t + c, 0); left > 0; k++, left--) count[order[k % order.length][1]]++;
+  return strokes.flatMap((st, k) => {
+    const c = count[k], cum = [0];
+    for (let i = 1; i < st.length; i++) cum.push(cum[i - 1] + distance(st[i - 1], st[i]));
+    return Array.from({ length: c }, (_, j) => along(st, cum, c === 1 ? len[k] / 2 : (len[k] * j) / (c - 1)));
+  });
+}
+
 /** The n spots of a shape, in order from its first handle. */
 export function slots(s: Shape, n: number): Point[] {
   if (n <= 0) return [];
+  if (s.kind === 'text') return textSlots(s, n);
   if (s.kind === 'block') {
     const [a, b] = s.handles;
     const cols = Math.max(1, Math.min(n, Math.round(s.cols)));
@@ -221,6 +315,10 @@ export function fitShape(kind: ShapeKind, pts: Point[]): Shape {
     case 'polygon': return { kind, handles: [P(cx, cy), P(cx, cy + span / 2)], ...base, sides: 5 }; // a corner straight up the field
     case 'star': return placeInner({ kind, handles: [P(cx, cy), P(cx, cy + span / 2)], ...base, sides: 5 }, 0.4 * (span / 2));
     case 'spiral': return { kind, handles: [P(cx, cy), P(cx + span / 2, cy)], ...base, turns: 2 };
+    case 'text': { // 16 steps tall (room for a readable letter), as wide as the letters need, centered on the performers
+      const h = 16, w = (h * textWidth('GO')) / 6;
+      return fitText({ kind, handles: [P(cx - w / 2, cy - h / 2), P(cx + w / 2, cy + h / 2)], ...base, text: 'GO' });
+    }
     case 'block': {
       const c = base.cols, r = Math.ceil(pts.length / c);
       return { kind, handles: [P(cx - (c - 1), cy + (r - 1)), P(cx + (c - 1), cy - (r - 1))], ...base, interval: 2 };

@@ -30,7 +30,7 @@
 - ✅ Facing (Jason: eight directions): per performer per set, carried forward until changed; a pointer by each dot on the field, charts, and phones; "Face Side 2" on dot sheets where it changes. Mid-move, performers show the facing of the set they left. Flips and Copy Side 1 → 2 don't change facings.
 - ✅ Guard equipment: flag, rifle, or saber (or nothing) per performer, set where it changes and carried forward like facing; an icon by the dot on the field, charts, and phones; noted on dot sheets where it changes.
 - ✅ Props (Jason: movable): named rectangles or ovals, sized in steps, with a spot and turn in every set; dragged on the field (through holds), moved and turned the short way between sets; on the field, charts, and phones. Follow-ups: props in shapes and transforms; a prop on dot sheets.
-- Next gaps to look at (from the same review): text and letter shapes, and tracing a picture under the field; other surfaces (on the list below);.
+- ✅ Letters (a shape: capitals, numbers, hyphens, stroke font written for FreeFORM; the box keeps the letters' proportions) and a picture to trace under the field (kept in the browser, never in files or links). Follow-ups: lowercase and punctuation; dragging the picture on the field.
 - ✅ Print follow-ups: paths on charts (a checkbox, off by default), one dot sheet per page with a notes column, and step-offs, facing, and equipment in the notes; (done earlier: measures fill in from the score for sets without them).
 - ✅ Page markup: text notes, arrows, freehand drawing, page notes; per-performer cues on dot sheets.
 - Markup follow-ups: markup that spans several sets; text size/color options; editing ink strokes point by point.

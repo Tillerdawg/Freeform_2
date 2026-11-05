@@ -132,7 +132,11 @@ export interface Show {
   movements?: Movement[];
   /** Props: shapes on the field that can sit somewhere new in each set and move between sets. */
   props?: Prop[];
+  /** A picture under the field to trace (a logo, a sketch): centered on (x, y), `w` steps wide. The picture itself stays in the browser that added it. */
+  trace?: Trace;
 }
+
+export interface Trace { id: string; x: number; y: number; w: number; opacity: number }
 
 export interface Movement { id: string; name: string; counts: number }
 export const MAX_MOVEMENT = 100_000;
@@ -841,6 +845,8 @@ export function parseShow(text: string): Show {
   for (const x of s.performers) if (!str(x?.id) || !str(x.section) || !Number.isFinite(x.number) || (x.name !== undefined && (!str(x.name) || x.name.length > MAX_NAME))) bad('performer');
   if (s.props !== undefined && (!Array.isArray(s.props) || s.props.length > MAX_PROPS || !s.props.every((p: Prop) => str(p?.id) && str(p.name) && p.name.length <= MAX_NAME
     && Number.isFinite(p.w) && p.w > 0 && p.w <= 200 && Number.isFinite(p.h) && p.h > 0 && p.h <= 200 && (p.round === undefined || typeof p.round === 'boolean')))) bad('props');
+  if (s.trace !== undefined && !(str(s.trace?.id) && Number.isFinite(s.trace.x) && Number.isFinite(s.trace.y) && Number.isFinite(s.trace.w) && s.trace.w > 0
+    && Number.isFinite(s.trace.opacity) && s.trace.opacity >= 0 && s.trace.opacity <= 1)) bad('trace');
   const propIds = new Set((s.props ?? []).map((p: Prop) => p.id));
   for (const set of s.sets) {
     if (!str(set?.id) || !str(set.name) || !Number.isFinite(set.counts) || typeof set.pos !== 'object' || !set.pos) bad('set');

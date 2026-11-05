@@ -153,6 +153,36 @@ shot('props', async () => {
   const list = await page.getByRole('button', { name: '+ Prop' }).boundingBox();
   await save(page, 'props', { x: 1095, y: list.y + list.height + 12 - 380, width: W - 1095, height: 380 }); // the field's picture is in the editor shot
 });
+shot('letters', async () => {
+  // The winds and battery spell GO in set 4 (Letters, W).
+  const page = await editor();
+  await goSet(page, 4);
+  await box(page, { x: -16, y: 58 }, { x: 16, y: 30 });
+  await page.keyboard.press('w');
+  await page.getByRole('textbox', { name: 'Letters to spell' }).fill('GO');
+  await page.getByRole('button', { name: 'Done (Esc)' }).click();
+  await page.waitForTimeout(300);
+  await save(page, 'letters', await fieldClip(page, { x: -18, y: 58 }, { x: 18, y: 26 }, 20));
+});
+shot('trace', async () => {
+  // A practice "logo" (drawn here, original) under the field, with the Picture to trace panel open.
+  const page = await editor();
+  await page.evaluate(async () => {
+    const c = document.createElement('canvas'); c.width = 400; c.height = 300;
+    const x = c.getContext('2d'); x.lineWidth = 28; x.strokeStyle = '#c8102e'; x.lineJoin = 'round';
+    x.beginPath(); x.moveTo(40, 260); x.lineTo(200, 40); x.lineTo(360, 260); x.closePath(); x.stroke(); // a triangle to trace
+    const blob = await new Promise((ok) => c.toBlob(ok, 'image/png'));
+    const { putAudio } = await import('/src/ui/audioStore.ts');
+    await putAudio('trace-sample', blob);
+    const show = JSON.parse(localStorage.getItem('freeform:autosave'));
+    show.trace = { id: 'trace-sample', x: -30, y: 42, w: 32, opacity: 0.6 };
+    localStorage.setItem('freeform:autosave', JSON.stringify(show));
+  });
+  await page.reload(); await page.waitForSelector('canvas'); await page.waitForTimeout(600);
+  await page.getByText('Picture to trace').click();
+  await page.waitForTimeout(200);
+  await save(page, 'trace', { x: 0, y: 125, width: W, height: 640 });
+});
 shot('sections', async () => {
   const page = await editor();
   const head = page.getByText('Sections', { exact: true });

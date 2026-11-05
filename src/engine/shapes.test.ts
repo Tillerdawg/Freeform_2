@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { distance, type Point } from './coords';
-import { addBezierSegment, addCurvePoint, assign, coilGap, fitShape, isControl, moveHandle, placeInner, samplePath, slots, type Shape } from './shapes';
+import { addBezierSegment, addCurvePoint, assign, coilGap, fitShape, isControl, moveHandle, placeInner, samplePath, slots, cleanText, GLYPHS, textStrokes, type Shape } from './shapes';
 
 const near = (p: Point, x: number, y: number) => { expect(p.x).toBeCloseTo(x, 4); expect(p.y).toBeCloseTo(y, 4); };
 const S = (kind: Shape['kind'], handles: Point[], extra: Partial<Shape> = {}): Shape => ({ kind, handles, interval: null, cols: 3, ...extra });
@@ -179,5 +179,22 @@ describe('bezier handle dragging', () => {
   it('other shapes just move the one handle', () => {
     const s = moveHandle(S('line', [{ x: 0, y: 0 }, { x: 8, y: 0 }]), 1, { x: 8, y: 4 });
     expect(s.handles).toEqual([{ x: 0, y: 0 }, { x: 8, y: 4 }]);
+  });
+});
+
+describe('text shape', () => {
+  const box = (text: string): Shape => ({ kind: 'text', handles: [{ x: 0, y: 20 }, { x: 18, y: 32 }], interval: null, cols: 1, text });
+  it('spells the text inside its box, with the right number of spots', () => {
+    const spots = slots(box('HI'), 30);
+    expect(spots).toHaveLength(30);
+    expect(spots.every((p) => p.x >= -1e-9 && p.x <= 18 + 1e-9 && p.y >= 20 - 1e-9 && p.y <= 32 + 1e-9)).toBe(true);
+    // H's legs reach the top and bottom of the box.
+    expect(spots.some((p) => Math.abs(p.x) < 1e-9 && Math.abs(p.y - 32) < 1e-9)).toBe(true);
+    expect(spots.some((p) => Math.abs(p.x) < 1e-9 && Math.abs(p.y - 20) < 1e-9)).toBe(true);
+  });
+  it('keeps only what it can spell, and every glyph has strokes', () => {
+    expect(cleanText('go  dawgs!')).toBe('GO DAWGS');
+    for (const g of Object.values(GLYPHS)) expect(g.every((st) => st.length >= 2)).toBe(true);
+    expect(textStrokes(box('A B')).length).toBe(3); // A has 2 strokes and B has 1; the space has none
   });
 });

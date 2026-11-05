@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { readout, type Point } from './engine/coords';
 import { emptyHistory, record, redo, undo } from './engine/history';
 import { addInk, hitMark, moveMark, type Mark } from './engine/marks';
-import { assign, fitShape, isControl, moveHandle, samplePath, slots, type Shape, type ShapeKind } from './engine/shapes';
+import { assign, fitShape, fitText, isControl, moveHandle, samplePath, slots, type Shape, type ShapeKind } from './engine/shapes';
 import { colorOf,
   addPerformer, setFtlTurns, locate, label, mark, newId, setMarks, moveSegments, facingIn, facingVector, equipmentIn, hitProp, placeProp, propsAt, removeProp, normalizeFtl, snapPoint, playRange, newShow, parseShow, placeInSet, positionsAt, removePerformers,
   rotateScale, setAt, setStarts, type Show,
@@ -168,6 +168,16 @@ export function App() {
     });
     return () => { gone = true; if (url) URL.revokeObjectURL(url); setWave(null); };
   }, [audioId, audioTick]);
+  // The picture to trace under the field, from this browser's store.
+  const [trace, setTrace] = useState<ImageBitmap | null>(null);
+  const [traceTick, setTraceTick] = useState(0); // bumped when a picture is added
+  const traceId = show.trace?.id;
+  useEffect(() => {
+    let gone = false;
+    if (!traceId) { setTrace(null); return; }
+    getAudio(traceId).then((blob) => (blob ? createImageBitmap(blob) : null)).then((b) => { if (!gone) setTrace(b); }).catch(() => { if (!gone) setTrace(null); });
+    return () => { gone = true; };
+  }, [traceId, traceTick]);
   const taps = show.music?.taps;
   const clock = useMemo(() => (audio && useMusic && taps && taps.length >= 2 ? { audio, taps } : null), [audio, useMusic, taps]);
   usePlayback(playing, setPlaying, t, setT, bpm, span, range.loop, showLength(show), clock);
@@ -217,6 +227,10 @@ export function App() {
     if (!view) return;
     const ctx = canvasRef.current!.getContext('2d')!;
     drawField(ctx, view, show.hash);
+    if (trace && show.trace) { // under everything else, see-through
+      const tr = show.trace, h = (tr.w * trace.height) / trace.width, tl = toScreen(view, { x: tr.x - tr.w / 2, y: tr.y + h / 2 });
+      ctx.save(); ctx.globalAlpha = tr.opacity; ctx.drawImage(trace, tl.x, tl.y, tr.w * view.scale, h * view.scale); ctx.restore();
+    }
     drawProps(ctx, view, show.props ?? [], propsAt(show, t), selectedProp, 'screen', 12 * dpr);
     const pins = onSet >= 0 ? show.sets[onSet].labels : undefined;
     const shown = !playing; // labels jump around as dots move; selected performers keep theirs either way
@@ -230,7 +244,7 @@ export function App() {
     if (shapeEdit) {
       const sh = shapeEdit.shape;
       const [a, b] = sh.handles;
-      const guide = sh.kind === 'block'
+      const guide = sh.kind === 'block' || sh.kind === 'text'
         ? { pts: [a, { x: b.x, y: a.y }, b, { x: a.x, y: b.y }], closed: true }
         : samplePath(sh);
       const h = sh.handles;
@@ -239,7 +253,7 @@ export function App() {
         : [];
       drawShape(ctx, view, guide.pts, guide.closed, h, h.map((_, k) => isControl(sh, k)), arms);
     }
-  }, [view, show, positions, selected, paths, box, shapeEdit, onSet, selectedMark, selectedProp, playing, t, theme, tool]);
+  }, [view, show, positions, selected, paths, box, shapeEdit, onSet, selectedMark, selectedProp, playing, t, theme, tool, trace]);
 
   // Empty text notes are removed as soon as they're not the one being edited (no timing to get wrong).
   useEffect(() => {
@@ -282,9 +296,15 @@ export function App() {
 
   const updateShape = (patch: Partial<Shape>) => {
     if (!shapeEdit) return;
-    const shape = { ...shapeEdit.shape, ...patch };
-    setShapeEdit({ ...shapeEdit, shape });
-    applyShape(shape, shapeEdit.order, shapeEdit.base);
+    const shape = patch.text !== undefined ? fitText({ ...shapeEdit.shape, ...patch }) : { ...shapeEdit.shape, ...patch };
+    let order = shapeEdit.order;
+    if (patch.text !== undefined) { // new letters, new spots: deal them out again by least travel
+      const s0 = shapeEdit.base, i = shapeEdit.set, ids = order.filter(Boolean);
+      const slotOf = assign(ids.map((id) => s0.sets[Math.max(0, i - 1)].pos[id] ?? s0.sets[i].pos[id]), slots(shape, ids.length));
+      order = []; ids.forEach((id, k) => { order[slotOf[k]] = id; });
+    }
+    setShapeEdit({ ...shapeEdit, shape, order });
+    applyShape(shape, order, shapeEdit.base);
   };
 
   // Trackpad/mouse wheel pans; pinch or ctrl+wheel zooms around the cursor.
@@ -668,7 +688,7 @@ export function App() {
         section={section} setSection={setSection} snap={snap} setSnap={setSnap} starts={starts}
         onNew={fresh} onOpen={() => fileRef.current?.click()} onSave={save} onPrint={() => setPrinting(true)} onShare={() => setSharing(true)} fileError={fileError}
         selectedMark={selectedMark} setSelectedMark={setSelectedMark} adding={adding} setAdding={setAdding}
-        clip={clip ? Object.keys(clip).length : 0} onCopy={copySpots} onPaste={pasteSpots} selectedProp={selectedProp} setSelectedProp={setSelectedProp}
+        clip={clip ? Object.keys(clip).length : 0} onCopy={copySpots} onPaste={pasteSpots} selectedProp={selectedProp} setSelectedProp={setSelectedProp} onTrace={() => setTraceTick((n) => n + 1)}
         onUndo={() => step('undo')} onRedo={() => step('redo')} canUndo={!!hist.past.length} canRedo={!!hist.future.length}
         onFit={fit} shape={shapeEdit?.shape ?? null} startShape={startShape} updateShape={updateShape} endShape={() => setShapeEdit(null)}
       />

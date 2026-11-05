@@ -1,7 +1,7 @@
 import { createPortal } from 'react-dom';
 import { IconFit, IconRedo, IconSidebar, IconTimeline, IconUndo } from './icons';
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
-import { addBezierSegment, addCurvePoint, coilGap, placeInner, type Shape, type ShapeKind } from '../engine/shapes';
+import { addBezierSegment, addCurvePoint, cleanText, coilGap, placeInner, type Shape, type ShapeKind } from '../engine/shapes';
 import { distance } from '../engine/coords';
 import {
   chainOrder, clearFtl, closeCalls, counterMarch, flip, groupTurn, setFtlTurns, setTiming, setTurning, timingOf, label, mirrorSides, placeInSet, removePerformers, rotateScale, setFtl, setLabelSide, snapSelection,
@@ -39,7 +39,7 @@ export interface ToolbarProps {
 
 /** Shape, its name, and its one-letter shortcut (pressed with 2 or more performers selected). */
 export const SHAPES: [ShapeKind, string, string][] = [['line', 'Line', 'L'], ['arc', 'Arc', 'R'], ['curve', 'Curve', 'U'], ['bezier', 'Bézier', 'B'],
-  ['circle', 'Circle', 'O'], ['polygon', 'Polygon', 'P'], ['star', 'Star', 'X'], ['spiral', 'Spiral', 'S'], ['block', 'Block', 'K']];
+  ['circle', 'Circle', 'O'], ['polygon', 'Polygon', 'P'], ['star', 'Star', 'X'], ['spiral', 'Spiral', 'S'], ['block', 'Block', 'K'], ['text', 'Letters', 'W']];
 const MARKUP: [Tool, string][] = [['text', 'Text (T)'], ['arrow', 'Arrow'], ['draw', 'Draw']];
 const row: React.CSSProperties = { display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', marginTop: 6 };
 const help: React.CSSProperties = { margin: '6px 0 0', opacity: 0.75, fontSize: 12, whiteSpace: 'normal' };
@@ -134,7 +134,7 @@ export function Toolbar(p: ToolbarProps) {
       <span className="tb-sep" />
 
       <Menu label="Shape" disabled={needs(many, ids.length === 1 ? 'Select 2 or more performers' : pick)} keepOpen={!!p.shape} pressed={!!p.shape}
-        title="Shape the selection into a line, arc, curve, Bézier, circle, polygon, star, spiral, or block">
+        title="Shape the selection into a line, arc, curve, Bézier, circle, polygon, star, spiral, block, or letters">
         {() => <ShapePanel {...p} />}
       </Menu>
       <Menu label="Transform" disabled={needs(any, pick)} title="Flip, mirror, rotate, or scale the selection">
@@ -257,14 +257,20 @@ function ShapePanel({ shape, startShape, updateShape, endShape }: ToolbarProps) 
       </div>
       {shape && (
         <>
-          <div style={row}>
+          {shape.kind === 'text' && (
+            <div style={row}>
+              <label>Spell <input aria-label="Letters to spell" value={shape.text ?? ''} maxLength={40} style={{ width: 140, textTransform: 'uppercase' }}
+                onChange={(e) => updateShape({ text: e.target.value })} /></label>
+            </div>
+          )}
+          {shape.kind !== 'text' && <div style={row}>
             <label><input type="radio" name="spacing" checked={shape.interval == null} onChange={() => updateShape({ interval: null })} /> Even</label>
             <label>
               <input type="radio" name="spacing" checked={shape.interval != null} onChange={() => updateShape({ interval: 2 })} /> Every{' '}
               <NumberField aria-label="Interval in steps" min={0.5} step={0.5} value={shape.interval ?? 2} style={{ width: 48 }}
                 onValue={(n) => updateShape({ interval: n })} /> steps
             </label>
-          </div>
+          </div>}
           {(shape.kind === 'polygon' || shape.kind === 'star') && (
             <div style={row}>
               <label>{shape.kind === 'star' ? 'Points' : 'Sides'} <NumberField aria-label={shape.kind === 'star' ? 'Points' : 'Sides'} min={3} max={12} integer
@@ -302,6 +308,7 @@ function ShapePanel({ shape, startShape, updateShape, endShape }: ToolbarProps) 
             Drag the blue handles on the field. Performers keep their order along the shape.
             {(shape.kind === 'polygon' || shape.kind === 'star') && ` ${shape.kind === 'star' ? 'The middle handle is the center. Drag the point handle to size and turn the star, and the inside-corner handle to make the points longer or shorter.' : 'The first handle is the center; drag the corner handle to size and turn it.'} Performers go evenly around the outline, starting at the ${shape.kind === 'star' ? 'point' : 'corner'} handle.`}
             {shape.kind === 'spiral' && ' The first handle is the center; the second is the outer end. Intervals are measured performer to performer.'}
+            {shape.kind === 'text' && ` The letters fill the box between the two handles. Capitals, numbers, and hyphens. Each letter reads best with about 8 to 12 performers${cleanText(shape.text ?? '').replace(/ /g, '').length ? ` (about ${8 * cleanText(shape.text ?? '').replace(/ /g, '').length} or more for this)` : ''}.`}
             {shape.kind === 'bezier' && ' Squares are points the curve passes through; circles pull the curve toward them. Hold Option (Alt) while dragging to move one handle by itself, e.g. to make a corner.'}
           </p>
         </>

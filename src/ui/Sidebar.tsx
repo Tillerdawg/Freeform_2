@@ -2,9 +2,10 @@ import { clearStartingSections, hasOwnStartingSections, saveStartingSections } f
 import { coarse } from '../perform/device';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { RosterImport } from './RosterImport';
+import { deleteAudio, putAudio } from './audioStore';
 import { IconGrip } from './icons';
 import { Menu } from './Toolbar';
-import { distance, readout, type HashPreset } from '../engine/coords';
+import { HASHES, distance, readout, type HashPreset } from '../engine/coords';
 import type { Shape, ShapeKind } from '../engine/shapes';
 import {
   addProp, MAX_PROPS, placeProp, removeProp, updateProp, EQUIPMENT, equipmentIn, equipmentName, setEquipment, type Equipment, FACINGS, facingIn, facingName, setFacing, type Facing, MAX_NAME, scoreOrder, setCue, setMarks, setNames, setNote, label, locate, newId, moveToSection, removeSection, duplicateLetters, renumberSection, placeInSet, remapHash, positionsAt, xFrom, yFrom,
@@ -54,6 +55,7 @@ interface Props {
   onPaste: () => void;
   selectedProp: string | null;
   setSelectedProp: (id: string | null) => void;
+  onTrace: () => void; // a tracing picture was added
 }
 
 const PRESETS: [HashPreset, string][] = [['highSchool', 'High school'], ['college', 'College / DCI'], ['nfl', 'NFL']];
@@ -268,6 +270,7 @@ export function Sidebar(p: Props) {
 
       <SectionsEditor show={show} setShow={setShow} cur={cur} />
       <PropsEditor show={show} setShow={setShow} onSet={onSet} selected={p.selectedProp} setSelected={p.setSelectedProp} />
+      <TraceEditor show={show} setShow={setShow} onTrace={p.onTrace} />
       <Roster show={show} setShow={setShow} selected={selected} setSelected={p.setSelected} />
     </aside>
   );
@@ -505,6 +508,45 @@ function PropsEditor({ show, setShow, onSet, selected, setSelected }: { show: Sh
         <button disabled={props.length >= MAX_PROPS} onClick={() => { const r = addProp(show, `Prop ${props.length + 1}`, 8, 4, false, { x: 0, y: 42 }); setShow(() => r.show); setSelected(r.id); }}
           title="A new prop, 8 steps wide and 4 deep, on the 50 between the hashes">+ Prop</button>
       </div>
+    </details>
+  );
+}
+
+/** A picture under the field to trace (kept in this browser, never in the show file or links). */
+function TraceEditor({ show, setShow, onTrace }: { show: Show; setShow: Props['setShow']; onTrace: () => void }) {
+  const tr = show.trace, file = useRef<HTMLInputElement>(null);
+  const [err, setErr] = useState('');
+  const pick = async (f: File) => {
+    const id = tr?.id ?? newId('trace');
+    if (!(await putAudio(id, f))) { setErr("This browser wouldn't save the picture (private browsing?)."); return; }
+    setErr('');
+    setShow((s) => ({ ...s, trace: s.trace ? { ...s.trace, id } : { id, x: 0, y: 42, w: 40, opacity: 0.5 } }));
+    onTrace();
+  };
+  const set = (patch: Partial<NonNullable<Show['trace']>>) => setShow((s) => (s.trace ? { ...s, trace: { ...s.trace, ...patch } } : s));
+  return (
+    <details style={{ borderTop: '1px solid var(--line)', padding: '10px 0' }}>
+      <summary><strong>Picture to trace</strong></summary>
+      <p style={{ fontSize: 12, opacity: 0.75, margin: '6px 0' }}>A logo or a sketch under the field, to place performers on. It stays in this browser: it isn't saved in the show file, printed, or sent to phones.</p>
+      <div style={row}>
+        <button onClick={() => file.current?.click()}>{tr ? 'Change picture…' : 'Add a picture…'}</button>
+        {tr && <button onClick={() => { deleteAudio(tr.id); setShow(({ trace: _, ...s }) => s); }}>Remove</button>}
+        <input ref={file} type="file" accept="image/*" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) pick(f); e.target.value = ''; }} />
+      </div>
+      {err && <p role="alert" style={{ color: 'var(--danger)', fontSize: 12, margin: '4px 0 0' }}>{err}</p>}
+      {tr && <>
+        <div style={row}>
+          <label>Wide <NumberField aria-label="Picture width in steps" min={2} max={200} step={1} value={tr.w} style={{ width: 52 }} onValue={(n) => set({ w: n })} /> steps</label>
+        </div>
+        <div style={row}>
+          <label title="Steps from the 50: minus toward Side 1, plus toward Side 2">Across <NumberField aria-label="Picture center, steps from the 50" min={-100} max={100} step={1} value={tr.x} style={{ width: 52 }} onValue={(n) => set({ x: n })} /></label>
+          <label title="Steps from the front sideline">Up <NumberField aria-label="Picture center, steps from the front sideline" min={-20} max={104} step={1} value={tr.y} style={{ width: 52 }} onValue={(n) => set({ y: n })} /></label>
+        </div>
+        <div style={row}>
+          <label>See-through <input type="range" aria-label="Picture strength" min={10} max={100} value={Math.round(tr.opacity * 100)} onChange={(e) => set({ opacity: Number(e.target.value) / 100 })} /></label>
+        </div>
+        <p style={{ fontSize: 12, opacity: 0.75, margin: '4px 0 0' }}>Across is steps from the 50 (minus toward Side 1). Up is steps from the front sideline; the front hash is {HASHES[show.hash]} up.</p>
+      </>}
     </details>
   );
 }

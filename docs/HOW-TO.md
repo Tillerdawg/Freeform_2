@@ -14,7 +14,7 @@ The pictures in this guide come from a small sample show (47 performers, 4 sets)
 4. [Add performers](#add-performers)
 5. [Select and move performers](#select-and-move-performers)
 6. [Sets, counts, and the timeline](#sets-counts-and-the-timeline)
-7. [Shapes: lines, arcs, curves, circles, polygons, stars, spirals, and blocks](#shapes-lines-arcs-curves-circles-polygons-stars-spirals-and-blocks)
+7. [Shapes: lines, arcs, curves, circles, polygons, stars, spirals, blocks, and letters](#shapes-lines-arcs-curves-circles-polygons-stars-spirals-blocks-and-letters)
 8. [Rotate, stretch, and flip](#rotate-stretch-and-flip)
 9. [Follow-the-leader](#follow-the-leader)
 10. [Step-offs and turning moves](#step-offs-and-turning-moves)
@@ -159,12 +159,12 @@ The timeline scrolls sideways for a long show. Use the mouse wheel or a swipe ov
 
 The timeline then runs the full length, with the part you haven't written yet striped *Not written yet*. To add a set at a particular count, click that count on the timeline and press **+ Add set**, or type the count in the **at count** box. No other set moves. A set added in the middle of a move splits it and gets a sub-set name (1A after 1), the way Pyware names them.
 
-## Shapes: lines, arcs, curves, circles, polygons, stars, spirals, and blocks
+## Shapes: lines, arcs, curves, circles, polygons, stars, spirals, blocks, and letters
 
 ![Shaping a block into an arc](img/shape-arc.png)
 
 1. Select the performers you want in the shape.
-2. Open **Shape** and pick **Line**, **Arc**, **Curve**, **Bézier**, **Circle**, **Polygon**, **Star**, **Spiral**, or **Block**. Or press its letter (see [Keyboard shortcuts](#keyboard-shortcuts)).
+2. Open **Shape** and pick **Line**, **Arc**, **Curve**, **Bézier**, **Circle**, **Polygon**, **Star**, **Spiral**, **Block**, or **Letters**. Or press its letter (see [Keyboard shortcuts](#keyboard-shortcuts)).
 3. Drag the blue handles on the field to adjust the shape. Choose **Even** spacing, or **Every** so many steps.
 4. Click **Done** (or press Esc) when it looks right.
 
@@ -179,6 +179,14 @@ FreeFORM decides who goes to which spot by keeping total travel from the previou
 **Spirals** start in the center and wind out to the outer end. The first handle is the center and the second is the outer end. Set the number of **Turns**, and click the direction button to wind it **Counterclockwise** or **Clockwise**. The coils stay the same distance apart all the way out. Spacing is measured in a straight line from one performer to the next, so performers near the tight center get the same interval as everyone else. If the coils get closer than 2 steps, FreeFORM warns you, because performers on neighboring coils would be too close. Use fewer turns or make the spiral bigger.
 
 ![A block shaped into a spiral](img/shape-spiral.png)
+
+**Letters** spell a word with performers. Type it in **Spell**: capital letters, numbers, hyphens, and spaces. The word fills the box between the two handles, and it starts as wide as the letters need, so they keep their shape. Drag the handles to make it bigger or smaller. Performers are shared out along the strokes, more on the long ones, and every letter reaches its corners. A letter reads best with about 8 to 12 performers, so a short word works better than a long one.
+
+![The winds and battery spelling GO](img/letters.png)
+
+**Tracing a picture.** To copy a logo or a sketch onto the field, open **Picture to trace** in the sidebar and click **Add a picture…**. It shows under the field, see-through. Set how **Wide** it is in steps, where it sits (**Across** is steps from the 50, **Up** is steps from the front sideline), and how strong it shows with **See-through**. Then place performers on it by hand or with the shapes. The picture stays in the browser you added it in: it isn't saved in the show file, printed, or sent to phones. **Remove** takes it away.
+
+![A picture to trace under the field](img/trace.png)
 
 ## Rotate, stretch, and flip
 
@@ -412,7 +420,7 @@ With a keyboard attached, the [keyboard shortcuts](#keyboard-shortcuts) work too
 | Select tool | V |
 | Add performer tool | A |
 | Text note tool | T |
-| Shape the selection (2 or more): Line, Arc, cUrve, Bézier, circle (O), Polygon, star (X), Spiral, blocK | L, R, U, B, O, P, X, S, K |
+| Shape the selection (2 or more): Line, Arc, cUrve, Bézier, circle (O), Polygon, star (X), Spiral, blocK, Letters (W, for word) | L, R, U, B, O, P, X, S, K, W |
 | Play or pause | Space |
 | Back or forward one count (no one selected) | ← or → |
 | Move the selection 1 step | ← → ↑ ↓ |
