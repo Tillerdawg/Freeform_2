@@ -7,7 +7,7 @@ import { Menu } from './Toolbar';
 import { distance, readout, type HashPreset } from '../engine/coords';
 import type { Shape, ShapeKind } from '../engine/shapes';
 import {
-  EQUIPMENT, equipmentIn, equipmentName, setEquipment, type Equipment, FACINGS, facingIn, facingName, setFacing, type Facing, MAX_NAME, scoreOrder, setCue, setMarks, setNames, setNote, label, locate, newId, moveToSection, removeSection, duplicateLetters, renumberSection, placeInSet, remapHash, positionsAt, xFrom, yFrom,
+  addProp, MAX_PROPS, placeProp, removeProp, updateProp, EQUIPMENT, equipmentIn, equipmentName, setEquipment, type Equipment, FACINGS, facingIn, facingName, setFacing, type Facing, MAX_NAME, scoreOrder, setCue, setMarks, setNames, setNote, label, locate, newId, moveToSection, removeSection, duplicateLetters, renumberSection, placeInSet, remapHash, positionsAt, xFrom, yFrom,
   type FrontDir, type FrontRef, type Section, type Show, type SideDir,
 } from '../engine/show';
 import { NumberField } from './NumberField';
@@ -52,6 +52,8 @@ interface Props {
   clip: number; // how many performers' spots are copied
   onCopy: () => void;
   onPaste: () => void;
+  selectedProp: string | null;
+  setSelectedProp: (id: string | null) => void;
 }
 
 const PRESETS: [HashPreset, string][] = [['highSchool', 'High school'], ['college', 'College / DCI'], ['nfl', 'NFL']];
@@ -265,6 +267,7 @@ export function Sidebar(p: Props) {
       </section>
 
       <SectionsEditor show={show} setShow={setShow} cur={cur} />
+      <PropsEditor show={show} setShow={setShow} onSet={onSet} selected={p.selectedProp} setSelected={p.setSelectedProp} />
       <Roster show={show} setShow={setShow} selected={selected} setSelected={p.setSelected} />
     </aside>
   );
@@ -463,6 +466,45 @@ function SectionsEditor({ show, setShow, cur }: { show: Show; setShow: (f: (s: S
       <p style={{ margin: '4px 0 0', fontSize: 12, opacity: 0.75 }} role="status">
         {startNote || (own ? 'New shows start with your own list (in this browser).' : "New shows start with FreeFORM's list.")}
       </p>
+    </details>
+  );
+}
+
+/** Props: add, name, size, and delete them; the selected one's turn in this set. Drag a prop on the field to move it. */
+function PropsEditor({ show, setShow, onSet, selected, setSelected }: { show: Show; setShow: Props['setShow']; onSet: number; selected: string | null; setSelected: (id: string | null) => void }) {
+  const props = show.props ?? [];
+  const [open, setOpen] = useState(false);
+  useEffect(() => { if (selected) setOpen(true); }, [selected]); // picking a prop on the field opens the list
+  return (
+    <details open={open} onToggle={(e) => setOpen(e.currentTarget.open)} style={{ borderTop: '1px solid var(--line)', padding: '10px 0' }}>
+      <summary><strong>Props</strong> <span style={{ fontSize: 12, opacity: 0.7 }}>({props.length})</span></summary>
+      <p style={{ fontSize: 12, opacity: 0.75, margin: '6px 0' }}>Platforms, backdrops, and other things on the field. Drag one on the field to move it in this set; it moves between sets like a performer.</p>
+      {props.map((pr) => {
+        const spot = onSet >= 0 ? show.sets[onSet].props?.[pr.id] : undefined, sel = pr.id === selected;
+        return (
+          <div key={pr.id} onClick={() => setSelected(pr.id)} style={{ border: `1px solid ${sel ? 'var(--gold)' : 'var(--line)'}`, borderRadius: 4, padding: 6, marginTop: 6 }}>
+            <div style={row}>
+              <input aria-label="Prop name" value={pr.name} maxLength={MAX_NAME} style={{ flex: 1, minWidth: 80 }} onChange={(e) => setShow((s) => updateProp(s, pr.id, { name: e.target.value }))} />
+              <button aria-label={`Delete prop ${pr.name}`} title="Delete this prop from the whole show" className="icon danger"
+                onClick={(e) => { e.stopPropagation(); setShow((s) => removeProp(s, pr.id)); if (sel) setSelected(null); }}>×</button>
+            </div>
+            <div style={row}>
+              <label>Wide <NumberField aria-label="Prop width in steps" min={0.5} max={200} step={0.5} value={pr.w} style={{ width: 52 }} onValue={(n) => setShow((s) => updateProp(s, pr.id, { w: n }))} /></label>
+              <label>Deep <NumberField aria-label="Prop depth in steps" min={0.5} max={200} step={0.5} value={pr.h} style={{ width: 52 }} onValue={(n) => setShow((s) => updateProp(s, pr.id, { h: n }))} /></label>
+              <span style={{ fontSize: 12, opacity: 0.75 }}>steps</span>
+            </div>
+            <div style={row}>
+              <label><input type="checkbox" checked={!!pr.round} onChange={(e) => setShow((s) => updateProp(s, pr.id, { round: e.target.checked || undefined }))} /> Round</label>
+              {spot && <label title="Its turn in this set, in degrees counterclockwise">Turned <NumberField aria-label="Prop turn in degrees" min={-360} max={360} integer value={spot.angle} style={{ width: 52 }}
+                onValue={(n) => setShow((s) => placeProp(s, onSet, pr.id, { ...spot, angle: n }))} />°</label>}
+            </div>
+          </div>
+        );
+      })}
+      <div style={row}>
+        <button disabled={props.length >= MAX_PROPS} onClick={() => { const r = addProp(show, `Prop ${props.length + 1}`, 8, 4, false, { x: 0, y: 42 }); setShow(() => r.show); setSelected(r.id); }}
+          title="A new prop, 8 steps wide and 4 deep, on the 50 between the hashes">+ Prop</button>
+      </div>
     </details>
   );
 }

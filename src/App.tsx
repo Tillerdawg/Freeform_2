@@ -4,13 +4,13 @@ import { emptyHistory, record, redo, undo } from './engine/history';
 import { addInk, hitMark, moveMark, type Mark } from './engine/marks';
 import { assign, fitShape, isControl, moveHandle, samplePath, slots, type Shape, type ShapeKind } from './engine/shapes';
 import { colorOf,
-  addPerformer, ftlTrail, setFtlTurns, locate, label, mark, newId, pathFits, setMarks, moveSteps, groupTurn, turnRoute, facingIn, facingVector, equipmentIn, normalizeFtl, snapPoint, playRange, newShow, parseShow, placeInSet, positionsAt, removePerformers,
+  addPerformer, ftlTrail, setFtlTurns, locate, label, mark, newId, pathFits, setMarks, moveSteps, groupTurn, turnRoute, facingIn, facingVector, equipmentIn, hitProp, placeProp, propsAt, removeProp, normalizeFtl, snapPoint, playRange, newShow, parseShow, placeInSet, positionsAt, removePerformers,
   rotateScale, setAt, setStarts, type Show,
   showLength,
 } from './engine/show';
 import { pinchView } from './perform/gestures';
 import { coarse } from './perform/device';
-import { HANDLE_PX, drawField, drawMarks, drawPerformers, drawShape, fitView, toScreen, toWorld, type Path, type View } from './field/drawField';
+import { HANDLE_PX, drawField, drawMarks, drawPerformers, drawProps, drawShape, fitView, toScreen, toWorld, type Path, type View } from './field/drawField';
 import { frameDrag, selectionFrame } from './field/frame';
 import { Sidebar, type Snap, type Tool } from './ui/Sidebar';
 import { SetControls, Timeline } from './ui/Timeline';
@@ -47,6 +47,7 @@ type Drag =
   | { kind: 'pan'; x: number; y: number }
   | { kind: 'handle'; i: number }
   | { kind: 'mark'; id: string; start: Point; orig: Mark; at: [number, number]; moved?: boolean }
+  | { kind: 'prop'; id: string; start: Point; orig: { x: number; y: number; angle: number }; at: [number, number]; moved?: boolean }
   | { kind: 'arrow'; id: string }
   | { kind: 'ink'; id: string }
   | { kind: 'frame'; mode: 'rotate' | 'scale'; c: Point; down: Point; orig: Show; ids: string[]; deg: number; kx: number; ky: number };
@@ -74,6 +75,7 @@ export function App() {
   const [range, setRange] = useState<{ from: string | null; to: string | null; loop: boolean }>({ from: null, to: null, loop: false });
   // Shape being edited: performers in slot order (order[k] takes slot k), in the set it was started in.
   const [selectedMark, setSelectedMark] = useState<string | null>(null);
+  const [selectedProp, setSelectedProp] = useState<string | null>(null); // a prop picked on the field or in the sidebar
   const [shapeEdit, setShapeEdit] = useState<{ shape: Shape; order: string[]; set: number; base: Show } | null>(null); // base: the show before this shape began
   const [fileError, setFileError] = useState('');
   const [printing, setPrinting] = useState(false);
@@ -244,6 +246,7 @@ export function App() {
     if (!view) return;
     const ctx = canvasRef.current!.getContext('2d')!;
     drawField(ctx, view, show.hash);
+    drawProps(ctx, view, show.props ?? [], propsAt(show, t), selectedProp, 'screen', 12 * dpr);
     const pins = onSet >= 0 ? show.sets[onSet].labels : undefined;
     const shown = !playing; // labels jump around as dots move; selected performers keep theirs either way
     const faceSet = onSet >= 0 ? onSet : Math.max(0, locate(show, t).to - 1); // mid-move: they face as they did in the set they left
@@ -265,7 +268,7 @@ export function App() {
         : [];
       drawShape(ctx, view, guide.pts, guide.closed, h, h.map((_, k) => isControl(sh, k)), arms);
     }
-  }, [view, show, positions, selected, paths, box, shapeEdit, onSet, selectedMark, playing, t, theme, tool]);
+  }, [view, show, positions, selected, paths, box, shapeEdit, onSet, selectedMark, selectedProp, playing, t, theme, tool]);
 
   // Empty text notes are removed as soon as they're not the one being edited (no timing to get wrong).
   useEffect(() => {
@@ -277,6 +280,7 @@ export function App() {
     }
   }, [selectedMark, show, setShow]);
   useEffect(() => { setSelectedMark(null); }, [onSet]);
+  useEffect(() => { if (selectedProp && !show.props?.some((x) => x.id === selectedProp)) setSelectedProp(null); }, [show, selectedProp]);
 
   // Leaving the set (scrubbing, undo, deleting performers) ends shape editing.
   useEffect(() => {
@@ -369,12 +373,13 @@ export function App() {
       }
       else if (e.key === 'ArrowRight') { e.preventDefault(); setT((x) => Math.min(total, Math.floor(x) + 1)); }
       else if (e.key === 'ArrowLeft') { e.preventDefault(); setT((x) => Math.max(0, Math.ceil(x) - 1)); }
+      else if ((e.key === 'Delete' || e.key === 'Backspace') && selectedProp) { setShow((s) => removeProp(s, selectedProp)); setSelectedProp(null); }
       else if ((e.key === 'Delete' || e.key === 'Backspace') && selectedMark && onSet >= 0) {
         setShow((s) => setMarks(s, onSet, (ms) => ms.filter((m) => m.id !== selectedMark))); setSelectedMark(null);
       } else if ((e.key === 'Delete' || e.key === 'Backspace') && selected.size) {
         if (!confirmDelete(show, [...selected])) return;
         setShow((s) => removePerformers(s, selected)); setSelected(new Set());
-      } else if (e.key === 'Escape') { if (tool === 'turn') setTool('select'); else if (shapeEdit) setShapeEdit(null); else { setSelected(new Set()); setSelectedMark(null); } }
+      } else if (e.key === 'Escape') { if (tool === 'turn') setTool('select'); else if (shapeEdit) setShapeEdit(null); else { setSelected(new Set()); setSelectedMark(null); setSelectedProp(null); } }
       else if (e.key === 'v' || e.key === 'V') setTool('select');
       else if (e.key === 'a' || e.key === 'A') setTool('add');
       else if (e.key === 't' || e.key === 'T') setTool('text');
@@ -386,7 +391,7 @@ export function App() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [selected, total, hist, show, shapeEdit, printing, selectedMark, onSet, tool, playing, view, clip]);
+  }, [selected, total, hist, show, shapeEdit, printing, selectedMark, selectedProp, onSet, tool, playing, view, clip]);
 
   const world = (e: React.PointerEvent) => toWorld(view!, e.nativeEvent.offsetX * dpr, e.nativeEvent.offsetY * dpr);
 
@@ -485,7 +490,7 @@ export function App() {
     }
     const id = hit(p, touch);
     if (id) {
-      setSelectedMark(null);
+      setSelectedMark(null); setSelectedProp(null);
       let sel = selected;
       if (add) {
         sel = new Set(selected);
@@ -504,9 +509,17 @@ export function App() {
         setSelected(new Set());
         setSelectedMark(m.id);
         drag.current = { kind: 'mark', id: m.id, start: p, orig: m, at: [e.clientX, e.clientY] };
+        setSelectedProp(null);
         return;
       }
       setSelectedMark(null);
+      const pr = onSet >= 0 && !add ? hitProp(show, show.sets[onSet].props ?? {}, p, Math.max(0.3, ((touch ? 12 : 4) * dpr) / view.scale)) : undefined;
+      if (pr) { // a prop: select and drag it (performers on top of it are hit first)
+        setSelected(new Set()); setSelectedProp(pr);
+        drag.current = { kind: 'prop', id: pr, start: p, orig: show.sets[onSet].props![pr], at: [e.clientX, e.clientY] };
+        return;
+      }
+      setSelectedProp(null);
       drag.current = { kind: 'box', a: p, b: p, add };
       if (!add) setSelected(new Set());
     }
@@ -528,7 +541,7 @@ export function App() {
     const d = drag.current;
     if (!d) return;
     // A click isn't a drag: nothing moves (or snaps to the grid) until the pointer has really traveled.
-    if ((d.kind === 'move' || d.kind === 'mark') && !d.moved) {
+    if ((d.kind === 'move' || d.kind === 'mark' || d.kind === 'prop') && !d.moved) {
       if (Math.hypot(e.clientX - d.at[0], e.clientY - d.at[1]) < 4) return;
       d.moved = true;
     }
@@ -542,6 +555,9 @@ export function App() {
     } else if (d.kind === 'mark') {
       const q = snapTo({ x: p.x - d.start.x, y: p.y - d.start.y }, d.orig.kind === 'ink' ? 0 : snap);
       setShow((s) => setMarks(s, onSet, (ms) => ms.map((m) => (m.id === d.id ? moveMark(d.orig, q.x, q.y) : m))));
+    } else if (d.kind === 'prop') {
+      const q = snapTo({ x: d.orig.x + p.x - d.start.x, y: d.orig.y + p.y - d.start.y }, snap);
+      setShow((s) => placeProp(s, onSet, d.id, { ...d.orig, ...q }, atDown.current?.show));
     } else if (d.kind === 'arrow') {
       setShow((s) => setMarks(s, onSet, (ms) => ms.map((m) => (m.id === d.id && m.kind === 'arrow' ? { ...m, to: snapTo(p, snap) } : m))));
     } else if (d.kind === 'ink') {
@@ -681,7 +697,7 @@ export function App() {
         section={section} setSection={setSection} snap={snap} setSnap={setSnap} starts={starts}
         onNew={fresh} onOpen={() => fileRef.current?.click()} onSave={save} onPrint={() => setPrinting(true)} onShare={() => setSharing(true)} fileError={fileError}
         selectedMark={selectedMark} setSelectedMark={setSelectedMark} adding={adding} setAdding={setAdding}
-        clip={clip ? Object.keys(clip).length : 0} onCopy={copySpots} onPaste={pasteSpots}
+        clip={clip ? Object.keys(clip).length : 0} onCopy={copySpots} onPaste={pasteSpots} selectedProp={selectedProp} setSelectedProp={setSelectedProp}
         onUndo={() => step('undo')} onRedo={() => step('redo')} canUndo={!!hist.past.length} canRedo={!!hist.future.length}
         onFit={fit} shape={shapeEdit?.shape ?? null} startShape={startShape} updateShape={updateShape} endShape={() => setShapeEdit(null)}
       />

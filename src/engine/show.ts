@@ -61,7 +61,15 @@ export interface DrillSet {
   facing?: Record<string, Facing>;
   /** Equipment performers carry from this set on, where it changes ('none' = they put it down); carried forward like facing. */
   equipment?: Record<string, Equipment | 'none'>;
+  /** Where each prop is in this set (every prop has a spot in every set, like performers). */
+  props?: Record<string, PropSpot>;
 }
+
+/** A prop on the field (a platform, a backdrop): a rectangle, or an oval when `round`, `w` steps side to side and `h` front to back. */
+export interface Prop { id: string; name: string; w: number; h: number; round?: boolean }
+/** A prop's center and its turn in degrees (counterclockwise as the director sees it). */
+export interface PropSpot { x: number; y: number; angle: number }
+export const MAX_PROPS = 100;
 
 export type Equipment = 'flag' | 'rifle' | 'saber';
 export const EQUIPMENT: [Equipment, string][] = [['flag', 'Flag'], ['rifle', 'Rifle'], ['saber', 'Saber']];
@@ -122,6 +130,8 @@ export interface Show {
   /** Count-first layout: the show's music in named stretches (one per tune, or one for a one-tune file), typed up front.
    * The timeline runs to their total even before every set is written; past the last set, performers hold. */
   movements?: Movement[];
+  /** Props: shapes on the field that can sit somewhere new in each set and move between sets. */
+  props?: Prop[];
 }
 
 export interface Movement { id: string; name: string; counts: number }
@@ -292,7 +302,7 @@ export function addSetAfter(show: Show, i: number, counts = 16): Show {
   let n = show.sets.length + 1;
   while (names.has(String(n))) n++;
   const sets = [...show.sets];
-  sets.splice(i + 1, 0, { id: newId('set'), name: String(n), counts, pos: { ...src.pos } });
+  sets.splice(i + 1, 0, { id: newId('set'), name: String(n), counts, pos: { ...src.pos }, ...(src.props ? { props: { ...src.props } } : {}) });
   return renumberSets({ ...show, sets }); // added mid-show: later sets move up a number
 }
 
@@ -369,9 +379,10 @@ export function insertSetAt(show: Show, at: number): { show: Show; index: number
     const last = show.sets.length - 1;
     let n = Math.max(0, ...show.sets.map((x) => parseInt(x.name, 10)).filter(Number.isFinite)) + 1; // after 7 (or 7A) comes 8
     while (names.has(String(n))) n++;
-    return { show: { ...show, sets: [...show.sets, { id: newId('set'), name: String(n), counts: c - starts[last], pos: { ...show.sets[last].pos } }] }, index: last + 1 };
+    const lp = show.sets[last].props;
+    return { show: { ...show, sets: [...show.sets, { id: newId('set'), name: String(n), counts: c - starts[last], pos: { ...show.sets[last].pos }, ...(lp ? { props: { ...lp } } : {}) }] }, index: last + 1 };
   }
-  const fresh = { id: newId('set'), name: subSetName(names, show.sets[i - 1].name), counts: c - starts[i - 1], pos: positionsAt(show, c) };
+  const fresh = { id: newId('set'), name: subSetName(names, show.sets[i - 1].name), counts: c - starts[i - 1], pos: positionsAt(show, c), ...(show.props?.length ? { props: propsAt(show, c) } : {}) };
   const sets = show.sets.map((x, j) => (j === i ? { ...x, counts: starts[i] - c } : x));
   sets.splice(i, 0, fresh);
   return { show: renumberSets({ ...show, sets }), index: i }; // a sub-set before an existing 4A becomes 4A, the old one 4B
@@ -603,6 +614,62 @@ export function closeCalls(show: Show, i: number): { a: string; b: string; count
   return [...best.values()].sort((x, y) => x.d - y.d);
 }
 
+// ---- Props.
+
+/** Add a prop at `at` in every set. */
+export function addProp(show: Show, name: string, w: number, h: number, round: boolean, at: Point): { show: Show; id: string } {
+  const id = newId('pr'), spot = { x: at.x, y: at.y, angle: 0 };
+  return { id, show: { ...show, props: [...(show.props ?? []), { id, name, w, h, ...(round ? { round } : {}) }], sets: show.sets.map((s) => ({ ...s, props: { ...s.props, [id]: spot } })) } };
+}
+
+export const updateProp = (show: Show, id: string, patch: Partial<Omit<Prop, 'id'>>): Show =>
+  ({ ...show, props: show.props?.map((p) => (p.id === id ? { ...p, ...patch } : p)) });
+
+export function removeProp(show: Show, id: string): Show {
+  const props = show.props?.filter((p) => p.id !== id);
+  return { ...show, props: props?.length ? props : undefined, sets: show.sets.map((s) => {
+    if (!s.props) return s;
+    const { [id]: _, ...rest } = s.props;
+    return { ...s, props: Object.keys(rest).length ? rest : undefined };
+  }) };
+}
+
+/** Put a prop on `spot` in set i, and in each later set where it was still standing on its old set-i spot (as with performers). */
+export function placeProp(show: Show, i: number, id: string, spot: PropSpot, base: Show = show): Show {
+  const was = base.sets[i]?.props?.[id];
+  const same = (a?: PropSpot, b?: PropSpot) => !!a && !!b && a.x === b.x && a.y === b.y && a.angle === b.angle;
+  let holding = true;
+  return { ...show, sets: show.sets.map((s, j) => {
+    if (j < i) return s;
+    if (j > i) holding = holding && same(base.sets[j]?.props?.[id], was);
+    return j === i || holding ? { ...s, props: { ...s.props, [id]: spot } } : s;
+  }) };
+}
+
+/** Every prop's spot at time t: they move in a straight line and turn the short way, evenly through the move. */
+export function propsAt(show: Show, t: number): Record<string, PropSpot> {
+  const { to, f } = locate(show, t), b = show.sets[to].props ?? {};
+  if (f >= 1 || to === 0) return b;
+  const a = show.sets[to - 1].props ?? {}, out: Record<string, PropSpot> = {};
+  for (const [id, q] of Object.entries(b)) {
+    const p = a[id] ?? q, turn = ((((q.angle - p.angle) % 360) + 540) % 360) - 180;
+    out[id] = { x: p.x + (q.x - p.x) * f, y: p.y + (q.y - p.y) * f, angle: p.angle + turn * f };
+  }
+  return out;
+}
+
+/** The prop under field point `p` (the top one), with `pad` steps of reach around its edge. */
+export function hitProp(show: Show, spots: Record<string, PropSpot>, p: Point, pad = 0): string | undefined {
+  for (const pr of [...(show.props ?? [])].reverse()) {
+    const s = spots[pr.id];
+    if (!s) continue;
+    const a = (-s.angle * Math.PI) / 180, dx = p.x - s.x, dy = p.y - s.y;
+    const u = dx * Math.cos(a) - dy * Math.sin(a), v = dx * Math.sin(a) + dy * Math.cos(a); // in the prop's own frame
+    const hw = pr.w / 2 + pad, hh = pr.h / 2 + pad;
+    if (pr.round ? (u / hw) ** 2 + (v / hh) ** 2 <= 1 : Math.abs(u) <= hw && Math.abs(v) <= hh) return pr.id;
+  }
+}
+
 /** A count-by-count path still belongs to its move: one spot per count, ends on the two sets' spots. */
 export const pathFits = (path: Point[], from: Point | undefined, to: Point | undefined, counts: number) =>
   !!from && !!to && path.length === counts + 1 && near(path[0], from) && near(path[counts], to);
@@ -742,6 +809,9 @@ export function parseShow(text: string): Show {
     str(m?.id) && str(m.name) && m.name.length <= MAX_NAME && Number.isInteger(m.counts) && m.counts >= 1 && m.counts <= MAX_MOVEMENT))) bad('movements');
   for (const x of s.sections) if (!str(x?.id) || !str(x.name) || !str(x.letter) || (x.color !== undefined && !COLOR_RE.test(x.color))) bad('section');
   for (const x of s.performers) if (!str(x?.id) || !str(x.section) || !Number.isFinite(x.number) || (x.name !== undefined && (!str(x.name) || x.name.length > MAX_NAME))) bad('performer');
+  if (s.props !== undefined && (!Array.isArray(s.props) || s.props.length > MAX_PROPS || !s.props.every((p: Prop) => str(p?.id) && str(p.name) && p.name.length <= MAX_NAME
+    && Number.isFinite(p.w) && p.w > 0 && p.w <= 200 && Number.isFinite(p.h) && p.h > 0 && p.h <= 200 && (p.round === undefined || typeof p.round === 'boolean')))) bad('props');
+  const propIds = new Set((s.props ?? []).map((p: Prop) => p.id));
   for (const set of s.sets) {
     if (!str(set?.id) || !str(set.name) || !Number.isFinite(set.counts) || typeof set.pos !== 'object' || !set.pos) bad('set');
     if (set.measures !== undefined && !str(set.measures)) bad('set measures');
@@ -767,6 +837,10 @@ export function parseShow(text: string): Show {
       id in set.pos && FACINGS.some(([k]) => k === f)))) bad('set facing');
     if (set.equipment !== undefined && (typeof set.equipment !== 'object' || !set.equipment || !Object.entries(set.equipment).every(([id, e]) =>
       id in set.pos && (e === 'none' || EQUIPMENT.some(([k]) => k === e))))) bad('set equipment');
+    if (set.props !== undefined && (typeof set.props !== 'object' || !set.props || !Object.entries(set.props).every(([id, q]) => {
+      const x = q as PropSpot;
+      return propIds.has(id) && Number.isFinite(x?.x) && Number.isFinite(x.y) && Number.isFinite(x.angle);
+    }))) bad('set props');
   }
   return normalizeFtl(s as Show);
 }

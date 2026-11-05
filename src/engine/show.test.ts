@@ -3,7 +3,7 @@ import { HASHES, readout } from './coords';
 import {
   addPerformer, addSetAfter, advance, biggestStep, chainOrder, clearFtl, ftlTrail, moveSteps, normalizeFtl, flip, mirrorSides, moveSetTo, remapHash, rotateScale, setFtl, snapSelection, playRange, playPlan, label, locate, newShow, parseShow, placeInSet, positionsAt,
   removePerformers, renumberSets, scoreOrder, DEFAULT_SECTIONS, removeSet, setAt, setCounts, setStarts, totalCounts, xFrom, yFrom, insertSetAt, showLength, movementAt, movementOfSet, setFtlTurns,
-  setTiming, timingOf, fitTurn, setTurning, turnRoute, counterMarch, closeCalls, facingIn, setFacing, facingVector, equipmentIn, setEquipment,
+  setTiming, timingOf, fitTurn, setTurning, turnRoute, counterMarch, closeCalls, facingIn, setFacing, facingVector, equipmentIn, setEquipment, addProp, placeProp, propsAt, hitProp, removeProp,
 } from './show';
 
 function twoSetShow() {
@@ -710,5 +710,27 @@ describe('equipment', () => {
     const bad = JSON.parse(JSON.stringify(show)); bad.sets[0].equipment[id] = 'tuba';
     expect(() => parseShow(JSON.stringify(bad))).toThrow(/equipment/);
     expect(parseShow(JSON.stringify(show)).sets[2].equipment).toEqual({ [id]: 'none' });
+  });
+});
+
+describe('props', () => {
+  it('has a spot in every set, moves through holds, and travels between sets', () => {
+    let { show } = twoSetShow();
+    show = addSetAfter(show, 1, 8);
+    const r = addProp(show, 'Platform', 8, 4, false, { x: 0, y: 60 });
+    show = placeProp(r.show, 1, r.id, { x: 16, y: 60, angle: 90 });
+    expect(show.sets.map((s) => s.props![r.id].x)).toEqual([0, 16, 16]); // set 3 was holding, so it came along
+    const mid = propsAt(show, 8)[r.id];
+    expect(mid).toEqual({ x: 8, y: 60, angle: 45 });
+    expect(hitProp(show, propsAt(show, 16), { x: 16, y: 63.5 })).toBe(r.id); // turned 90°: 8 deep now
+    expect(hitProp(show, propsAt(show, 16), { x: 19, y: 60 })).toBeUndefined();
+    expect(insertSetAt(show, 4).show.sets[1].props![r.id].x).toBe(4); // a sub-set mid-move takes the prop's spot then
+    expect(propsAt(placeProp(show, 1, r.id, { x: 16, y: 60, angle: 350 }), 8)[r.id].angle).toBe(-5); // the short way round
+    expect(parseShow(JSON.stringify(show)).props).toEqual([{ id: r.id, name: 'Platform', w: 8, h: 4 }]);
+    const bad = JSON.parse(JSON.stringify(show)); bad.sets[1].props.nope = { x: 0, y: 0, angle: 0 };
+    expect(() => parseShow(JSON.stringify(bad))).toThrow(/props/);
+    const gone = removeProp(show, r.id);
+    expect(gone.props).toBeUndefined();
+    expect(gone.sets.every((s) => !s.props)).toBe(true);
   });
 });

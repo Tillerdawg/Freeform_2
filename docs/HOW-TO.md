@@ -19,18 +19,19 @@ The pictures in this guide come from a small sample show (47 performers, 4 sets)
 9. [Follow-the-leader](#follow-the-leader)
 10. [Step-offs and turning moves](#step-offs-and-turning-moves)
 11. [Facing and equipment](#facing-and-equipment)
-12. [Step-size and too-close warnings](#step-size-and-too-close-warnings)
-13. [Dot labels](#dot-labels)
-14. [Markup and notes](#markup-and-notes)
-15. [Play it back](#play-it-back)
-16. [Add your music](#add-your-music)
-17. [Print dot sheets and drill charts](#print-dot-sheets-and-drill-charts)
-18. [Send the show to your performers](#send-the-show-to-your-performers)
-19. [What performers see on their phones](#what-performers-see-on-their-phones)
-20. [Using an iPad](#using-an-ipad)
-21. [Saving, backing up, and opening files](#saving-backing-up-and-opening-files)
-22. [Keyboard shortcuts](#keyboard-shortcuts)
-23. [If something goes wrong](#if-something-goes-wrong)
+12. [Props](#props)
+13. [Step-size and too-close warnings](#step-size-and-too-close-warnings)
+14. [Dot labels](#dot-labels)
+15. [Markup and notes](#markup-and-notes)
+16. [Play it back](#play-it-back)
+17. [Add your music](#add-your-music)
+18. [Print dot sheets and drill charts](#print-dot-sheets-and-drill-charts)
+19. [Send the show to your performers](#send-the-show-to-your-performers)
+20. [What performers see on their phones](#what-performers-see-on-their-phones)
+21. [Using an iPad](#using-an-ipad)
+22. [Saving, backing up, and opening files](#saving-backing-up-and-opening-files)
+23. [Keyboard shortcuts](#keyboard-shortcuts)
+24. [If something goes wrong](#if-something-goes-wrong)
 
 ## Before you start
 
@@ -236,6 +237,19 @@ A small pointer beside each dot shows which way it faces, on the field, on print
 Dot sheets say "Face Side 2" on the set where a performer's facing changes, and the phone view shows "facing Side 2" with their spot and "face Back" with their next set when it's about to change.
 
 **Guard equipment.** **Carries** (just under **Facing**) works the same way: pick **Flag**, **Rifle**, or **Saber** on the set where they pick it up, and **Nothing** where they put it down. A small flag, rifle, or saber shows beside each dot that carries one, on the field, on printed charts, and on phones. Dot sheets say "Flag" or "Put down equipment" on the set where it changes, and the phone says "pick up rifle" with the next set.
+
+## Props
+
+![The Props list in the sidebar, with the platform picked](img/props.png)
+
+Props are things on the field that aren't performers: a platform, a backdrop, a ramp. Open **Props** in the sidebar and click **+ Prop**. It starts 8 steps wide and 4 deep on the 50, in every set.
+
+- Type its name, and set how **Wide** (side to side) and **Deep** (front to back) it is, in steps. Check **Round** for an oval or circle.
+- **Drag it on the field** to move it in the set you're on. Like a performer, it moves into later sets where it was still standing on its old spot, and it rolls from spot to spot between sets.
+- **Turned** turns it in this set, in degrees counterclockwise. Between sets it turns the short way.
+- Click it on the field to pick it (performers standing on it get picked first), and press Delete or click **×** to remove it from the whole show.
+
+Props show on the field, on printed charts, and on phones.
 
 ## Step-size and too-close warnings
 

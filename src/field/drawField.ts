@@ -224,6 +224,42 @@ export function drawEquipment(ctx: CanvasRenderingContext2D, v: View, at: Point,
   ctx.restore();
 }
 
+/** Props under the performers: a shape with its name in the middle; `print` is black on white. */
+export function drawProps(
+  ctx: CanvasRenderingContext2D, v: View, props: { id: string; name: string; w: number; h: number; round?: boolean }[],
+  spots: Record<string, { x: number; y: number; angle: number }>, selected: string | null, mode: 'screen' | 'print', px: number,
+) {
+  for (const pr of props) {
+    const s = spots[pr.id];
+    if (!s) continue;
+    const c = toScreen(v, s), w = pr.w * v.scale, h = pr.h * v.scale, sel = pr.id === selected;
+    ctx.save();
+    ctx.translate(c.x, c.y);
+    ctx.rotate((-s.angle * Math.PI) / 180); // the screen's y runs down, so counterclockwise on the field is negative here
+    ctx.beginPath();
+    if (pr.round) ctx.ellipse(0, 0, w / 2, h / 2, 0, 0, Math.PI * 2); else ctx.rect(-w / 2, -h / 2, w, h);
+    ctx.globalAlpha = mode === 'print' ? 0.85 : 0.7;
+    ctx.fillStyle = mode === 'print' ? '#fff' : PALETTE['bg-deep'];
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.lineWidth = Math.max(2, v.scale * 0.15) * (sel ? 1.6 : 1);
+    ctx.strokeStyle = mode === 'print' ? '#000' : sel ? PALETTE.gold : '#fff';
+    ctx.setLineDash(mode === 'print' ? [] : [v.scale * 0.6, v.scale * 0.3]);
+    ctx.stroke();
+    ctx.restore();
+    ctx.save();
+    const m = ctx.getTransform(), at = m.transformPoint(c);
+    ctx.setTransform(1, 0, 0, 1, 0, 0); // the name reads upright, even on a field turned around
+    ctx.font = `700 ${px}px system-ui, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const maxW = Math.max(w, h) * Math.hypot(m.a, m.b);
+    ctx.lineWidth = px * 0.3; ctx.lineJoin = 'round'; ctx.strokeStyle = mode === 'print' ? '#fff' : 'rgba(0,0,0,0.85)';
+    ctx.strokeText(pr.name, at.x, at.y, maxW); // an edge, so lines on the field don't run through the name
+    ctx.fillStyle = mode === 'print' ? '#000' : sel ? PALETTE.gold : '#fff';
+    ctx.fillText(pr.name, at.x, at.y, maxW);
+    ctx.restore();
+  }
+}
+
 /** Performers, their incoming paths, and an optional selection box. */
 export function drawPerformers(
   ctx: CanvasRenderingContext2D, v: View, dots: Dot[], selected: Set<string>, paths: Path[], box?: [Point, Point], dpr = 1,

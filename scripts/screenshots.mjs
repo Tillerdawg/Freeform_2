@@ -142,6 +142,17 @@ shot('move', async () => {
   await page.waitForTimeout(200);
   await save(page, 'move', { x: 120, y: 60, width: 1000, height: 560 });
 });
+shot('props', async () => {
+  // The platform picked on the field in set 3, with the Props list open in the sidebar.
+  const page = await editor();
+  await goSet(page, 3);
+  const p = await spot(page, { x: 24, y: 70 });
+  await page.mouse.click(p.x, p.y);
+  await page.waitForTimeout(200);
+  await page.getByRole('button', { name: '+ Prop' }).scrollIntoViewIfNeeded();
+  const list = await page.getByRole('button', { name: '+ Prop' }).boundingBox();
+  await save(page, 'props', { x: 1095, y: list.y + list.height + 12 - 380, width: W - 1095, height: 380 }); // the field's picture is in the editor shot
+});
 shot('sections', async () => {
   const page = await editor();
   const head = page.getByText('Sections', { exact: true });

@@ -2,7 +2,7 @@
 import type { Point } from './coords';
 import { assign } from './shapes';
 import {
-  addPerformer, addSetAfter, newShow, normalizeFtl, placeInSet, setCue, setEquipment, setFacing, setFtl, setFtlTurns, setMarks, setMeasures, setNames, setNote,
+  addProp, placeProp, addPerformer, addSetAfter, newShow, normalizeFtl, placeInSet, setCue, setEquipment, setFacing, setFtl, setFtlTurns, setMarks, setMeasures, setNames, setNote,
   type Show,
 } from './show';
 
@@ -52,5 +52,8 @@ export function sampleShow(): Show {
   // Set 4: back into the block in only 8 counts, too fast on purpose so the step-size warnings show.
   show = placeInSet(show, 3, { ...near(3, winds, block), ...at(battery, (k) => ({ x: -10 + 2 * k, y: 54 })) }); // battery back behind the block
   show = setMeasures(show, 3, '9–10');
+  // A platform behind the battery that rolls toward Side 2 and turns for set 3.
+  const stage = addProp(show, 'Platform', 12, 4, false, { x: 0, y: 66 });
+  show = placeProp(stage.show, 2, stage.id, { x: 24, y: 66, angle: 90 });
   return show;
 }

@@ -115,7 +115,7 @@ export function withHolds(show: Show, m: Midi): { show: Show; added: string[] } 
       const name = subSetName(names, before.name);
       names.add(name);
       const counts = beatsIn(a, b);
-      sets.splice(i, 0, { id: newId('set'), name, counts, pos: { ...before.pos }, ...(before.labels ? { labels: { ...before.labels } } : {}), measures: a === b ? `${a}` : `${a}–${b}`, note: `Hold (m. ${a === b ? a : `${a}–${b}`})` });
+      sets.splice(i, 0, { id: newId('set'), name, counts, pos: { ...before.pos }, ...(before.labels ? { labels: { ...before.labels } } : {}), ...(before.props ? { props: { ...before.props } } : {}), measures: a === b ? `${a}` : `${a}–${b}`, note: `Hold (m. ${a === b ? a : `${a}–${b}`})` });
       added.push(name);
       i++;
     }

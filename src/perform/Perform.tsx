@@ -6,8 +6,8 @@ import { readout, type Point } from '../engine/coords';
 import { decodeShow, fetchHosted, LOAD_PREFIX, linkHash, parseHosted, SHARE_PREFIX } from '../engine/share';
 import { Scanner } from './Scanner';
 import { isPhone } from './device';
-import { colorOf, equipmentIn, equipmentName, facingIn, facingName, facingVector, label, locate, mark, moveSteps, timingOf, parseShow, positionsAt, setAt, setStarts, showLength, type Show } from '../engine/show';
-import { drawField, drawGlyph, drawLabels, drawMarks, drawPerformers, fitView, STEP_TEXT, toScreen, type View } from '../field/drawField';
+import { colorOf, equipmentIn, propsAt, equipmentName, facingIn, facingName, facingVector, label, locate, mark, moveSteps, timingOf, parseShow, positionsAt, setAt, setStarts, showLength, type Show } from '../engine/show';
+import { drawField, drawGlyph, drawLabels, drawMarks, drawPerformers, drawProps, fitView, STEP_TEXT, toScreen, type View } from '../field/drawField';
 import { fmtStep } from '../ui/format';
 import { usePlayback } from '../ui/usePlayback';
 import { synced } from '../engine/music';
@@ -217,6 +217,7 @@ export function Perform() {
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     if (state!.facingFront) ctx.setTransform(-1, 0, 0, -1, W, H); // turn the field around: front sideline at the top
     drawField(ctx, v, show.hash);
+    drawProps(ctx, v, show.props ?? [], propsAt(show, t), null, 'screen', 12 * dpr);
     if (onSet >= 0) drawMarks(ctx, v, show.sets[onSet].marks ?? [], 'screen');
     if (!me) {
       const shown = !playing; // labels would jump around as dots move
