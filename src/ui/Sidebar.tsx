@@ -531,6 +531,7 @@ function PropsEditor({ show, setShow, onSet, selected, setSelected }: { show: Sh
               {spot && <label title="Its turn in this set, in degrees counterclockwise">Turned <NumberField aria-label="Prop turn in degrees" min={-360} max={360} integer value={spot.angle} style={{ width: 52 }}
                 onValue={(n) => setShow((s) => placeProp(s, onSet, pr.id, { ...spot, angle: n }))} />°</label>}
             </div>
+            {spot && <p style={{ fontSize: 12, margin: '4px 0 0' }}>Center: {readout(spot, fieldOf(show))}</p>}
           </div>
         );
       })}

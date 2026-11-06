@@ -573,6 +573,7 @@ export function App() {
       setShow((s) => setMarks(s, onSet, (ms) => ms.map((m) => (m.id === d.id ? moveMark(d.orig, q.x, q.y) : m))));
     } else if (d.kind === 'prop') {
       const q = snapTo({ x: d.orig.x + p.x - d.start.x, y: d.orig.y + p.y - d.start.y }, snap);
+      if (d.moved) setHover(`${show.props?.find((x) => x.id === d.id)?.name ?? 'Prop'} center: ${readout(q, fieldOf(show))}`); // the prop's center, not the pointer
       setShow((s) => placeProp(s, onSet, d.id, { ...d.orig, ...q }, atDown.current?.show));
     } else if (d.kind === 'arrow') {
       setShow((s) => setMarks(s, onSet, (ms) => ms.map((m) => (m.id === d.id && m.kind === 'arrow' ? { ...m, to: snapTo(p, snap) } : m))));
@@ -595,6 +596,7 @@ export function App() {
       const a0 = d.orig[d.anchor];
       const a1 = snapTo({ x: a0.x + p.x - d.start.x, y: a0.y + p.y - d.start.y }, snap);
       const dx = a1.x - a0.x, dy = a1.y - a0.y;
+      if (d.moved) setHover(`${label(show, show.performers.find((x) => x.id === d.anchor)!)}: ${readout(a1, fieldOf(show))}`); // where the grabbed performer lands, not the pointer
       const moves = Object.fromEntries(Object.entries(d.orig).map(([k, q]) => [k, { x: q.x + dx, y: q.y + dy }]));
       const leader = d.turns && ftlGroup?.order[0];
       setShow((s) => { const m = placeInSet(s, onSet, moves, atDown.current?.show); return leader ? setFtlTurns(m, onSet, leader, d.turns!.map((q) => ({ x: q.x + dx, y: q.y + dy }))) : m; });

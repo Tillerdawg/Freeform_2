@@ -1182,3 +1182,8 @@ Each entry: timestamp, who decided, context, options considered, decision.
 ## 2026-11-06 14:40 EST — New sections from Add Performer(s)
 - **Who:** Jason Tiller: move adding a section to the Add Performer(s) button.
 - **Decision:** The **Add Performer(s)** menu ends with **New section**: a name, a letter, and **Add**, which makes the section and picks it for placing (Enter works too). It warns if the letter is already used. The sidebar's **+ Section** button is gone; **Sections** still renames, recolors, reorders, sorts, renumbers, and deletes. New sections no longer start as "New section ?" (Claude's call: name and letter are asked up front).
+
+## 2026-11-06 14:50 EST — The readout follows what you drag
+- **Who:** Jason Tiller: placing a prop's center on the hash, the corner readout said something else.
+- **Context:** The readout showed the pointer's spot, so grabbing a prop (or a performer) off its center made it disagree with where the thing landed.
+- **Decision:** While dragging, the readout shows the prop's center ("Prop 1 center: …") or the grabbed performer's snapped spot ("P4: …"). Each prop's box in the sidebar also shows its **Center** in the set you're on.

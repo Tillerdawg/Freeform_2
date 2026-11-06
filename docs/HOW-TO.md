@@ -273,7 +273,7 @@ Dot sheets say "Face Side 2" on the set where a performer's facing changes, and 
 Props are things on the field that aren't performers: a platform, a backdrop, a ramp. Open **Props** in the sidebar and click **+ Prop**. It starts 8 steps wide and 4 deep on the 50, in every set.
 
 - Type its name, and set how **Wide** (side to side) and **Deep** (front to back) it is, in steps. Check **Round** for an oval or circle.
-- **Drag it on the field** to move it in the set you're on. Like a performer, it moves into later sets where it was still standing on its old spot, and it rolls from spot to spot between sets.
+- **Drag it on the field** to move it in the set you're on. While you drag, the readout in the corner of the field shows where its center is, and **Center** in its box in the sidebar shows the same. Like a performer, it moves into later sets where it was still standing on its old spot, and it rolls from spot to spot between sets.
 - **Turned** turns it in this set, in degrees counterclockwise. Between sets it turns the short way.
 - Click it on the field to pick it (performers standing on it get picked first), and press Delete or click **×** to remove it from the whole show.
 
