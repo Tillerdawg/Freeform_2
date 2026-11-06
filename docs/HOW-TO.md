@@ -48,7 +48,7 @@ One thing to know up front: **your show is saved in the browser you're using.** 
 From top to bottom:
 
 - **The top bar** has the logo, a reminder of how to move around the field, and at the far right the sun/moon button, which switches between dark mode (the default) and light mode. The field looks the same either way.
-- **The drill toolbar** has two rows. The first row has **Select**, **Add** (performers, a prop, or a set), and **Delete**, then the set you're on with its **Counts** and **Measures**. At the right end are Undo, Redo, Fit (zooms back out to the whole field), the timeline button, and the sidebar button. The second row has the tools for placing and moving performers: **Snap to grid**, **Markup**, **Shape**, **Transform**, **Path**, **Move**, **Labels**, and **Reset to set**.
+- **The drill toolbar** has two rows. The first row has **Select**, **Add** (performers, a set, or a prop), and **Delete**, then the set you're on with its **Counts** and **Measures**. At the right end are Undo, Redo, Fit (zooms back out to the whole field), the timeline button, and the sidebar button. The second row has the tools for placing and moving performers: **Snap to grid**, **Markup**, **Shape**, **Transform**, **Path**, **Move**, **Labels**, and **Reset to set**.
 - **The field** is in the middle. You're looking at it from the press box: the front sideline is at the bottom and Side 1 is on the left. Scroll to move around, and pinch (or hold ⌘ or Ctrl and scroll) to zoom.
 - **The timeline** runs across the bottom. Each set has a numbered button, and each move between sets shows its counts, measures, and biggest step size.
 - **The sidebar** on the right holds the show's file buttons, title, and hash marks; the current set's notes; whatever you have selected; and the **Sections** and **Roster** lists. The sidebar button (at the right end of the toolbar) shows and hides it.
@@ -92,9 +92,11 @@ If your program always uses the same sections, set them up once and choose **Sta
 
 ![The Add menu: a set, a section's performers, or a prop](img/add-performers.png)
 
+**Add** is two buttons in one. The **▾** part opens its menu, where you pick what to add: a set, a section's performers, or a prop. The main part repeats your last pick, and its name says what that is: **Add · P** places more trumpets, **Add Set** adds another set, and **Add Prop** adds another prop.
+
 **New** drops you here: the field is blank, adding performers is on, and the **Add** menu is open.
 
-1. Click **Add** and pick a section under **Performers**. For a section that isn't there yet (a drum major, a soloist), click **Create New Section**, type its name and letter, and click **Add**: it's made and picked in one step. The menu keeps the last section you used marked, so you can pick up where you left off.
+1. Click **Add**'s **▾** and pick a section under **Performers**. For a section that isn't there yet (a drum major, a soloist), click **Create New Section**, type its name and letter, and click **Add**: it's made and picked in one step. Later, **Add · P** (or whichever section you used last) picks up where you left off, and so does the A key.
 2. Click the field wherever you want each one. They're numbered in order: P1, P2, P3, and so on.
 3. Press **V** or Esc (or click **Select**) when you're done.
 
@@ -151,7 +153,7 @@ Coordinates read side to side first, then front to back, from the nearest yard l
 
 A set is one picture of the drill, and the move into it takes a number of counts. Set 1 is the opening set, so it has no move into it.
 
-- **Add**, then **Set**, adds a set 16 counts after the one you're on, and the sets after it move along. You're back on **Select** afterward. The new set starts as a copy of the one you were on, so you only move the people who move.
+- **Add**'s **▾**, then **Set**, adds a set 16 counts after the one you're on, and the sets after it move along. You're back on **Select** afterward, and the button now reads **Add Set**, so the next set is one click. The new set starts as a copy of the one you were on, so you only move the people who move.
 - Change a set's **Counts** and **Measures** on the toolbar's first row, next to **Delete**. New counts take effect when you press Enter or tap away, so the set doesn't jump around while you type. Type measures the way the score numbers them (a pickup bar is m. 1).
 - **Delete** with nothing selected removes the set you're on, after asking. (With performers, a prop, or markup selected, it deletes those instead; hold the mouse over it to see what it will delete. The Delete key never deletes a set.) The sets always stay numbered in order: delete set 7 of 8 and the old 8 becomes 7. Adding a set in the middle moves the later ones up a number the same way. Sub-sets keep their place after the set before them and stay lettered in order (the old 8A becomes 7A).
 - **Click a set's button** on the timeline to go to it, or click any count to see where everyone is on that count.
@@ -165,7 +167,7 @@ The timeline scrolls sideways for a long show. Use the mouse wheel or a swipe ov
 
 ![The Movements menu](img/movements.png)
 
-The timeline then runs the full length, with the part you haven't written yet striped *Not written yet*. To add a set at a particular count, click that count on the timeline, then click **Add** and **Set**. Or type the count in the **at count** box next to **Set**. No other set moves. A set added in the middle of a move splits it and gets a sub-set name (1A after 1), the way Pyware names them.
+The timeline then runs the full length, with the part you haven't written yet striped *Not written yet*. To add a set at a particular count, click that count on the timeline, then click **Add Set** (or **Add**'s **▾**, then **Set**). Or type the count in the **at count** box next to **Set**. No other set moves. A set added in the middle of a move splits it and gets a sub-set name (1A after 1), the way Pyware names them.
 
 ## Shapes: lines, arcs, curves, circles, polygons, stars, spirals, blocks, and letters
 
@@ -270,7 +272,7 @@ Dot sheets say "Face Side 2" on the set where a performer's facing changes, and 
 
 ![The Props list in the sidebar, with the platform picked](img/props.png)
 
-Props are things on the field that aren't performers: a platform, a backdrop, a ramp. Click **Add**, then **Prop**. It starts as a square 8 steps wide and 8 deep in the middle of the field, in every set, and it's picked, with its box open in the sidebar. (**+ Prop** under **Props** in the sidebar does the same.)
+Props are things on the field that aren't performers: a platform, a backdrop, a ramp. Click **Add**'s **▾**, then **Prop** (after that, **Add Prop** adds another). It starts as a square 8 steps wide and 8 deep in the middle of the field, in every set, and it's picked, with its box open in the sidebar. (**+ Prop** under **Props** in the sidebar does the same.)
 
 - Type its name, and set how **Wide** (side to side) and **Deep** (front to back) it is, in steps. Check **Round** for an oval or circle.
 - **Drag it on the field** to move it in the set you're on. While you drag, the readout in the corner of the field shows where its center is, and **Center** in its box in the sidebar shows the same. Like a performer, it moves into later sets where it was still standing on its old spot, and it rolls from spot to spot between sets.

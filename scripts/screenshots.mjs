@@ -67,7 +67,7 @@ shot('editor', async () => {
 });
 shot('add-performers', async () => {
   const page = await editor();
-  await menu(page, 'Add');
+  await page.getByRole('button', { name: /^Add.*: choose$/ }).click(); await page.waitForTimeout(200); // the Add button's ▾ part
   await save(page, 'add-performers', { x: 0, y: 0, width: 720, height: 560 });
 });
 shot('select-frame', async () => {

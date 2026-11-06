@@ -89,7 +89,18 @@ export function Toolbar(p: ToolbarProps) {
   const markup = MARKUP.find(([t]) => t === p.tool);
   const needs = (ok: boolean, why: string) => (ok ? undefined : why);
   const pick = onASet ? 'Select performers first' : 'Scrub to a set first';
-  const addLetter = p.tool === 'add' ? ` · ${show.sections.find((s) => s.id === p.section)?.letter ?? '?'}` : '';
+  const [last, setLast] = useState<AddKind>('section'); // what the Add button repeats (Jason): the last thing picked in its menu
+  useEffect(() => { if (p.tool === 'add') setLast('section'); }, [p.tool]); // A, New, or a section from the menu
+  const letter = show.sections.find((s) => s.id === p.section)?.letter ?? '?';
+  const props = show.props ?? [];
+  const addSet = (at: number | null) => { const r = addSetHere(show, p.t, at); setShow(() => r.show); p.setT(r.t); p.setTool('select'); setLast('set'); }; // one click, not a mode: back to Select
+  const addPropNow = () => {
+    const r = addProp(show, `Prop ${props.length + 1}`, 8, 8, false, { x: 0, y: fieldDepth(fieldOf(show)) / 2 }); // an 8 by 8 square in the middle (Jason)
+    setShow(() => r.show); p.setSelected(new Set()); p.setSelectedMark(null); p.setSelectedProp(r.id); p.setTool('select'); p.showSidebar(); setLast('prop');
+  };
+  const addMain = last === 'set' ? { label: 'Add Set', title: 'Add a set after this one (or at the count you clicked). ▾ to choose something else', onClick: () => addSet(null) }
+    : last === 'prop' ? { label: 'Add Prop', title: 'Add another 8 by 8 prop in the middle of the field. ▾ to choose something else', onClick: addPropNow, disabled: props.length >= MAX_PROPS }
+    : { label: `Add · ${letter}`, title: `Place ${show.sections.find((s) => s.id === p.section)?.name ?? 'performers'}: click the field for each one (A). ▾ for another section, a set, or a prop`, onClick: () => p.setTool('add') };
 
   return (
     <>
@@ -98,9 +109,9 @@ export function Toolbar(p: ToolbarProps) {
     <div className="toolbar" role="toolbar" aria-label="Performers">
       <div role="radiogroup" aria-label="Performer tool" style={{ display: 'inline-flex', gap: 4 }}>{/* separate buttons, like Delete (Jason) */}
         <button role="radio" aria-checked={p.tool === 'select'} onClick={() => p.setTool('select')} title="Select and move performers, markup, and props (V)">Select</button>
-        <Menu label={<>Add{addLetter}</>} name={`Add${addLetter}`} openNow={p.openAdd}
-          pressed={p.tool === 'add'} title="Add performers (A), a prop, or a set">
-          {(close) => <AddPanel {...p} close={close} />}
+        <Menu label={addMain.label} name={addMain.label} openNow={p.openAdd} pressed={p.tool === 'add'} main={addMain}
+          title="Choose what Add adds: a set, a section's performers, or a prop">
+          {(close) => <AddPanel {...p} close={close} addSet={addSet} addProp={addPropNow} />}
         </Menu>
       </div>
       <DeleteButton {...p} />
@@ -214,8 +225,9 @@ export function confirmDelete(show: Show, ids: string[]): boolean {
 }
 
 /** A toolbar button that opens a small panel below it. Closes on a click elsewhere or Esc (unless `keepOpen`). */
-export function Menu({ label, name, title, disabled, keepOpen, pressed, openNow, children }: {
+export function Menu({ label, name, title, disabled, keepOpen, pressed, openNow, main, children }: {
   label: ReactNode; name?: string; title: string; disabled?: string; keepOpen?: boolean; pressed?: boolean; children: (close: () => void) => ReactNode;
+  main?: { onClick: () => void; title: string; disabled?: boolean }; // a split button: the label does this, and only the caret opens the panel
   openNow?: number; // changing it (to more than 0) opens the panel, as if its button were clicked
 }) {
   const [open, setOpen] = useState(false);
@@ -242,11 +254,15 @@ export function Menu({ label, name, title, disabled, keepOpen, pressed, openNow,
     return () => { document.removeEventListener('pointerdown', away); document.removeEventListener('keydown', esc); };
   }, [open]);
   return (
-    <div ref={ref} className="tb-menu">
-      <button aria-haspopup="true" aria-expanded={shown} aria-pressed={pressed || undefined} disabled={!!disabled} aria-label={name}
+    <div ref={ref} className={main ? 'tb-menu tb-split' : 'tb-menu'}>
+      {main ? <>
+        <button aria-pressed={pressed || undefined} disabled={main.disabled} aria-label={name} title={main.title} onClick={main.onClick}>{label}</button>
+        <button className="tb-caret" aria-haspopup="true" aria-expanded={shown} disabled={!!disabled} aria-label={`${name ?? 'More'}: choose`}
+          title={title} onClick={() => setOpen(!open)}><span aria-hidden className="caret">▾</span></button>
+      </> : <button aria-haspopup="true" aria-expanded={shown} aria-pressed={pressed || undefined} disabled={!!disabled} aria-label={name}
         title={disabled ? `${title} (${disabled})` : title} onClick={() => setOpen(!open)}>
         {label} <span aria-hidden className="caret">▾</span>
-      </button>
+      </button>}
       {shown && createPortal(<div ref={panel} className="tb-menu-panel" role="menu" aria-label={name ?? String(label)} style={at ?? { visibility: 'hidden' }}>{children(() => setOpen(false))}</div>, document.body)}
     </div>
   );
@@ -496,15 +512,14 @@ function NewSection({ show, setShow, setSection, setTool, close }: ToolbarProps 
 }
 
 /** Add ▾: performers (pick a section, or make one), a prop in the middle of the field, or a set. */
-function AddPanel(p: ToolbarProps & { close: () => void }) {
-  const { show, setShow, close } = p;
+type AddKind = 'section' | 'set' | 'prop';
+
+function AddPanel(p: ToolbarProps & { close: () => void; addSet: (at: number | null) => void; addProp: () => void }) {
+  const { show, close } = p;
   const [at, setCount] = useState<number | null>(null);
+  const addSet = () => { p.addSet(at); setCount(null); close(); };
+  const prop = () => { p.addProp(); close(); };
   const props = show.props ?? [];
-  const addSet = () => { const r = addSetHere(show, p.t, at); setShow(() => r.show); p.setT(r.t); p.setTool('select'); setCount(null); close(); }; // a set is one click, not a mode: back to Select (Jason)
-  const prop = () => {
-    const r = addProp(show, `Prop ${props.length + 1}`, 8, 8, false, { x: 0, y: fieldDepth(fieldOf(show)) / 2 }); // an 8 by 8 square in the middle (Jason)
-    setShow(() => r.show); p.setSelected(new Set()); p.setSelectedMark(null); p.setSelectedProp(r.id); p.setTool('select'); p.showSidebar(); close();
-  };
   return <>
     <div style={row}>
       <button onClick={addSet} title="A new set after this one, or at the count you type">Set</button>
@@ -516,7 +531,7 @@ function AddPanel(p: ToolbarProps & { close: () => void }) {
     <strong style={{ fontSize: 12, opacity: 0.8 }}>Performers: which section?</strong>
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4 }}>{/* two columns, so Prop stays in reach under a long list (Jason) */}
       {show.sections.map((s) => (
-        <button key={s.id} role="menuitemradio" aria-checked={p.section === s.id} title={`${s.letter} · ${s.name}`}
+        <button key={s.id} role="menuitemradio" aria-checked={p.tool === 'add' && p.section === s.id} title={`${s.letter} · ${s.name}`}
           style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'left' }}
           onClick={() => { p.setSection(s.id); p.setTool('add'); close(); }}>{s.letter} · {s.name}</button>
       ))}

@@ -1209,3 +1209,8 @@ Each entry: timestamp, who decided, context, options considered, decision.
 ## 2026-11-06 15:35 EST — Adding a set goes back to Select
 - **Who:** Jason Tiller asked that Add stop looking like it's still adding performers after **Set**, and that it remember the last choice. How it remembers is Claude's *(Jason can veto)*.
 - **Decision:** **Set** (like **Prop**) is one click, not a mode: afterward the tool is **Select**, and the Add button no longer shows a section letter. The last section you added stays marked in the menu (and A picks it up again), so going back to adding performers is one click.
+
+## 2026-11-06 15:45 EST — Add repeats the last pick
+- **Who:** Jason Tiller (the button repeats the last pick; its down-arrow part changes it). The labels are Claude's *(Jason can veto)*.
+- **Context:** After adding a set, **Add** still looked like it was adding performers, and adding several sets or props meant opening the menu each time.
+- **Decision:** **Add** is a split button. The **▾** part opens the menu. The main part repeats the last pick and is named for it: **Add · P** (turns on adding that section's performers; the A key and **New** set this too), **Add Set** (a set after the one you're on, or at the count you clicked), or **Add Prop** (another 8 by 8 square in the middle). It starts as the section. It's lit only while you're placing performers. This replaces the earlier "keep the last section marked in the menu".
