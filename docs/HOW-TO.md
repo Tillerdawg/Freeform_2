@@ -272,7 +272,7 @@ Dot sheets say "Face Side 2" on the set where a performer's facing changes, and 
 
 ![The Props list in the sidebar, with the platform picked](img/props.png)
 
-Props are things on the field that aren't performers: a platform, a backdrop, a ramp. Click **Add**'s **▾**, then **Prop** (after that, **Add Prop** adds another). It starts as a square 8 steps wide and 8 deep in the middle of the field, in every set, and it's picked, with its box open in the sidebar. (**+ Prop** under **Props** in the sidebar does the same.)
+Props are things on the field that aren't performers: a platform, a backdrop, a ramp. Click **Add**'s **▾**, then **Prop** (after that, **Add Prop** adds another). It starts as a square 8 steps wide and 8 deep in the middle of the field (if a prop is already there, 2 steps right and 2 down from it, so they don't land on top of each other), in every set, and it's picked, with its box open in the sidebar. (**+ Prop** under **Props** in the sidebar does the same.)
 
 - Type its name, and set how **Wide** (side to side) and **Deep** (front to back) it is, in steps. Check **Round** for an oval or circle.
 - **Drag it on the field** to move it in the set you're on. While you drag, the readout in the corner of the field shows where its center is, and **Center** in its box in the sidebar shows the same. Like a performer, it moves into later sets where it was still standing on its old spot, and it rolls from spot to spot between sets.

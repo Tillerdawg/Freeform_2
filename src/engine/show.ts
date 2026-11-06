@@ -677,6 +677,14 @@ export function addProp(show: Show, name: string, w: number, h: number, round: b
 export const updateProp = (show: Show, id: string, patch: Partial<Omit<Prop, 'id'>>): Show =>
   ({ ...show, props: show.props?.map((p) => (p.id === id ? { ...p, ...patch } : p)) });
 
+/** Where a new prop goes: the middle of the field, or 2 steps right and 2 down (toward the front) from a prop already there, and so on (Jason). */
+export function newPropSpot(show: Show): Point {
+  const taken = show.sets.flatMap((s) => Object.values(s.props ?? {}));
+  let at = { x: 0, y: fieldDepth(fieldOf(show)) / 2 };
+  for (let k = 0; k <= taken.length && taken.some((q) => Math.abs(q.x - at.x) < 1 && Math.abs(q.y - at.y) < 1); k++) at = { x: at.x + 2, y: at.y - 2 };
+  return at;
+}
+
 export function removeProp(show: Show, id: string): Show {
   const props = show.props?.filter((p) => p.id !== id);
   return { ...show, props: props?.length ? props : undefined, sets: show.sets.map((s) => {

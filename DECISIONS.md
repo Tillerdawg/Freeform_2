@@ -1214,3 +1214,7 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Who:** Jason Tiller (the button repeats the last pick; its down-arrow part changes it). The labels are Claude's *(Jason can veto)*.
 - **Context:** After adding a set, **Add** still looked like it was adding performers, and adding several sets or props meant opening the menu each time.
 - **Decision:** **Add** is a split button. The **▾** part opens the menu. The main part repeats the last pick and is named for it: **Add · P** (turns on adding that section's performers; the A key and **New** set this too), **Add Set** (a set after the one you're on, or at the count you clicked), or **Add Prop** (another 8 by 8 square in the middle). It starts as the section. It's lit only while you're placing performers. This replaces the earlier "keep the last section marked in the menu".
+
+## 2026-11-06 15:50 EST — New props don't land on each other
+- **Who:** Jason Tiller (2 steps right and 2 down). Checking every set, and "down" meaning toward the front sideline as the field is drawn, are Claude's *(Jason can veto)*.
+- **Decision:** A new prop goes in the middle of the field unless a prop's center is already within a step of there in any set; then it moves 2 steps right (toward Side 2) and 2 steps toward the front, and checks again. Both **Add Prop** and the sidebar's **+ Prop** do this.

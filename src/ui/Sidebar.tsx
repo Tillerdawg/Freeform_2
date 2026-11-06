@@ -9,7 +9,7 @@ import { Menu } from './Toolbar';
 import { COURT, FEET, HASHES, distance, fieldDepth, readout, type HashPreset } from '../engine/coords';
 import type { Shape, ShapeKind } from '../engine/shapes';
 import {
-  fieldOf, addProp, MAX_PROPS, placeProp, removeProp, updateProp, EQUIPMENT, equipmentIn, equipmentName, setEquipment, type Equipment, FACINGS, facingIn, facingName, setFacing, type Facing, MAX_NAME, scoreOrder, setCue, setMarks, setNames, setNote, label, locate, newId, moveToSection, removeSection, duplicateLetters, renumberSection, placeInSet, remapHash, positionsAt, xFrom, yFrom,
+  fieldOf, addProp, newPropSpot, MAX_PROPS, placeProp, removeProp, updateProp, EQUIPMENT, equipmentIn, equipmentName, setEquipment, type Equipment, FACINGS, facingIn, facingName, setFacing, type Facing, MAX_NAME, scoreOrder, setCue, setMarks, setNames, setNote, label, locate, newId, moveToSection, removeSection, duplicateLetters, renumberSection, placeInSet, remapHash, positionsAt, xFrom, yFrom,
   type FrontDir, type FrontRef, type Section, type Show, type SideDir,
 } from '../engine/show';
 import { NumberField } from './NumberField';
@@ -536,7 +536,7 @@ function PropsEditor({ show, setShow, onSet, selected, setSelected }: { show: Sh
         );
       })}
       <div style={row}>
-        <button disabled={props.length >= MAX_PROPS} onClick={() => { const r = addProp(show, `Prop ${props.length + 1}`, 8, 8, false, { x: 0, y: fieldDepth(fieldOf(show)) / 2 }); setShow(() => r.show); setSelected(r.id); }}
+        <button disabled={props.length >= MAX_PROPS} onClick={() => { const r = addProp(show, `Prop ${props.length + 1}`, 8, 8, false, newPropSpot(show)); setShow(() => r.show); setSelected(r.id); }}
           title="A new prop, 8 steps wide and 4 deep, in the middle">+ Prop</button>
       </div>
     </details>

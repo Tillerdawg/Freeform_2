@@ -3,7 +3,7 @@ import { HASHES, readout } from './coords';
 import {
   addPerformer, addSetAfter, advance, biggestStep, chainOrder, clearFtl, ftlTrail, moveSteps, normalizeFtl, flip, mirrorSides, moveSetTo, remapHash, rotateScale, setFtl, snapSelection, playRange, playPlan, label, locate, newShow, parseShow, placeInSet, positionsAt,
   removePerformers, renumberSets, scoreOrder, DEFAULT_SECTIONS, removeSet, setAt, setCounts, setStarts, totalCounts, xFrom, yFrom, insertSetAt, showLength, movementAt, movementOfSet, setFtlTurns,
-  addSetHere, setFtlSmooth, routeTurns, leaderDistance, setTiming, timingOf, fitTurn, setTurning, turnRoute, counterMarch, closeCalls, facingIn, setFacing, facingVector, equipmentIn, setEquipment, addProp, placeProp, propsAt, hitProp, removeProp, fieldOf, moveSegments,
+  addSetHere, newPropSpot, setFtlSmooth, routeTurns, leaderDistance, setTiming, timingOf, fitTurn, setTurning, turnRoute, counterMarch, closeCalls, facingIn, setFacing, facingVector, equipmentIn, setEquipment, addProp, placeProp, propsAt, hitProp, removeProp, fieldOf, moveSegments,
 } from './show';
 
 function twoSetShow() {
@@ -794,4 +794,13 @@ describe('adding a set from where you are', () => {
     expect([r.t, setStarts(r.show).join()]).toEqual([24, '0,16,24']); // a typed count past the end
     expect(addSetHere(show, 16, 0).show).toBe(show); // not a count: nothing
   });
+});
+
+it('steps a new prop 2 right and 2 down past props already in the middle', () => {
+  let show = newShow();
+  const mid = newPropSpot(show);
+  show = addProp(show, 'A', 8, 8, false, mid).show;
+  expect(newPropSpot(show)).toEqual({ x: mid.x + 2, y: mid.y - 2 });
+  show = addProp(show, 'B', 8, 8, false, newPropSpot(show)).show;
+  expect(newPropSpot(show)).toEqual({ x: mid.x + 4, y: mid.y - 4 });
 });

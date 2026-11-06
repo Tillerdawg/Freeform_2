@@ -2,9 +2,9 @@ import { createPortal } from 'react-dom';
 import { IconFit, IconRedo, IconSidebar, IconTimeline, IconUndo } from './icons';
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { addBezierSegment, addCurvePoint, cleanText, coilGap, placeInner, type Shape, type ShapeKind } from '../engine/shapes';
-import { distance, fieldDepth } from '../engine/coords';
+import { distance } from '../engine/coords';
 import {
-  addProp, addSetHere, fieldOf, MAX_PROPS, removeProp, removeSet, setMarks, setStarts, chainOrder, clearFtl, closeCalls, setFtlSmooth, newId, counterMarch, flip, groupTurn, setFtlTurns, setTiming, setTurning, timingOf, label, mirrorSides, placeInSet, removePerformers, rotateScale, setFtl, setLabelSide, snapSelection,
+  addProp, addSetHere, newPropSpot, MAX_PROPS, removeProp, removeSet, setMarks, setStarts, chainOrder, clearFtl, closeCalls, setFtlSmooth, newId, counterMarch, flip, groupTurn, setFtlTurns, setTiming, setTurning, timingOf, label, mirrorSides, placeInSet, removePerformers, rotateScale, setFtl, setLabelSide, snapSelection,
   type LabelSide, type Show,
 } from '../engine/show';
 import { curveSides } from '../field/labels';
@@ -95,7 +95,7 @@ export function Toolbar(p: ToolbarProps) {
   const props = show.props ?? [];
   const addSet = (at: number | null) => { const r = addSetHere(show, p.t, at); setShow(() => r.show); p.setT(r.t); p.setTool('select'); setLast('set'); }; // one click, not a mode: back to Select
   const addPropNow = () => {
-    const r = addProp(show, `Prop ${props.length + 1}`, 8, 8, false, { x: 0, y: fieldDepth(fieldOf(show)) / 2 }); // an 8 by 8 square in the middle (Jason)
+    const r = addProp(show, `Prop ${props.length + 1}`, 8, 8, false, newPropSpot(show)); // an 8 by 8 square in the middle (Jason)
     setShow(() => r.show); p.setSelected(new Set()); p.setSelectedMark(null); p.setSelectedProp(r.id); p.setTool('select'); p.showSidebar(); setLast('prop');
   };
   const addMain = last === 'set' ? { label: 'Add Set', title: 'Add a set after this one (or at the count you clicked). ▾ to choose something else', onClick: () => addSet(null) }
