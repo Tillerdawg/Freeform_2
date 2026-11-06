@@ -94,7 +94,7 @@ If your program always uses the same sections, set them up once and choose **Sta
 
 1. Click **Add Performer(s)** and pick a section.
 2. Click the field wherever you want each one. They're numbered in order: P1, P2, P3, and so on.
-3. Press **V** (or click **Select Performer(s)**) when you're done.
+3. Press **V** or Esc (or click **Select Performer(s)**) when you're done.
 
 Performers are part of the whole show, so a performer you add appears in every set, on the same spot, until you move them.
 
@@ -306,7 +306,7 @@ Labels hide while a show plays (they'd jump around) and come back when you stop.
 - **Arrow**: drag from where the arrow starts to where it points.
 - **Draw**: drag to draw freehand.
 
-Click a piece of markup to select it, drag it to move it, and press Delete to remove it.
+Press Esc (or V) to go back to **Select Performer(s)** when you're done. Click a piece of markup to select it, drag it to move it, and press Delete to remove it.
 
 There are two kinds of written notes in the sidebar:
 
@@ -455,7 +455,7 @@ With a keyboard attached, the [keyboard shortcuts](#keyboard-shortcuts) work too
 | Delete the selection (asks first) | Delete |
 | Undo | ⌘Z (Ctrl+Z on Windows) |
 | Redo | ⇧⌘Z (Ctrl+Y or Ctrl+Shift+Z on Windows) |
-| Close a menu, then clear the selection | Esc |
+| Close a menu; back to Select from any other tool; then clear the selection | Esc |
 | Move around the field | Scroll, or right-drag |
 | Zoom | Pinch, or ⌘/Ctrl + scroll |
 

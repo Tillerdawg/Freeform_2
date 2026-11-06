@@ -250,7 +250,7 @@ export function Sidebar(p: Props) {
               {m.kind === 'text' && (
                 <input key={m.id} aria-label="Note text" value={m.text} placeholder="Type the note"
                   ref={(el) => { if (el && !m.text && document.activeElement !== el) el.focus(); }}
-                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === 'Escape') { e.currentTarget.blur(); p.setSelectedMark(null); } }}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === 'Escape') { e.currentTarget.blur(); p.setSelectedMark(null); if (e.key === 'Escape') p.setTool('select'); } }} // Enter: done with this note; Esc: done with notes
                   style={{ width: '100%', boxSizing: 'border-box' }}
                   onChange={(e) => setShow((s) => setMarks(s, onSet, (ms) => ms.map((x) => (x.id === m.id && x.kind === 'text' ? { ...x, text: e.target.value } : x))))} />
               )}

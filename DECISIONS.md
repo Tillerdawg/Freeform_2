@@ -1170,3 +1170,7 @@ Each entry: timestamp, who decided, context, options considered, decision.
 ## 2026-11-06 14:10 EST — The FTL menu becomes Path
 - **Who:** Jason Tiller: call it **Path**, with three choices for a performer's path: Straight (the default), Follow the Leader, and Custom (in place of **Give a route**).
 - **Decision:** **Path** opens with the three as one row of choices for the selection, showing which one it's on (or none, for a mix). Follow the leader needs 2 or more and Custom needs exactly one, so each is unavailable otherwise, with a tooltip saying why. Straight replaces **Float instead** and **Straight move instead**. The settings for the chosen path (leader, order, turns or points, Smooth, counter-march) follow below as before. Turning moves stay in **Move** (Claude's call, Jason can veto): they're how a whole group rotates, not a path one performer picks. The stored show is unchanged (a custom path is still a group of one).
+
+## 2026-11-06 14:20 EST — Esc goes back to Select
+- **Who:** Jason Tiller asked for Esc to leave the Text tool; widening it to every tool and the Enter/Esc split are Claude's *(Jason can veto)*.
+- **Decision:** Esc from any tool other than Select (Add Performer(s), Text, Arrow, Draw, clicking path points) goes back to **Select Performer(s)**; on Select it still closes a shape, then clears the selection. In a note's text box, Enter finishes that note and keeps the Text tool (to place another), and Esc finishes it and goes back to Select.

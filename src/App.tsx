@@ -394,7 +394,7 @@ export function App() {
       } else if ((e.key === 'Delete' || e.key === 'Backspace') && selected.size) {
         if (!confirmDelete(show, [...selected])) return;
         setShow((s) => removePerformers(s, selected)); setSelected(new Set());
-      } else if (e.key === 'Escape') { if (tool === 'turn') setTool('select'); else if (shapeEdit) setShapeEdit(null); else { setSelected(new Set()); setSelectedMark(null); setSelectedProp(null); } }
+      } else if (e.key === 'Escape') { if (tool !== 'select') setTool('select'); /* any other tool (Add, Text, Arrow, Draw, turns): back to Select */ else if (shapeEdit) setShapeEdit(null); else { setSelected(new Set()); setSelectedMark(null); setSelectedProp(null); } }
       else if (e.key === 'v' || e.key === 'V') setTool('select');
       else if (e.key === 'a' || e.key === 'A') setTool('add');
       else if (e.key === 't' || e.key === 'T') setTool('text');
