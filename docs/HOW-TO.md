@@ -228,6 +228,12 @@ With the group selected, each turn has a blue handle you can drag. **Remove last
 
 Everyone in an FTL move covers the leader's whole route at one steady step size, so a turn never makes anybody take a giant step.
 
+**Smooth.** Once a route has turns, check **Smooth** to round the corners into a curve that passes through every turn. Everyone still marches it at one steady step size.
+
+**A route for one performer.** A soloist or drum major who loops around a form can have a route of their own. Select just that performer, open **FTL**, and click **Give a route**. Then click the field at each point they march through, in order, and press Esc. **Smooth** makes it a curve, you can drag the points to move them, and **Straight move instead** goes back to a straight line.
+
+![One trumpet's own smooth route into set 2](img/route.png)
+
 **Counter-march.** Make an FTL group from a file, with the leader at the front of the file. Then click **Turn left** or **Turn right** next to **Counter-march**. The leader turns into the next lane, one step over, and marches back past the file. Everyone follows, so the file ends up reversed, one step beside where it started. Check the step size, since the leader marches the whole length of the file.
 
 ## Step-offs and turning moves

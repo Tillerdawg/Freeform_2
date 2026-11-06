@@ -4,7 +4,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 're
 import { addBezierSegment, addCurvePoint, cleanText, coilGap, placeInner, type Shape, type ShapeKind } from '../engine/shapes';
 import { distance } from '../engine/coords';
 import {
-  chainOrder, clearFtl, closeCalls, counterMarch, flip, groupTurn, setFtlTurns, setTiming, setTurning, timingOf, label, mirrorSides, placeInSet, removePerformers, rotateScale, setFtl, setLabelSide, snapSelection,
+  chainOrder, clearFtl, closeCalls, setFtlSmooth, counterMarch, flip, groupTurn, setFtlTurns, setTiming, setTurning, timingOf, label, mirrorSides, placeInSet, removePerformers, rotateScale, setFtl, setLabelSide, snapSelection,
   type LabelSide, type Show,
 } from '../engine/show';
 import { curveSides } from '../field/labels';
@@ -169,8 +169,8 @@ export function Toolbar(p: ToolbarProps) {
           {note && <p role="alert" style={{ ...help, color: 'var(--danger)', opacity: 1 }}>{note}</p>}
         </>}
       </Menu>
-      <Menu label="FTL" disabled={needs(ids.length > 1 && onSet > 0, onSet === 0 ? 'Set 1 has no move into it' : ids.length === 1 ? 'Select 2 or more performers' : pick)}
-        title="Follow the leader: followers trace the leader's path in the move into this set">
+      <Menu label="FTL" disabled={needs(any && onSet > 0, onSet === 0 ? 'Set 1 has no move into it' : pick)}
+        title="Follow the leader: followers trace the leader's path in the move into this set. For one performer, a route of their own.">
         {(close) => <FtlPanel {...p} ids={ids} close={close} />}
       </Menu>
       <Menu label="Move" disabled={needs(onSet > 0, onSet === 0 ? 'Set 1 has no move into it' : 'Scrub to a set first')}
@@ -340,7 +340,14 @@ function FtlPanel({ show, setShow, onSet, ids, setTool, close }: ToolbarProps & 
   return (
     <>
       <strong style={{ fontSize: 13 }}>Move into set {show.sets[onSet].name}</strong>
-      {!current ? (
+      {!current && ids.length === 1 ? (
+        <>
+          <div style={row}>
+            <button className="primary" onClick={() => { make(ids[0]); setTool('turn'); close(); }}>Give a route</button>
+          </div>
+          <p style={help}>A route of {name(ids[0])}'s own, instead of a straight line: click the field at each point they march through, in order (Esc when done). One steady step size the whole way.</p>
+        </>
+      ) : !current ? (
         <>
           <div style={row}>
             <button className="primary" onClick={() => make(byLabel[0])}>Make FTL</button>
@@ -350,15 +357,15 @@ function FtlPanel({ show, setShow, onSet, ids, setTool, close }: ToolbarProps & 
         </>
       ) : (
         <>
-          <div style={row}>
+          {current.order.length > 1 && <div style={row}>
             <label>Leader{' '}
               <select aria-label="FTL leader" value={current.order[0]} onChange={(e) => make(e.target.value)}>
                 {byLabel.map((id) => <option key={id} value={id}>{name(id)}</option>)}
               </select>
             </label>
             <button onClick={() => setShow((s) => clearFtl(s, onSet, ids))} title="Back to a normal straight-line move">Float instead</button>
-          </div>
-          <ol aria-label="FTL order" style={{ margin: '6px 0 0', paddingLeft: 22, maxHeight: 220, overflowY: 'auto' }}>
+          </div>}
+          {current.order.length > 1 && <ol aria-label="FTL order" style={{ margin: '6px 0 0', paddingLeft: 22, maxHeight: 220, overflowY: 'auto' }}>
             {current.order.map((id, k) => (
               <li key={id} style={{ marginBottom: 2 }}>
                 {name(id)}{k === 0 ? ' (leader)' : ''}
@@ -370,22 +377,29 @@ function FtlPanel({ show, setShow, onSet, ids, setTool, close }: ToolbarProps & 
                 )}
               </li>
             ))}
-          </ol>
+          </ol>}
           <div style={row}>
-            <span>Leader's route: {current.turns?.length ? `${current.turns.length} turn${current.turns.length > 1 ? 's' : ''}` : 'straight'}</span>
-            <button onClick={() => { setTool('turn'); close(); }} title="Click the field for each turn the leader makes, in marching order; Esc when done">Add turns</button>
+            <span>{current.order.length > 1 ? "Leader's route" : 'Route'}: {current.turns?.length ? `${current.turns.length} ${current.order.length > 1 ? 'turn' : 'point'}${current.turns.length > 1 ? 's' : ''}` : 'straight'}</span>
+            <button onClick={() => { setTool('turn'); close(); }} title="Click the field for each turn, in marching order; Esc when done">{current.order.length > 1 ? 'Add turns' : 'Add points'}</button>
             {!!current.turns?.length && <>
-              <button onClick={() => setShow((s) => setFtlTurns(s, onSet, current.order[0], current.turns!.slice(0, -1)))}>Remove last turn</button>
+              <button onClick={() => setShow((s) => setFtlTurns(s, onSet, current.order[0], current.turns!.slice(0, -1)))}>Remove last {current.order.length > 1 ? 'turn' : 'point'}</button>
               <button onClick={() => setShow((s) => setFtlTurns(s, onSet, current.order[0], []))}>Straight route</button>
             </>}
           </div>
-          <div style={row}>
+          {!!current.turns?.length && <div style={row}>
+            <label title="Round the corners: a curve that passes through every turn"><input type="checkbox" checked={!!current.smooth}
+              onChange={(e) => setShow((s) => setFtlSmooth(s, onSet, current.order[0], e.target.checked))} /> Smooth (a curve through the {current.order.length > 1 ? 'turns' : 'points'})</label>
+          </div>}
+          {current.order.length === 1 && <div style={row}><button onClick={() => setShow((s) => clearFtl(s, onSet, ids))} title="Back to a straight move">Straight move instead</button></div>}
+          {current.order.length > 1 && <div style={row}>
             <span>Counter-march</span>
             <button onClick={() => cm(current.order, 'left')} title="The leader turns left into the next lane and marches back past the file">Turn left</button>
             <button onClick={() => cm(current.order, 'right')} title="The leader turns right into the next lane and marches back past the file">Turn right</button>
-          </div>
+          </div>}
           {cmNote && <p role="alert" style={{ ...help, color: 'var(--danger)', opacity: 1 }}>{cmNote}</p>}
-          <p style={help}>Move the leader to its end spot; the others follow its trail. For a route with corners, Add turns and click each turn on the field. Picking a new leader re-chains the order from it and starts a straight route.</p>
+          <p style={help}>{current.order.length > 1
+            ? 'Move the leader to its end spot; the others follow its trail. For a route with corners, Add turns and click each turn on the field. Picking a new leader re-chains the order from it and starts a straight route.'
+            : 'Drag the performer to their end spot. Add points and click the field at each point they march through; drag a point to move it. Smooth makes a curve through them.'}</p>
         </>
       )}
     </>

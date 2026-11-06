@@ -3,7 +3,7 @@ import { HASHES, readout } from './coords';
 import {
   addPerformer, addSetAfter, advance, biggestStep, chainOrder, clearFtl, ftlTrail, moveSteps, normalizeFtl, flip, mirrorSides, moveSetTo, remapHash, rotateScale, setFtl, snapSelection, playRange, playPlan, label, locate, newShow, parseShow, placeInSet, positionsAt,
   removePerformers, renumberSets, scoreOrder, DEFAULT_SECTIONS, removeSet, setAt, setCounts, setStarts, totalCounts, xFrom, yFrom, insertSetAt, showLength, movementAt, movementOfSet, setFtlTurns,
-  setTiming, timingOf, fitTurn, setTurning, turnRoute, counterMarch, closeCalls, facingIn, setFacing, facingVector, equipmentIn, setEquipment, addProp, placeProp, propsAt, hitProp, removeProp, fieldOf, moveSegments,
+  setFtlSmooth, routeTurns, leaderDistance, setTiming, timingOf, fitTurn, setTurning, turnRoute, counterMarch, closeCalls, facingIn, setFacing, facingVector, equipmentIn, setEquipment, addProp, placeProp, propsAt, hitProp, removeProp, fieldOf, moveSegments,
 } from './show';
 
 function twoSetShow() {
@@ -760,5 +760,25 @@ describe('paths for some performers', () => {
     const { show, id } = twoSetShow();
     expect(moveSegments(show, 1)).toHaveLength(1);
     expect(moveSegments(show, 1, (x) => x !== id)).toEqual([]);
+  });
+});
+
+describe('a route for one performer', () => {
+  it('marches one performer along their own turns, smoothed into a curve if wanted, at one step size', () => {
+    let { show, id } = twoSetShow(); // 16 steps toward Side 1 in 16 counts
+    show = setFtlTurns(setFtl(show, 1, [id]), 1, id, [{ x: -8, y: 36 }]); // out and back: a corner
+    expect(positionsAt(show, 8)[id].x).toBeCloseTo(-8);
+    expect(positionsAt(show, 8)[id].y).toBeCloseTo(36);
+    expect(show.sets[1].ftl).toHaveLength(1);
+    const corner = leaderDistance(show, 1, show.sets[1].ftl![0]);
+    expect(corner).toBeCloseTo(2 * Math.hypot(8, 8));
+    show = setFtlSmooth(show, 1, id, true);
+    const curve = routeTurns(show.sets[1].ftl![0], { x: 0, y: 28 }, { x: -16, y: 28 });
+    expect(curve.some((p) => Math.abs(p.x + 8) < 1e-9 && Math.abs(p.y - 36) < 1e-9)).toBe(true); // passes through the turn
+    expect(curve.length).toBeGreaterThan(8);
+    const steps = Array.from({ length: 16 }, (_, k) => { const p = positionsAt(show, k), q = positionsAt(show, k + 1); return Math.hypot(q[id].x - p[id].x, q[id].y - p[id].y); });
+    expect(Math.max(...steps) - Math.min(...steps)).toBeLessThan(0.15); // even steps along the curve
+    expect(parseShow(JSON.stringify(show)).sets[1].ftl![0].smooth).toBe(true);
+    expect(positionsAt(setFtlTurns(show, 1, id, []), 8)[id]).toEqual({ x: -8, y: 28 }); // no turns: a straight move again
   });
 });

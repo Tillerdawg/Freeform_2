@@ -37,7 +37,7 @@ export interface DrillSet {
    * Follow-the-leader groups for the move into this set. order[0] is the leader; the rest follow in order.
    * Followers' spots in this set are computed from the trail (see normalizeFtl), not placed by hand.
    */
-  ftl?: { order: string[]; turns?: Point[] }[]; // turns: the leader's turning points, in order (none = a straight leader move)
+  ftl?: { order: string[]; turns?: Point[]; smooth?: boolean }[]; // turns: the leader's turning points, in order (none = a straight leader move); smooth: a curve through them. A group of one is a performer's own route.
   /** Page markup shown on this set only: notes, arrows, freehand drawing. */
   marks?: Mark[];
   /** A note for the whole set, printed under its chart. */
@@ -434,9 +434,9 @@ export function positionsAt(show: Show, t: number): Record<string, Point> {
   for (const g of set.ftl ?? []) {
     const starts = g.order.map((id) => a[id] ?? b[id]);
     if (!g.order.some((id) => set.timing?.[id])) {
-      const at = ftlPositions(starts, b[g.order[0]], f, g.turns);
+      const at = ftlPositions(starts, b[g.order[0]], f, routeTurns(g, starts[0], b[g.order[0]]));
       g.order.forEach((id, k) => { out[id] = at[k]; });
-    } else g.order.forEach((id, k) => { out[id] = ftlPositions(starts, b[g.order[0]], frac(id), g.turns)[k]; }); // each on their own count
+    } else { const r = routeTurns(g, starts[0], b[g.order[0]]); g.order.forEach((id, k) => { out[id] = ftlPositions(starts, b[g.order[0]], frac(id), r)[k]; }); } // each on their own count
   }
   const n = show.sets[to].counts;
   for (const [id, path] of Object.entries(show.sets[to].paths ?? {})) {
@@ -716,9 +716,30 @@ const near = (p: Point, q: Point) => Math.abs(p.x - q.x) < 1e-6 && Math.abs(p.y 
 
 /** The trail a follow-the-leader group marches along in the move into set i: leader's end, leader's start, then each follower's start. */
 export function ftlTrail(show: Show, i: number, order: string[]): Point[] {
-  const a = show.sets[i - 1].pos, b = show.sets[i].pos;
-  const turns = show.sets[i].ftl?.find((g) => g.order[0] === order[0])?.turns ?? [];
+  const a = show.sets[i - 1].pos, b = show.sets[i].pos, g = show.sets[i].ftl?.find((x) => x.order[0] === order[0]);
+  const turns = g ? routeTurns(g, a[order[0]] ?? b[order[0]], b[order[0]]) : [];
   return [b[order[0]], ...[...turns].reverse(), ...order.map((id) => a[id] ?? b[id])];
+}
+
+const SMOOTH = 8; // points per stretch between turns on a smooth route
+
+/**
+ * The points a leader's route passes through between its start and end: its turns, or with `smooth`, a curve through
+ * them (Catmull-Rom, which passes through every turn), as many short straight stretches. Walked at one steady speed, as always.
+ */
+export function routeTurns(g: { turns?: Point[]; smooth?: boolean }, start: Point, end: Point): Point[] {
+  const t = g.turns ?? [];
+  if (!g.smooth || !t.length) return t;
+  const p = [start, ...t, end], out: Point[] = [];
+  for (let k = 0; k < p.length - 1; k++) {
+    const p0 = p[k - 1] ?? p[k], p1 = p[k], p2 = p[k + 1], p3 = p[k + 2] ?? p[k + 1];
+    for (let j = k ? 0 : 1; j < SMOOTH; j++) { // j = 0 is the turn itself; the start and end aren't included
+      const u = j / SMOOTH, u2 = u * u, u3 = u2 * u;
+      const c = (a0: number, a1: number, a2: number, a3: number) => 0.5 * (2 * a1 + (a2 - a0) * u + (2 * a0 - 5 * a1 + 4 * a2 - a3) * u2 + (3 * a1 - a0 - 3 * a2 + a3) * u3);
+      out.push({ x: c(p0.x, p1.x, p2.x, p3.x), y: c(p0.y, p1.y, p2.y, p3.y) });
+    }
+  }
+  return out;
 }
 
 /**
@@ -733,11 +754,12 @@ export function normalizeFtl(show: Show): Show {
     const groups = (sets[i].ftl ?? []).map((g) => {
       const order = g.order.filter((id) => alive.has(id));
       return order[0] === g.order[0] ? { ...g, order } : { order }; // a removed leader takes its route with it
-    }).filter((g) => g.order.length > 1);
+    }).filter((g) => g.order.length > 0); // a group of one is a performer's own route
     if (!sets[i].ftl && !groups.length) continue;
     const pos = { ...sets[i].pos };
     for (const g of groups) {
-      const ends = ftlPositions(g.order.map((id) => sets[i - 1].pos[id] ?? pos[id]), pos[g.order[0]], 1, g.turns);
+      const starts = g.order.map((id) => sets[i - 1].pos[id] ?? pos[id]);
+      const ends = ftlPositions(starts, pos[g.order[0]], 1, routeTurns(g, starts[0], pos[g.order[0]]));
       g.order.slice(1).forEach((id, k) => { pos[id] = ends[k + 1]; });
     }
     sets[i] = { ...sets[i], pos, ftl: groups.length ? groups : undefined };
@@ -750,7 +772,7 @@ export function setFtl(show: Show, i: number, order: string[]): Show {
   const old = (show.sets[i].ftl ?? []).find((g) => g.order[0] === order[0]); // same leader (a reorder): keep its route
   // Other groups keep their turns unless they lose their leader to this one.
   const others = (show.sets[i].ftl ?? []).filter((g) => g !== old).map((g) => (order.includes(g.order[0]) ? { order: g.order.filter((id) => !order.includes(id)) } : { ...g, order: g.order.filter((id) => !order.includes(id)) }));
-  return normalizeFtl(mapSet(show, i, (s) => ({ ...s, ftl: [...others, { order, ...(old?.turns?.length ? { turns: old.turns } : {}) }] })));
+  return normalizeFtl(mapSet(show, i, (s) => ({ ...s, ftl: [...others, { order, ...(old?.turns?.length ? { turns: old.turns, ...(old.smooth ? { smooth: true } : {}) } : {}) }] })));
 }
 
 export const MAX_TURNS = 50;
@@ -760,10 +782,14 @@ export const setFtlTurns = (show: Show, i: number, leader: string, turns: Point[
   normalizeFtl(mapSet(show, i, (s) => ({ ...s, ftl: (s.ftl ?? []).map((g) => (g.order[0] !== leader ? g
     : turns.length ? { ...g, turns: turns.slice(0, MAX_TURNS) } : { order: g.order })) })));
 
-/** How far the leader marches in the move into set i: start, through its turns, to its end spot. */
-export function leaderDistance(show: Show, i: number, g: { order: string[]; turns?: Point[] }): number {
-  const a = show.sets[i - 1].pos, b = show.sets[i].pos, id = g.order[0];
-  const route = [a[id] ?? b[id], ...(g.turns ?? []), b[id]];
+/** Round the corners of the route of the group led by `leader` in the move into set i into a curve (`on`), or not. */
+export const setFtlSmooth = (show: Show, i: number, leader: string, on: boolean): Show =>
+  normalizeFtl(mapSet(show, i, (s) => ({ ...s, ftl: (s.ftl ?? []).map((g) => { if (g.order[0] !== leader) return g; const { smooth: _, ...rest } = g; return on ? { ...rest, smooth: true } : rest; }) })));
+
+/** How far the leader marches in the move into set i: start, through its turns (or its curve), to its end spot. */
+export function leaderDistance(show: Show, i: number, g: { order: string[]; turns?: Point[]; smooth?: boolean }): number {
+  const a = show.sets[i - 1].pos, b = show.sets[i].pos, id = g.order[0], start = a[id] ?? b[id];
+  const route = [start, ...routeTurns(g, start, b[id]), b[id]];
   return route.slice(1).reduce((d, p, k) => d + distance(route[k], p), 0);
 }
 
@@ -859,8 +885,8 @@ export function parseShow(text: string): Show {
   for (const set of s.sets) {
     if (!str(set?.id) || !str(set.name) || !Number.isFinite(set.counts) || typeof set.pos !== 'object' || !set.pos) bad('set');
     if (set.measures !== undefined && !str(set.measures)) bad('set measures');
-    if (set.ftl !== undefined && (!Array.isArray(set.ftl) || !set.ftl.every((g: { order?: unknown; turns?: unknown }) =>
-      Array.isArray(g?.order) && g.order.every((id) => str(id) && id in set.pos) && (g.turns === undefined
+    if (set.ftl !== undefined && (!Array.isArray(set.ftl) || !set.ftl.every((g: { order?: unknown; turns?: unknown; smooth?: unknown }) =>
+      Array.isArray(g?.order) && g.order.every((id) => str(id) && id in set.pos) && (g.smooth === undefined || typeof g.smooth === 'boolean') && (g.turns === undefined
         || (Array.isArray(g.turns) && g.turns.length <= MAX_TURNS && g.turns.every((p: Point) => Number.isFinite(p?.x) && Number.isFinite(p?.y))))))) bad('set follow-the-leader');
     if (set.marks !== undefined && (!Array.isArray(set.marks) || !set.marks.every(validMark))) bad('set markup');
     if (set.note !== undefined && !str(set.note)) bad('set note');

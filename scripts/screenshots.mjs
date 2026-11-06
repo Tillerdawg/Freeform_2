@@ -197,6 +197,22 @@ shot('court', async () => {
   await page.reload(); await page.waitForSelector('canvas'); await page.waitForTimeout(500);
   await save(page, 'court', { x: 0, y: 125, width: W, height: 640 });
 });
+shot('route', async () => {
+  // One trumpet's own smooth route into set 2, out around the front of the block (FTL, Give a route, two points, Smooth).
+  const page = await editor();
+  await goSet(page, 2);
+  const s = await page.evaluate(() => { const sh = JSON.parse(localStorage.getItem('freeform:autosave')); const t = sh.sections.find((x) => x.letter === 'P').id; const id = sh.performers.find((p) => p.section === t && p.number === 1).id; return sh.sets[1].pos[id]; });
+  const at = await spot(page, s);
+  await page.mouse.click(at.x, at.y);
+  await menu(page, 'FTL');
+  await page.getByRole('button', { name: 'Give a route' }).click();
+  for (const q of [{ x: s.x - 5, y: s.y - 5 }, { x: s.x + 3, y: s.y - 7 }]) { const c = await spot(page, q); await page.mouse.click(c.x, c.y); }
+  await page.keyboard.press('Escape');
+  await menu(page, 'FTL');
+  await page.getByLabel(/Smooth/).check();
+  await page.waitForTimeout(300);
+  await save(page, 'route', { x: 120, y: 60, width: 1000, height: 640 });
+});
 shot('sections', async () => {
   const page = await editor();
   const head = page.getByText('Sections', { exact: true });
