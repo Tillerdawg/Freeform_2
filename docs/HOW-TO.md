@@ -90,11 +90,11 @@ If your program always uses the same sections, set them up once and choose **Sta
 
 ## Add performers
 
-![The Add menu: a prop, a set, or a section's performers](img/add-performers.png)
+![The Add menu: a set, a section's performers, or a prop](img/add-performers.png)
 
 **New** drops you here: the field is blank, adding performers is on, and the **Add** menu is open.
 
-1. Click **Add** and pick a section under **Performers**. For a section that isn't there yet (a drum major, a soloist), type its name and letter under **New section** and click **Add**: it's made and picked in one step.
+1. Click **Add** and pick a section under **Performers**. For a section that isn't there yet (a drum major, a soloist), click **Create New Section**, type its name and letter, and click **Add**: it's made and picked in one step.
 2. Click the field wherever you want each one. They're numbered in order: P1, P2, P3, and so on.
 3. Press **V** or Esc (or click **Select**) when you're done.
 

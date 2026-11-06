@@ -470,6 +470,7 @@ function MovePanel({ show, setShow, onSet, ids, setSelected }: ToolbarProps & { 
 
 /** A new section, made in the Add Performer(s) menu: name and letter, then it's the section being placed. */
 function NewSection({ show, setShow, setSection, setTool, close }: ToolbarProps & { close: () => void }) {
+  const [open, setOpen] = useState(false); // the name and letter boxes only after Create New Section (Jason)
   const [name, setName] = useState(''), [letter, setLetter] = useState('');
   const taken = show.sections.some((s) => s.letter.trim().toUpperCase() === letter.trim().toUpperCase());
   const add = () => {
@@ -478,11 +479,12 @@ function NewSection({ show, setShow, setSection, setTool, close }: ToolbarProps 
     setShow((sh) => ({ ...sh, sections: [...sh.sections, { id, name: name.trim(), letter: letter.trim() }] }));
     setSection(id); setTool('add'); close();
   };
+  if (!open) return <button onClick={() => setOpen(true)} style={{ marginTop: 6 }}>Create New Section</button>;
   return (
     <>
       <strong style={{ fontSize: 12, opacity: 0.8, marginTop: 6 }}>New section</strong>
       <div style={{ ...row, marginTop: 0 }}>
-        <input aria-label="New section's name" placeholder="Name (Drum Major)" value={name} maxLength={60} style={{ flex: 1, minWidth: 110 }}
+        <input aria-label="New section's name" placeholder="Name (Drum Major)" value={name} autoFocus maxLength={60} style={{ flex: 1, minWidth: 110 }}
           onChange={(e) => setName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') add(); }} />
         <input aria-label="New section's letter" placeholder="Letter" value={letter} maxLength={3} style={{ width: 56, textAlign: 'center' }}
           onChange={(e) => setLetter(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') add(); }} />
@@ -504,7 +506,6 @@ function AddPanel(p: ToolbarProps & { close: () => void }) {
     setShow(() => r.show); p.setSelected(new Set()); p.setSelectedMark(null); p.setSelectedProp(r.id); p.setTool('select'); p.showSidebar(); close();
   };
   return <>
-    <button onClick={prop} disabled={props.length >= MAX_PROPS} title="An 8 by 8 step square in the middle of the field: drag it into place, and size it in the sidebar">Prop</button>
     <div style={row}>
       <button onClick={addSet} title="A new set after this one, or at the count you type">Set</button>
       <label>at count <NumberField min={1} integer aria-label="At count" value={at ?? ''} placeholder="next" style={{ width: 56 }}
@@ -519,6 +520,8 @@ function AddPanel(p: ToolbarProps & { close: () => void }) {
     ))}
     <NewSection {...p} close={close} />
     <p style={help}>Then click the field to place each one. Sections are renamed, recolored, and deleted in the sidebar.</p>
+    <hr style={{ width: '100%', border: 0, borderTop: '1px solid var(--line)', margin: '8px 0 2px' }} />
+    <button onClick={prop} disabled={props.length >= MAX_PROPS} title="An 8 by 8 step square in the middle of the field: drag it into place, and size it in the sidebar">Prop</button>
   </>;
 }
 

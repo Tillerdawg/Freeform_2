@@ -1201,3 +1201,7 @@ Each entry: timestamp, who decided, context, options considered, decision.
   - **Prop** makes an 8 by 8 step square (not round) in the middle of the field, picks it, switches to Select, and opens the sidebar so its size is in reach. The sidebar's **+ Prop** makes the same square.
   - **Delete** acts on what's selected, in this order: performers (asks first), the picked prop, the picked markup. With nothing selected, it deletes the set you're on after asking, and is grayed out when the show has one set. Its tooltip names what it will delete. The Delete key still never deletes a set, so a stray key press can't lose one.
   - The top bar keeps the logo, the pan and zoom hint, and the light/dark button.
+
+## 2026-11-06 15:30 EST — Add menu order, and Create New Section
+- **Who:** Jason Tiller.
+- **Decision:** In **Add ▾**, **Prop** moves to the bottom: Set first, then the sections, then Prop. The new-section name and letter boxes stay hidden until you click **Create New Section**, so the menu is shorter.
