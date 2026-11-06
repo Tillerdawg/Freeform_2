@@ -222,7 +222,7 @@ Rotating or stretching usually leaves performers between grid steps. Use **Snap 
 **Path** (in the toolbar) sets how the selected performers get to their spots in the move into the set you're on. It has three choices:
 
 - **Straight**, the default: each performer goes straight to their spot.
-- **Follow the leader** (2 or more performers): the others march the leader's path in order.
+- **Follow the leader** (FTL, for 2 or more performers): the others march the leader's path in order.
 - **Custom** (one performer): they march through points you click on the field.
 
 ![The Path menu for the guard's follow-the-leader move into set 3, with the leader's turn](img/ftl.png)
