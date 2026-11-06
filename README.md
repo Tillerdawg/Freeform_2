@@ -46,7 +46,7 @@ A note on where the ideas came from: FreeFORM is modeled on Pyware and the Ultim
 - Undo for every edit.
 
 **Timing and music**
-- A timeline you can scrub count by count, play at any tempo, or loop over a range of sets.
+- A timeline you can scrub count by count, play at any tempo (with a click if you like, on the computer or the phone), or loop over a range of sets.
 - Lay out a show by counts first (one movement per tune), then add sets at any count.
 - Sync to a recording: take every count's timing from the MuseScore score (or MusicXML or MIDI), or tap the counts along with any mp3.
 

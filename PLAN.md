@@ -38,6 +38,7 @@
 - ✅ Performer view (phone): share links; pick my dot or Staff; follow me; facing front or director view; count-by-count; my spot, next spot, step size, notes.
 - ✅ Performer view: pinch-zoom; screen kept awake while playing.
 - ✅ Dim or hide sections in the editor (Shown, Dim, Hidden per section; can't be picked; paths left out; a per-browser view setting). ✅ A backup reminder after a week of changes not exported (Export or Later). Cloud sync is still the real fix.
+- ✅ A metronome click while playing at a tempo, in the editor and on phones (higher where a set lands; timed on the audio clock).
 - ✅ Several shows on a phone (Jason: separate files per tune): every link opened joins the phone's list (up to 12); the title is a menu to switch, add, or remove; a new show starts on the same label; the same show again replaces itself.
 - ✅ QR codes for share links that fit; hosted links (`#load=` + a show file's https address) that phones re-check and update in place. Tested with GitHub gists. ✅ In-app QR scanner (camera) so scans land in the home-screen app, not Safari. ✅ Phones get only the performer/director views (no editor).
 - ✅ Protected hosting: hosted show files are encrypted in the browser (AES-GCM); the key rides only in the link's `#` part, so any plain file host (a secret gist) only ever stores ciphertext. Re-keying cuts off old links for future updates. Later, if needed: a FreeFORM-run upload service so directors needn't touch gists; per-performer links.

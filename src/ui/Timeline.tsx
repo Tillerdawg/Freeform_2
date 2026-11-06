@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { wakeClick } from './click';
 import { peakBetween, timeAt } from '../engine/music';
 import { chrome, useTheme } from './palette';
 import { addSetAfter, biggestStep, closeCalls, insertSetAt, locate, MAX_MOVEMENT, movementAt, movementOfSet, movementStarts, moveSetTo, newId, removeSet, setAt, setCounts, setMeasures, playPlan, setStarts, showLength, totalCounts, type DrillSet, type Show } from '../engine/show';
@@ -30,13 +31,14 @@ interface Props {
   span: [number, number];
   music?: React.ReactNode; // the Music menu, beside Tempo
   wave?: { peaks: Float32Array; taps: number[] }; // the recording's loudness (100 slices a second) and its tapped counts
+  click: { on: boolean; set: (on: boolean) => void }; // the metronome click while playing at a tempo
 }
 
 /** One segment per move, width proportional to its counts; click or drag to scrub by whole counts. */
 /** Close-call counts by move, kept while the move's two sets are unchanged (a whole-show check takes too long to redo on every drag). */
 const closeCache = new WeakMap<DrillSet, { prev: DrillSet; n: number }>();
 
-export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, setBpm, range, setRange, span, music, wave }: Props) {
+export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, setBpm, range, setRange, span, music, wave, click }: Props) {
   const total = showLength(show); // the timeline runs through any part not written yet (count-first)
   const written = totalCounts(show);
   const starts = setStarts(show);
@@ -135,11 +137,14 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
       <div style={{ ...fixedRow, marginBottom: 4 }}>
         <button aria-label="Back to start" onClick={() => setT(0)}><IconStart /></button>
         <button aria-label="Previous count" onClick={() => setT(Math.max(0, Math.ceil(t) - 1))}><IconPrev /></button>
-        <button aria-label={playing ? 'Pause' : 'Play'} onClick={() => setPlaying(!playing)} disabled={!total || (!playing && !playPlan(t, span, total, range.loop))}
+        <button aria-label={playing ? 'Pause' : 'Play'} onClick={() => { if (click.on) wakeClick(); setPlaying(!playing); }} disabled={!total || (!playing && !playPlan(t, span, total, range.loop))}
           title={!playing && t >= total ? 'End of the show: pick a set to play from there' : undefined}>{playing ? <IconPause /> : <IconPlay />}</button>
         <button aria-label="Next count" onClick={() => setT(Math.min(total, Math.floor(t) + 1))}><IconNext /></button>
         <label>
           Tempo <NumberField min={20} max={300} integer value={bpm} onValue={setBpm} style={{ width: 56 }} /> bpm
+        </label>
+        <label title="A click on every count while playing at the tempo, higher where a set lands (with the recording, the music is the click)">
+          <input type="checkbox" checked={click.on} onChange={(e) => click.set(e.target.checked)} /> Click
         </label>
         {music}
         <Movements show={show} setShow={setShow} />

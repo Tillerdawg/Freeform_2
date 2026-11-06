@@ -10,6 +10,7 @@ import { colorOf, equipmentIn, fieldOf, propsAt, equipmentName, facingIn, facing
 import { drawField, drawGlyph, drawLabels, drawMarks, drawFacing, drawPerformers, drawProps, fitView, STEP_TEXT, toScreen, type View } from '../field/drawField';
 import { fmtStep } from '../ui/format';
 import { usePlayback } from '../ui/usePlayback';
+import { clickWanted, setClickWanted, wakeClick } from '../ui/click';
 import { synced } from '../engine/music';
 import { deleteAudio, getAudio, putAudio } from '../ui/audioStore';
 import { IconNext, IconPause, IconPlay, IconPrev } from '../ui/icons';
@@ -129,7 +130,8 @@ export function Perform() {
     return () => { live = false; setAudio((a) => { a?.pause(); return null; }); if (url) URL.revokeObjectURL(url); };
   }, [audioId, audioVer]);
   const music = useMemo(() => (audio && useMusic && show?.music ? { audio, taps: show.music.taps } : null), [audio, useMusic, show?.music]);
-  usePlayback(playing, setPlaying, t, setT, bpm, span, false, total, music);
+  const [clickOn, setClickOn] = useState(clickWanted);
+  usePlayback(playing, setPlaying, t, setT, bpm, span, false, total, music, clickOn && !music ? starts : null);
 
   // Keep the screen awake while the show plays (where the browser allows it), so the phone doesn't dim mid-rep.
   useEffect(() => {
@@ -423,10 +425,11 @@ export function Perform() {
         <input type="range" aria-label="Count" min={0} max={total} step={1} value={t} onChange={(e) => { setPlaying(false); setT(Number(e.target.value)); }} disabled={!total} />
         <div className="perform-buttons">
           <button style={btn} aria-label="Previous count" onClick={() => { setPlaying(false); setT(Math.max(0, Math.ceil(t) - 1)); }}><IconPrev /></button>
-          <button style={btn} aria-label={playing ? 'Pause' : 'Play'} disabled={!total || (!playing && t >= total)} title={t >= total ? 'End of the show: tap set 1 (or another set) to play from there' : undefined} onClick={() => { if (!playing && music) music.audio.play().catch(() => {}); /* start sound inside the tap: phones only allow it there */ setPlaying(!playing); }}>{playing ? <IconPause /> : <IconPlay />}</button>
+          <button style={btn} aria-label={playing ? 'Pause' : 'Play'} disabled={!total || (!playing && t >= total)} title={t >= total ? 'End of the show: tap set 1 (or another set) to play from there' : undefined} onClick={() => { if (!playing && music) music.audio.play().catch(() => {}); /* start sound inside the tap: phones only allow it there */ if (!playing && clickOn) wakeClick(); setPlaying(!playing); }}>{playing ? <IconPause /> : <IconPlay />}</button>
           <button style={btn} aria-label="Next count" onClick={() => { setPlaying(false); setT(Math.min(total, Math.floor(t) + 1)); }}><IconNext /></button>
           {audio && <button aria-pressed={useMusic} title={useMusic ? 'Playing with the music. Tap to use a tempo instead.' : 'Play with the music'} onClick={() => { setPlaying(false); setUseMusic(!useMusic); }} style={{ fontSize: 14, minHeight: 40 }}>♪ Music</button>}
           {!music && <label style={{ fontSize: 14 }}><NumberField aria-label="Tempo" min={20} max={300} integer value={bpm} onValue={setBpm} style={{ width: 52, fontSize: 16 }} /> bpm</label>}
+          {!music && <button aria-pressed={clickOn} title={clickOn ? 'A click on every count. Tap to turn it off.' : 'A click on every count while it plays'} onClick={() => { setClickOn(!clickOn); setClickWanted(!clickOn); if (!clickOn) wakeClick(); }} style={{ fontSize: 14, minHeight: 40 }}>Click</button>}
         </div>
       </footer>
     </div>

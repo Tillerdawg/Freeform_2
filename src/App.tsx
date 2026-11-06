@@ -21,6 +21,7 @@ import { peaks } from './engine/music';
 import { confirmDelete, SHAPES, Toolbar } from './ui/Toolbar';
 import { parse3dj } from './engine/pyware';
 import { usePlayback } from './ui/usePlayback';
+import { clickWanted, setClickWanted, wakeClick } from './ui/click';
 import { PrintDialog } from './print/Print';
 import { ShareDialog } from './perform/ShareDialog';
 import { PALETTE, useTheme } from './ui/palette';
@@ -193,7 +194,8 @@ export function App() {
   }, [traceId, traceTick]);
   const taps = show.music?.taps;
   const clock = useMemo(() => (audio && useMusic && taps && taps.length >= 2 ? { audio, taps } : null), [audio, useMusic, taps]);
-  usePlayback(playing, setPlaying, t, setT, bpm, span, range.loop, showLength(show), clock);
+  const [clickOn, setClickOn] = useState(clickWanted);
+  usePlayback(playing, setPlaying, t, setT, bpm, span, range.loop, showLength(show), clock, clickOn && !clock ? starts : null); // with the recording, the music is the click
 
   const showRef = useRef(show); showRef.current = show; // for the resize observer, which outlives renders
   const fieldKey = JSON.stringify(fieldOf(show));
@@ -372,7 +374,7 @@ export function App() {
       else if (mod && (e.key === 'c' || e.key === 'C') && selected.size && onSet >= 0) { e.preventDefault(); copySpots(); }
       else if (mod && (e.key === 'v' || e.key === 'V') && clip && onSet >= 0) { e.preventDefault(); pasteSpots(); }
       else if (mod) return; // leave other shortcuts to the browser
-      else if (e.key === ' ') { e.preventDefault(); setPlaying((p) => !p); }
+      else if (e.key === ' ') { e.preventDefault(); if (clickOn) wakeClick(); setPlaying((p) => !p); } // sound starts only inside a key press or tap
       else if (e.key.startsWith('Arrow') && selected.size && onSet >= 0 && !playing) {
         // Nudge the selection: 1 step, Shift 4 steps, Option/Alt half a step. Up is up on the screen.
         e.preventDefault();
@@ -404,7 +406,7 @@ export function App() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [selected, total, hist, show, shapeEdit, printing, selectedMark, selectedProp, onSet, tool, playing, view, clip, faded]);
+  }, [selected, total, hist, show, shapeEdit, printing, selectedMark, selectedProp, onSet, tool, playing, view, clip, faded, clickOn]);
 
   const world = (e: React.PointerEvent) => toWorld(view!, e.nativeEvent.offsetX * dpr, e.nativeEvent.offsetY * dpr);
 
@@ -707,7 +709,7 @@ export function App() {
         </div>
         {/* Hidden, not unmounted, like the sidebar: its zoom and menus survive. */}
         <div style={timelineOpen ? undefined : { display: 'none' }}>
-        <Timeline wave={wave && show.music && show.music.taps.length >= 2 ? { peaks: wave, taps: show.music.taps } : undefined} show={show} setShow={setShow} t={t} setT={(x) => { setPlaying(false); setT(x); }} playing={playing} setPlaying={setPlaying} bpm={bpm} setBpm={setBpm}
+        <Timeline click={{ on: clickOn, set: (on) => { setClickOn(on); setClickWanted(on); if (on) wakeClick(); } }} wave={wave && show.music && show.music.taps.length >= 2 ? { peaks: wave, taps: show.music.taps } : undefined} show={show} setShow={setShow} t={t} setT={(x) => { setPlaying(false); setT(x); }} playing={playing} setPlaying={setPlaying} bpm={bpm} setBpm={setBpm}
           range={range} setRange={setRange} span={span}
           music={<MusicMenu show={show} setShow={setShow} audio={audio} onAudio={() => setAudioTick((n) => n + 1)} useMusic={useMusic} setUseMusic={setUseMusic} />} />
         </div>
