@@ -500,7 +500,7 @@ function AddPanel(p: ToolbarProps & { close: () => void }) {
   const { show, setShow, close } = p;
   const [at, setCount] = useState<number | null>(null);
   const props = show.props ?? [];
-  const addSet = () => { const r = addSetHere(show, p.t, at); setShow(() => r.show); p.setT(r.t); setCount(null); close(); };
+  const addSet = () => { const r = addSetHere(show, p.t, at); setShow(() => r.show); p.setT(r.t); p.setTool('select'); setCount(null); close(); }; // a set is one click, not a mode: back to Select (Jason)
   const prop = () => {
     const r = addProp(show, `Prop ${props.length + 1}`, 8, 8, false, { x: 0, y: fieldDepth(fieldOf(show)) / 2 }); // an 8 by 8 square in the middle (Jason)
     setShow(() => r.show); p.setSelected(new Set()); p.setSelectedMark(null); p.setSelectedProp(r.id); p.setTool('select'); p.showSidebar(); close();
@@ -516,7 +516,7 @@ function AddPanel(p: ToolbarProps & { close: () => void }) {
     <strong style={{ fontSize: 12, opacity: 0.8 }}>Performers: which section?</strong>
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4 }}>{/* two columns, so Prop stays in reach under a long list (Jason) */}
       {show.sections.map((s) => (
-        <button key={s.id} role="menuitemradio" aria-checked={p.tool === 'add' && p.section === s.id} title={`${s.letter} · ${s.name}`}
+        <button key={s.id} role="menuitemradio" aria-checked={p.section === s.id} title={`${s.letter} · ${s.name}`}
           style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'left' }}
           onClick={() => { p.setSection(s.id); p.setTool('add'); close(); }}>{s.letter} · {s.name}</button>
       ))}

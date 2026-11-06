@@ -1205,3 +1205,7 @@ Each entry: timestamp, who decided, context, options considered, decision.
 ## 2026-11-06 15:30 EST — Add menu order, and Create New Section
 - **Who:** Jason Tiller.
 - **Decision:** In **Add ▾**, **Prop** moves to the bottom: Set first, then the sections, then Prop. The new-section name and letter boxes stay hidden until you click **Create New Section**, so the menu is shorter. The sections sit in two columns (Jason), so Prop stays in reach with a long list; a long name is cut short with "…" and shows in full when you point at it.
+
+## 2026-11-06 15:35 EST — Adding a set goes back to Select
+- **Who:** Jason Tiller asked that Add stop looking like it's still adding performers after **Set**, and that it remember the last choice. How it remembers is Claude's *(Jason can veto)*.
+- **Decision:** **Set** (like **Prop**) is one click, not a mode: afterward the tool is **Select**, and the Add button no longer shows a section letter. The last section you added stays marked in the menu (and A picks it up again), so going back to adding performers is one click.

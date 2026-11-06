@@ -94,7 +94,7 @@ If your program always uses the same sections, set them up once and choose **Sta
 
 **New** drops you here: the field is blank, adding performers is on, and the **Add** menu is open.
 
-1. Click **Add** and pick a section under **Performers**. For a section that isn't there yet (a drum major, a soloist), click **Create New Section**, type its name and letter, and click **Add**: it's made and picked in one step.
+1. Click **Add** and pick a section under **Performers**. For a section that isn't there yet (a drum major, a soloist), click **Create New Section**, type its name and letter, and click **Add**: it's made and picked in one step. The menu keeps the last section you used marked, so you can pick up where you left off.
 2. Click the field wherever you want each one. They're numbered in order: P1, P2, P3, and so on.
 3. Press **V** or Esc (or click **Select**) when you're done.
 
@@ -151,7 +151,7 @@ Coordinates read side to side first, then front to back, from the nearest yard l
 
 A set is one picture of the drill, and the move into it takes a number of counts. Set 1 is the opening set, so it has no move into it.
 
-- **Add**, then **Set**, adds a set 16 counts after the one you're on, and the sets after it move along. The new set starts as a copy of the one you were on, so you only move the people who move.
+- **Add**, then **Set**, adds a set 16 counts after the one you're on, and the sets after it move along. You're back on **Select** afterward. The new set starts as a copy of the one you were on, so you only move the people who move.
 - Change a set's **Counts** and **Measures** on the toolbar's first row, next to **Delete**. New counts take effect when you press Enter or tap away, so the set doesn't jump around while you type. Type measures the way the score numbers them (a pickup bar is m. 1).
 - **Delete** with nothing selected removes the set you're on, after asking. (With performers, a prop, or markup selected, it deletes those instead; hold the mouse over it to see what it will delete. The Delete key never deletes a set.) The sets always stay numbered in order: delete set 7 of 8 and the old 8 becomes 7. Adding a set in the middle moves the later ones up a number the same way. Sub-sets keep their place after the set before them and stay lettered in order (the old 8A becomes 7A).
 - **Click a set's button** on the timeline to go to it, or click any count to see where everyone is on that count.
