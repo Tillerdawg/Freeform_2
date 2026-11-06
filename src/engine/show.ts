@@ -594,7 +594,7 @@ export function counterMarch(show: Show, i: number, order: string[], side: 'left
 }
 
 /** The paths into set i to draw, each piece colored by its step size: straight lines, arcs for turning moves, imported routes, and one trail per FTL group. */
-export function moveSegments(show: Show, i: number): { from: Point; to: Point; tier: StepTier }[] {
+export function moveSegments(show: Show, i: number, keep: (id: string) => boolean = () => true): { from: Point; to: Point; tier: StepTier }[] {
   const steps = moveSteps(show, i);
   const a = show.sets[i - 1].pos, b = show.sets[i].pos;
   const groups = show.sets[i].ftl ?? [];
@@ -606,7 +606,7 @@ export function moveSegments(show: Show, i: number): { from: Point; to: Point; t
     const fit = groupTurn(show, i, ids);
     if (fit) for (const id of ids) if (a[id] && !inFtl.has(id)) arcs.set(id, turnRoute(a[id], b[id], fit.center, fit.angle));
   }
-  const straight = Object.keys(b).filter((id) => !inFtl.has(id) && a[id] && (a[id].x !== b[id].x || a[id].y !== b[id].y || own[id]))
+  const straight = Object.keys(b).filter((id) => keep(id) && !inFtl.has(id) && a[id] && (a[id].x !== b[id].x || a[id].y !== b[id].y || own[id]))
     .flatMap((id) => {
       const path = arcs.get(id) ?? own[id];
       if (arcs.has(id)) return path.slice(1).map((q, k) => ({ from: path[k], to: q, tier: steps[id].tier }));
@@ -616,7 +616,7 @@ export function moveSegments(show: Show, i: number): { from: Point; to: Point; t
       return [{ from: a[id], to: b[id], tier: steps[id].tier }];
     });
   // A follow-the-leader group draws its trail once, in the leader's step-size color.
-  const trails = groups.flatMap((g) => {
+  const trails = groups.filter((g) => keep(g.order[0])).flatMap((g) => {
     const t = ftlTrail(show, i, g.order);
     return t.slice(1).map((p, k) => ({ from: t[k], to: p, tier: steps[g.order[0]].tier }));
   });

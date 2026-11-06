@@ -57,6 +57,8 @@ interface Props {
   selectedProp: string | null;
   setSelectedProp: (id: string | null) => void;
   onTrace: () => void; // a tracing picture was added
+  look: Record<string, 'dim' | 'hide'>; // sections dimmed or hidden in the editor
+  setLook: (l: Record<string, 'dim' | 'hide'>) => void;
 }
 
 const PRESETS: [HashPreset, string][] = [['highSchool', 'High school'], ['college', 'College / DCI'], ['nfl', 'NFL']];
@@ -159,11 +161,11 @@ export function Sidebar(p: Props) {
           return <p style={{ margin: '4px 0 0' }}>{label(show, x)} to {label(show, y)}: {d} step{d === 1 ? '' : 's'} apart</p>;
         })()}
         <div style={row}>
-          <button onClick={() => p.setSelected(new Set(show.performers.map((x) => x.id)))} disabled={!show.performers.length} title="Select every performer (⌘A / Ctrl+A)">Select all</button>
+          <button onClick={() => p.setSelected(new Set(show.performers.filter((x) => !p.look[x.section]).map((x) => x.id)))} disabled={!show.performers.length} title="Select every performer you can see (⌘A / Ctrl+A)">Select all</button>
           <select aria-label="Select a section" value="" disabled={!show.performers.length}
             onChange={(e) => { const sec = e.target.value; if (sec) p.setSelected(new Set(show.performers.filter((x) => x.section === sec).map((x) => x.id))); }}>
             <option value="" disabled>Select a section…</option>
-            {show.sections.filter((s) => show.performers.some((x) => x.section === s.id)).map((s) => <option key={s.id} value={s.id}>{s.letter} · {s.name}</option>)}
+            {show.sections.filter((s) => !p.look[s.id] && show.performers.some((x) => x.section === s.id)).map((s) => <option key={s.id} value={s.id}>{s.letter} · {s.name}</option>)}
           </select>
         </div>
         <div style={row}>
@@ -287,7 +289,7 @@ export function Sidebar(p: Props) {
         )}
       </section>
 
-      <SectionsEditor show={show} setShow={setShow} cur={cur} />
+      <SectionsEditor show={show} setShow={setShow} cur={cur} look={p.look} setLook={p.setLook} />
       <PropsEditor show={show} setShow={setShow} onSet={onSet} selected={p.selectedProp} setSelected={p.setSelectedProp} />
       <TraceEditor show={show} setShow={setShow} onTrace={p.onTrace} />
       <Roster show={show} setShow={setShow} selected={selected} setSelected={p.setSelected} />
@@ -374,7 +376,10 @@ const SORTS: [string, (l: Section[]) => Section[], string][] = [
 ];
 
 /** Rename, re-letter, add and delete sections. Letters two sections share are flagged (their labels would clash). */
-function SectionsEditor({ show, setShow, cur }: { show: Show; setShow: (f: (s: Show) => Show) => void; cur: number }) {
+function SectionsEditor({ show, setShow, cur, look, setLook }: { show: Show; setShow: (f: (s: Show) => Show) => void; cur: number; look: Props['look']; setLook: Props['setLook'] }) {
+  // Shown → Dim → Hide → Shown: how a section is drawn in the editor while you write someone else's drill.
+  const cycle = (id: string) => { const { [id]: was, ...rest } = look; setLook(was === 'hide' ? rest : { ...rest, [id]: was === 'dim' ? 'hide' : 'dim' }); };
+  const faded = show.sections.filter((s) => look[s.id]).length;
   const [deleting, setDeleting] = useState<string | null>(null);
   const [renumbering, setRenumbering] = useState<string | null>(null);
   const [own, setOwn] = useState(hasOwnStartingSections);
@@ -395,7 +400,11 @@ function SectionsEditor({ show, setShow, cur }: { show: Show; setShow: (f: (s: S
     : i === drag.to ? (drag.to < drag.from ? 'inset 0 3px 0 var(--gold)' : 'inset 0 -3px 0 var(--gold)') : undefined);
   return (
     <details style={box} ref={panel}>
-      <summary><strong>Sections</strong> <span style={{ fontSize: 12, opacity: 0.7 }}>({show.sections.length})</span></summary>
+      <summary><strong>Sections</strong> <span style={{ fontSize: 12, opacity: 0.7 }}>({show.sections.length}{faded ? `, ${faded} dimmed or hidden` : ''})</span></summary>
+      <p style={{ margin: '6px 0 0', fontSize: 12, opacity: 0.75 }}>
+        <strong>On</strong>, <strong>Dim</strong>, <strong>Off</strong>: the first button on a row sets how a section is drawn in the editor while you write the others (Off hides it). Dimmed and hidden performers can't be picked. Printing and phones always show everyone.
+        {faded > 0 && <> <button onClick={() => setLook({})} style={{ fontSize: 12 }}>Show all</button></>}
+      </p>
       <p style={{ margin: '6px 0 0', fontSize: 12, opacity: 0.75 }}>
         The swatch colors the section's dots. The letter starts each label (A1, X1). To split a section, add one here, then select its performers and change their Section.
       </p>
@@ -428,6 +437,9 @@ function SectionsEditor({ show, setShow, cur }: { show: Show; setShow: (f: (s: S
               <input type="color" aria-label={`Color for ${s.name}`} title={s.color ? `Dot color for ${s.name}` : `Pick a dot color for ${s.name} (none yet)`}
                 value={s.color ?? '#111111'} onChange={(e) => edit(i, { color: e.target.value })}
                 style={{ width: 24, height: 24, padding: 0, border: s.color ? '1px solid var(--line-strong)' : '1px dashed var(--muted)', borderRadius: 6, background: 'none', cursor: 'pointer', opacity: s.color ? 1 : 0.6 }} />
+              <button aria-label={`${s.name}: ${look[s.id] === 'hide' ? 'hidden' : look[s.id] === 'dim' ? 'dimmed' : 'shown'} in the editor`} aria-pressed={!!look[s.id]} onClick={() => cycle(s.id)}
+                title="How this section is drawn in the editor: On, Dim, or Off (hidden). Click to change." style={{ width: 40, padding: '4px 0', fontSize: 12 }}>
+                {look[s.id] === 'hide' ? 'Off' : look[s.id] === 'dim' ? 'Dim' : 'On'}</button>
               <input aria-label={`Letter for ${s.name}`} value={s.letter} maxLength={3} style={{ width: 36, padding: '4px 2px', textAlign: 'center', borderColor: dup ? 'var(--danger)' : undefined }}
                 onChange={(e) => edit(i, { letter: e.target.value })} />
               <input aria-label={`Name of section ${s.letter}`} value={s.name} style={{ flex: 1, minWidth: coarse() ? 120 : 0 }} onChange={(e) => edit(i, { name: e.target.value })} />

@@ -91,6 +91,8 @@
       /* Room at the top: newer iOS blurs a band just below the status bar (over the page), which blurred the title. */
       .perform-bar { display: flex; flex-direction: column; gap: 6px; padding: 24px 12px 8px; flex-shrink: 0; }
       .perform-titlebar { display: flex; align-items: center; gap: 8px; }
+      .backup-note { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); z-index: 5; width: min(560px, calc(100% - 32px)); display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px 12px; background: var(--bg); border: 1px solid var(--warn); border-radius: 8px; box-shadow: 0 6px 16px rgba(0,0,0,0.45); font-size: 14px; } /* floats over the field, so the field never resizes */
+      .backup-note > span { flex: 1 1 260px; }
       .perform-shows { font: inherit; font-weight: 600; max-width: 100%; min-height: 36px; } /* the show picker: big enough to tap */
       .perform-add { position: fixed; top: 0; left: 0; right: 0; z-index: 20; display: grid; gap: 8px; padding: 16px; font-size: 15px; background: var(--bg); border-bottom: 1px solid var(--line-strong); box-shadow: 0 6px 16px rgba(0,0,0,0.45); } /* over the field: opening it doesn't resize the field */
       .perform-add > button { justify-self: start; }

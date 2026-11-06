@@ -3,7 +3,7 @@ import { HASHES, readout } from './coords';
 import {
   addPerformer, addSetAfter, advance, biggestStep, chainOrder, clearFtl, ftlTrail, moveSteps, normalizeFtl, flip, mirrorSides, moveSetTo, remapHash, rotateScale, setFtl, snapSelection, playRange, playPlan, label, locate, newShow, parseShow, placeInSet, positionsAt,
   removePerformers, renumberSets, scoreOrder, DEFAULT_SECTIONS, removeSet, setAt, setCounts, setStarts, totalCounts, xFrom, yFrom, insertSetAt, showLength, movementAt, movementOfSet, setFtlTurns,
-  setTiming, timingOf, fitTurn, setTurning, turnRoute, counterMarch, closeCalls, facingIn, setFacing, facingVector, equipmentIn, setEquipment, addProp, placeProp, propsAt, hitProp, removeProp, fieldOf,
+  setTiming, timingOf, fitTurn, setTurning, turnRoute, counterMarch, closeCalls, facingIn, setFacing, facingVector, equipmentIn, setEquipment, addProp, placeProp, propsAt, hitProp, removeProp, fieldOf, moveSegments,
 } from './show';
 
 function twoSetShow() {
@@ -752,5 +752,13 @@ describe('equipment icons (removed)', () => {
   it('opens a show saved with them, with letters', () => {
     const { show } = twoSetShow();
     expect(parseShow(JSON.stringify({ ...show, symbols: 'icons' })).symbols).toBeUndefined();
+  });
+});
+
+describe('paths for some performers', () => {
+  it('leaves out the paths of performers not kept (dimmed or hidden sections)', () => {
+    const { show, id } = twoSetShow();
+    expect(moveSegments(show, 1)).toHaveLength(1);
+    expect(moveSegments(show, 1, (x) => x !== id)).toEqual([]);
   });
 });

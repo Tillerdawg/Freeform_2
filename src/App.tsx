@@ -27,6 +27,10 @@ import { PALETTE, useTheme } from './ui/palette';
 import { ThemeButton } from './ui/ThemeButton';
 
 export const AUTOSAVE = 'freeform:autosave';
+const UNEXPORTED = 'freeform:unexported-since', SNOOZE = 'freeform:backup-later', DAY = 86_400_000, BACKUP_DAYS = 7;
+const readTime = (k: string) => { try { const n = Number(localStorage.getItem(k)); return n > 0 ? n : null; } catch { return null; } };
+const writeTime = (k: string, n: number | null) => { try { if (n) localStorage.setItem(k, String(n)); else localStorage.removeItem(k); } catch { /* storage blocked */ } };
+const LOOK = 'freeform:section-view'; // which sections are dimmed or hidden in the editor
 
 function loadAutosave(): Show {
   let raw: string | null = null;
@@ -117,6 +121,15 @@ export function App() {
     try { localStorage.setItem(AUTOSAVE, JSON.stringify(show)); } catch { /* private mode: no autosave */ }
   }, [show]);
 
+  // Backups: the show lives only in this browser, so after BACKUP_DAYS of changes that haven't been exported, a notice
+  // asks for an Export. "Later" asks again in a day.
+  const firstShow = useRef(show);
+  const [unexported, setUnexported] = useState(() => readTime(UNEXPORTED));
+  const [snooze, setSnooze] = useState(() => readTime(SNOOZE));
+  useEffect(() => { if (show !== firstShow.current && !unexported) { const now = Date.now(); writeTime(UNEXPORTED, now); setUnexported(now); } }, [show]); // eslint-disable-line react-hooks/exhaustive-deps
+  const backedUp = () => { writeTime(UNEXPORTED, null); setUnexported(null); };
+  const remindBackup = !!unexported && show.performers.length > 0 && Date.now() - unexported > BACKUP_DAYS * DAY && Date.now() > (snooze ?? 0);
+
   // Every show change becomes (or merges into) an undo step, except undo/redo themselves.
   useEffect(() => {
     if (show === lastShow.current) return;
@@ -196,6 +209,12 @@ export function App() {
     return () => ro.disconnect();
   }, [dpr]);
 
+  // Sections dimmed or hidden in the editor (a view setting kept in this browser, not in the show): sectionId → 'dim' | 'hide'.
+  const [look, setLookRaw] = useState<Record<string, 'dim' | 'hide'>>(() => { try { return JSON.parse(localStorage.getItem(LOOK) ?? '{}') ?? {}; } catch { return {}; } });
+  const setLook = (l: Record<string, 'dim' | 'hide'>) => { setLookRaw(l); try { localStorage.setItem(LOOK, JSON.stringify(l)); } catch { /* storage blocked */ } };
+  const faded = useMemo(() => new Map(show.performers.flatMap((p) => (look[p.section] ? [[p.id, look[p.section]] as const] : []))), [show.performers, look]);
+  useEffect(() => { if (selected.size && [...selected].some((id) => faded.has(id))) setSelected(new Set([...selected].filter((id) => !faded.has(id)))); }, [faded]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Copy and paste spots: the selected performers' spots in one set, put back on the same performers in another.
   const [clip, setClip] = useState<Record<string, Point> | null>(null);
   const copySpots = () => { if (onSet >= 0 && selected.size) setClip(Object.fromEntries([...selected].flatMap((id) => (show.sets[onSet].pos[id] ? [[id, show.sets[onSet].pos[id]]] : [])))); };
@@ -209,7 +228,7 @@ export function App() {
 
   // Paths into the current set, colored by step size. Mid-move, the move being made (so FTL trails show there too).
   const pathSet = onSet >= 0 ? onSet : t < starts.at(-1)! ? locate(show, t).to : -1;
-  const paths: Path[] = useMemo(() => (pathSet < 1 ? [] : moveSegments(show, pathSet)), [show, pathSet]);
+  const paths: Path[] = useMemo(() => (pathSet < 1 ? [] : moveSegments(show, pathSet, (id) => !faded.has(id))), [show, pathSet, faded]);
   // The FTL group the selection is, exactly, in the move into this set (where Add turns puts the leader's turning points).
   const ftlGroup = onSet > 0 ? show.sets[onSet].ftl?.find((g) => g.order.length === selected.size && g.order.every((id) => selected.has(id))) : undefined;
   useEffect(() => { if (tool === 'turn' && !ftlGroup) setTool('select'); }, [tool, ftlGroup]);
@@ -238,7 +257,7 @@ export function App() {
     const pins = onSet >= 0 ? show.sets[onSet].labels : undefined;
     const shown = !playing; // labels jump around as dots move; selected performers keep theirs either way
     const faceSet = onSet >= 0 ? onSet : Math.max(0, locate(show, t).to - 1); // mid-move: they face as they did in the set they left
-    const dots = show.performers.filter((p) => positions[p.id]).map((p) => { const m = mark(show, p), f = facingIn(show, faceSet, p.id); return { id: p.id, label: shown || selected.has(p.id) ? m.label : '', glyph: m.glyph, at: positions[p.id], pin: pins?.[p.id], color: colorOf(show, p), ...(selected.has(p.id) && f ? { facing: facingVector(f) } : {}) }; }); // facing shows on selected performers only (Jason)
+    const dots = show.performers.filter((p) => positions[p.id] && faded.get(p.id) !== 'hide').map((p) => { const m = mark(show, p), f = facingIn(show, faceSet, p.id), dim = faded.has(p.id); return { id: p.id, dim, label: (shown || selected.has(p.id)) && !dim ? m.label : '', glyph: m.glyph, at: positions[p.id], pin: pins?.[p.id], color: colorOf(show, p), ...(selected.has(p.id) && f ? { facing: facingVector(f) } : {}) }; }); // facing shows on selected performers only (Jason)
     if (onSet >= 0) drawMarks(ctx, view, show.sets[onSet].marks ?? [], 'screen', selectedMark);
     drawPerformers(ctx, view, dots, selected, paths, box, dpr);
     if (ftlGroup?.turns) drawShape(ctx, view, [], false, ftlGroup.turns); // the selected FTL group's turns: drag to move
@@ -256,7 +275,7 @@ export function App() {
         : [];
       drawShape(ctx, view, guide.pts, guide.closed, h, h.map((_, k) => isControl(sh, k)), arms);
     }
-  }, [view, show, positions, selected, paths, box, shapeEdit, onSet, selectedMark, selectedProp, playing, t, theme, tool, trace]);
+  }, [view, show, positions, selected, paths, box, shapeEdit, onSet, selectedMark, selectedProp, playing, t, theme, tool, trace, faded]);
 
   // Empty text notes are removed as soon as they're not the one being edited (no timing to get wrong).
   useEffect(() => {
@@ -349,7 +368,7 @@ export function App() {
       else if (mod && (e.key === 'y' || e.key === 'Y')) { e.preventDefault(); step('redo'); }
       else if (mod && (e.key === '=' || e.key === '+' || e.key === '-' || e.key === '_')) { e.preventDefault(); zoomBy(e.key === '-' || e.key === '_' ? 1 / 1.25 : 1.25); } // the field, not the page
       else if (mod && e.key === '0') { e.preventDefault(); fit(); }
-      else if (mod && (e.key === 'a' || e.key === 'A')) { e.preventDefault(); setSelected(new Set(show.performers.map((p) => p.id))); }
+      else if (mod && (e.key === 'a' || e.key === 'A')) { e.preventDefault(); setSelected(new Set(show.performers.filter((p) => !faded.has(p.id)).map((p) => p.id))); }
       else if (mod && (e.key === 'c' || e.key === 'C') && selected.size && onSet >= 0) { e.preventDefault(); copySpots(); }
       else if (mod && (e.key === 'v' || e.key === 'V') && clip && onSet >= 0) { e.preventDefault(); pasteSpots(); }
       else if (mod) return; // leave other shortcuts to the browser
@@ -385,7 +404,7 @@ export function App() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [selected, total, hist, show, shapeEdit, printing, selectedMark, selectedProp, onSet, tool, playing, view, clip]);
+  }, [selected, total, hist, show, shapeEdit, printing, selectedMark, selectedProp, onSet, tool, playing, view, clip, faded]);
 
   const world = (e: React.PointerEvent) => toWorld(view!, e.nativeEvent.offsetX * dpr, e.nativeEvent.offsetY * dpr);
 
@@ -393,6 +412,7 @@ export function App() {
     const r = Math.max(0.7, ((touch ? 22 : 10) * dpr) / view!.scale); // at least ~10px to grab when zoomed out (a 44px circle for a finger)
     let best: string | undefined, bd = r;
     for (const [id, q] of Object.entries(positions)) {
+      if (faded.has(id)) continue; // dimmed and hidden sections can't be picked
       const d = Math.hypot(q.x - p.x, q.y - p.y);
       if (d <= bd) { bd = d; best = id; }
     }
@@ -599,7 +619,7 @@ export function App() {
     if (d?.kind === 'box') {
       const [x0, x1] = [Math.min(d.a.x, d.b.x), Math.max(d.a.x, d.b.x)];
       const [y0, y1] = [Math.min(d.a.y, d.b.y), Math.max(d.a.y, d.b.y)];
-      const inside = Object.entries(positions).filter(([, q]) => q.x >= x0 && q.x <= x1 && q.y >= y0 && q.y <= y1).map(([k]) => k);
+      const inside = Object.entries(positions).filter(([id, q]) => !faded.has(id) && q.x >= x0 && q.x <= x1 && q.y >= y0 && q.y <= y1).map(([k]) => k);
       setSelected(new Set([...(d.add ? selected : []), ...inside]));
       setBox(undefined);
     }
@@ -612,6 +632,7 @@ export function App() {
     a.download = `${show.title.replace(/[^\w\- ]+/g, '').trim() || 'show'}.freeform`;
     a.click();
     URL.revokeObjectURL(a.href);
+    backedUp();
   };
 
   const open = async (f: File) => {
@@ -619,6 +640,7 @@ export function App() {
       const s = /\.3dj$/i.test(f.name) ? parse3dj(await f.arrayBuffer(), f.name.replace(/\.3dj$/i, '')) : parseShow(await f.text());
       setShow(s); setT(0); setSelected(new Set()); setFileError('');
       setSection(s.sections[0]?.id ?? '');
+      firstShow.current = s; backedUp(); // what's open is the file itself
     } catch (err) {
       setFileError(err instanceof Error ? err.message : String(err));
     }
@@ -628,6 +650,7 @@ export function App() {
     if (show.performers.length && !confirm('Start a new show? (You can Undo this.)')) return;
     const s = newShow(startingSections());
     setShow(s); setT(0); setSelected(new Set()); setSection(s.sections[0].id);
+    firstShow.current = s; backedUp(); // nothing to back up yet
   };
 
   return (
@@ -669,6 +692,13 @@ export function App() {
           }}
           onPointerLeave={() => setHover('')}
         />
+        {remindBackup && (
+          <div role="alert" className="backup-note">
+            <span>This show is saved only in this browser, and you haven't exported it since {new Date(unexported!).toLocaleDateString()}. Export a copy to keep it safe.</span>
+            <button className="primary" onClick={save}>Export</button>
+            <button onClick={() => { const n = Date.now() + DAY; writeTime(SNOOZE, n); setSnooze(n); }}>Later</button>
+          </div>
+        )}
         {/* Floats over the field so its changing length can't move the layout. */}
         {hover && (
           <div style={{ position: 'absolute', left: 8, bottom: 8, maxWidth: 'calc(100% - 16px)', padding: '4px 8px', borderRadius: 4,
@@ -691,6 +721,7 @@ export function App() {
         section={section} setSection={setSection} snap={snap} setSnap={setSnap} starts={starts}
         onNew={fresh} onOpen={() => fileRef.current?.click()} onSave={save} onPrint={() => setPrinting(true)} onShare={() => setSharing(true)} fileError={fileError}
         selectedMark={selectedMark} setSelectedMark={setSelectedMark} adding={adding} setAdding={setAdding}
+        look={look} setLook={setLook}
         clip={clip ? Object.keys(clip).length : 0} onCopy={copySpots} onPaste={pasteSpots} selectedProp={selectedProp} setSelectedProp={setSelectedProp} onTrace={() => setTraceTick((n) => n + 1)}
         onUndo={() => step('undo')} onRedo={() => step('redo')} canUndo={!!hist.past.length} canRedo={!!hist.future.length}
         onFit={fit} shape={shapeEdit?.shape ?? null} startShape={startShape} updateShape={updateShape} endShape={() => setShapeEdit(null)}

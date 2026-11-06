@@ -129,6 +129,8 @@ The Selection area also has **Select all** (⌘A, or Ctrl+A on Windows) and **Se
 
 **Snap to grid** (in the toolbar) sets how dragging and adding land: on whole steps, half steps, or anywhere (free). If performers are already off the grid (after a rotate, a shape, or an import), select them and click **Apply** to round them onto it. FreeFORM warns you if two performers would land on the same spot.
 
+**Dimming or hiding sections.** When the field is crowded, open **Sections** in the sidebar and click the first button on a section's row. It cycles **On**, **Dim** (drawn faint, with no labels), and **Off** (hidden). Dimmed and hidden performers can't be clicked, boxed, or picked by **Select all**, and their paths aren't drawn, so you can write the guard without grabbing the horns. **Show all** brings everyone back. This only changes your view in the editor, in this browser: printed charts and phones always show everyone.
+
 **Reading coordinates.** Click one performer and the sidebar shows exactly where they are, in standard drill language.
 
 ![A selected performer's coordinate in the sidebar](img/coordinates.png)
@@ -414,7 +416,7 @@ With a keyboard attached, the [keyboard shortcuts](#keyboard-shortcuts) work too
 ## Saving, backing up, and opening files
 
 - **Autosave**: every change is saved in your browser right away.
-- **Export** downloads the show as a `.freeform` file. This is your real backup, because the autosave lives in only that one browser. Export before big changes and at the end of every session.
+- **Export** downloads the show as a `.freeform` file. This is your real backup, because the autosave lives in only that one browser. Export before big changes and at the end of every session. If a show has changes you haven't exported for a week, a note over the field reminds you, with an **Export** button. **Later** asks again tomorrow.
 - **Import…** opens a `.freeform` file (older `.freeform.json` files too). It replaces the current show, and Undo brings the old one back.
 - **Pyware 3D files (`.3dj`)**: Import… also opens these. You get the sets with their counts and names, measures and notes, sections from Pyware's symbols, label positions, and the roster names. Moves that aren't straight in Pyware (follow-the-leader, rotations, delayed step-offs) come in count by count, with even steps. Drawn markup and the 3D figures don't come over.
 

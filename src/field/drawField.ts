@@ -161,7 +161,7 @@ export const TIER_COLOR = { ok: PALETTE['bg-deep'], yellow: PALETTE.warn, red: P
 /** The same tiers as text on the dark panels (the field's bright red is too dim for text there). */
 export const STEP_TEXT = { ok: 'var(--text)', yellow: 'var(--warn)', red: 'var(--danger)' } as const;
 
-export interface Dot { id: string; label: string; at: Point; pin?: LabelSide; color?: string; glyph?: string; facing?: Point } // glyph: draw this letter instead of a dot; facing: a unit direction on the field
+export interface Dot { id: string; label: string; at: Point; pin?: LabelSide; color?: string; glyph?: string; facing?: Point; dim?: boolean } // dim: a section dimmed in the editor, drawn faint and unlabeled // glyph: draw this letter instead of a dot; facing: a unit direction on the field
 export interface Path { from: Point; to: Point; tier: keyof typeof TIER_COLOR }
 
 /**
@@ -302,6 +302,7 @@ export function drawPerformers(
   for (const d of dots) {
     const c = toScreen(v, d.at);
     const sel = selected.has(d.id);
+    ctx.globalAlpha = d.dim ? 0.3 : 1;
     if (d.glyph) {
       drawGlyph(ctx, c, d.glyph, f, sel ? '#111' : d.color ?? '#fff', sel ? PALETTE.gold : undefined);
       continue;
@@ -313,6 +314,7 @@ export function drawPerformers(
     ctx.strokeStyle = sel ? '#fff' : d.color ? '#111' : PALETTE.gold; // a colored dot gets a dark ring so light colors show on the turf
     ctx.stroke();
   }
+  ctx.globalAlpha = 1;
   // Facing, only where the caller gives it (the editor: selected performers), attached to the mark so the letter stays
   // the spot (Jason): a pointer on the badge's edge.
   const edge = (d0: Dot) => (d0.glyph ? f * 0.62 : r) + Math.max(1, s * 0.05);
