@@ -1178,3 +1178,7 @@ Each entry: timestamp, who decided, context, options considered, decision.
 ## 2026-11-06 14:30 EST — New starts on Add Performer(s)
 - **Who:** Jason Tiller: a new show is a blank field, so Select Performer(s) makes no sense there.
 - **Decision:** **New** turns on **Add Performer(s)** (with the first section, as before) and opens its section menu, so the next click picks a section or places a performer. Opening a file still lands on Select.
+
+## 2026-11-06 14:40 EST — New sections from Add Performer(s)
+- **Who:** Jason Tiller: move adding a section to the Add Performer(s) button.
+- **Decision:** The **Add Performer(s)** menu ends with **New section**: a name, a letter, and **Add**, which makes the section and picks it for placing (Enter works too). It warns if the letter is already used. The sidebar's **+ Section** button is gone; **Sections** still renames, recolors, reorders, sorts, renumbers, and deletes. New sections no longer start as "New section ?" (Claude's call: name and letter are asked up front).

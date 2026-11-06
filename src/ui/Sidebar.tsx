@@ -406,7 +406,7 @@ function SectionsEditor({ show, setShow, cur, look, setLook }: { show: Show; set
         {faded > 0 && <> <button onClick={() => setLook({})} style={{ fontSize: 12 }}>Show all</button></>}
       </p>
       <p style={{ margin: '6px 0 0', fontSize: 12, opacity: 0.75 }}>
-        The swatch colors the section's dots. The letter starts each label (A1, X1). To split a section, add one here, then select its performers and change their Section.
+        The swatch colors the section's dots. The letter starts each label (A1, X1). To split a section, add one from Add Performer(s) (New section), then select its performers here and change their Section.
       </p>
       {show.sections.map((s, i) => {
         const n = count(s.id), dup = dupes.has(s.letter.trim().toUpperCase()), last = show.sections.length - 1;
@@ -476,7 +476,6 @@ function SectionsEditor({ show, setShow, cur, look, setLook }: { show: Show; set
         );
       })}
       <div style={row}>
-        <button onClick={() => setShow((sh) => ({ ...sh, sections: [...sh.sections, { id: newId('s'), name: 'New section', letter: '?' }] }))}>+ Section</button>
         <Menu label="Sort" title="Put the sections in an order: score order, by letter, or by name">
           {(close) => SORTS.map(([name, how, title]) => (
             <button key={name} title={title} disabled={how(show.sections).every((x, i) => x === show.sections[i])}

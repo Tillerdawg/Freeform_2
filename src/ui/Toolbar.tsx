@@ -4,7 +4,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 're
 import { addBezierSegment, addCurvePoint, cleanText, coilGap, placeInner, type Shape, type ShapeKind } from '../engine/shapes';
 import { distance } from '../engine/coords';
 import {
-  chainOrder, clearFtl, closeCalls, setFtlSmooth, counterMarch, flip, groupTurn, setFtlTurns, setTiming, setTurning, timingOf, label, mirrorSides, placeInSet, removePerformers, rotateScale, setFtl, setLabelSide, snapSelection,
+  chainOrder, clearFtl, closeCalls, setFtlSmooth, newId, counterMarch, flip, groupTurn, setFtlTurns, setTiming, setTurning, timingOf, label, mirrorSides, placeInSet, removePerformers, rotateScale, setFtl, setLabelSide, snapSelection,
   type LabelSide, type Show,
 } from '../engine/show';
 import { curveSides } from '../field/labels';
@@ -98,7 +98,8 @@ export function Toolbar(p: ToolbarProps) {
               <button key={s.id} role="menuitemradio" aria-checked={p.tool === 'add' && p.section === s.id}
                 onClick={() => { p.setSection(s.id); p.setTool('add'); close(); }}>{s.letter} · {s.name}</button>
             ))}
-            <p style={help}>Then click the field to place each one. Sections are edited in the sidebar.</p>
+            <NewSection {...p} close={close} />
+            <p style={help}>Then click the field to place each one. Sections are renamed, recolored, and deleted in the sidebar.</p>
           </>}
         </Menu>
       </div>
@@ -462,6 +463,31 @@ function MovePanel({ show, setShow, onSet, ids, setSelected }: ToolbarProps & { 
         </ul>
         {calls.length > 20 && <p style={help}>And {calls.length - 20} more pairs.</p>}
       </>}
+    </>
+  );
+}
+
+/** A new section, made in the Add Performer(s) menu: name and letter, then it's the section being placed. */
+function NewSection({ show, setShow, setSection, setTool, close }: ToolbarProps & { close: () => void }) {
+  const [name, setName] = useState(''), [letter, setLetter] = useState('');
+  const taken = show.sections.some((s) => s.letter.trim().toUpperCase() === letter.trim().toUpperCase());
+  const add = () => {
+    if (!name.trim() || !letter.trim()) return;
+    const id = newId('s');
+    setShow((sh) => ({ ...sh, sections: [...sh.sections, { id, name: name.trim(), letter: letter.trim() }] }));
+    setSection(id); setTool('add'); close();
+  };
+  return (
+    <>
+      <strong style={{ fontSize: 12, opacity: 0.8, marginTop: 6 }}>New section</strong>
+      <div style={{ ...row, marginTop: 0 }}>
+        <input aria-label="New section's name" placeholder="Name (Drum Major)" value={name} maxLength={60} style={{ flex: 1, minWidth: 110 }}
+          onChange={(e) => setName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') add(); }} />
+        <input aria-label="New section's letter" placeholder="Letter" value={letter} maxLength={3} style={{ width: 56, textAlign: 'center' }}
+          onChange={(e) => setLetter(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') add(); }} />
+        <button onClick={add} disabled={!name.trim() || !letter.trim()}>Add</button>
+      </div>
+      {taken && <p role="alert" style={{ ...help, color: 'var(--warn)', opacity: 1 }}>Another section already uses "{letter.trim()}": their labels would clash.</p>}
     </>
   );
 }

@@ -82,7 +82,7 @@ In the Sections list you can:
 
 - Rename a section or change its letter. If two sections share a letter, FreeFORM flags them, since their labels would look the same.
 - Give a section a color with the swatch. Its dots show in that color on the field, on phones, and on printed charts. **Clear colors** goes back to plain dots.
-- Add or delete a section. If you delete one that has performers, you pick where they go.
+- Delete a section. If it has performers, you pick where they go. (New sections are added from **Add Performer(s)**; see below.)
 - Reorder the list by dragging the dotted grip at the left of a row, or use **Sort** for score order, by letter, or by name. Dot sheets print in this order.
 - Renumber a section with **#**: **Close the gaps** (X4, X5, X6 become X1, X2, X3), **Left to right** (Side 1 to Side 2), or **Front to back** (rank by rank), as they stand in the current set.
 
@@ -94,7 +94,7 @@ If your program always uses the same sections, set them up once and choose **Sta
 
 **New** drops you here: the field is blank, **Add Performer(s)** is on, and its list of sections is open.
 
-1. Click **Add Performer(s)** and pick a section.
+1. Click **Add Performer(s)** and pick a section. For a section that isn't there yet (a drum major, a soloist), type its name and letter under **New section** and click **Add**: it's made and picked in one step.
 2. Click the field wherever you want each one. They're numbered in order: P1, P2, P3, and so on.
 3. Press **V** or Esc (or click **Select Performer(s)**) when you're done.
 
