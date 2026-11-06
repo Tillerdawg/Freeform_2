@@ -670,7 +670,7 @@ export function App() {
             <img src={theme === 'light' ? './logo-small-light.svg' : './logo-small.svg'} alt="FreeFORM" style={{ height: coarse() ? 30 : 24, display: 'block' }} /></picture>
         </span>
         <div style={{ flex: 'none' }}><SetControls show={show} setShow={setShow} t={t} setT={(x) => { setPlaying(false); setT(x); }} /></div>
-        <span style={{ flex: '1 1 0', fontSize: 12, opacity: tool === 'turn' ? 1 : 0.7, color: tool === 'turn' ? 'var(--gold)' : undefined, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'right' }}>{tool === 'turn' ? (coarse() ? "Tap the field for each of the leader's turns, in marching order · then tap Select Performer(s)" : "Click the field for each of the leader's turns, in marching order · Esc when done")
+        <span style={{ flex: '1 1 0', fontSize: 12, opacity: tool === 'turn' ? 1 : 0.7, color: tool === 'turn' ? 'var(--gold)' : undefined, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'right' }}>{tool === 'turn' ? (coarse() ? "Tap the field for each of the leader's turns, in marching order · then tap Select" : "Click the field for each of the leader's turns, in marching order · Esc when done")
           : coarse() ? 'Two fingers: drag to move around, pinch to zoom' : 'Scroll to pan · pinch or ⌘/Ctrl+scroll to zoom · right-drag pans'}</span>
         <span style={{ flex: 'none' }}><ThemeButton /></span>
       </div>

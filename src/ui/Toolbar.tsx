@@ -89,7 +89,7 @@ export function Toolbar(p: ToolbarProps) {
         placing and moving them. */}
     <div className="toolbar" role="toolbar" aria-label="Performers">
       <div role="radiogroup" aria-label="Performer tool" style={{ display: 'inline-flex', gap: 4 }}>{/* separate buttons, like Delete (Jason) */}
-        <button role="radio" aria-checked={p.tool === 'select'} onClick={() => p.setTool('select')} title="Select and move performers (V)" aria-label="Select Performer(s)">Select<span className="tb-long-sm"> Performer(s)</span></button>
+        <button role="radio" aria-checked={p.tool === 'select'} onClick={() => p.setTool('select')} title="Select and move performers, markup, and props (V)">Select</button>
         <Menu label={<>Add<span className="tb-long-sm"> Performer(s)</span>{addLetter}</>} name={`Add Performer(s)${addLetter}`} openNow={p.openAdd}
           pressed={p.tool === 'add'} title="Pick a section, then click the field to place its performers (A)">
           {(close) => <>

@@ -1187,3 +1187,7 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Who:** Jason Tiller: placing a prop's center on the hash, the corner readout said something else.
 - **Context:** The readout showed the pointer's spot, so grabbing a prop (or a performer) off its center made it disagree with where the thing landed.
 - **Decision:** While dragging, the readout shows the prop's center ("Prop 1 center: …") or the grabbed performer's snapped spot ("P4: …"). Each prop's box in the sidebar also shows its **Center** in the set you're on.
+
+## 2026-11-06 15:00 EST — "Select Performer(s)" becomes "Select"
+- **Who:** Jason Tiller.
+- **Decision:** The tool's button and name are just **Select** (it picks markup and props too). Add and Delete keep "Performer(s)".

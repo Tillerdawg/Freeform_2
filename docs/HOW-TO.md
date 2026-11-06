@@ -48,7 +48,7 @@ One thing to know up front: **your show is saved in the browser you're using.** 
 From top to bottom:
 
 - **The top bar** shows the set you're on, with its counts and measures, **+ Add set**, and **Delete set**. The sun/moon button at the far right switches between dark mode (the default) and light mode. The field looks the same either way.
-- **The drill toolbar** has two rows. The first row picks what a click on the field does: **Select Performer(s)** or **Add Performer(s)**. It also has **Delete Performer(s)**, and at the right end Undo, Redo, Fit (zooms back out to the whole field), the timeline button, and the sidebar button. The second row has the tools for placing and moving performers: **Snap to grid**, **Markup**, **Shape**, **Transform**, **Path**, **Move**, **Labels**, and **Reset to set**.
+- **The drill toolbar** has two rows. The first row picks what a click on the field does: **Select** or **Add Performer(s)**. It also has **Delete Performer(s)**, and at the right end Undo, Redo, Fit (zooms back out to the whole field), the timeline button, and the sidebar button. The second row has the tools for placing and moving performers: **Snap to grid**, **Markup**, **Shape**, **Transform**, **Path**, **Move**, **Labels**, and **Reset to set**.
 - **The field** is in the middle. You're looking at it from the press box: the front sideline is at the bottom and Side 1 is on the left. Scroll to move around, and pinch (or hold ⌘ or Ctrl and scroll) to zoom.
 - **The timeline** runs across the bottom. Each set has a numbered button, and each move between sets shows its counts, measures, and biggest step size.
 - **The sidebar** on the right holds the show's file buttons, title, and hash marks; the current set's notes; whatever you have selected; and the **Sections** and **Roster** lists. The sidebar button (at the right end of the toolbar) shows and hides it.
@@ -96,7 +96,7 @@ If your program always uses the same sections, set them up once and choose **Sta
 
 1. Click **Add Performer(s)** and pick a section. For a section that isn't there yet (a drum major, a soloist), type its name and letter under **New section** and click **Add**: it's made and picked in one step.
 2. Click the field wherever you want each one. They're numbered in order: P1, P2, P3, and so on.
-3. Press **V** or Esc (or click **Select Performer(s)**) when you're done.
+3. Press **V** or Esc (or click **Select**) when you're done.
 
 Performers are part of the whole show, so a performer you add appears in every set, on the same spot, until you move them.
 
@@ -116,7 +116,7 @@ Names are saved with the show and print on dot sheets. Plain share links leave t
 
 ## Select and move performers
 
-With **Select Performer(s)** on:
+With **Select** on:
 
 - **Click** a performer to select them.
 - **Shift-click** to add or remove performers from the selection.
@@ -308,7 +308,7 @@ Labels hide while a show plays (they'd jump around) and come back when you stop.
 - **Arrow**: drag from where the arrow starts to where it points.
 - **Draw**: drag to draw freehand.
 
-Press Esc (or V) to go back to **Select Performer(s)** when you're done. Click a piece of markup to select it, drag it to move it, and press Delete to remove it.
+Press Esc (or V) to go back to **Select** when you're done. Click a piece of markup to select it, drag it to move it, and press Delete to remove it.
 
 There are two kinds of written notes in the sidebar:
 
