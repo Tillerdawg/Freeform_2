@@ -1204,4 +1204,4 @@ Each entry: timestamp, who decided, context, options considered, decision.
 
 ## 2026-11-06 15:30 EST — Add menu order, and Create New Section
 - **Who:** Jason Tiller.
-- **Decision:** In **Add ▾**, **Prop** moves to the bottom: Set first, then the sections, then Prop. The new-section name and letter boxes stay hidden until you click **Create New Section**, so the menu is shorter.
+- **Decision:** In **Add ▾**, **Prop** moves to the bottom: Set first, then the sections, then Prop. The new-section name and letter boxes stay hidden until you click **Create New Section**, so the menu is shorter. The sections sit in two columns (Jason), so Prop stays in reach with a long list; a long name is cut short with "…" and shows in full when you point at it.

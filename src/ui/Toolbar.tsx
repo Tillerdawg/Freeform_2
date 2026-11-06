@@ -514,10 +514,13 @@ function AddPanel(p: ToolbarProps & { close: () => void }) {
     <p style={help}>With no count, the new set goes right after this one (or where you clicked on the timeline).</p>
     <hr style={{ width: '100%', border: 0, borderTop: '1px solid var(--line)', margin: '8px 0 2px' }} />
     <strong style={{ fontSize: 12, opacity: 0.8 }}>Performers: which section?</strong>
-    {show.sections.map((s) => (
-      <button key={s.id} role="menuitemradio" aria-checked={p.tool === 'add' && p.section === s.id}
-        onClick={() => { p.setSection(s.id); p.setTool('add'); close(); }}>{s.letter} · {s.name}</button>
-    ))}
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4 }}>{/* two columns, so Prop stays in reach under a long list (Jason) */}
+      {show.sections.map((s) => (
+        <button key={s.id} role="menuitemradio" aria-checked={p.tool === 'add' && p.section === s.id} title={`${s.letter} · ${s.name}`}
+          style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'left' }}
+          onClick={() => { p.setSection(s.id); p.setTool('add'); close(); }}>{s.letter} · {s.name}</button>
+      ))}
+    </div>
     <NewSection {...p} close={close} />
     <p style={help}>Then click the field to place each one. Sections are renamed, recolored, and deleted in the sidebar.</p>
     <hr style={{ width: '100%', border: 0, borderTop: '1px solid var(--line)', margin: '8px 0 2px' }} />

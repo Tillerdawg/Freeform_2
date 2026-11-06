@@ -68,7 +68,7 @@ shot('editor', async () => {
 shot('add-performers', async () => {
   const page = await editor();
   await menu(page, 'Add');
-  await save(page, 'add-performers', { x: 0, y: 0, width: 720, height: 740 });
+  await save(page, 'add-performers', { x: 0, y: 0, width: 720, height: 560 });
 });
 shot('select-frame', async () => {
   const page = await editor();
