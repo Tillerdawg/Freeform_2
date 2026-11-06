@@ -35,6 +35,7 @@ export interface ToolbarProps {
   startShape: (k: ShapeKind) => void;
   updateShape: (patch: Partial<Shape>) => void;
   endShape: () => void;
+  openAdd?: number; // bumped by New: open the Add Performer(s) menu
 }
 
 /** Shape, its name, and its one-letter shortcut (pressed with 2 or more performers selected). */
@@ -89,7 +90,7 @@ export function Toolbar(p: ToolbarProps) {
     <div className="toolbar" role="toolbar" aria-label="Performers">
       <div role="radiogroup" aria-label="Performer tool" style={{ display: 'inline-flex', gap: 4 }}>{/* separate buttons, like Delete (Jason) */}
         <button role="radio" aria-checked={p.tool === 'select'} onClick={() => p.setTool('select')} title="Select and move performers (V)" aria-label="Select Performer(s)">Select<span className="tb-long-sm"> Performer(s)</span></button>
-        <Menu label={<>Add<span className="tb-long-sm"> Performer(s)</span>{addLetter}</>} name={`Add Performer(s)${addLetter}`}
+        <Menu label={<>Add<span className="tb-long-sm"> Performer(s)</span>{addLetter}</>} name={`Add Performer(s)${addLetter}`} openNow={p.openAdd}
           pressed={p.tool === 'add'} title="Pick a section, then click the field to place its performers (A)">
           {(close) => <>
             <strong style={{ fontSize: 12, opacity: 0.8 }}>Add which section?</strong>
@@ -211,10 +212,12 @@ export function confirmDelete(show: Show, ids: string[]): boolean {
 }
 
 /** A toolbar button that opens a small panel below it. Closes on a click elsewhere or Esc (unless `keepOpen`). */
-export function Menu({ label, name, title, disabled, keepOpen, pressed, children }: {
+export function Menu({ label, name, title, disabled, keepOpen, pressed, openNow, children }: {
   label: ReactNode; name?: string; title: string; disabled?: string; keepOpen?: boolean; pressed?: boolean; children: (close: () => void) => ReactNode;
+  openNow?: number; // changing it (to more than 0) opens the panel, as if its button were clicked
 }) {
   const [open, setOpen] = useState(false);
+  useEffect(() => { if (openNow) setOpen(true); }, [openNow]);
   const ref = useRef<HTMLDivElement>(null), panel = useRef<HTMLDivElement>(null);
   const shown = !disabled && (open || !!keepOpen);
   // Placed against the window and rendered into <body>: inside the toolbar's sideways-scrolling row, iPad Safari clipped

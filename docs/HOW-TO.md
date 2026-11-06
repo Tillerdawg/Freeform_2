@@ -92,6 +92,8 @@ If your program always uses the same sections, set them up once and choose **Sta
 
 ![The Add Performer(s) menu, picking a section](img/add-performers.png)
 
+**New** drops you here: the field is blank, **Add Performer(s)** is on, and its list of sections is open.
+
 1. Click **Add Performer(s)** and pick a section.
 2. Click the field wherever you want each one. They're numbered in order: P1, P2, P3, and so on.
 3. Press **V** or Esc (or click **Select Performer(s)**) when you're done.

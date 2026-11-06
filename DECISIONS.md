@@ -1174,3 +1174,7 @@ Each entry: timestamp, who decided, context, options considered, decision.
 ## 2026-11-06 14:20 EST — Esc goes back to Select
 - **Who:** Jason Tiller asked for Esc to leave the Text tool; widening it to every tool and the Enter/Esc split are Claude's *(Jason can veto)*.
 - **Decision:** Esc from any tool other than Select (Add Performer(s), Text, Arrow, Draw, clicking path points) goes back to **Select Performer(s)**; on Select it still closes a shape, then clears the selection. In a note's text box, Enter finishes that note and keeps the Text tool (to place another), and Esc finishes it and goes back to Select.
+
+## 2026-11-06 14:30 EST — New starts on Add Performer(s)
+- **Who:** Jason Tiller: a new show is a blank field, so Select Performer(s) makes no sense there.
+- **Decision:** **New** turns on **Add Performer(s)** (with the first section, as before) and opens its section menu, so the next click picks a section or places a performer. Opening a file still lands on Select.

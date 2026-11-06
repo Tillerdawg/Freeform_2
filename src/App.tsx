@@ -653,7 +653,9 @@ export function App() {
     const s = newShow(startingSections());
     setShow(s); setT(0); setSelected(new Set()); setSection(s.sections[0].id);
     firstShow.current = s; backedUp(); // nothing to back up yet
+    setTool('add'); setOpenAdd((n) => n + 1); // a blank field: straight to placing performers (Jason)
   };
+  const [openAdd, setOpenAdd] = useState(0);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -670,7 +672,7 @@ export function App() {
           : coarse() ? 'Two fingers: drag to move around, pinch to zoom' : 'Scroll to pan · pinch or ⌘/Ctrl+scroll to zoom · right-drag pans'}</span>
         <span style={{ flex: 'none' }}><ThemeButton /></span>
       </div>
-      <Toolbar show={show} setShow={setShow} onSet={onSet} selected={selected} setSelected={setSelected} tool={tool} setTool={setTool}
+      <Toolbar openAdd={openAdd} show={show} setShow={setShow} onSet={onSet} selected={selected} setSelected={setSelected} tool={tool} setTool={setTool}
         section={section} setSection={setSection} snap={snap} setSnap={setSnap}
         onUndo={() => step('undo')} onRedo={() => step('redo')} canUndo={!!hist.past.length} canRedo={!!hist.future.length}
         onFit={fit} sidebar={{ open: sideOpen, toggle: () => setSideChoice(!sideOpen) }}
