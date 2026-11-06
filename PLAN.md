@@ -11,7 +11,7 @@
 ## Milestone 1 follow-ups
 - ✅ Undo/redo.
 - ✅ Play a range of sets (IDEA.md: individual set, sub-collection, whole show); a loop toggle.
-- ✅ Drill toolbar under the top bar (dropdown menus for markup, shape, transform, FTL, labels) and app-wide button styling.
+- ✅ Drill toolbar under the top bar (dropdown menus for markup, shape, transform, Path, labels) and app-wide button styling. ✅ One **Add** menu (performers, a prop, a set), one **Delete** for whatever is selected (or the set), and the set's counts and measures on the toolbar.
 - ✅ Timeline: stacked set buttons with lines up to them; zoom (−, +, Fit) and sideways scrolling for long pieces (wheel, swipe, right-drag), following the playhead.
 - ✅ Touch support pass (tablets): two-finger pan and pinch on the field (a second finger takes back what the first started), fingertip hit areas, Add to selection (no Shift key), 44 pt controls with fixed rows sized once per device, sideways-scrolling rows with Undo/Redo/Fit pinned, hold-to-pick-up set buttons on the timeline. Checked in emulated iPads (Playwright, real touch events). ✅ Sidebar show/hide button; on narrow windows it starts hidden and opens over the field. ✅ Timeline show/hide button, so a tablet can give the whole screen to the field. ✅ Real iPad check (Jason, 2026-11-04: looks and feels right; the Apple Pencil works like a finger). ✅ Apple Pencil (Jason's report): once a pen has touched the field, one finger or a resting palm does nothing there, two fingers still pan and zoom, and fingers or a system cancel never take back the Pencil's work. Follow-ups: touch alternatives for Option-drag (move one shape handle) and other modifier-key actions; Jason to recheck the Pencil-then-pinch case on the real iPad.
 

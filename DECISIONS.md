@@ -1191,3 +1191,13 @@ Each entry: timestamp, who decided, context, options considered, decision.
 ## 2026-11-06 15:00 EST — "Select Performer(s)" becomes "Select"
 - **Who:** Jason Tiller.
 - **Decision:** The tool's button and name are just **Select** (it picks markup and props too). Add and Delete keep "Performer(s)".
+
+## 2026-11-06 15:40 EST — One Add menu, one Delete, and the set controls on the toolbar
+- **Who:** Jason Tiller (Add holds performers, props, and sets; Set, Counts, Measures, and at count move to the toolbar's first row; Delete set goes away; a new prop is an 8 by 8 square in the middle). The details below are Claude's *(Jason can veto)*.
+- **Context:** **Add Performer(s)** only added performers and sections, props were added from the sidebar, and sets from **+ Add set** in the top bar. There were two delete buttons (**Delete Performer(s)** and **Delete set**).
+- **Other options:** Keep the separate buttons; put Set and Prop in their own menus; keep Delete set beside Counts.
+- **Decision:**
+  - **Add ▾** lists **Prop**, then **Set** with an **at count** box, then the sections and **New section**. Prop and Set come first because the section list can be long. With no count, Set adds after the set you're on, or at the count you clicked on the timeline.
+  - **Prop** makes an 8 by 8 step square (not round) in the middle of the field, picks it, switches to Select, and opens the sidebar so its size is in reach. The sidebar's **+ Prop** makes the same square.
+  - **Delete** acts on what's selected, in this order: performers (asks first), the picked prop, the picked markup. With nothing selected, it deletes the set you're on after asking, and is grayed out when the show has one set. Its tooltip names what it will delete. The Delete key still never deletes a set, so a stray key press can't lose one.
+  - The top bar keeps the logo, the pan and zoom hint, and the light/dark button.

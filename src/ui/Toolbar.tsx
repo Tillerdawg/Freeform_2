@@ -2,15 +2,16 @@ import { createPortal } from 'react-dom';
 import { IconFit, IconRedo, IconSidebar, IconTimeline, IconUndo } from './icons';
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { addBezierSegment, addCurvePoint, cleanText, coilGap, placeInner, type Shape, type ShapeKind } from '../engine/shapes';
-import { distance } from '../engine/coords';
+import { distance, fieldDepth } from '../engine/coords';
 import {
-  chainOrder, clearFtl, closeCalls, setFtlSmooth, newId, counterMarch, flip, groupTurn, setFtlTurns, setTiming, setTurning, timingOf, label, mirrorSides, placeInSet, removePerformers, rotateScale, setFtl, setLabelSide, snapSelection,
+  addProp, addSetHere, fieldOf, MAX_PROPS, removeProp, removeSet, setMarks, setStarts, chainOrder, clearFtl, closeCalls, setFtlSmooth, newId, counterMarch, flip, groupTurn, setFtlTurns, setTiming, setTurning, timingOf, label, mirrorSides, placeInSet, removePerformers, rotateScale, setFtl, setLabelSide, snapSelection,
   type LabelSide, type Show,
 } from '../engine/show';
 import { curveSides } from '../field/labels';
 import { LabelCompass } from './LabelCompass';
 import type { Snap, Tool } from './Sidebar';
 import { NumberField } from './NumberField';
+import { SetControls } from './Timeline';
 
 export interface ToolbarProps {
   show: Show;
@@ -35,7 +36,14 @@ export interface ToolbarProps {
   startShape: (k: ShapeKind) => void;
   updateShape: (patch: Partial<Shape>) => void;
   endShape: () => void;
-  openAdd?: number; // bumped by New: open the Add Performer(s) menu
+  openAdd?: number; // bumped by New: open the Add menu
+  t: number;
+  setT: (t: number) => void; // jump to a count (and stop playing)
+  selectedProp: string | null;
+  setSelectedProp: (id: string | null) => void;
+  selectedMark: string | null;
+  setSelectedMark: (id: string | null) => void;
+  showSidebar: () => void;
 }
 
 /** Shape, its name, and its one-letter shortcut (pressed with 2 or more performers selected). */
@@ -90,21 +98,14 @@ export function Toolbar(p: ToolbarProps) {
     <div className="toolbar" role="toolbar" aria-label="Performers">
       <div role="radiogroup" aria-label="Performer tool" style={{ display: 'inline-flex', gap: 4 }}>{/* separate buttons, like Delete (Jason) */}
         <button role="radio" aria-checked={p.tool === 'select'} onClick={() => p.setTool('select')} title="Select and move performers, markup, and props (V)">Select</button>
-        <Menu label={<>Add<span className="tb-long-sm"> Performer(s)</span>{addLetter}</>} name={`Add Performer(s)${addLetter}`} openNow={p.openAdd}
-          pressed={p.tool === 'add'} title="Pick a section, then click the field to place its performers (A)">
-          {(close) => <>
-            <strong style={{ fontSize: 12, opacity: 0.8 }}>Add which section?</strong>
-            {show.sections.map((s) => (
-              <button key={s.id} role="menuitemradio" aria-checked={p.tool === 'add' && p.section === s.id}
-                onClick={() => { p.setSection(s.id); p.setTool('add'); close(); }}>{s.letter} · {s.name}</button>
-            ))}
-            <NewSection {...p} close={close} />
-            <p style={help}>Then click the field to place each one. Sections are renamed, recolored, and deleted in the sidebar.</p>
-          </>}
+        <Menu label={<>Add{addLetter}</>} name={`Add${addLetter}`} openNow={p.openAdd}
+          pressed={p.tool === 'add'} title="Add performers (A), a prop, or a set">
+          {(close) => <AddPanel {...p} close={close} />}
         </Menu>
       </div>
-      <button disabled={!ids.length} className="danger" onClick={() => { if (!confirmDelete(show, ids)) return; setShow((s) => removePerformers(s, selected)); p.setSelected(new Set()); }}
-        title="Delete the selected performers from the whole show" aria-label="Delete Performer(s)">Delete<span className="tb-long-sm"> Performer(s)</span></button>
+      <DeleteButton {...p} />
+      <span className="tb-sep" />
+      <SetControls show={show} setShow={setShow} t={p.t} />
 
       {/* Pinned to the right edge: if the row is ever too narrow and scrolls sideways, Undo stays in reach. */}
       <span className="tb-pinned">
@@ -490,4 +491,63 @@ function NewSection({ show, setShow, setSection, setTool, close }: ToolbarProps 
       {taken && <p role="alert" style={{ ...help, color: 'var(--warn)', opacity: 1 }}>Another section already uses "{letter.trim()}": their labels would clash.</p>}
     </>
   );
+}
+
+/** Add ▾: performers (pick a section, or make one), a prop in the middle of the field, or a set. */
+function AddPanel(p: ToolbarProps & { close: () => void }) {
+  const { show, setShow, close } = p;
+  const [at, setCount] = useState<number | null>(null);
+  const props = show.props ?? [];
+  const addSet = () => { const r = addSetHere(show, p.t, at); setShow(() => r.show); p.setT(r.t); setCount(null); close(); };
+  const prop = () => {
+    const r = addProp(show, `Prop ${props.length + 1}`, 8, 8, false, { x: 0, y: fieldDepth(fieldOf(show)) / 2 }); // an 8 by 8 square in the middle (Jason)
+    setShow(() => r.show); p.setSelected(new Set()); p.setSelectedMark(null); p.setSelectedProp(r.id); p.setTool('select'); p.showSidebar(); close();
+  };
+  return <>
+    <button onClick={prop} disabled={props.length >= MAX_PROPS} title="An 8 by 8 step square in the middle of the field: drag it into place, and size it in the sidebar">Prop</button>
+    <div style={row}>
+      <button onClick={addSet} title="A new set after this one, or at the count you type">Set</button>
+      <label>at count <NumberField min={1} integer aria-label="At count" value={at ?? ''} placeholder="next" style={{ width: 56 }}
+        onValue={(n) => setCount(n)} /></label>
+    </div>
+    <p style={help}>With no count, the new set goes right after this one (or where you clicked on the timeline).</p>
+    <hr style={{ width: '100%', border: 0, borderTop: '1px solid var(--line)', margin: '8px 0 2px' }} />
+    <strong style={{ fontSize: 12, opacity: 0.8 }}>Performers: which section?</strong>
+    {show.sections.map((s) => (
+      <button key={s.id} role="menuitemradio" aria-checked={p.tool === 'add' && p.section === s.id}
+        onClick={() => { p.setSection(s.id); p.setTool('add'); close(); }}>{s.letter} · {s.name}</button>
+    ))}
+    <NewSection {...p} close={close} />
+    <p style={help}>Then click the field to place each one. Sections are renamed, recolored, and deleted in the sidebar.</p>
+  </>;
+}
+
+/** One Delete for whatever is selected: performers, a prop, or markup; with nothing selected, the set you're on. */
+function DeleteButton(p: ToolbarProps) {
+  const { show, setShow, selected, onSet } = p;
+  const ids = [...selected];
+  let what: string, run: (() => void) | null;
+  if (ids.length) {
+    what = `the ${ids.length === 1 ? 'selected performer' : `${ids.length} selected performers`} from the whole show`;
+    run = () => { if (!confirmDelete(show, ids)) return; setShow((s) => removePerformers(s, selected)); p.setSelected(new Set()); };
+  } else if (p.selectedProp) {
+    const name = show.props?.find((x) => x.id === p.selectedProp)?.name ?? 'prop';
+    what = `the prop "${name}"`;
+    run = () => { setShow((s) => removeProp(s, p.selectedProp!)); p.setSelectedProp(null); };
+  } else if (p.selectedMark && onSet >= 0) {
+    what = 'the selected markup';
+    run = () => { setShow((s) => setMarks(s, onSet, (ms) => ms.filter((m) => m.id !== p.selectedMark))); p.setSelectedMark(null); };
+  } else if (onSet >= 0 && show.sets.length > 1) {
+    const name = show.sets[onSet].name;
+    what = `set ${name} (nothing is selected)`;
+    run = () => {
+      if (!window.confirm(`Delete set ${name}? Performers will move straight from the set before it to the set after it.`)) return;
+      const starts = setStarts(show);
+      setShow((s) => removeSet(s, onSet)); p.setT(starts[Math.max(0, onSet - 1)]);
+    };
+  } else {
+    what = onSet >= 0 ? 'nothing: a show needs at least one set' : 'nothing (scrub to a set, or select something)';
+    run = null;
+  }
+  return <button disabled={!run} className="danger" onClick={() => run?.()} title={`Delete ${what}`} aria-label="Delete">Delete</button>;
 }

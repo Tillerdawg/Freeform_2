@@ -3,7 +3,7 @@ import { HASHES, readout } from './coords';
 import {
   addPerformer, addSetAfter, advance, biggestStep, chainOrder, clearFtl, ftlTrail, moveSteps, normalizeFtl, flip, mirrorSides, moveSetTo, remapHash, rotateScale, setFtl, snapSelection, playRange, playPlan, label, locate, newShow, parseShow, placeInSet, positionsAt,
   removePerformers, renumberSets, scoreOrder, DEFAULT_SECTIONS, removeSet, setAt, setCounts, setStarts, totalCounts, xFrom, yFrom, insertSetAt, showLength, movementAt, movementOfSet, setFtlTurns,
-  setFtlSmooth, routeTurns, leaderDistance, setTiming, timingOf, fitTurn, setTurning, turnRoute, counterMarch, closeCalls, facingIn, setFacing, facingVector, equipmentIn, setEquipment, addProp, placeProp, propsAt, hitProp, removeProp, fieldOf, moveSegments,
+  addSetHere, setFtlSmooth, routeTurns, leaderDistance, setTiming, timingOf, fitTurn, setTurning, turnRoute, counterMarch, closeCalls, facingIn, setFacing, facingVector, equipmentIn, setEquipment, addProp, placeProp, propsAt, hitProp, removeProp, fieldOf, moveSegments,
 } from './show';
 
 function twoSetShow() {
@@ -780,5 +780,18 @@ describe('a route for one performer', () => {
     expect(Math.max(...steps) - Math.min(...steps)).toBeLessThan(0.15); // even steps along the curve
     expect(parseShow(JSON.stringify(show)).sets[1].ftl![0].smooth).toBe(true);
     expect(positionsAt(setFtlTurns(show, 1, id, []), 8)[id]).toEqual({ x: -8, y: 28 }); // no turns: a straight move again
+  });
+});
+
+describe('adding a set from where you are', () => {
+  it('adds 16 counts after the set you are on, or a set right at a count mid-move or typed', () => {
+    const { show } = twoSetShow(); // sets at counts 0 and 16
+    let r = addSetHere(show, 0);
+    expect([r.show.sets.length, r.t, setStarts(r.show).join()]).toEqual([3, 16, '0,16,32']); // after set 1: the old set 2 moves along
+    r = addSetHere(show, 6);
+    expect([r.t, r.show.sets[1].name, setStarts(r.show).join()]).toEqual([6, '1A', '0,6,16']); // mid-move: a sub-set on count 6
+    r = addSetHere(show, 16, 24);
+    expect([r.t, setStarts(r.show).join()]).toEqual([24, '0,16,24']); // a typed count past the end
+    expect(addSetHere(show, 16, 0).show).toBe(show); // not a count: nothing
   });
 });

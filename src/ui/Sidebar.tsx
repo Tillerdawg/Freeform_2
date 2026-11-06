@@ -536,7 +536,7 @@ function PropsEditor({ show, setShow, onSet, selected, setSelected }: { show: Sh
         );
       })}
       <div style={row}>
-        <button disabled={props.length >= MAX_PROPS} onClick={() => { const r = addProp(show, `Prop ${props.length + 1}`, 8, 4, false, { x: 0, y: fieldDepth(fieldOf(show)) / 2 }); setShow(() => r.show); setSelected(r.id); }}
+        <button disabled={props.length >= MAX_PROPS} onClick={() => { const r = addProp(show, `Prop ${props.length + 1}`, 8, 8, false, { x: 0, y: fieldDepth(fieldOf(show)) / 2 }); setShow(() => r.show); setSelected(r.id); }}
           title="A new prop, 8 steps wide and 4 deep, in the middle">+ Prop</button>
       </div>
     </details>

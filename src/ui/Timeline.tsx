@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { wakeClick } from './click';
 import { peakBetween, timeAt } from '../engine/music';
 import { chrome, useTheme } from './palette';
-import { addSetAfter, biggestStep, closeCalls, insertSetAt, locate, MAX_MOVEMENT, movementAt, movementOfSet, movementStarts, moveSetTo, newId, removeSet, setAt, setCounts, setMeasures, playPlan, setStarts, showLength, totalCounts, type DrillSet, type Show } from '../engine/show';
+import { biggestStep, closeCalls, locate, MAX_MOVEMENT, movementAt, movementOfSet, movementStarts, moveSetTo, newId, setAt, setCounts, setMeasures, playPlan, setStarts, showLength, totalCounts, type DrillSet, type Show } from '../engine/show';
 import { Menu } from './Toolbar';
 import { STEP_TEXT } from '../field/drawField';
 import { fmtStep } from './format';
@@ -252,7 +252,7 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
             );
           })}
           {written < total && (
-            <div title="Not written yet: click a count, then + Add set" style={{ ...box(written, total - written), color: 'var(--text)',
+            <div title="Not written yet: click a count, then Add, Set" style={{ ...box(written, total - written), color: 'var(--text)',
               background: 'repeating-linear-gradient(135deg, var(--bg-deep) 0 6px, var(--bg) 6px 12px)', boxShadow: past ? 'inset 0 -3px 0 var(--gold)' : undefined }}>
               <div style={{ padding: '2px 6px' }}>Not written yet · counts {written + 1}–{total}</div>
             </div>
@@ -298,23 +298,12 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
   );
 }
 
-/** The current set's controls (shown in the top bar). Mid-move, "current" is the set being moved into. */
-export function SetControls({ show, setShow, t, setT }: { show: Show; setShow: (f: (s: Show) => Show) => void; t: number; setT: (t: number) => void }) {
-  const starts = setStarts(show);
+/** The current set's name, counts, and measures (on the toolbar's first row). Mid-move, "current" is the set being moved into. */
+export function SetControls({ show, setShow, t }: { show: Show; setShow: (f: (s: Show) => Show) => void; t: number }) {
   const onSet = setAt(show, t);
   const cur = onSet >= 0 ? onSet : locate(show, t).to;
-  const [at, setAtCount] = useState('');
-  // Count-first: a typed count, or the playhead when it's between sets or past them, gets a set right there (other sets stay put).
-  const target = at.trim() ? Number(at) : onSet < 0 ? Math.round(t) : null;
-  const add = () => {
-    if (target === null) { setShow((s) => addSetAfter(s, cur)); setT(starts[cur] + 16); return; }
-    if (!Number.isFinite(target) || target < 1) return;
-    let landed = 0;
-    setShow((s) => { const r = insertSetAt(s, target); landed = setStarts(r.show)[r.index]; return r.show; });
-    setT(landed || Math.round(target)); setAtCount('');
-  };
   return (
-    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+    <div style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
       <strong>Set {show.sets[cur].name}</strong>
       <label>Counts{' '}
         <NumberField min={1} integer whenDone aria-label="Counts" disabled={cur === 0} title={cur === 0 ? 'The opening set has no move into it' : undefined}
@@ -325,12 +314,6 @@ export function SetControls({ show, setShow, t, setT }: { show: Show; setShow: (
         <input aria-label="Measures" placeholder={cur > 0 ? 'e.g. 9–12' : 'e.g. 1–4'} value={show.sets[cur].measures ?? ''} style={{ width: 64 }}
           onChange={(e) => setShow((s) => setMeasures(s, cur, e.target.value))} />
       </label>
-      <button onClick={add} title={target === null ? 'Add a new set after this one (16 counts; later sets move along). Or type a count to add a set there.' : `Add a set landing on count ${target}; every other set stays where it is`}>+ Add set</button>
-      <label>at count{' '}
-        <input type="number" inputMode="numeric" min={1} aria-label="Add set at count" placeholder={onSet < 0 ? String(Math.round(t)) : ''} value={at} style={{ width: 52 }}
-          onChange={(e) => setAtCount(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') add(); }} />
-      </label>
-      <button disabled={show.sets.length < 2} onClick={() => { setShow((s) => removeSet(s, cur)); setT(starts[Math.max(0, cur - 1)]); }}>Delete set</button>
     </div>
   );
 }
@@ -344,7 +327,7 @@ function Movements({ show, setShow }: { show: Show; setShow: (f: (s: Show) => Sh
   return (
     <Menu label={list.length ? `Movements (${total} cts)` : 'Movements'} title="Set the show's length in counts up front, one movement per tune">
       {() => <>
-        <p style={{ margin: 0, fontSize: 12, maxWidth: 300, whiteSpace: 'normal' }}>Type each tune's total counts. The timeline runs to the total, so you can add sets at any count, in any order (+ Add set, at count).</p>
+        <p style={{ margin: 0, fontSize: 12, maxWidth: 300, whiteSpace: 'normal' }}>Type each tune's total counts. The timeline runs to the total, so you can add sets at any count, in any order (Add, then Set, at count).</p>
         {list.map((m, i) => (
           <div key={m.id} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
             <input aria-label={`Movement ${i + 1} name`} value={m.name} maxLength={100} style={{ width: 120 }}

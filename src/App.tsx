@@ -13,7 +13,7 @@ import { coarse } from './perform/device';
 import { HANDLE_PX, drawField, drawMarks, drawPerformers, drawProps, drawShape, fitView, toScreen, toWorld, type Path, type View } from './field/drawField';
 import { frameDrag, selectionFrame } from './field/frame';
 import { Sidebar, type Snap, type Tool } from './ui/Sidebar';
-import { SetControls, Timeline } from './ui/Timeline';
+import { Timeline } from './ui/Timeline';
 import { startingSections } from './ui/startingSections';
 import { MusicMenu } from './ui/Music';
 import { getAudio } from './ui/audioStore';
@@ -662,19 +662,19 @@ export function App() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Fixed height, no wrapping: nothing up here may resize the field (a canvas resize clears it, which flashes). */}
-      {/* Equal-flex sides center the set controls when there's room; when there isn't, the hint gives up space first. */}
+      {/* The logo, a hint, and the theme button; the hint gives up space first. */}
       <div style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '0 12px', height: coarse() ? 56 : 40, flexShrink: 0, whiteSpace: 'nowrap', overflowX: 'auto', overflowY: 'hidden', scrollbarWidth: 'none' }}>
-        {/* The small logo; just the curve when the window is narrow, so it never crowds the set controls. */}
+        {/* The small logo; just the curve when the window is narrow. */}
         <span className="tb-long-sm" style={{ flex: '1 1 0', minWidth: 0, display: 'flex' }}>
           <picture><source media="(max-width: 1000px)" srcSet={theme === 'light' ? './mark-light.svg' : './mark.svg'} />
             <img src={theme === 'light' ? './logo-small-light.svg' : './logo-small.svg'} alt="FreeFORM" style={{ height: coarse() ? 30 : 24, display: 'block' }} /></picture>
         </span>
-        <div style={{ flex: 'none' }}><SetControls show={show} setShow={setShow} t={t} setT={(x) => { setPlaying(false); setT(x); }} /></div>
         <span style={{ flex: '1 1 0', fontSize: 12, opacity: tool === 'turn' ? 1 : 0.7, color: tool === 'turn' ? 'var(--gold)' : undefined, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'right' }}>{tool === 'turn' ? (coarse() ? "Tap the field for each of the leader's turns, in marching order · then tap Select" : "Click the field for each of the leader's turns, in marching order · Esc when done")
           : coarse() ? 'Two fingers: drag to move around, pinch to zoom' : 'Scroll to pan · pinch or ⌘/Ctrl+scroll to zoom · right-drag pans'}</span>
         <span style={{ flex: 'none' }}><ThemeButton /></span>
       </div>
-      <Toolbar openAdd={openAdd} show={show} setShow={setShow} onSet={onSet} selected={selected} setSelected={setSelected} tool={tool} setTool={setTool}
+      <Toolbar openAdd={openAdd} t={t} setT={(x) => { setPlaying(false); setT(x); }} selectedProp={selectedProp} setSelectedProp={setSelectedProp}
+        selectedMark={selectedMark} setSelectedMark={setSelectedMark} showSidebar={() => setSideChoice(true)} show={show} setShow={setShow} onSet={onSet} selected={selected} setSelected={setSelected} tool={tool} setTool={setTool}
         section={section} setSection={setSection} snap={snap} setSnap={setSnap}
         onUndo={() => step('undo')} onRedo={() => step('redo')} canUndo={!!hist.past.length} canRedo={!!hist.future.length}
         onFit={fit} sidebar={{ open: sideOpen, toggle: () => setSideChoice(!sideOpen) }}

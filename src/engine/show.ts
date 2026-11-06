@@ -397,6 +397,19 @@ export function insertSetAt(show: Show, at: number): { show: Show; index: number
   return { show: renumberSets({ ...show, sets }), index: i }; // a sub-set before an existing 4A becomes 4A, the old one 4B
 }
 
+/**
+ * Add a set from where you are at count `t`: on a set, a new one 16 counts after it (later sets move along); mid-move or
+ * past the last set, or at a typed count `at`, one landing right on that count (every other set stays put). Returns the
+ * show and the count the new set is on.
+ */
+export function addSetHere(show: Show, t: number, at: number | null = null): { show: Show; t: number } {
+  const onSet = setAt(show, t), target = at ?? (onSet < 0 ? Math.round(t) : null);
+  if (target === null) { const next = addSetAfter(show, onSet); return { show: next, t: setStarts(next)[onSet + 1] }; }
+  if (!Number.isFinite(target) || target < 1) return { show, t };
+  const r = insertSetAt(show, target);
+  return { show: r.show, t: setStarts(r.show)[r.index] };
+}
+
 /** Where time `t` falls: the set being moved into (`to`) and the fraction of that move. f = 1 means "on set `to`". */
 export function locate(show: Show, t: number): { to: number; f: number; count: number } {
   const starts = setStarts(show);
