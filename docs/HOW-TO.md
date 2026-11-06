@@ -16,7 +16,7 @@ The pictures in this guide come from a small sample show (47 performers, 4 sets)
 6. [Sets, counts, and the timeline](#sets-counts-and-the-timeline)
 7. [Shapes: lines, arcs, curves, circles, polygons, stars, spirals, blocks, and letters](#shapes-lines-arcs-curves-circles-polygons-stars-spirals-blocks-and-letters)
 8. [Rotate, stretch, and flip](#rotate-stretch-and-flip)
-9. [Follow-the-leader](#follow-the-leader)
+9. [Paths: straight, follow the leader, and custom](#paths-straight-follow-the-leader-and-custom)
 10. [Step-offs and turning moves](#step-offs-and-turning-moves)
 11. [Facing and equipment](#facing-and-equipment)
 12. [Props](#props)
@@ -48,7 +48,7 @@ One thing to know up front: **your show is saved in the browser you're using.** 
 From top to bottom:
 
 - **The top bar** shows the set you're on, with its counts and measures, **+ Add set**, and **Delete set**. The sun/moon button at the far right switches between dark mode (the default) and light mode. The field looks the same either way.
-- **The drill toolbar** has two rows. The first row picks what a click on the field does: **Select Performer(s)** or **Add Performer(s)**. It also has **Delete Performer(s)**, and at the right end Undo, Redo, Fit (zooms back out to the whole field), the timeline button, and the sidebar button. The second row has the tools for placing and moving performers: **Snap to grid**, **Markup**, **Shape**, **Transform**, **FTL**, **Labels**, and **Reset to set**.
+- **The drill toolbar** has two rows. The first row picks what a click on the field does: **Select Performer(s)** or **Add Performer(s)**. It also has **Delete Performer(s)**, and at the right end Undo, Redo, Fit (zooms back out to the whole field), the timeline button, and the sidebar button. The second row has the tools for placing and moving performers: **Snap to grid**, **Markup**, **Shape**, **Transform**, **Path**, **Move**, **Labels**, and **Reset to set**.
 - **The field** is in the middle. You're looking at it from the press box: the front sideline is at the bottom and Side 1 is on the left. Scroll to move around, and pinch (or hold ⌘ or Ctrl and scroll) to zoom.
 - **The timeline** runs across the bottom. Each set has a numbered button, and each move between sets shows its counts, measures, and biggest step size.
 - **The sidebar** on the right holds the show's file buttons, title, and hash marks; the current set's notes; whatever you have selected; and the **Sections** and **Roster** lists. The sidebar button (at the right end of the toolbar) shows and hides it.
@@ -213,26 +213,32 @@ The **Transform** menu has the rest:
 
 Rotating or stretching usually leaves performers between grid steps. Use **Snap to grid → Apply** if you want them back on whole or half steps.
 
-## Follow-the-leader
+## Paths: straight, follow the leader, and custom
 
-In a follow-the-leader (FTL) move, the performers march the leader's path in order, instead of each going straight to their spot.
+**Path** (in the toolbar) sets how the selected performers get to their spots in the move into the set you're on. It has three choices:
 
-![The FTL menu for the guard's move into set 3, with the leader's turn](img/ftl.png)
+- **Straight**, the default: each performer goes straight to their spot.
+- **Follow the leader** (2 or more performers): the others march the leader's path in order.
+- **Custom** (one performer): they march through points you click on the field.
+
+![The Path menu for the guard's follow-the-leader move into set 3, with the leader's turn](img/ftl.png)
+
+**Follow the leader:**
 
 1. Go to the set the move ends on, and select the group.
-2. Open **FTL**, pick the **Leader**, and put the others in order with the arrows.
+2. Open **Path**, click **Follow the leader**, pick the **Leader**, and put the others in order with the arrows.
 3. Drag the leader to their end spot. Everyone else follows the trail.
 4. For a route with corners, click **Add turns**, then click each turn on the field in marching order. Press Esc when you're done.
 
-With the group selected, each turn has a blue handle you can drag. **Remove last turn** and **Straight route** take turns back out, and **Float instead** turns FTL off for that group. Turns move with the group when you drag, flip, rotate, or stretch it, and **Copy Side 1 → 2** copies an FTL group to the other side.
+With the group selected, each turn has a blue handle you can drag. **Remove last turn** and **Straight route** take turns back out, and **Straight** at the top of **Path** turns follow the leader off for that group. Turns move with the group when you drag, flip, rotate, or stretch it, and **Copy Side 1 → 2** copies an FTL group to the other side.
 
 Everyone in an FTL move covers the leader's whole route at one steady step size, so a turn never makes anybody take a giant step.
 
 **Smooth.** Once a route has turns, check **Smooth** to round the corners into a curve that passes through every turn. Everyone still marches it at one steady step size.
 
-**A route for one performer.** A soloist or drum major who loops around a form can have a route of their own. Select just that performer, open **FTL**, and click **Give a route**. Then click the field at each point they march through, in order, and press Esc. **Smooth** makes it a curve, you can drag the points to move them, and **Straight move instead** goes back to a straight line.
+**Custom.** A soloist or drum major who loops around a form can have a path of their own. Select just that performer, open **Path**, and click **Custom**. Then click the field at each point they march through, in order, and press Esc. **Smooth** makes it a curve, you can drag the points to move them, and **Straight** goes back to a straight line.
 
-![One trumpet's own smooth route into set 2](img/route.png)
+![One trumpet's custom, smooth path into set 2](img/route.png)
 
 **Counter-march.** Make an FTL group from a file, with the leader at the front of the file. Then click **Turn left** or **Turn right** next to **Counter-march**. The leader turns into the next lane, one step over, and marches back past the file. Everyone follows, so the file ends up reversed, one step beside where it started. Check the step size, since the leader marches the whole length of the file.
 

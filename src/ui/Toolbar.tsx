@@ -169,8 +169,8 @@ export function Toolbar(p: ToolbarProps) {
           {note && <p role="alert" style={{ ...help, color: 'var(--danger)', opacity: 1 }}>{note}</p>}
         </>}
       </Menu>
-      <Menu label="FTL" disabled={needs(any && onSet > 0, onSet === 0 ? 'Set 1 has no move into it' : pick)}
-        title="Follow the leader: followers trace the leader's path in the move into this set. For one performer, a route of their own.">
+      <Menu label="Path" disabled={needs(any && onSet > 0, onSet === 0 ? 'Set 1 has no move into it' : pick)}
+        title="How the selected performers get to their spots in this set: straight, follow the leader, or a custom path">
         {(close) => <FtlPanel {...p} ids={ids} close={close} />}
       </Menu>
       <Menu label="Move" disabled={needs(onSet > 0, onSet === 0 ? 'Set 1 has no move into it' : 'Scrub to a set first')}
@@ -325,6 +325,7 @@ function FtlPanel({ show, setShow, onSet, ids, setTool, close }: ToolbarProps & 
   const name = (id: string) => label(show, show.performers.find((x) => x.id === id)!);
   const byLabel = [...ids].sort((a, b) => name(a).localeCompare(name(b), undefined, { numeric: true }));
   const inOther = ids.some((id) => groups.some((g) => g !== current && g.order.includes(id)));
+  const kind = current ? (current.order.length > 1 ? 'ftl' : 'custom') : inOther ? 'mixed' : 'straight';
   const make = (leader: string) => setShow((s) => setFtl(s, onSet, chainOrder(s, onSet, leader, ids)));
   const [cmNote, setCmNote] = useState('');
   const cm = (order: string[], side: 'left' | 'right') => {
@@ -340,21 +341,17 @@ function FtlPanel({ show, setShow, onSet, ids, setTool, close }: ToolbarProps & 
   return (
     <>
       <strong style={{ fontSize: 13 }}>Move into set {show.sets[onSet].name}</strong>
-      {!current && ids.length === 1 ? (
-        <>
-          <div style={row}>
-            <button className="primary" onClick={() => { make(ids[0]); setTool('turn'); close(); }}>Give a route</button>
-          </div>
-          <p style={help}>A route of {name(ids[0])}'s own, instead of a straight line: click the field at each point they march through, in order (Esc when done). One steady step size the whole way.</p>
-        </>
-      ) : !current ? (
-        <>
-          <div style={row}>
-            <button className="primary" onClick={() => make(byLabel[0])}>Make FTL</button>
-            <span style={{ opacity: 0.75, fontSize: 12 }}>Leader: {name(byLabel[0])}; you can change it after.</span>
-          </div>
-          {inOther && <p style={{ ...help, color: 'var(--warn)', opacity: 1 }}>Some of these are in another FTL group; they'll move to this one.</p>}
-        </>
+      {/* The selection's path: Straight (the default), Follow the leader (2 or more), or Custom (one performer's own points). */}
+      <div style={{ ...row, marginTop: 4 }} role="radiogroup" aria-label="Path">
+        <button role="radio" aria-checked={kind === 'straight'} onClick={() => setShow((s) => clearFtl(s, onSet, ids))} title="Each goes straight to their spot">Straight</button>
+        <button role="radio" aria-checked={kind === 'ftl'} disabled={ids.length < 2} onClick={() => { if (kind !== 'ftl') make(byLabel[0]); }}
+          title={ids.length < 2 ? 'Follow the leader (select 2 or more performers)' : 'The others march the leader\'s path, in order'}>Follow the leader</button>
+        <button role="radio" aria-checked={kind === 'custom'} disabled={ids.length !== 1} onClick={() => { if (kind !== 'custom') { make(ids[0]); setTool('turn'); close(); } }}
+          title={ids.length !== 1 ? 'A custom path (select one performer)' : 'Click the points they march through'}>Custom</button>
+      </div>
+      {!current ? (
+        <p style={help}>{kind === 'mixed' ? 'Some of these are on a follow-the-leader or custom path. Straight puts them all back on straight lines.' : 'Each goes straight to their spot. Follow the leader: the others march the leader\'s path. Custom: click the points one performer marches through.'}
+          {inOther && kind === 'mixed' && ' Follow the leader moves them all into one new group.'}</p>
       ) : (
         <>
           {current.order.length > 1 && <div style={row}>
@@ -363,7 +360,6 @@ function FtlPanel({ show, setShow, onSet, ids, setTool, close }: ToolbarProps & 
                 {byLabel.map((id) => <option key={id} value={id}>{name(id)}</option>)}
               </select>
             </label>
-            <button onClick={() => setShow((s) => clearFtl(s, onSet, ids))} title="Back to a normal straight-line move">Float instead</button>
           </div>}
           {current.order.length > 1 && <ol aria-label="FTL order" style={{ margin: '6px 0 0', paddingLeft: 22, maxHeight: 220, overflowY: 'auto' }}>
             {current.order.map((id, k) => (
@@ -390,7 +386,6 @@ function FtlPanel({ show, setShow, onSet, ids, setTool, close }: ToolbarProps & 
             <label title="Round the corners: a curve that passes through every turn"><input type="checkbox" checked={!!current.smooth}
               onChange={(e) => setShow((s) => setFtlSmooth(s, onSet, current.order[0], e.target.checked))} /> Smooth (a curve through the {current.order.length > 1 ? 'turns' : 'points'})</label>
           </div>}
-          {current.order.length === 1 && <div style={row}><button onClick={() => setShow((s) => clearFtl(s, onSet, ids))} title="Back to a straight move">Straight move instead</button></div>}
           {current.order.length > 1 && <div style={row}>
             <span>Counter-march</span>
             <button onClick={() => cm(current.order, 'left')} title="The leader turns left into the next lane and marches back past the file">Turn left</button>
@@ -399,7 +394,7 @@ function FtlPanel({ show, setShow, onSet, ids, setTool, close }: ToolbarProps & 
           {cmNote && <p role="alert" style={{ ...help, color: 'var(--danger)', opacity: 1 }}>{cmNote}</p>}
           <p style={help}>{current.order.length > 1
             ? 'Move the leader to its end spot; the others follow its trail. For a route with corners, Add turns and click each turn on the field. Picking a new leader re-chains the order from it and starts a straight route.'
-            : 'Drag the performer to their end spot. Add points and click the field at each point they march through; drag a point to move it. Smooth makes a curve through them.'}</p>
+            : 'Drag the performer to their end spot. Add points and click the field at each point they march through; drag a point to move it. Smooth makes a curve through them. Straight goes back to a straight line.'}</p>
         </>
       )}
     </>
@@ -439,7 +434,7 @@ function MovePanel({ show, setShow, onSet, ids, setSelected }: ToolbarProps & { 
         </div>}
         {ids.length > 1 && <>
           <strong style={{ fontSize: 12, opacity: 0.8, marginTop: 6 }}>Route</strong>
-          {inFtl ? <p style={{ ...help, marginTop: 0 }}>Some of these are in an FTL group, which keeps its own route.</p>
+          {inFtl ? <p style={{ ...help, marginTop: 0 }}>Some of these are on a follow-the-leader or custom path (see Path), which keeps its own route.</p>
             : group ? <div style={{ ...row, marginTop: 0 }}>
               <span>Turning {fit ? `${Math.round(Math.abs(fit.angle) * 180 / Math.PI)}° ${fit.angle > 0 ? 'counterclockwise' : 'clockwise'}` : '(they no longer turn)'}</span>
               <button onClick={() => setShow((s) => setTurning(s, onSet, ids, false))}>Straight instead</button>

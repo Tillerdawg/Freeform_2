@@ -118,7 +118,7 @@ shot('ftl', async () => {
   const page = await editor();
   await goSet(page, 3);
   await box(page, { x: -24, y: 26 }, { x: 36, y: 6 });
-  await menu(page, 'FTL');
+  await menu(page, 'Path');
   await save(page, 'ftl', { x: 360, y: 110, width: 720, height: 600 });
 });
 shot('move', async () => {
@@ -198,17 +198,17 @@ shot('court', async () => {
   await save(page, 'court', { x: 0, y: 125, width: W, height: 640 });
 });
 shot('route', async () => {
-  // One trumpet's own smooth route into set 2, out around the front of the block (FTL, Give a route, two points, Smooth).
+  // One trumpet's custom, smooth path into set 2, out around the front of the block (Path, Custom, two points, Smooth).
   const page = await editor();
   await goSet(page, 2);
   const s = await page.evaluate(() => { const sh = JSON.parse(localStorage.getItem('freeform:autosave')); const t = sh.sections.find((x) => x.letter === 'P').id; const id = sh.performers.find((p) => p.section === t && p.number === 1).id; return sh.sets[1].pos[id]; });
   const at = await spot(page, s);
   await page.mouse.click(at.x, at.y);
-  await menu(page, 'FTL');
-  await page.getByRole('button', { name: 'Give a route' }).click();
+  await menu(page, 'Path');
+  await page.getByRole('radio', { name: 'Custom' }).click();
   for (const q of [{ x: s.x - 5, y: s.y - 5 }, { x: s.x + 3, y: s.y - 7 }]) { const c = await spot(page, q); await page.mouse.click(c.x, c.y); }
   await page.keyboard.press('Escape');
-  await menu(page, 'FTL');
+  await menu(page, 'Path');
   await page.getByLabel(/Smooth/).check();
   await page.waitForTimeout(300);
   await save(page, 'route', { x: 120, y: 60, width: 1000, height: 640 });

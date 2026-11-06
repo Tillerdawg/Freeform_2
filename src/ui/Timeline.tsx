@@ -243,7 +243,7 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
             return (
               <div key={s.id} style={{ ...box(starts[i - 1], s.counts), background: i === to && onSet < 0 && !past ? 'var(--surface-2)' : 'var(--surface)', boxShadow: i === to && onSet < 0 && !past ? 'inset 0 -3px 0 var(--gold)' : undefined }}>
                 <div style={{ padding: '2px 6px' }}>
-                  <div>{show.sets[i - 1].name} → {s.name} · {s.counts} cts{s.measures ? ` · m. ${s.measures}` : ''}{s.ftl?.length ? ' · FTL' : ''}
+                  <div>{show.sets[i - 1].name} → {s.name} · {s.counts} cts{s.measures ? ` · m. ${s.measures}` : ''}{s.ftl?.some((g) => g.order.length > 1) ? ' · FTL' : s.ftl?.length ? ' · custom path' : ''}
                     {big && short && <span style={{ color: STEP_TEXT[big.tier] }}> · max {fmtStep(big.per5)}</span>}
                     {!!close[i] && short && <span style={{ color: STEP_TEXT.red }} title="Performers who come within a step of each other: see Move"> · {close[i]} too close</span>}</div>
                   {big && !short && <div style={{ color: STEP_TEXT[big.tier] }}>max {fmtStep(big.per5)}{!!close[i] && <span style={{ color: STEP_TEXT.red }} title="Performers who come within a step of each other: see Move"> · {close[i]} too close</span>}</div>}
