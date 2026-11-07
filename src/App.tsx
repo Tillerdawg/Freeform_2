@@ -18,7 +18,7 @@ import { startingSections } from './ui/startingSections';
 import { MusicMenu } from './ui/Music';
 import { getAudio } from './ui/audioStore';
 import { peaks } from './engine/music';
-import { confirmDelete, SHAPES, Toolbar } from './ui/Toolbar';
+import { confirmDelete, Menu, SHAPES, Toolbar } from './ui/Toolbar';
 import { parse3dj } from './engine/pyware';
 import { usePlayback } from './ui/usePlayback';
 import { clickWanted, setClickWanted, wakeClick } from './ui/click';
@@ -29,6 +29,7 @@ import { ThemeButton } from './ui/ThemeButton';
 import { RosterImport } from './ui/RosterImport';
 
 export const AUTOSAVE = 'freeform:autosave';
+const GUIDE = 'https://github.com/Tillerdawg/Freeform_2/blob/main/docs/HOW-TO.md';
 const UNEXPORTED = 'freeform:unexported-since', SNOOZE = 'freeform:backup-later', DAY = 86_400_000, BACKUP_DAYS = 7;
 const readTime = (k: string) => { try { const n = Number(localStorage.getItem(k)); return n > 0 ? n : null; } catch { return null; } };
 const writeTime = (k: string, n: number | null) => { try { if (n) localStorage.setItem(k, String(n)); else localStorage.removeItem(k); } catch { /* storage blocked */ } };
@@ -731,6 +732,14 @@ export function App() {
         </span>
         <span style={{ flex: '1 1 0', fontSize: 12, opacity: tool === 'turn' ? 1 : 0.7, color: tool === 'turn' ? 'var(--gold)' : undefined, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'right' }}>{tool === 'turn' ? (coarse() ? "Tap the field for each of the leader's turns, in marching order · then tap Select" : "Click the field for each of the leader's turns, in marching order · Esc when done")
           : coarse() ? 'Two fingers: drag to move around, pinch to zoom' : 'Scroll to pan · pinch or ⌘/Ctrl+scroll to zoom · right-drag pans'}</span>
+        <span style={{ flex: 'none' }}>
+          <Menu label="Help" title="The how-to guide, and a sample show to look around in">{(close) => (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'stretch' }}>
+              <button onClick={() => { close(); window.open(GUIDE, '_blank', 'noopener'); }} title="The step-by-step guide, with pictures (opens in a new tab)">How-to guide</button>
+              <button onClick={() => { close(); trySample(); }} title="Open the 47-performer sample show (offers to save your show to a file first if it has changes you haven't saved)">Try the sample show</button>
+            </div>
+          )}</Menu>
+        </span>
         <span style={{ flex: 'none' }}><ThemeButton /></span>
       </div>
       <Toolbar openAdd={openAdd} t={t} setT={(x) => { setPlaying(false); setT(x); }} selectedProp={selectedProp} setSelectedProp={setSelectedProp}
@@ -808,7 +817,7 @@ export function App() {
         show={show} setShow={setShow} t={t} setT={(x) => { setPlaying(false); setT(x); }} onSet={onSet}
         selected={selected} setSelected={setSelected} tool={tool} setTool={setTool}
         section={section} setSection={setSection} snap={snap} setSnap={setSnap} starts={starts}
-        onNew={fresh} onOpen={() => guard('Importing another show', () => fileRef.current?.click())} onSample={trySample} onSave={save} onSaveAs={saveAs} onPrint={() => setPrinting(true)} onShare={() => setSharing(true)} fileError={fileError}
+        onNew={fresh} onOpen={() => guard('Importing another show', () => fileRef.current?.click())} onSave={save} onSaveAs={saveAs} onPrint={() => setPrinting(true)} onShare={() => setSharing(true)} fileError={fileError}
         selectedMark={selectedMark} setSelectedMark={setSelectedMark} adding={adding} setAdding={setAdding}
         look={look} setLook={setLook}
         clip={clip ? Object.keys(clip).length : 0} onCopy={copySpots} onPaste={pasteSpots} selectedProp={selectedProp} setSelectedProp={setSelectedProp} onTrace={() => setTraceTick((n) => n + 1)}

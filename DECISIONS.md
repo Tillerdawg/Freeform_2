@@ -1247,3 +1247,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Context:** Facing (eight directions) and Carries (flag, rifle, saber) were per-performer settings with their own sidebar boxes, a pointer on the field and the phone, and automatic notes on dot sheets and the phone.
 - **Other options:** Hide the boxes but keep drawing facings already set; drop older files' facings and equipment without a trace.
 - **Decision:** All of it is gone: the **Facing** and **Carries** boxes, the pointer on selected performers and on a phone's own mark, the phone's "facing Side 2" / "pick up rifle", and the automatic "Face Side 2" / "Flag" on dot sheets. A file that has them still opens: each one becomes a performer note on the same set ("Face Side 2 · Flag · <the note that was there>"), so dot sheets and phones still say it. The sample show's guard gets the same two notes ("Flag" in set 1, "Face Side 2" in set 2).
+
+## 2026-11-07 17:05 EST — A Help menu in the top bar
+- **Who:** Jason Tiller (move **Sample** out of the sidebar's file buttons; a Help menu). What's in it is Claude's *(Jason can veto)*.
+- **Context:** **Sample** sat with **New**, **Import…**, **Save**, **Save As…**, **Print…**, and **Share…**, which are all about files. The editor also had no link to the how-to guide.
+- **Other options:** Drop **Sample** and keep only the blank field's **Try the sample show** (then a show already open would need **New** first).
+- **Decision:** **Help**, next to the sun/moon button, opens **How-to guide** (the guide on GitHub, in a new tab) and **Try the sample show** (same as before: it offers to save first). The blank field keeps its own **Try the sample show**.

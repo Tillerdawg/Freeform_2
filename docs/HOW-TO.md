@@ -46,7 +46,7 @@ One thing to know up front: **your show is saved in the browser you're using.** 
 
 From top to bottom:
 
-- **The top bar** has the logo, a reminder of how to move around the field, and at the far right the sun/moon button, which switches between dark mode (the default) and light mode. The field looks the same either way.
+- **The top bar** has the logo, a reminder of how to move around the field, **Help** (the **How-to guide**, which opens this guide in a new tab, and **Try the sample show**), and at the far right the sun/moon button, which switches between dark mode (the default) and light mode. The field looks the same either way.
 - **The drill toolbar** has two rows. The first row has **Select**, **Add** (performers, a set, or a prop), and **Delete**, then the set you're on with its **Counts** and **Measures**. At the right end are Undo, Redo, Fit (zooms back out to the whole field), the timeline button, and the sidebar button. The second row has the tools for placing and moving performers: **Snap to grid**, **Markup**, **Shape**, **Transform**, **Path**, **Move**, **Labels**, and **Reset to set**.
 - **The field** is in the middle. You're looking at it from the press box: the front sideline is at the bottom and Side 1 is on the left. Scroll to move around, and pinch (or hold ⌘ or Ctrl and scroll) to zoom.
 - **The timeline** runs across the bottom. Each set has a numbered button, and each move between sets shows its counts, measures, and biggest step size.
@@ -56,7 +56,7 @@ From top to bottom:
 
 Click **New** in the sidebar to start a show. (If you already have one open, FreeFORM asks first, and Undo brings it back. If it has changes you haven't saved to a file, FreeFORM offers to save it first: see [Saving, backing up, and opening files](#saving-backing-up-and-opening-files).)
 
-When the field has no performers, a note over it offers three ways to begin: **Place performers** opens the **Add** menu so you can pick a section and start clicking, **Import a roster…** brings in a list from Excel (see **Names** under [Add performers](#add-performers)), and **Try the sample show** opens a finished 47-performer show to look around in first. **Sample** in the sidebar opens the same show any time.
+When the field has no performers, a note over it offers three ways to begin: **Place performers** opens the **Add** menu so you can pick a section and start clicking, **Import a roster…** brings in a list from Excel (see **Names** under [Add performers](#add-performers)), and **Try the sample show** opens a finished 47-performer show to look around in first. **Help** (in the top bar), then **Try the sample show**, opens the same show any time.
 
 ![The note on a blank field](img/start.png)
 
@@ -450,7 +450,7 @@ With a keyboard attached, the [keyboard shortcuts](#keyboard-shortcuts) work too
   **⌘S** (Ctrl+S on Windows) is the same as **Save**, even while you're typing in a box. FreeFORM forgets the file when you open or start another show, or close the page; the next Save asks again.
 
   If a show has changes you haven't saved to a file for a week, a note over the field reminds you, with a **Save** button. **Later** asks again tomorrow.
-- **One show at a time.** The browser keeps one show. Before **Import…**, **New**, or **Sample** replaces a show with changes you haven't saved to a file, a note asks first: **Save, then continue**, **Continue without saving**, or **Cancel**. If you cancel the Save dialog, nothing is replaced. Undo brings the old show back until you close the page; after that, only a saved file does.
+- **One show at a time.** The browser keeps one show. Before **Import…**, **New**, or **Try the sample show** replaces a show with changes you haven't saved to a file, a note asks first: **Save, then continue**, **Continue without saving**, or **Cancel**. If you cancel the Save dialog, nothing is replaced. Undo brings the old show back until you close the page; after that, only a saved file does.
 - **If the autosave fails.** If the browser refuses to save (its storage is full, or it's a private window), a note over the field says so, with **Save now**. Until it's fixed, your work is only in that open tab and any file you save.
 - **Import…** opens a `.freeform` file (older `.freeform.json` files too). It replaces the current show, and Undo brings the old one back. A file from before November 7, 2026 with facings or guard equipment set opens with them as performer notes on the same set ("Face Side 2," "Flag").
 - **Pyware 3D files (`.3dj`)**: Import… also opens these. You get the sets with their counts and names, measures and notes, sections from Pyware's symbols, label positions, and the roster names. Moves that aren't straight in Pyware (follow-the-leader, rotations, delayed step-offs) come in count by count, with even steps. Drawn markup and the 3D figures don't come over.
