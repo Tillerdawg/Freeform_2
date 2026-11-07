@@ -1252,4 +1252,11 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Who:** Jason Tiller (move **Sample** out of the sidebar's file buttons; a Help menu). What's in it is Claude's *(Jason can veto)*.
 - **Context:** **Sample** sat with **New**, **Import…**, **Save**, **Save As…**, **Print…**, and **Share…**, which are all about files. The editor also had no link to the how-to guide.
 - **Other options:** Drop **Sample** and keep only the blank field's **Try the sample show** (then a show already open would need **New** first).
-- **Decision:** **Help**, next to the sun/moon button, opens **How-to guide** (the guide on GitHub, in a new tab) and **Try the sample show** (same as before: it offers to save first). The blank field keeps its own **Try the sample show**.
+- **Decision:** **Help**, next to the sun/moon button, opens **How-to guide** (in a new tab) and **Try the sample show** (same as before: it offers to save first). The blank field keeps its own **Try the sample show**.
+
+## 2026-11-07 17:20 EST — The how-to guide on freeformdrill.org
+- **Who:** Jason Tiller (keep people on freeformdrill.org; worried two copies would drift). How it's built is Claude's *(Jason can veto)*.
+- **Context:** **Help**, then **How-to guide**, opened the guide on GitHub.
+- **Other options:** A second, hand-kept copy on the site (it would drift); showing the guide inside the app (more code, and it would need its own way to show pictures).
+- **Decision:** `docs/HOW-TO.md` stays the only copy. Every build turns it into `guide/index.html` with its pictures beside it (`src/guide/page.ts`, run from `vite.config.ts`), in the app's colors and light or dark mode, with a link back to the app. **Help** opens it, and the README points there. Anchors match GitHub's, and a test checks every contents link has its heading. `marked` (a Markdown reader) is a build-only dependency: nothing new ships to users. The guide is online only (the offline cache keeps the app, not the guide), and `npm run dev` doesn't serve it.
+- Also fixed: the sample show was split into its own file on 2026-11-06, which the offline cache doesn't keep (it saves only the files the page links); it's back in the main file.

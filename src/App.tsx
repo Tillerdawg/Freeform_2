@@ -27,9 +27,10 @@ import { ShareDialog } from './perform/ShareDialog';
 import { PALETTE, useTheme } from './ui/palette';
 import { ThemeButton } from './ui/ThemeButton';
 import { RosterImport } from './ui/RosterImport';
+import { sampleShow } from './engine/sample';
 
 export const AUTOSAVE = 'freeform:autosave';
-const GUIDE = 'https://github.com/Tillerdawg/Freeform_2/blob/main/docs/HOW-TO.md';
+const GUIDE = './guide/'; // made from docs/HOW-TO.md when the site is built
 const UNEXPORTED = 'freeform:unexported-since', SNOOZE = 'freeform:backup-later', DAY = 86_400_000, BACKUP_DAYS = 7;
 const readTime = (k: string) => { try { const n = Number(localStorage.getItem(k)); return n > 0 ? n : null; } catch { return null; } };
 const writeTime = (k: string, n: number | null) => { try { if (n) localStorage.setItem(k, String(n)); else localStorage.removeItem(k); } catch { /* storage blocked */ } };
@@ -709,8 +710,8 @@ export function App() {
     else if (!show.performers.length || confirm('Start a new show? (You can Undo this.)')) freshNow();
   };
   const [openAdd, setOpenAdd] = useState(0);
-  // The docs' demo show, to look around in before writing one (loaded on demand: most visits never need it).
-  const trySample = () => guard('Opening the sample show', () => { import('./engine/sample').then(({ sampleShow }) => { replaceShow(sampleShow()); setTool('select'); }); });
+  // The docs' demo show, to look around in before writing one.
+  const trySample = () => guard('Opening the sample show', () => { replaceShow(sampleShow()); setTool('select'); }); // in the main bundle: the offline cache only keeps files the page links
   // A close call on the timeline: go to the count where the closest pair is nearest and select them.
   const showCloseCall = (i: number) => {
     const all = closeCalls(show, i), c = all[0];

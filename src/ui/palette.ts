@@ -62,8 +62,8 @@ export const LIGHT: Record<PaletteName, string> = {
 };
 
 export type ThemeName = 'dark' | 'light';
-const KEY = 'freeform:theme';
-let theme: ThemeName = (() => { try { return localStorage.getItem(KEY) === 'light' ? 'light' : 'dark'; } catch { return 'dark'; } })();
+export const THEME_KEY = 'freeform:theme';
+let theme: ThemeName = (() => { try { return localStorage.getItem(THEME_KEY) === 'light' ? 'light' : 'dark'; } catch { return 'dark'; } })();
 const listeners = new Set<() => void>();
 /** A panel color for canvas drawing (the space around the field, the waveform), in the current mode. */
 export const chrome = (name: PaletteName) => (theme === 'light' ? LIGHT : PALETTE)[name];
@@ -75,7 +75,7 @@ function apply() {
 apply();
 export function setTheme(t: ThemeName) {
   theme = t; apply();
-  try { localStorage.setItem(KEY, t); } catch { /* private mode: this visit only */ }
+  try { localStorage.setItem(THEME_KEY, t); } catch { /* private mode: this visit only */ }
   listeners.forEach((f) => f());
 }
 /** The current mode; a component using it redraws its canvas when the mode changes. */

@@ -21,7 +21,7 @@ A note on where the ideas came from: FreeFORM is modeled on Pyware and the Ultim
 
 **Use it here:** <https://freeformdrill.org/>
 
-**New to FreeFORM? Start with the [How-to guide](docs/HOW-TO.md).** It walks through everything below, step by step, with pictures.
+**New to FreeFORM? Start with the [How-to guide](https://freeformdrill.org/guide/)** (also in the app, under **Help**). It walks through everything below, step by step, with pictures.
 
 ![The FreeFORM editor](docs/img/editor.png)
 
@@ -104,8 +104,9 @@ node scripts/screenshots.mjs ftl print    # or just these
 | `src/ui/` | The toolbar, sidebar, timeline, music menu, and color palette |
 | `src/print/` | Dot sheets and drill charts |
 | `src/perform/` | The performer view, the Share dialog, and the QR scanner |
+| `src/guide/` | Turns `docs/HOW-TO.md` into the guide page on the site (`/guide/`) when the site is built |
 | `public/` | App icons, logos, the link-preview image, the manifest, and the offline service worker |
-| `docs/` | The How-to guide and its screenshots |
+| `docs/` | The How-to guide and its screenshots (the only copy: the site's guide page is made from it) |
 | `scripts/` | The screenshot script |
 | `brand/` | Logo files, colors, and rules ([brand/README.md](brand/README.md)) |
 
