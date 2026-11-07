@@ -37,6 +37,7 @@
 - ✅ Published on GitHub Pages; installable and offline (PWA).
 - ✅ Performer view (phone): share links; pick my dot or Staff; follow me; facing front or director view; count-by-count; my spot, next spot, step size, notes.
 - ✅ Performer view: pinch-zoom; screen kept awake while playing.
+- ✅ Outside-review fixes (2026-11-06): an export offer before Import, New, or Sample replaces a show with unexported changes, and a note when the autosave fails; a blank field offers Place performers, Import a roster, or the sample show; mid-move the toolbar says it's a preview and links to the set; Delete names its target; the timeline's too-close warning jumps to the closest pair; close calls are found between half counts too; phones loop a range of sets; Print does a range of sets; revision numbers on phones and paper. Follow-ups: a count-in before a phone loop; Share dialog organized around "Send this version" vs. "Keep phones up to date"; a simpler phone readout (test with students first).
 - ✅ Dim or hide sections in the editor (Shown, Dim, Hidden per section; can't be picked; paths left out; a per-browser view setting). ✅ A backup reminder after a week of changes not exported (Export or Later). Cloud sync is still the real fix.
 - ✅ A route for one performer (an FTL group of one: **Give a route**, then click its points) and **Smooth** routes (a curve through the turns) for any FTL group.
 - ✅ A metronome click while playing at a tempo, in the editor and on phones (higher where a set lands; timed on the audio clock).

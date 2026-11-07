@@ -101,6 +101,30 @@ shot('shape-star', async () => {
   await page.waitForTimeout(200);
   await save(page, 'shape-star', { x: 240, y: 110, width: 700, height: 640 });
 });
+shot('start', async () => {
+  // A blank show: the note that offers a first step.
+  const page = await editor();
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await page.waitForTimeout(500);
+  await save(page, 'start', await around(page.locator('.backup-note')));
+});
+shot('too-close', async () => {
+  // Two neighbors in the sample's arc swap spots into set 3, so they pass each other; then the timeline's warning is clicked.
+  const page = await editor();
+  await page.evaluate(async () => {
+    const { placeInSet } = await import('/src/engine/show.ts');
+    let show = JSON.parse(localStorage.getItem('freeform:autosave'));
+    const [a, b] = show.performers.filter((p) => show.sections.find((s) => s.id === p.section).letter === 'P').map((p) => p.id);
+    show = placeInSet(show, 2, { [a]: show.sets[2].pos[b], [b]: show.sets[2].pos[a] });
+    localStorage.setItem('freeform:autosave', JSON.stringify(show));
+  });
+  await page.reload();
+  await page.waitForTimeout(500);
+  await page.getByRole('button', { name: /too close/ }).first().click();
+  await page.waitForTimeout(300);
+  await save(page, 'too-close', { x: 0, y: 40, width: 1110, height: H - 40 });
+});
 shot('coordinates', async () => {
   const page = await editor();
   await goSet(page, 2);
@@ -285,6 +309,11 @@ shot('phone', async () => {
   await page.getByRole('group', { name: 'Go to set' }).getByRole('button', { name: '2', exact: true }).click();
   await page.waitForTimeout(600);
   await save(page, 'phone');
+  await page.getByRole('button', { name: 'Loop', exact: true }).click();
+  await page.getByRole('combobox', { name: 'Loop from set' }).selectOption({ label: '2' });
+  await page.getByRole('combobox', { name: 'Loop to set' }).selectOption({ label: '3' });
+  await page.waitForTimeout(200);
+  await save(page, 'phone-loop');
 });
 /** A printed page (US Letter width at 96 dpi), as the browser would print it. */
 async function printed(kind, name, opts = {}) {

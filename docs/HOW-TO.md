@@ -55,7 +55,11 @@ From top to bottom:
 
 ## Set up a new show
 
-Click **New** in the sidebar to start a show. (If you already have one open, FreeFORM asks first, and Undo brings it back.)
+Click **New** in the sidebar to start a show. (If you already have one open, FreeFORM asks first, and Undo brings it back. If it has changes you haven't exported, FreeFORM offers to export it first: see [Saving, backing up, and opening files](#saving-backing-up-and-opening-files).)
+
+When the field has no performers, a note over it offers three ways to begin: **Place performers** opens the **Add** menu so you can pick a section and start clicking, **Import a roster…** brings in a list from Excel (see **Names** under [Add performers](#add-performers)), and **Try the sample show** opens a finished 47-performer show to look around in first. **Sample** in the sidebar opens the same show any time.
+
+![The note on a blank field](img/start.png)
 
 1. **Name it.** Type the title in the box under the file buttons. It prints on every dot sheet and chart.
 2. **Pick your field.** The menu under the title has **High school**, **College / DCI**, and **NFL** for a football field, plus **Basketball court** and **Custom floor** for indoor shows (more on those just below). For a football field FreeFORM draws the field the way drill software does, with whole-step hashes:
@@ -151,11 +155,13 @@ Coordinates read side to side first, then front to back, from the nearest yard l
 
 ![The timeline](img/timeline.png)
 
-A set is one picture of the drill, and the move into it takes a number of counts. Set 1 is the opening set, so it has no move into it.
+A set is one picture of the drill, and the move into it takes a number of counts. Set 1 is the opening set, so it has no move into it. A set's **Counts** are the counts of the move *into* it: 16 counts on set 3 means it takes 16 counts to get from set 2 to set 3.
+
+**Between sets, you're previewing.** When the playhead is partway through a move, the field shows where everyone is on that count, but you can't move or add performers there: edits go on a set. The toolbar shows this in place of the set name, for example **Ct 6 of 16 · Go to Set 3**. Click it to jump to set 3. If you try to drag or add a performer mid-move, a note at the bottom of the field says the same thing.
 
 - **Add**'s **▾**, then **Set**, adds a set 16 counts after the one you're on, and the sets after it move along. You're back on **Select** afterward, and the button now reads **Add Set**, so the next set is one click. The new set starts as a copy of the one you were on, so you only move the people who move.
 - Change a set's **Counts** and **Measures** on the toolbar's first row, next to **Delete**. New counts take effect when you press Enter or tap away, so the set doesn't jump around while you type. Type measures the way the score numbers them (a pickup bar is m. 1).
-- **Delete** with nothing selected removes the set you're on, after asking. (With performers, a prop, or markup selected, it deletes those instead; hold the mouse over it to see what it will delete. The Delete key never deletes a set.) The sets always stay numbered in order: delete set 7 of 8 and the old 8 becomes 7. Adding a set in the middle moves the later ones up a number the same way. Sub-sets keep their place after the set before them and stay lettered in order (the old 8A becomes 7A).
+- **Delete** with nothing selected removes the set you're on, after asking. (With performers, a prop, or markup selected, it deletes those instead. The button says what it will delete: **Delete Set 3**, **Delete P4**, **Delete 6 performers**, **Delete prop**, or **Delete markup**. The Delete key never deletes a set.) The sets always stay numbered in order: delete set 7 of 8 and the old 8 becomes 7. Adding a set in the middle moves the later ones up a number the same way. Sub-sets keep their place after the set before them and stay lettered in order (the old 8A becomes 7A).
 - **Click a set's button** on the timeline to go to it, or click any count to see where everyone is on that count.
 - **Drag a set's button** to move it to a different count. The sets around it stay where they are.
 
@@ -292,7 +298,9 @@ FreeFORM checks every move against the counts it has:
 
 The colors show on the path lines on the field and in the timeline's "max" readout for each move. To fix a red move, add counts, shorten the distance, or split the move with a sub-set.
 
-**Too close.** FreeFORM also checks every half count of every move for two performers less than a step apart, even if they're fine at both ends. The timeline shows how many pairs come too close in each move ("2 too close" in red). Open **Move** to see who they are, how close they get, and on what count. **Select** picks the pair so you can fix them, by spreading their spots, giving one a delayed step-off, or changing who goes to which spot.
+**Too close.** FreeFORM also checks every move, start to finish, for two performers less than a step apart, even if they're fine at both ends. It catches fast crossings that happen between counts, too. The timeline shows how many pairs come too close in each move ("2 too close" in red). Click that warning to jump to the count where the closest pair is nearest: both performers are selected, and a note at the bottom of the field says who they are and how close they get. Open **Move** to see every pair, how close they get, and on what count. **Select** picks a pair so you can fix them, by spreading their spots, giving one a delayed step-off, or changing who goes to which spot.
+
+![A too-close warning, clicked](img/too-close.png)
 
 ## Dot labels
 
@@ -353,7 +361,9 @@ Click **Print…** in the sidebar.
 
 ![The Print dialog](img/print.png)
 
-Choose **Dot sheets** or **Drill charts**, and who to print for: **Everyone**, one **Section**, or the performers you have **Selected**. FreeFORM opens your browser's print dialog. To get a PDF instead of paper, pick **Save as PDF** there.
+Choose **Dot sheets** or **Drill charts**, and who to print for: **Everyone**, one **Section**, or the performers you have **Selected**. **Sets … to …** prints just part of the show, for a rehearsal packet ("work sets 8 to 10 tonight"); **All** puts it back to the whole show. FreeFORM opens your browser's print dialog. To get a PDF instead of paper, pick **Save as PDF** there.
+
+Once you've published the show to phones, charts and dot sheets print its revision number next to the title ("rev 6"), so paper and phones can be compared. Print after you publish, so the number matches what students have.
 
 Dot sheets come four cards to a page. Each card has the performer's label, name, and section, then every set with its counts, measures, and coordinates. Under a set go any notes for it: a delayed step-off ("Hold 4, move 12"), a change of facing or equipment, and the performer notes.
 
@@ -389,6 +399,8 @@ There are two ways to put the file online:
 - **Publish to phones** does it in one click once you connect FreeFORM to a public GitHub repository of your own. (Public is fine, since the file is encrypted.) You'll need the repository's name and a fine-grained GitHub token that can write only to that repository (*Contents: Read and write*). Both stay in your browser. After that, **Publish update** replaces the file, and the link and QR code never change.
 - **Or host the file yourself**: download the locked file and upload it anywhere that gives you a direct link to it. A GitHub repository works (upload the file, open it, and copy its **Raw** link). Paste that address into the box and FreeFORM makes your short link.
 
+**Revision numbers.** Each time you click **Publish to phones** (or **Publish update**), or download a locked file, the show's revision number goes up by one. Phones show it under the set ("Revision 6"), and so do printed charts and dot sheets. At rehearsal, "Does everyone have revision 6?" is a quick check. A hosted show on a phone also says when it last checked for an update ("checked for updates 3:42 PM"). Share links don't change the number.
+
 To cut off old links (say, a student leaves the program), clear the address and start over. Phones that already have the show keep their copy but get no more updates.
 
 ## What performers see on their phones
@@ -407,6 +419,10 @@ On the performer screen:
 - **Director view** shows the field the way the editor does. Tap it to switch to **Facing front**, which turns the field around to match what they see facing the audience.
 - Under the field they see the spot they're standing on, then their next spot and how many counts it takes to get there (with measures and step size), plus their notes and the ensemble notes. On the field, the performers closest to them are drawn a little brighter and labeled.
 - They can play at any tempo, step count by count, scrub, or tap a set number to jump to it. If the show has music, Play follows it, and **♪ Music** switches back to a tempo.
+
+**Loop a few sets.** **Loop** (next to the tempo) opens a panel to pick **Sets … to …**. Tap **Loop these sets**, and Play starts on the first set and jumps back to it each time it reaches the last one, at the tempo or with the music. The button then reads **Loop 8–10** (or whichever sets). Tap it again to change the sets or **Stop looping**.
+
+![Picking sets 2 to 3 to loop on a phone](img/phone-loop.png)
 
 **A click for rehearsal.** When there's no recording (or **♪ Music** is off), a **Click** button sits next to the tempo. It clicks every count while the drill plays, with a higher click where each set lands, so a section can run a move with the phone in a pocket or on a stand.
 
@@ -436,6 +452,8 @@ With a keyboard attached, the [keyboard shortcuts](#keyboard-shortcuts) work too
 
 - **Autosave**: every change is saved in your browser right away.
 - **Export** downloads the show as a `.freeform` file. This is your real backup, because the autosave lives in only that one browser. Export before big changes and at the end of every session. If a show has changes you haven't exported for a week, a note over the field reminds you, with an **Export** button. **Later** asks again tomorrow.
+- **One show at a time.** The browser keeps one show. Before **Import…**, **New**, or **Sample** replaces a show with changes you haven't exported, a note asks first: **Export, then continue**, **Continue without exporting**, or **Cancel**. Undo brings the old show back until you close the page; after that, only an exported file does.
+- **If saving fails.** If the browser refuses to save (its storage is full, or it's a private window), a note over the field says so, with **Export now**. Until it's fixed, your work is only in that open tab.
 - **Import…** opens a `.freeform` file (older `.freeform.json` files too). It replaces the current show, and Undo brings the old one back.
 - **Pyware 3D files (`.3dj`)**: Import… also opens these. You get the sets with their counts and names, measures and notes, sections from Pyware's symbols, label positions, and the roster names. Moves that aren't straight in Pyware (follow-the-leader, rotations, delayed step-offs) come in count by count, with even steps. Drawn markup and the 3D figures don't come over.
 
@@ -471,7 +489,7 @@ Arrows move the selection the way it looks on screen: ↑ is toward the back sid
 
 **I made a mistake.** Undo (⌘Z or Ctrl+Z) works for every edit, including deleting performers, importing a show, and starting a new one.
 
-**A student's phone shows an old version.** A share link holds the show as it was when you made it, so send a new one. A hosted link updates itself when the phone opens it while online. If you changed the file online but the phone hasn't caught up, have the student close the show and open it again while connected.
+**A student's phone shows an old version.** A share link holds the show as it was when you made it, so send a new one. A hosted link updates itself when the phone opens it while online. If you changed the file online but the phone hasn't caught up, have the student close the show and open it again while connected. The revision number under the set, and when it last checked for updates, tell you which version a phone has.
 
 **The browser says it's too old.** Update your browser, or on an iPad, update iPadOS to 16.4 or later.
 

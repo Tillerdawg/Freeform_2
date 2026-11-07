@@ -41,7 +41,7 @@ A note on where the ideas came from: FreeFORM is modeled on Pyware and the Ultim
 - Props (platforms, backdrops) that sit in a different spot each set and move between sets.
 - Dim or hide sections while you write the others.
 - Select everyone or a whole section, copy spots from one set and paste them into another, and see how far apart two performers are.
-- Step-size warnings (yellow past a 6-to-5, red past a 4-to-5), and a warning when two performers come within a step of each other at any point in a move.
+- Step-size warnings (yellow past a 6-to-5, red past a 4-to-5), and a warning when two performers come within a step of each other at any point in a move. Click the warning to jump to the closest pair.
 - Text, arrows, and freehand markup on each set, plus ensemble notes and per-performer notes.
 - Undo for every edit.
 
@@ -51,13 +51,14 @@ A note on where the ideas came from: FreeFORM is modeled on Pyware and the Ultim
 - Sync to a recording: take every count's timing from the MuseScore score (or MusicXML or MIDI), or tap the counts along with any mp3.
 
 **Getting it to the band**
-- Dot sheets (four cards per page, or one per page with a notes column) and drill charts (one per set, with or without the paths into it), printed or saved as PDF.
+- Dot sheets (four cards per page, or one per page with a notes column) and drill charts (one per set, with or without the paths into it), printed or saved as PDF, for the whole show or a range of sets.
 - Share links with a QR code. The whole show is in the link, with no server involved.
-- Locked hosted links that update themselves on phones, can carry the music, and keep names private. One-click publishing to your own GitHub repository.
-- A performer view for phones: pick who you are, follow your dot, and see your spot now, your next spot, and the counts to get there. A phone keeps several shows (the Opener, Ballad, and Closer as separate files) and switches between them from a menu. It works offline once it's opened.
+- Locked hosted links that update themselves on phones, can carry the music, and keep names private. One-click publishing to your own GitHub repository. Each publish gets a revision number that shows on phones and printed sheets.
+- A performer view for phones: pick who you are, follow your dot, and see your spot now, your next spot, and the counts to get there. A phone keeps several shows (the Opener, Ballad, and Closer as separate files) and switches between them from a menu. Students can loop a range of sets to practice. It works offline once it's opened.
 
 **Files**
-- Autosave in your browser, plus export and import of `.freeform` files.
+- Autosave in your browser, plus export and import of `.freeform` files. FreeFORM offers an export before a show with unexported changes is replaced, and says so if the browser can't save.
+- A sample show to look around in before you write your own.
 - Import Pyware 3D (`.3dj`) shows, tested with files from 2008 to 2010.
 
 It runs on a current Chrome, Edge, Firefox, or Safari, and on iPadOS/iOS 16.4 or later. Write drill on a computer or an iPad (hide the timeline and sidebar for more field). Phones get only the performer view.

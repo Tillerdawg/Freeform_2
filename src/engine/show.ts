@@ -125,6 +125,8 @@ export interface Show {
   sets: DrillSet[];
   /** The show's recording and the tapped count timings (the audio itself stays in the browser). */
   music?: Music;
+  /** Goes up by one each time the show is published to phones (or a locked file is downloaded), so paper and phones can be compared. */
+  revision?: number;
   /** How performers are drawn: their section letter with the number as the label (default), or 'dots' with the full label. */
   symbols?: 'dots';
   /** Count-first layout: the show's music in named stretches (one per tune, or one for a one-tune file), typed up front.
@@ -642,26 +644,44 @@ export function moveSegments(show: Show, i: number, keep: (id: string) => boolea
 export const TOO_CLOSE = 1;
 
 /**
- * Pairs of performers closer than TOO_CLOSE at any half count of the move into set i (for set 1, its own spots),
- * each pair once, at its closest, nearest first. `count` is the count of the move it happens on (0 for set 1).
+ * Pairs of performers closer than TOO_CLOSE at any moment of the move into set i (for set 1, its own spots),
+ * each pair once, at its closest, nearest first. `count` is the count of the move it happens on, to the nearest
+ * quarter (0 for set 1). Positions are sampled every half count; between samples each performer moves in a straight
+ * line, so the closest approach inside each half count is worked out exactly (a fast crossing between samples counts).
  */
 export function closeCalls(show: Show, i: number): { a: string; b: string; count: number; d: number }[] {
-  const n = i > 0 ? show.sets[i].counts : 0, from = i > 0 ? setStarts(show)[i - 1] : 0;
   const best = new Map<string, { a: string; b: string; count: number; d: number }>();
+  const note = (id: string, o: string, d: number, count: number) => {
+    const [x, y] = id < o ? [id, o] : [o, id], k = `${x} ${y}`;
+    if (d < TOO_CLOSE && (!best.has(k) || d < best.get(k)!.d)) best.set(k, { a: x, b: y, count: Math.round(count * 4) / 4, d });
+  };
+  const n = i > 0 ? show.sets[i].counts : 0, from = i > 0 ? setStarts(show)[i - 1] : 0;
+  let prev = i > 0 ? positionsAt(show, from) : show.sets[0].pos;
   for (let h = i > 0 ? 1 : 0; h <= 2 * n; h++) {
-    const c = h / 2, pos = i > 0 ? positionsAt(show, from + c) : show.sets[0].pos;
-    const cells = new Map<string, string[]>(), key = (x: number, y: number) => `${x},${y}`;
-    for (const [id, p] of Object.entries(pos)) {
-      const cx = Math.floor(p.x / TOO_CLOSE), cy = Math.floor(p.y / TOO_CLOSE);
-      for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) for (const o of cells.get(key(cx + dx, cy + dy)) ?? []) {
-        const d = distance(p, pos[o]);
-        if (d >= TOO_CLOSE) continue;
-        const [x, y] = id < o ? [id, o] : [o, id], k = `${x} ${y}`;
-        if (!best.has(k) || d < best.get(k)!.d) best.set(k, { a: x, b: y, count: c, d });
+    const pos = i > 0 ? positionsAt(show, from + h / 2) : prev;
+    // Bucket each performer's straight stretch (padded half a step) into 1-step cells; pairs sharing a cell are checked.
+    const cells = new Map<string, string[]>(), seen = new Set<string>(), r = TOO_CLOSE / 2;
+    for (const [id, q] of Object.entries(pos)) {
+      const p = prev[id] ?? q;
+      const x0 = Math.floor((Math.min(p.x, q.x) - r) / TOO_CLOSE), x1 = Math.floor((Math.max(p.x, q.x) + r) / TOO_CLOSE);
+      const y0 = Math.floor((Math.min(p.y, q.y) - r) / TOO_CLOSE), y1 = Math.floor((Math.max(p.y, q.y) + r) / TOO_CLOSE);
+      for (let cx = x0; cx <= x1; cx++) for (let cy = y0; cy <= y1; cy++) {
+        const k = `${cx},${cy}`, here = cells.get(k) ?? [];
+        for (const o of here) {
+          const pk = id < o ? `${id} ${o}` : `${o} ${id}`;
+          if (seen.has(pk)) continue;
+          seen.add(pk);
+          const op = prev[o] ?? pos[o], oq = pos[o];
+          // Relative position goes from r0 to r1 in a straight line; its closest point to zero is at t (0..1).
+          const r0x = op.x - p.x, r0y = op.y - p.y, dx = oq.x - q.x - r0x, dy = oq.y - q.y - r0y, vv = dx * dx + dy * dy;
+          const t = vv > 0 ? Math.min(1, Math.max(0, -(r0x * dx + r0y * dy) / vv)) : 1;
+          note(id, o, Math.hypot(r0x + dx * t, r0y + dy * t), i > 0 ? (h - 1 + t) / 2 : 0);
+        }
+        here.push(id);
+        cells.set(k, here);
       }
-      const k = key(cx, cy);
-      cells.set(k, [...(cells.get(k) ?? []), id]);
     }
+    prev = pos;
   }
   return [...best.values()].sort((x, y) => x.d - y.d);
 }
@@ -890,6 +910,7 @@ export function parseShow(text: string): Show {
   const str = (v: unknown) => typeof v === 'string';
   if (typeof s.title !== 'string') bad('title');
   if (s.music !== undefined && !validMusic(s.music)) bad('music');
+  if (s.revision !== undefined && !(Number.isInteger(s.revision) && s.revision >= 1 && s.revision <= 1e6)) bad('revision');
   if (s.symbols === 'icons') delete s.symbols; // equipment icons were a choice for a day (2026-11-05): such a show opens with letters
   if (s.symbols !== undefined && s.symbols !== 'dots') bad('symbols');
   if (s.movements !== undefined && (!Array.isArray(s.movements) || s.movements.length > 100 || !s.movements.every((m: Movement) =>

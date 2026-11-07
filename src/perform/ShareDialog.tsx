@@ -24,7 +24,9 @@ const saveKey = (title: string, key: string | null) => {
 };
 
 /** Make a link that opens this show in the performer view. The show travels inside the link. */
-export function ShareDialog({ show, onClose }: { show: Show; onClose: () => void }) {
+export function ShareDialog({ show, onClose, setRevision }: { show: Show; onClose: () => void; setRevision: (n: number) => void }) {
+  // A file headed for phones gets the next revision number, kept in the show once it's out (charts print it too).
+  const next = (): Show => ({ ...show, revision: (show.revision ?? 0) + 1 });
   const [url, setUrl] = useState('');
   const [note, setNote] = useState('');
   useEffect(() => { encodeShow(show).then((code) => setUrl(location.origin + location.pathname + SHARE_PREFIX + code)); }, [show]);
@@ -67,7 +69,9 @@ export function ShareDialog({ show, onClose }: { show: Show; onClose: () => void
   const download = async () => {
     const k = key ?? newKey();
     if (!pasted) { setMadeKey(k); saveKey(show.title, k); }
-    const blob = new Blob([await lockShow(show, k, withMusic && audio ? audio : undefined)], { type: 'application/octet-stream' });
+    const s = next();
+    const blob = new Blob([await lockShow(s, k, withMusic && audio ? audio : undefined)], { type: 'application/octet-stream' });
+    setRevision(s.revision!);
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = `${show.title.replace(/[^\w\- ]+/g, '').trim() || 'show'}.freeform-locked`;
@@ -81,9 +85,10 @@ export function ShareDialog({ show, onClose }: { show: Show; onClose: () => void
     setBusy('Publishing…');
     try {
       const k = key ?? newKey();
-      const fileAt = await publishFile(gh, fileNameFor(show.title), await lockShow(show, k, withMusic && audio ? audio : undefined));
-      setField(hostedLink(base, fileAt, k)); saveKey(show.title, null);
-      setBusy(`Published ${new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}. Phones that already have the show get this version the next time they open it (GitHub can take a few minutes to serve it).`);
+      const s = next();
+      const fileAt = await publishFile(gh, fileNameFor(show.title), await lockShow(s, k, withMusic && audio ? audio : undefined));
+      setField(hostedLink(base, fileAt, k)); saveKey(show.title, null); setRevision(s.revision!);
+      setBusy(`Published revision ${s.revision}, ${new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}. Phones that already have the show get this version the next time they open it (GitHub can take a few minutes to serve it).`);
     } catch (e) { setBusy(`✗ ${e instanceof Error ? e.message : String(e)}`); }
   };
   const copy = async (text: string) => {

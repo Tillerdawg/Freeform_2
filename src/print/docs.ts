@@ -36,7 +36,7 @@ function equipChange(show: Show, i: number, id: string): string {
 }
 
 /** One or more cards per performer (long shows continue onto another card). */
-export function dotCards(show: Show, performers: Performer[], perCard = ROWS_PER_CARD): Card[] {
+export function dotCards(show: Show, performers: Performer[], perCard = ROWS_PER_CARD, sets: [number, number] = [0, show.sets.length - 1]): Card[] {
   const cards: Card[] = [];
   for (const p of performers) {
     const rows: CardRow[] = show.sets.map((s, i) => ({
@@ -46,7 +46,7 @@ export function dotCards(show: Show, performers: Performer[], perCard = ROWS_PER
       cue: [stepOff(show, i, p.id), faceChange(show, i, p.id), equipChange(show, i, p.id), s.cues?.[p.id]].filter(Boolean).join(' · '),
       side: sideToSide(s.pos[p.id].x, fieldOf(show)),
       front: frontToBack(s.pos[p.id].y, fieldOf(show)),
-    }));
+    })).slice(sets[0], sets[1] + 1); // a rehearsal packet: just these sets
     const parts = Math.max(1, Math.ceil(rows.length / perCard));
     const section = show.sections.find((s) => s.id === p.section)?.name ?? '';
     for (let k = 0; k < parts; k++) {

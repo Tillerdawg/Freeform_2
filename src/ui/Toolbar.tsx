@@ -116,7 +116,7 @@ export function Toolbar(p: ToolbarProps) {
       </div>
       <DeleteButton {...p} />
       <span className="tb-sep" />
-      <SetControls show={show} setShow={setShow} t={p.t} />
+      <SetControls show={show} setShow={setShow} t={p.t} setT={p.setT} />
 
       {/* Pinned to the right edge: if the row is ever too narrow and scrolls sideways, Undo stays in reach. */}
       <span className="tb-pinned">
@@ -547,20 +547,24 @@ function AddPanel(p: ToolbarProps & { close: () => void; addSet: (at: number | n
 function DeleteButton(p: ToolbarProps) {
   const { show, setShow, selected, onSet } = p;
   const ids = [...selected];
-  let what: string, run: (() => void) | null;
+  let what: string, run: (() => void) | null, short = ''; // short: what the button names, so it's clear before the click
   if (ids.length) {
     what = `the ${ids.length === 1 ? 'selected performer' : `${ids.length} selected performers`} from the whole show`;
+    short = ids.length === 1 ? label(show, show.performers.find((x) => x.id === ids[0])!) : `${ids.length} performers`;
     run = () => { if (!confirmDelete(show, ids)) return; setShow((s) => removePerformers(s, selected)); p.setSelected(new Set()); };
   } else if (p.selectedProp) {
     const name = show.props?.find((x) => x.id === p.selectedProp)?.name ?? 'prop';
     what = `the prop "${name}"`;
+    short = 'prop';
     run = () => { setShow((s) => removeProp(s, p.selectedProp!)); p.setSelectedProp(null); };
   } else if (p.selectedMark && onSet >= 0) {
     what = 'the selected markup';
+    short = 'markup';
     run = () => { setShow((s) => setMarks(s, onSet, (ms) => ms.filter((m) => m.id !== p.selectedMark))); p.setSelectedMark(null); };
   } else if (onSet >= 0 && show.sets.length > 1) {
     const name = show.sets[onSet].name;
     what = `set ${name} (nothing is selected)`;
+    short = `Set ${name}`;
     run = () => {
       if (!window.confirm(`Delete set ${name}? Performers will move straight from the set before it to the set after it.`)) return;
       const starts = setStarts(show);
@@ -570,5 +574,6 @@ function DeleteButton(p: ToolbarProps) {
     what = onSet >= 0 ? 'nothing: a show needs at least one set' : 'nothing (scrub to a set, or select something)';
     run = null;
   }
-  return <button disabled={!run} className="danger" onClick={() => run?.()} title={`Delete ${what}`} aria-label="Delete">Delete</button>;
+  return <button disabled={!run} className="danger" onClick={() => run?.()} title={`Delete ${what}`} aria-label={`Delete ${what}`}
+    style={{ maxWidth: 170, overflow: 'hidden', textOverflow: 'ellipsis' }}>Delete{short && <span className="tb-long-sm"> {short}</span>}</button>;
 }

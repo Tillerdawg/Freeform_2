@@ -659,12 +659,30 @@ describe('delayed step-offs, turning moves, counter-march, close calls', () => {
     expect(closeCalls(show, 0)).toEqual([]);
   });
 
+  it('catches a fast crossing that falls between half counts', () => {
+    // Head-on at a 4-to-5-plus step: they meet on count 1.25 and are more than a step apart on every half count.
+    let { show, ids } = line(2, (k) => ({ x: k ? 5 : -5, y: 40 }));
+    show = { ...show, sets: show.sets.map((s, j) => (j === 1 ? { ...s, counts: 2 } : s)) };
+    show = placeInSet(show, 1, { [ids[0]]: { x: 3, y: 40 }, [ids[1]]: { x: -3, y: 40 } });
+    const calls = closeCalls(show, 1);
+    expect(calls).toHaveLength(1);
+    expect(calls[0].d).toBeCloseTo(0);
+    expect(calls[0].count).toBe(1.25);
+  });
+
   it('checks a big show quickly', () => {
     let { show, ids } = line(200, (k) => ({ x: (k % 20) * 2 - 20, y: 20 + Math.floor(k / 20) * 2 }));
     show = placeInSet(show, 1, Object.fromEntries(ids.map((id, k) => [id, { x: -((k % 20) * 2 - 20), y: 20 + Math.floor(k / 20) * 2 }])));
     const t0 = performance.now();
     closeCalls(show, 1);
     expect(performance.now() - t0).toBeLessThan(500);
+  });
+
+  it('reads and checks the revision number from files', () => {
+    const { show } = twoSetShow();
+    expect(parseShow(JSON.stringify({ ...show, revision: 6 })).revision).toBe(6);
+    expect(() => parseShow(JSON.stringify({ ...show, revision: 0 }))).toThrow(/revision/);
+    expect(() => parseShow(JSON.stringify({ ...show, revision: '6' }))).toThrow(/revision/);
   });
 
   it('reads and checks timing and turning from files, and forgets removed performers', () => {

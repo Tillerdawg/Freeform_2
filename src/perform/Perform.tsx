@@ -21,6 +21,9 @@ import { NumberField } from '../ui/NumberField';
 import { AUTOSAVE } from '../App';
 import { addShow, readLibrary, removeShow, STAFF, type Library, type Saved } from './library';
 
+/** "3:42 PM" today, "Nov 5" before that. */
+const checkedAt = (ms: number) => new Date(ms).toDateString() === new Date().toDateString()
+  ? new Date(ms).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : new Date(ms).toLocaleDateString([], { month: 'short', day: 'numeric' });
 const STORE = 'freeform:performer'; // separate from the editor's autosave, so opening a link never touches a director's work
 const FOLLOW_STEPS = 36; // how much field fits across the screen when following a performer
 
@@ -75,14 +78,17 @@ export function Perform() {
     dropAudio(r.dropped, r.lib);
     if (fresh) setT(0);
   };
+  // When this phone last reached a hosted show's file, so "do you have the latest?" has an answer on screen.
+  const markChecked = (source: string) => { const l = libRef.current; setLib({ ...l, shows: l.shows.map((x) => (x.source === source ? { ...x, checked: Date.now() } : x)) }); };
   // Opening a hosted show: quietly check for a newer version when online. Offline, the saved copy is used.
   const checkHosted = () => {
     const saved = libRef.current.shows[libRef.current.current];
     if (!saved?.source || !navigator.onLine) return;
     // An unchanged file isn't downloaded again: the fetch revalidates (cache: 'no-cache'), and GitHub answers 304 for the same ETag.
     fetchHosted(saved.source).then(({ show, audio }) => {
-      if (JSON.stringify(show) !== JSON.stringify(saved.show)) { adopt(show, saved.source, false, audio); setNotice('Show updated.'); }
+      if (JSON.stringify(show) !== JSON.stringify(saved.show)) { adopt(show, saved.source, false, audio); setNotice(show.revision ? `Updated to revision ${show.revision}.` : 'Show updated.'); }
       else keepAudio(show, audio, saved.show); // same show; the recording may be new (added to the file later)
+      markChecked(saved.source!);
     }).catch(() => { /* keep the saved copy */ });
   };
   const switchTo = (i: number) => { setLib({ ...libRef.current, current: i }); setT(0); setPlaying(false); setNotice(''); setError(''); checkHosted(); };
@@ -103,7 +109,7 @@ export function Perform() {
     }
     if (location.hash.startsWith(LOAD_PREFIX)) {
       const hash = location.hash;
-      fetchHosted(hash).then((r) => { adopt(r.show, hash, true, r.audio); done(); }).catch(fail);
+      fetchHosted(hash).then((r) => { adopt(r.show, hash, true, r.audio); markChecked(hash); done(); }).catch(fail);
       return;
     }
     checkHosted();
@@ -118,7 +124,11 @@ export function Perform() {
   const show = state?.show;
   const starts = useMemo(() => (show ? setStarts(show) : [0]), [show]);
   const total = show ? showLength(show) : 0;
-  const span = useMemo<[number, number]>(() => [0, total], [total]);
+  // Practice a few sets over and over ("work 8–10 tonight"): set indexes, or null to play through the show.
+  const [loop, setLoop] = useState<[number, number] | null>(null);
+  const [picking, setPicking] = useState<[number, number] | null>(null); // the Loop panel's choice while it's open
+  useEffect(() => { setLoop(null); setPicking(null); }, [lib.current, show?.sets.length]); // another show, or sets added or removed in an update
+  const span = useMemo<[number, number]>(() => (loop ? [starts[loop[0]], starts[loop[1]]] : [0, total]), [loop, starts, total]);
   // Play with the recording when this phone has it and the show has tapped counts; "♪ Music" off goes back to Tempo.
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
   const [useMusic, setUseMusic] = useState(true);
@@ -131,7 +141,7 @@ export function Perform() {
   }, [audioId, audioVer]);
   const music = useMemo(() => (audio && useMusic && show?.music ? { audio, taps: show.music.taps } : null), [audio, useMusic, show?.music]);
   const [clickOn, setClickOn] = useState(clickWanted);
-  usePlayback(playing, setPlaying, t, setT, bpm, span, false, total, music, clickOn && !music ? starts : null);
+  usePlayback(playing, setPlaying, t, setT, bpm, span, !!loop, total, music, clickOn && !music ? starts : null);
 
   // Keep the screen awake while the show plays (where the browser allows it), so the phone doesn't dim mid-rep.
   useEffect(() => {
@@ -396,6 +406,7 @@ export function Perform() {
           {s.measures && <span> · m. {s.measures}</span>}
           {onSet < 0 && <span> · count {Math.floor(count)} of {s.counts}</span>}
         </div>
+        {(show.revision || state!.source) && <p className="perform-note">{show.revision ? `Revision ${show.revision}` : 'No revision number'}{state!.source && <> · {state!.checked ? `checked for updates ${checkedAt(state!.checked)}` : 'not checked for updates yet'}</>}</p>}
         {me ? (
           <>
             <p className="perform-coord"><span className="perform-k">{onSet >= 0 ? 'My spot' : 'Now'}</span> {readout(positions[me.id], fieldOf(show))}{facingIn(show, cur, me.id) && <> · facing {facingName(facingIn(show, cur, me.id)!)}</>}{equipmentIn(show, cur, me.id) && <> · {equipmentName(equipmentIn(show, cur, me.id)!).toLowerCase()}</>}</p>
@@ -417,6 +428,24 @@ export function Perform() {
         {s.note && <p className="perform-note"><span className="perform-k">Ensemble</span> {s.note}</p>}
       </section>
       <footer className="perform-controls">
+        {picking && (
+          <div className="perform-add" role="dialog" aria-label="Loop sets">
+            <span>Practice a few sets over and over. Play starts on the first set and jumps back to it after the last one.</span>
+            <span>Sets{' '}
+              <select aria-label="Loop from set" value={picking[0]} onChange={(e) => { const v = Number(e.target.value); setPicking([v, Math.max(v + 1, picking[1])]); }} style={{ fontSize: 16 }}>
+                {show.sets.slice(0, -1).map((x, i) => <option key={x.id} value={i}>{x.name}</option>)}
+              </select>{' '}to{' '}
+              <select aria-label="Loop to set" value={picking[1]} onChange={(e) => setPicking([picking[0], Number(e.target.value)])} style={{ fontSize: 16 }}>
+                {show.sets.map((x, i) => (i > picking[0] ? <option key={x.id} value={i}>{x.name}</option> : null))}
+              </select>
+            </span>
+            <span style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <button className="primary" onClick={() => { const r: [number, number] = [picking[0], Math.max(picking[0] + 1, picking[1])]; setLoop(r); setPicking(null); setPlaying(false); setT(starts[r[0]]); }}>Loop these sets</button>
+              {loop && <button onClick={() => { setLoop(null); setPicking(null); }}>Stop looping</button>}
+              <button onClick={() => setPicking(null)}>Cancel</button>
+            </span>
+          </div>
+        )}
         <div className="perform-sets" data-more={more} ref={setStrip} onScroll={checkMore} role="group" aria-label="Go to set">
           {show.sets.map((x, i) => (
             <button key={x.id} aria-pressed={i === onSet} onClick={() => { setPlaying(false); setT(starts[i]); }}>{x.name}</button>
@@ -425,10 +454,13 @@ export function Perform() {
         <input type="range" aria-label="Count" min={0} max={total} step={1} value={t} onChange={(e) => { setPlaying(false); setT(Number(e.target.value)); }} disabled={!total} />
         <div className="perform-buttons">
           <button style={btn} aria-label="Previous count" onClick={() => { setPlaying(false); setT(Math.max(0, Math.ceil(t) - 1)); }}><IconPrev /></button>
-          <button style={btn} aria-label={playing ? 'Pause' : 'Play'} disabled={!total || (!playing && t >= total)} title={t >= total ? 'End of the show: tap set 1 (or another set) to play from there' : undefined} onClick={() => { if (!playing && music) music.audio.play().catch(() => {}); /* start sound inside the tap: phones only allow it there */ if (!playing && clickOn) wakeClick(); setPlaying(!playing); }}>{playing ? <IconPause /> : <IconPlay />}</button>
+          <button style={btn} aria-label={playing ? 'Pause' : 'Play'} disabled={!total || (!playing && t >= total && !loop)} title={t >= total && !loop ? 'End of the show: tap set 1 (or another set) to play from there' : undefined} onClick={() => { if (!playing && loop && (t < span[0] || t >= span[1])) setT(span[0]); /* a loop plays from its first set */ if (!playing && music) music.audio.play().catch(() => {}); /* start sound inside the tap: phones only allow it there */ if (!playing && clickOn) wakeClick(); setPlaying(!playing); }}>{playing ? <IconPause /> : <IconPlay />}</button>
           <button style={btn} aria-label="Next count" onClick={() => { setPlaying(false); setT(Math.min(total, Math.floor(t) + 1)); }}><IconNext /></button>
           {audio && <button aria-pressed={useMusic} title={useMusic ? 'Playing with the music. Tap to use a tempo instead.' : 'Play with the music'} onClick={() => { setPlaying(false); setUseMusic(!useMusic); }} style={{ fontSize: 14, minHeight: 40 }}>♪ Music</button>}
           {!music && <label style={{ fontSize: 14 }}><NumberField aria-label="Tempo" min={20} max={300} integer value={bpm} onValue={setBpm} style={{ width: 52, fontSize: 16 }} /> bpm</label>}
+          {show.sets.length > 1 && <button aria-pressed={!!loop} onClick={() => setPicking(loop ?? [Math.max(0, cur - 1), Math.min(show.sets.length - 1, Math.max(1, cur))])}
+            title={loop ? `Looping sets ${show.sets[loop[0]].name} to ${show.sets[loop[1]].name}. Tap to change or stop.` : 'Practice a few sets over and over'} style={{ fontSize: 14, minHeight: 40 }}>
+            {loop ? `Loop ${show.sets[loop[0]].name}–${show.sets[loop[1]].name}` : 'Loop'}</button>}
           {!music && <button aria-pressed={clickOn} title={clickOn ? 'A click on every count. Tap to turn it off.' : 'A click on every count while it plays'} onClick={() => { setClickOn(!clickOn); setClickWanted(!clickOn); if (!clickOn) wakeClick(); }} style={{ fontSize: 14, minHeight: 40 }}>Click</button>}
         </div>
       </footer>

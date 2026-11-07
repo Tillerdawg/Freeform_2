@@ -32,13 +32,14 @@ interface Props {
   music?: React.ReactNode; // the Music menu, beside Tempo
   wave?: { peaks: Float32Array; taps: number[] }; // the recording's loudness (100 slices a second) and its tapped counts
   click: { on: boolean; set: (on: boolean) => void }; // the metronome click while playing at a tempo
+  onCloseCall?: (i: number) => void; // a move's "too close" warning was clicked: show the closest pair
 }
 
 /** One segment per move, width proportional to its counts; click or drag to scrub by whole counts. */
 /** Close-call counts by move, kept while the move's two sets are unchanged (a whole-show check takes too long to redo on every drag). */
 const closeCache = new WeakMap<DrillSet, { prev: DrillSet; n: number }>();
 
-export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, setBpm, range, setRange, span, music, wave, click }: Props) {
+export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, setBpm, range, setRange, span, music, wave, click, onCloseCall }: Props) {
   const total = showLength(show); // the timeline runs through any part not written yet (count-first)
   const written = totalCounts(show);
   const starts = setStarts(show);
@@ -52,6 +53,14 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
   }), [show]);
   const { to, count } = locate(show, t);
   const onSet = setAt(show, t);
+  // A move's close-call warning: click it to go to the closest pair (it sits on the scrub strip, so it keeps the press to itself).
+  const tooClose = (i: number) => (
+    <span role="button" tabIndex={0} style={{ color: STEP_TEXT.red, textDecoration: 'underline', cursor: 'pointer' }}
+      title="Performers who come within a step of each other: click to go to the closest pair (Move lists them all)"
+      onPointerDown={(e) => e.stopPropagation()} onClick={() => onCloseCall?.(i)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onCloseCall?.(i); } }}>
+      {close[i]} too close
+    </span>
+  );
   const past = t > written; // in the part not written yet: performers hold on the last set
 
   const scrub = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -245,8 +254,8 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
                 <div style={{ padding: '2px 6px' }}>
                   <div>{show.sets[i - 1].name} → {s.name} · {s.counts} cts{s.measures ? ` · m. ${s.measures}` : ''}{s.ftl?.some((g) => g.order.length > 1) ? ' · FTL' : s.ftl?.length ? ' · custom path' : ''}
                     {big && short && <span style={{ color: STEP_TEXT[big.tier] }}> · max {fmtStep(big.per5)}</span>}
-                    {!!close[i] && short && <span style={{ color: STEP_TEXT.red }} title="Performers who come within a step of each other: see Move"> · {close[i]} too close</span>}</div>
-                  {big && !short && <div style={{ color: STEP_TEXT[big.tier] }}>max {fmtStep(big.per5)}{!!close[i] && <span style={{ color: STEP_TEXT.red }} title="Performers who come within a step of each other: see Move"> · {close[i]} too close</span>}</div>}
+                    {!!close[i] && short && <> · {tooClose(i)}</>}</div>
+                  {big && !short && <div style={{ color: STEP_TEXT[big.tier] }}>max {fmtStep(big.per5)}{!!close[i] && <> · {tooClose(i)}</>}</div>}
                 </div>
               </div>
             );
@@ -299,13 +308,17 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
 }
 
 /** The current set's name, counts, and measures (on the toolbar's first row). Mid-move, "current" is the set being moved into. */
-export function SetControls({ show, setShow, t }: { show: Show; setShow: (f: (s: Show) => Show) => void; t: number }) {
+export function SetControls({ show, setShow, t, setT }: { show: Show; setShow: (f: (s: Show) => Show) => void; t: number; setT: (t: number) => void }) {
   const onSet = setAt(show, t);
-  const cur = onSet >= 0 ? onSet : locate(show, t).to;
+  const { to, count } = locate(show, t), cur = onSet >= 0 ? onSet : to;
+  const mid = onSet < 0 && t < totalCounts(show); // between two sets: what's on the field is a preview, and edits go to a set
   return (
     <div style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
-      <strong>Set {show.sets[cur].name}</strong>
-      <label>Counts{' '}
+      {mid ? <button onClick={() => setT(setStarts(show)[cur])} title={`The field shows count ${Math.floor(count)} of the move into set ${show.sets[cur].name}. Performers are moved and added on a set: click to go to set ${show.sets[cur].name}.`}
+        aria-label={`Previewing count ${Math.floor(count)} of ${show.sets[cur].counts}. Go to set ${show.sets[cur].name}`}>
+        Ct {Math.floor(count)} of {show.sets[cur].counts}<span className="tb-long-sm"> · Go to</span> Set {show.sets[cur].name}</button>
+        : <strong>Set {show.sets[cur].name}</strong>}
+      <label title={cur > 0 ? `Counts in the move into set ${show.sets[cur].name}, from set ${show.sets[cur - 1].name}` : undefined}>Counts{' '}
         <NumberField min={1} integer whenDone aria-label="Counts" disabled={cur === 0} title={cur === 0 ? 'The opening set has no move into it' : undefined}
           value={cur === 0 ? '' : show.sets[cur].counts} style={{ width: 46 }}
           onValue={(n) => setShow((s) => setCounts(s, cur, n))} />

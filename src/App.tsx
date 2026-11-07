@@ -4,7 +4,7 @@ import { emptyHistory, record, redo, undo } from './engine/history';
 import { addInk, hitMark, moveMark, type Mark } from './engine/marks';
 import { assign, fitShape, fitText, isControl, moveHandle, samplePath, slots, type Shape, type ShapeKind } from './engine/shapes';
 import { colorOf,
-  addPerformer, setFtlTurns, locate, label, mark, newId, setMarks, moveSegments, fieldOf, facingIn, facingVector, hitProp, placeProp, propsAt, removeProp, normalizeFtl, snapPoint, playRange, newShow, parseShow, placeInSet, positionsAt, removePerformers,
+  addPerformer, closeCalls, setFtlTurns, locate, label, mark, newId, setMarks, moveSegments, fieldOf, facingIn, facingVector, hitProp, placeProp, propsAt, removeProp, normalizeFtl, snapPoint, playRange, newShow, parseShow, placeInSet, positionsAt, removePerformers,
   rotateScale, setAt, setStarts, type Show,
   showLength,
 } from './engine/show';
@@ -26,6 +26,7 @@ import { PrintDialog } from './print/Print';
 import { ShareDialog } from './perform/ShareDialog';
 import { PALETTE, useTheme } from './ui/palette';
 import { ThemeButton } from './ui/ThemeButton';
+import { RosterImport } from './ui/RosterImport';
 
 export const AUTOSAVE = 'freeform:autosave';
 const UNEXPORTED = 'freeform:unexported-since', SNOOZE = 'freeform:backup-later', DAY = 86_400_000, BACKUP_DAYS = 7;
@@ -118,8 +119,10 @@ export function App() {
   // Keep t valid when sets or counts change.
   useEffect(() => { if (t > total) setT(total); }, [t, total]);
 
+  // Autosave. If the browser refuses (storage full, private mode), say so: the work exists only in this tab until exported.
+  const [saveFailed, setSaveFailed] = useState<'no' | 'yes' | 'seen'>('no');
   useEffect(() => {
-    try { localStorage.setItem(AUTOSAVE, JSON.stringify(show)); } catch { /* private mode: no autosave */ }
+    try { localStorage.setItem(AUTOSAVE, JSON.stringify(show)); setSaveFailed('no'); } catch { setSaveFailed((f) => (f === 'seen' ? f : 'yes')); }
   }, [show]);
 
   // Backups: the show lives only in this browser, so after BACKUP_DAYS of changes that haven't been exported, a notice
@@ -130,6 +133,19 @@ export function App() {
   useEffect(() => { if (show !== firstShow.current && !unexported) { const now = Date.now(); writeTime(UNEXPORTED, now); setUnexported(now); } }, [show]); // eslint-disable-line react-hooks/exhaustive-deps
   const backedUp = () => { writeTime(UNEXPORTED, null); setUnexported(null); };
   const remindBackup = !!unexported && show.performers.length > 0 && Date.now() - unexported > BACKUP_DAYS * DAY && Date.now() > (snooze ?? 0);
+  // Import, New, and the sample all replace the one show this browser keeps: offer an Export first if it has unexported changes.
+  const [pending, setPending] = useState<{ what: string; go: () => void } | null>(null);
+  const guard = (what: string, go: () => void) => { if (unexported && show.performers.length) setPending({ what, go }); else go(); };
+  /** Put a whole new show in place (a file, a blank show, the sample): it counts as backed up until it's changed. */
+  const replaceShow = (s0: Show) => {
+    const s = normalizeFtl(s0); // done here, not by setShow, so the show kept as "first" is the very one shown
+    setShowRaw(s); setT(0); setSelected(new Set()); setSection(s.sections[0]?.id ?? '');
+    firstShow.current = s; backedUp();
+  };
+  // A short message over the field about what just happened (a jump to a close call, an edit refused mid-move). It goes away when the playhead moves.
+  const [notice, setNotice] = useState<{ text: string; t: number } | null>(null);
+  const previewing = () => { const { to, count } = locate(show, t); return `Previewing count ${Math.floor(count)} of ${show.sets[to].counts} into set ${show.sets[to].name}`; };
+  const [roster, setRoster] = useState(false);
 
   // Every show change becomes (or merges into) an undo step, except undo/redo themselves.
   useEffect(() => {
@@ -498,6 +514,7 @@ export function App() {
       return;
     }
     if (tool === 'add') {
+      if (onSet < 0 && t <= starts.at(-1)!) setNotice({ text: `${previewing()}. Click a set's button to add performers there.`, t });
       if (!section || onSet < 0) return; // mid-move: select only, no edits
       const r = addPerformer(show, section, snapTo(p, snap));
       setShow(r.show);
@@ -513,6 +530,7 @@ export function App() {
         if (sel.has(id)) sel.delete(id); else sel.add(id);
       } else if (!selected.has(id)) sel = new Set([id]);
       setSelected(sel);
+      if (onSet < 0 && t <= starts.at(-1)!) setNotice({ text: `${previewing()}. Click a set's button to move performers there.`, t });
       if (sel.has(id) && onSet >= 0) {
         const orig = Object.fromEntries([...sel].map((k) => [k, show.sets[onSet].pos[k]]));
         // Dragging a whole FTL group brings its leader's turns along.
@@ -642,22 +660,31 @@ export function App() {
   const open = async (f: File) => {
     try {
       const s = /\.3dj$/i.test(f.name) ? parse3dj(await f.arrayBuffer(), f.name.replace(/\.3dj$/i, '')) : parseShow(await f.text());
-      setShow(s); setT(0); setSelected(new Set()); setFileError('');
-      setSection(s.sections[0]?.id ?? '');
-      firstShow.current = s; backedUp(); // what's open is the file itself
+      replaceShow(s); setFileError(''); // what's open is the file itself
     } catch (err) {
       setFileError(err instanceof Error ? err.message : String(err));
     }
   };
 
-  const fresh = () => {
-    if (show.performers.length && !confirm('Start a new show? (You can Undo this.)')) return;
-    const s = newShow(startingSections());
-    setShow(s); setT(0); setSelected(new Set()); setSection(s.sections[0].id);
-    firstShow.current = s; backedUp(); // nothing to back up yet
+  const freshNow = () => {
+    replaceShow(newShow(startingSections())); // nothing to back up yet
     setTool('add'); setOpenAdd((n) => n + 1); // a blank field: straight to placing performers (Jason)
   };
+  const fresh = () => {
+    if (unexported && show.performers.length) setPending({ what: 'Starting a new show', go: freshNow });
+    else if (!show.performers.length || confirm('Start a new show? (You can Undo this.)')) freshNow();
+  };
   const [openAdd, setOpenAdd] = useState(0);
+  // The docs' demo show, to look around in before writing one (loaded on demand: most visits never need it).
+  const trySample = () => guard('Opening the sample show', () => { import('./engine/sample').then(({ sampleShow }) => { replaceShow(sampleShow()); setTool('select'); }); });
+  // A close call on the timeline: go to the count where the closest pair is nearest and select them.
+  const showCloseCall = (i: number) => {
+    const all = closeCalls(show, i), c = all[0];
+    if (!c) return;
+    const name = (id: string) => label(show, show.performers.find((x) => x.id === id)!), at = starts[i - 1] + c.count;
+    setPlaying(false); setT(at); setSelected(new Set([c.a, c.b])); setSelectedMark(null); setSelectedProp(null);
+    setNotice({ t: at, text: `${name(c.a)} and ${name(c.b)}: ${Math.round(c.d * 10) / 10} steps apart on count ${c.count} into set ${show.sets[i].name}.${all.length > 1 ? ` ${all.length - 1} more ${all.length === 2 ? 'pair' : 'pairs'}: see Move in set ${show.sets[i].name}.` : ''}` });
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -698,7 +725,30 @@ export function App() {
           }}
           onPointerLeave={() => setHover('')}
         />
-        {remindBackup && (
+        {show.performers.length === 0 && !pending && (
+          <div className="backup-note" role="group" aria-label="Start a show">
+            <span><strong>Start your show.</strong> Place performers on the field, bring in a roster from Excel, or look around a finished sample first.</span>
+            <button className="primary" onClick={() => { setTool('add'); setOpenAdd((n) => n + 1); }}>Place performers</button>
+            <button onClick={() => setRoster(true)}>Import a roster…</button>
+            <button onClick={trySample}>Try the sample show</button>
+          </div>
+        )}
+        {pending && (
+          <div role="alert" className="backup-note">
+            <span>"{show.title || 'This show'}" has changes you haven't exported. {pending.what} replaces it in this browser (Undo brings it back until you close the page).</span>
+            <button className="primary" onClick={() => { save(); const go = pending.go; setPending(null); go(); }}>Export, then continue</button>
+            <button onClick={() => { const go = pending.go; setPending(null); go(); }}>Continue without exporting</button>
+            <button onClick={() => setPending(null)}>Cancel</button>
+          </div>
+        )}
+        {saveFailed === 'yes' && !pending && (
+          <div role="alert" className="backup-note">
+            <span>This browser didn't save your latest changes (its storage is full or turned off). Export a copy now so you don't lose them.</span>
+            <button className="primary" onClick={save}>Export now</button>
+            <button onClick={() => setSaveFailed('seen')}>OK</button>
+          </div>
+        )}
+        {remindBackup && !pending && saveFailed !== 'yes' && (
           <div role="alert" className="backup-note">
             <span>This show is saved only in this browser, and you haven't exported it since {new Date(unexported!).toLocaleDateString()}. Export a copy to keep it safe.</span>
             <button className="primary" onClick={save}>Export</button>
@@ -706,15 +756,15 @@ export function App() {
           </div>
         )}
         {/* Floats over the field so its changing length can't move the layout. */}
-        {hover && (
-          <div style={{ position: 'absolute', left: 8, bottom: 8, maxWidth: 'calc(100% - 16px)', padding: '4px 8px', borderRadius: 4,
-            background: 'rgba(24,36,25,0.85)', color: PALETTE.text, fontSize: 14, fontVariantNumeric: 'tabular-nums', pointerEvents: 'none' }}>{hover}</div>
+        {(notice?.t === t || hover) && (
+          <div role={notice?.t === t ? 'status' : undefined} style={{ position: 'absolute', left: 8, bottom: 8, maxWidth: 'calc(100% - 16px)', padding: '4px 8px', borderRadius: 4,
+            background: 'rgba(24,36,25,0.85)', color: PALETTE.text, fontSize: 14, fontVariantNumeric: 'tabular-nums', pointerEvents: 'none' }}>{notice?.t === t ? notice.text : hover}</div>
         )}
         </div>
         {/* Hidden, not unmounted, like the sidebar: its zoom and menus survive. */}
         <div style={timelineOpen ? undefined : { display: 'none' }}>
         <Timeline click={{ on: clickOn, set: (on) => { setClickOn(on); setClickWanted(on); if (on) wakeClick(); } }} wave={wave && show.music && show.music.taps.length >= 2 ? { peaks: wave, taps: show.music.taps } : undefined} show={show} setShow={setShow} t={t} setT={(x) => { setPlaying(false); setT(x); }} playing={playing} setPlaying={setPlaying} bpm={bpm} setBpm={setBpm}
-          range={range} setRange={setRange} span={span}
+          range={range} setRange={setRange} span={span} onCloseCall={showCloseCall}
           music={<MusicMenu show={show} setShow={setShow} audio={audio} onAudio={() => setAudioTick((n) => n + 1)} useMusic={useMusic} setUseMusic={setUseMusic} />} />
         </div>
       </div>
@@ -725,7 +775,7 @@ export function App() {
         show={show} setShow={setShow} t={t} setT={(x) => { setPlaying(false); setT(x); }} onSet={onSet}
         selected={selected} setSelected={setSelected} tool={tool} setTool={setTool}
         section={section} setSection={setSection} snap={snap} setSnap={setSnap} starts={starts}
-        onNew={fresh} onOpen={() => fileRef.current?.click()} onSave={save} onPrint={() => setPrinting(true)} onShare={() => setSharing(true)} fileError={fileError}
+        onNew={fresh} onOpen={() => guard('Importing another show', () => fileRef.current?.click())} onSample={trySample} onSave={save} onPrint={() => setPrinting(true)} onShare={() => setSharing(true)} fileError={fileError}
         selectedMark={selectedMark} setSelectedMark={setSelectedMark} adding={adding} setAdding={setAdding}
         look={look} setLook={setLook}
         clip={clip ? Object.keys(clip).length : 0} onCopy={copySpots} onPaste={pasteSpots} selectedProp={selectedProp} setSelectedProp={setSelectedProp} onTrace={() => setTraceTick((n) => n + 1)}
@@ -734,7 +784,8 @@ export function App() {
       />
       </div>
       </div>
-      {sharing && <ShareDialog show={show} onClose={() => setSharing(false)} />}
+      {sharing && <ShareDialog show={show} onClose={() => setSharing(false)} setRevision={(n) => setShow((s) => ({ ...s, revision: n }))} />}
+      {roster && <RosterImport show={show} setShow={setShow} onClose={() => setRoster(false)} />}
       {printing && <PrintDialog show={show} selected={selected} onClose={() => setPrinting(false)} />}
       <input ref={fileRef} type="file" accept=".freeform,.json,application/json,.3dj" hidden
         onChange={(e) => { const f = e.target.files?.[0]; if (f) open(f); e.target.value = ''; }} />

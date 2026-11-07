@@ -36,6 +36,7 @@ interface Props {
   starts: number[];
   onNew: () => void;
   onOpen: () => void;
+  onSample: () => void;
   onSave: () => void;
   onPrint: () => void;
   onShare: () => void;
@@ -78,6 +79,7 @@ export function Sidebar(p: Props) {
       <div style={row}>
         <button onClick={p.onNew}>New</button>
         <button onClick={p.onOpen} title="Load a .freeform show file (or an older .freeform.json) or a Pyware 3D .3dj drill (replaces the current show; Undo brings it back)">Import…</button>
+        <button onClick={p.onSample} title="Open the 47-performer sample show to look around (asks to export your show first if it has changes you haven't exported)">Sample</button>
         <button onClick={p.onSave} title="Download this show as a .freeform file: a backup, or a copy to share or open in another browser">Export</button>
         <button onClick={p.onPrint} disabled={!show.performers.length} title="Dot sheets and drill charts (print or save as PDF)">Print…</button>
         <button onClick={p.onShare} disabled={!show.performers.length} title="A link that opens this show on performers' and staff phones">Share…</button>

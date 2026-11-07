@@ -52,6 +52,7 @@ describe('dot sheets', () => {
     let { s, t1 } = show3();
     for (let k = 0; k < ROWS_PER_CARD + 5; k++) s = addSetAfter(s, s.sets.length - 1, 8);
     expect(dotCards(s, s.performers.filter((p) => p.id === t1), ROWS_PER_PAGE).map((c) => c.rows.length)).toEqual([s.sets.length]);
+    expect(dotCards(s, s.performers.filter((p) => p.id === t1), ROWS_PER_PAGE, [1, 2])[0].rows.map((r) => r.set)).toEqual([s.sets[1].name, s.sets[2].name]);
   });
   it('long shows continue onto more cards', () => {
     let { s, t1 } = show3();
