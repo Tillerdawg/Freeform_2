@@ -37,7 +37,7 @@ interface Props {
   onNew: () => void;
   onOpen: () => void;
   onSample: () => void;
-  onSave: () => void;
+  onSave: () => void | Promise<boolean>;
   onPrint: () => void;
   onShare: () => void;
   fileError: string;
@@ -79,12 +79,10 @@ export function Sidebar(p: Props) {
       <div style={row}>
         <button onClick={p.onNew}>New</button>
         <button onClick={p.onOpen} title="Load a .freeform show file (or an older .freeform.json) or a Pyware 3D .3dj drill (replaces the current show; Undo brings it back)">Import…</button>
-        <button onClick={p.onSample} title="Open the 47-performer sample show to look around (asks to export your show first if it has changes you haven't exported)">Sample</button>
-        <button onClick={p.onSave} title="Download this show as a .freeform file: a backup, or a copy to share or open in another browser">Export</button>
+        <button onClick={p.onSample} title="Open the 47-performer sample show to look around (offers to save your show to a file first if it has changes you haven't saved)">Sample</button>
+        <button onClick={p.onSave} title="Save this show as a .freeform file wherever you choose: a backup, or a copy to share or open in another browser">Save</button>
         <button onClick={p.onPrint} disabled={!show.performers.length} title="Dot sheets and drill charts (print or save as PDF)">Print…</button>
         <button onClick={p.onShare} disabled={!show.performers.length} title="A link that opens this show on performers' and staff phones">Share…</button>
-        <button onClick={() => { location.hash = `${PREVIEW}${one ? `=${encodeURIComponent(one.id)}` : ''}`; }} disabled={!show.performers.length}
-          title={one ? `See this show the way ${label(show, one)} sees it on a phone` : 'See this show the way performers see it on a phone (select one performer first to start on them)'}>Performer view</button>
       </div>
       {p.fileError && <div role="alert" style={{ color: 'var(--danger)', marginTop: 6 }}>{p.fileError}</div>}
       <div style={{ ...row, marginBottom: 10 }}>
@@ -173,6 +171,7 @@ export function Sidebar(p: Props) {
         <div style={row}>
           <button onClick={p.onCopy} disabled={!(selected.size && onSet >= 0)} title="Copy the selected performers' spots in this set (⌘C / Ctrl+C)">Copy spots</button>
           <button onClick={p.onPaste} disabled={!(p.clip && onSet >= 0)} title="Put the copied performers on the copied spots in this set (⌘V / Ctrl+V)">Paste spots{p.clip ? ` (${p.clip})` : ''}</button>
+          {one && <button onClick={() => { location.hash = `${PREVIEW}=${encodeURIComponent(one.id)}`; }} title={`See this show the way ${label(show, one)} sees it on a phone`}>Performer view</button>}
         </div>
         {onSet < 0 && <p style={{ color: 'var(--warn)', margin: '6px 0 0' }}>Mid-move: you can select, but scrub to a set to move or add.</p>}
         {one && (

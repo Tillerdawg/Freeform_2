@@ -39,7 +39,7 @@ You'll want a computer or an iPad to write drill. FreeFORM needs a current versi
 
 Phones only get the performer view. That's on purpose: a phone screen is too small to write drill on, but it's perfect for a student checking their spot.
 
-One thing to know up front: **your show is saved in the browser you're using.** FreeFORM saves every change automatically, but only on that computer, in that browser. If you clear your browser data, or switch from Chrome to Safari, your show won't be there. Use **Export** often to keep a copy you control (see [Saving, backing up, and opening files](#saving-backing-up-and-opening-files)).
+One thing to know up front: **your show is saved in the browser you're using.** FreeFORM saves every change automatically, but only on that computer, in that browser. If you clear your browser data, or switch from Chrome to Safari, your show won't be there. Use **Save** often to keep a file you control (see [Saving, backing up, and opening files](#saving-backing-up-and-opening-files)).
 
 ## A quick tour of the editor
 
@@ -55,7 +55,7 @@ From top to bottom:
 
 ## Set up a new show
 
-Click **New** in the sidebar to start a show. (If you already have one open, FreeFORM asks first, and Undo brings it back. If it has changes you haven't exported, FreeFORM offers to export it first: see [Saving, backing up, and opening files](#saving-backing-up-and-opening-files).)
+Click **New** in the sidebar to start a show. (If you already have one open, FreeFORM asks first, and Undo brings it back. If it has changes you haven't saved to a file, FreeFORM offers to save it first: see [Saving, backing up, and opening files](#saving-backing-up-and-opening-files).)
 
 When the field has no performers, a note over it offers three ways to begin: **Place performers** opens the **Add** menu so you can pick a section and start clicking, **Import a roster…** brings in a list from Excel (see **Names** under [Add performers](#add-performers)), and **Try the sample show** opens a finished 47-performer show to look around in first. **Sample** in the sidebar opens the same show any time.
 
@@ -430,7 +430,7 @@ On the performer screen:
 
 Students can add FreeFORM to their home screen. In the home-screen app, they open a show with **Scan QR code** or by pasting the link, and add more with **＋ Add a show…**.
 
-To check a performer's view while you write, select them and click **Performer view** in the sidebar. You see the show you're editing the way they see it on their phone, starting on them (with no one selected, it starts on the whole band), and you can pick someone else from the list at the top. It's a preview: it doesn't replace a show saved on that computer or iPad from a link. **← Editor** takes you back. **Open performer view here** in the Share dialog opens a share link on the same screen.
+To check a performer's view while you write, select one performer and click **Performer view** under **Selection** in the sidebar. (It's there only when exactly one performer is selected.) You see the show you're editing the way they see it on their phone, starting on them, and you can pick someone else, or **Staff (whole band)**, from the list at the top. It's a preview: it doesn't replace a show saved on that computer or iPad from a link. **← Editor** takes you back. **Open performer view here** in the Share dialog opens a share link on the same screen.
 
 ## Using an iPad
 
@@ -451,9 +451,16 @@ With a keyboard attached, the [keyboard shortcuts](#keyboard-shortcuts) work too
 ## Saving, backing up, and opening files
 
 - **Autosave**: every change is saved in your browser right away.
-- **Export** downloads the show as a `.freeform` file. This is your real backup, because the autosave lives in only that one browser. Export before big changes and at the end of every session. If a show has changes you haven't exported for a week, a note over the field reminds you, with an **Export** button. **Later** asks again tomorrow.
-- **One show at a time.** The browser keeps one show. Before **Import…**, **New**, or **Sample** replaces a show with changes you haven't exported, a note asks first: **Export, then continue**, **Continue without exporting**, or **Cancel**. Undo brings the old show back until you close the page; after that, only an exported file does.
-- **If saving fails.** If the browser refuses to save (its storage is full, or it's a private window), a note over the field says so, with **Export now**. Until it's fixed, your work is only in that open tab.
+- **Save** saves the show as a `.freeform` file. This is your real backup, because the autosave lives in only that one browser. Save before big changes and at the end of every session. Where the file goes depends on the browser:
+  - **Chrome and Edge** on a computer open a Save dialog, so you pick the folder and the name (a Dropbox or Google Drive folder works well).
+  - **On an iPad,** the share sheet opens. Choose **Save to Files** and pick a folder (iCloud Drive, On My iPad, or a Dropbox or Google Drive folder you've added to Files).
+  - **Safari and Firefox** on a computer download the file. It goes to your Downloads folder unless you've set the browser to ask where to save each download (Safari: Settings, General, File download location: Ask for each download; Firefox: Settings, General, Always ask you where to save files).
+
+  **⌘S** (Ctrl+S on Windows) saves too. In Chrome and Edge, the first ⌘S asks where, like **Save**; after that, ⌘S saves to that same file without asking, and a note at the bottom of the field says "Saved to Opener.freeform." The **Save** button always asks, so use it to save a copy somewhere new. FreeFORM forgets the file when you open or start another show, or close the page; the next ⌘S asks again. In other browsers, ⌘S does what **Save** does.
+
+  If a show has changes you haven't saved to a file for a week, a note over the field reminds you, with a **Save** button. **Later** asks again tomorrow.
+- **One show at a time.** The browser keeps one show. Before **Import…**, **New**, or **Sample** replaces a show with changes you haven't saved to a file, a note asks first: **Save, then continue**, **Continue without saving**, or **Cancel**. If you cancel the Save dialog, nothing is replaced. Undo brings the old show back until you close the page; after that, only a saved file does.
+- **If the autosave fails.** If the browser refuses to save (its storage is full, or it's a private window), a note over the field says so, with **Save now**. Until it's fixed, your work is only in that open tab and any file you save.
 - **Import…** opens a `.freeform` file (older `.freeform.json` files too). It replaces the current show, and Undo brings the old one back.
 - **Pyware 3D files (`.3dj`)**: Import… also opens these. You get the sets with their counts and names, measures and notes, sections from Pyware's symbols, label positions, and the roster names. Moves that aren't straight in Pyware (follow-the-leader, rotations, delayed step-offs) come in count by count, with even steps. Drawn markup and the 3D figures don't come over.
 
@@ -475,17 +482,18 @@ With a keyboard attached, the [keyboard shortcuts](#keyboard-shortcuts) work too
 | Select everyone | ⌘A (Ctrl+A on Windows) |
 | Copy or paste the selection's spots | ⌘C or ⌘V (Ctrl+C or Ctrl+V) |
 | Delete the selection (asks first) | Delete |
+| Save (to the same file after the first time) | ⌘S (Ctrl+S on Windows) |
 | Undo | ⌘Z (Ctrl+Z on Windows) |
 | Redo | ⇧⌘Z (Ctrl+Y or Ctrl+Shift+Z on Windows) |
 | Close a menu; back to Select from any other tool; then clear the selection | Esc |
 | Move around the field | Scroll, or right-drag |
 | Zoom | Pinch, or ⌘/Ctrl + scroll |
 
-Arrows move the selection the way it looks on screen: ↑ is toward the back sideline. Shortcuts don't fire while you're typing in a box.
+Arrows move the selection the way it looks on screen: ↑ is toward the back sideline. Shortcuts don't fire while you're typing in a box, except ⌘S.
 
 ## If something goes wrong
 
-**My show is gone.** Make sure you're in the same browser on the same computer you used before. The autosave doesn't follow you to other browsers or devices. If you exported the show, use **Import…** to open that file.
+**My show is gone.** Make sure you're in the same browser on the same computer you used before. The autosave doesn't follow you to other browsers or devices. If you saved the show to a file, use **Import…** to open it.
 
 **I made a mistake.** Undo (⌘Z or Ctrl+Z) works for every edit, including deleting performers, importing a show, and starting a new one.
 

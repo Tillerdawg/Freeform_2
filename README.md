@@ -25,7 +25,7 @@ A note on where the ideas came from: FreeFORM is modeled on Pyware and the Ultim
 
 ![The FreeFORM editor](docs/img/editor.png)
 
-> **Status:** early, and I'm working on it actively. Everything listed below works today. Shows are saved in your browser, in files you export, and in the links you share. There are no accounts and no cloud sync yet.
+> **Status:** early, and I'm working on it actively. Everything listed below works today. Shows are saved in your browser, in files you save, and in the links you share. There are no accounts and no cloud sync yet.
 
 ## What it does
 
@@ -57,7 +57,7 @@ A note on where the ideas came from: FreeFORM is modeled on Pyware and the Ultim
 - A performer view for phones: pick who you are, follow your dot, and see your spot now, your next spot, and the counts to get there. A phone keeps several shows (the Opener, Ballad, and Closer as separate files) and switches between them from a menu. Students can loop a range of sets to practice. It works offline once it's opened.
 
 **Files**
-- Autosave in your browser, plus export and import of `.freeform` files. FreeFORM offers an export before a show with unexported changes is replaced, and says so if the browser can't save.
+- Autosave in your browser, plus **Save** (to any folder you choose, where the browser allows it) and import of `.freeform` files. FreeFORM offers to save before a show with unsaved changes is replaced, and says so if the browser can't autosave.
 - A sample show to look around in before you write your own.
 - Import Pyware 3D (`.3dj`) shows, tested with files from 2008 to 2010.
 

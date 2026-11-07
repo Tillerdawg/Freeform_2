@@ -140,8 +140,10 @@ export function App() {
   const replaceShow = (s0: Show) => {
     const s = normalizeFtl(s0); // done here, not by setShow, so the show kept as "first" is the very one shown
     setShowRaw(s); setT(0); setSelected(new Set()); setSection(s.sections[0]?.id ?? '');
-    firstShow.current = s; backedUp();
+    firstShow.current = s; backedUp(); fileHandle.current = null; // a different show: ⌘S mustn't write over the last one's file
   };
+  const fileHandle = useRef<FileSystemFileHandle | null>(null); // where Save last put this show (Chrome, Edge), for ⌘S
+
   // A short message over the field about what just happened (a jump to a close call, an edit refused mid-move). It goes away when the playhead moves.
   const [notice, setNotice] = useState<{ text: string; t: number } | null>(null);
   const previewing = () => { const { to, count } = locate(show, t); return `Previewing count ${Math.floor(count)} of ${show.sets[to].counts} into set ${show.sets[to].name}`; };
@@ -378,6 +380,8 @@ export function App() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const el = e.target as HTMLElement;
+      // ⌘S / Ctrl+S, even while typing: save to the file chosen last time, or ask where. Never the browser's "save page".
+      if ((e.metaKey || e.ctrlKey) && (e.key === 's' || e.key === 'S')) { e.preventDefault(); saveRef.current(true); return; }
       if (printing || document.querySelector('[role=dialog]') || el.closest('input, select, textarea')) return; // text fields keep the browser's own undo
       if (e.defaultPrevented) return; // a control used the key itself (arrows reordering sections)
       boundary.current = true;
@@ -647,15 +651,45 @@ export function App() {
     }
   };
 
-  const save = () => {
+  /**
+   * Save the show as a .freeform file where the user chooses: a Save dialog where the browser has one (Chrome, Edge),
+   * the share sheet on a tablet or phone (Save to Files), otherwise a download. True once it's saved, false if cancelled.
+   * `inPlace` (⌘S): write to the file this show was last saved to, without asking, when there is one.
+   * shortcut: the file is remembered only until the page closes; after a reload the first ⌘S asks again (keeping it needs IndexedDB and a permission prompt).
+   */
+  const saveTo = async (inPlace: boolean): Promise<boolean> => {
+    const name = `${show.title.replace(/[^\w\- ]+/g, '').trim() || 'show'}.freeform`;
     const blob = new Blob([JSON.stringify(show, null, 2)], { type: 'application/octet-stream' }); // not JSON's type: Safari would add ".json"
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `${show.title.replace(/[^\w\- ]+/g, '').trim() || 'show'}.freeform`;
-    a.click();
-    URL.revokeObjectURL(a.href);
-    backedUp();
+    const file = new File([blob], name, { type: blob.type });
+    const pick = (window as { showSaveFilePicker?: (o: object) => Promise<FileSystemFileHandle> }).showSaveFilePicker;
+    try {
+      if (inPlace && fileHandle.current) {
+        const h = fileHandle.current, w = await h.createWritable();
+        await w.write(blob); await w.close();
+        setNotice({ text: `Saved to ${h.name}.`, t });
+      } else if (pick) {
+        const h = await pick({ suggestedName: name, types: [{ description: 'FreeFORM show', accept: { 'application/octet-stream': ['.freeform'] } }] });
+        const w = await h.createWritable();
+        await w.write(blob); await w.close();
+        fileHandle.current = h;
+      } else if (coarse() && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file] });
+      } else {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = name;
+        a.click();
+        URL.revokeObjectURL(a.href);
+      }
+    } catch (err) {
+      if (!(err instanceof DOMException && err.name === 'AbortError')) { setFileError(`Couldn't save: ${err instanceof Error ? err.message : String(err)}`); fileHandle.current = null; }
+      return false;
+    }
+    backedUp(); setFileError('');
+    return true;
   };
+  const save = () => saveTo(false); // the Save button always asks, so it's also how to save somewhere new
+  const saveRef = useRef(saveTo); saveRef.current = saveTo; // the key handler's copy is only refreshed on some changes; this one is always current
 
   const open = async (f: File) => {
     try {
@@ -735,23 +769,23 @@ export function App() {
         )}
         {pending && (
           <div role="alert" className="backup-note">
-            <span>"{show.title || 'This show'}" has changes you haven't exported. {pending.what} replaces it in this browser (Undo brings it back until you close the page).</span>
-            <button className="primary" onClick={() => { save(); const go = pending.go; setPending(null); go(); }}>Export, then continue</button>
-            <button onClick={() => { const go = pending.go; setPending(null); go(); }}>Continue without exporting</button>
+            <span>"{show.title || 'This show'}" has changes you haven't saved to a file. {pending.what} replaces it in this browser (Undo brings it back until you close the page).</span>
+            <button className="primary" onClick={async () => { const go = pending.go; if (await save()) { setPending(null); go(); } }}>Save, then continue</button>
+            <button onClick={() => { const go = pending.go; setPending(null); go(); }}>Continue without saving</button>
             <button onClick={() => setPending(null)}>Cancel</button>
           </div>
         )}
         {saveFailed === 'yes' && !pending && (
           <div role="alert" className="backup-note">
-            <span>This browser didn't save your latest changes (its storage is full or turned off). Export a copy now so you don't lose them.</span>
-            <button className="primary" onClick={save}>Export now</button>
+            <span>This browser didn't save your latest changes (its storage is full or turned off). Save it to a file now so you don't lose them.</span>
+            <button className="primary" onClick={save}>Save now</button>
             <button onClick={() => setSaveFailed('seen')}>OK</button>
           </div>
         )}
         {remindBackup && !pending && saveFailed !== 'yes' && (
           <div role="alert" className="backup-note">
-            <span>This show is saved only in this browser, and you haven't exported it since {new Date(unexported!).toLocaleDateString()}. Export a copy to keep it safe.</span>
-            <button className="primary" onClick={save}>Export</button>
+            <span>This show is saved only in this browser, and you haven't saved it to a file since {new Date(unexported!).toLocaleDateString()}. Save a copy to keep it safe.</span>
+            <button className="primary" onClick={save}>Save</button>
             <button onClick={() => { const n = Date.now() + DAY; writeTime(SNOOZE, n); setSnooze(n); }}>Later</button>
           </div>
         )}
