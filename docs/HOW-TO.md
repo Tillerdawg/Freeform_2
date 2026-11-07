@@ -452,11 +452,11 @@ With a keyboard attached, the [keyboard shortcuts](#keyboard-shortcuts) work too
 
 - **Autosave**: every change is saved in your browser right away.
 - **Save** saves the show as a `.freeform` file. This is your real backup, because the autosave lives in only that one browser. Save before big changes and at the end of every session. Where the file goes depends on the browser:
-  - **Chrome and Edge** on a computer open a Save dialog, so you pick the folder and the name (a Dropbox or Google Drive folder works well).
+  - **Chrome and Edge** on a computer open a Save dialog the first time, so you pick the folder and the name (a Dropbox or Google Drive folder works well). After that, **Save** writes to that same file without asking, and a note at the bottom of the field says "Saved to Opener.freeform." **Save As…** (next to **Save**, in these browsers only) always asks, for a copy with a new name or in a new folder; later Saves go to the new file.
   - **On an iPad,** the share sheet opens. Choose **Save to Files** and pick a folder (iCloud Drive, On My iPad, or a Dropbox or Google Drive folder you've added to Files).
   - **Safari and Firefox** on a computer download the file. It goes to your Downloads folder unless you've set the browser to ask where to save each download (Safari: Settings, General, File download location: Ask for each download; Firefox: Settings, General, Always ask you where to save files).
 
-  **⌘S** (Ctrl+S on Windows) saves too. In Chrome and Edge, the first ⌘S asks where, like **Save**; after that, ⌘S saves to that same file without asking, and a note at the bottom of the field says "Saved to Opener.freeform." The **Save** button always asks, so use it to save a copy somewhere new. FreeFORM forgets the file when you open or start another show, or close the page; the next ⌘S asks again. In other browsers, ⌘S does what **Save** does.
+  **⌘S** (Ctrl+S on Windows) is the same as **Save**, even while you're typing in a box. FreeFORM forgets the file when you open or start another show, or close the page; the next Save asks again.
 
   If a show has changes you haven't saved to a file for a week, a note over the field reminds you, with a **Save** button. **Later** asks again tomorrow.
 - **One show at a time.** The browser keeps one show. Before **Import…**, **New**, or **Sample** replaces a show with changes you haven't saved to a file, a note asks first: **Save, then continue**, **Continue without saving**, or **Cancel**. If you cancel the Save dialog, nothing is replaced. Undo brings the old show back until you close the page; after that, only a saved file does.
@@ -482,7 +482,7 @@ With a keyboard attached, the [keyboard shortcuts](#keyboard-shortcuts) work too
 | Select everyone | ⌘A (Ctrl+A on Windows) |
 | Copy or paste the selection's spots | ⌘C or ⌘V (Ctrl+C or Ctrl+V) |
 | Delete the selection (asks first) | Delete |
-| Save (to the same file after the first time) | ⌘S (Ctrl+S on Windows) |
+| Save | ⌘S (Ctrl+S on Windows) |
 | Undo | ⌘Z (Ctrl+Z on Windows) |
 | Redo | ⇧⌘Z (Ctrl+Y or Ctrl+Shift+Z on Windows) |
 | Close a menu; back to Select from any other tool; then clear the selection | Esc |

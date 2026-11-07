@@ -654,7 +654,7 @@ export function App() {
   /**
    * Save the show as a .freeform file where the user chooses: a Save dialog where the browser has one (Chrome, Edge),
    * the share sheet on a tablet or phone (Save to Files), otherwise a download. True once it's saved, false if cancelled.
-   * `inPlace` (⌘S): write to the file this show was last saved to, without asking, when there is one.
+   * `inPlace` (Save, ⌘S): write to the file this show was last saved to, without asking, when there is one. Save As passes false.
    * shortcut: the file is remembered only until the page closes; after a reload the first ⌘S asks again (keeping it needs IndexedDB and a permission prompt).
    */
   const saveTo = async (inPlace: boolean): Promise<boolean> => {
@@ -688,7 +688,7 @@ export function App() {
     backedUp(); setFileError('');
     return true;
   };
-  const save = () => saveTo(false); // the Save button always asks, so it's also how to save somewhere new
+  const save = () => saveTo(true), saveAs = () => saveTo(false);
   const saveRef = useRef(saveTo); saveRef.current = saveTo; // the key handler's copy is only refreshed on some changes; this one is always current
 
   const open = async (f: File) => {
@@ -809,7 +809,7 @@ export function App() {
         show={show} setShow={setShow} t={t} setT={(x) => { setPlaying(false); setT(x); }} onSet={onSet}
         selected={selected} setSelected={setSelected} tool={tool} setTool={setTool}
         section={section} setSection={setSection} snap={snap} setSnap={setSnap} starts={starts}
-        onNew={fresh} onOpen={() => guard('Importing another show', () => fileRef.current?.click())} onSample={trySample} onSave={save} onPrint={() => setPrinting(true)} onShare={() => setSharing(true)} fileError={fileError}
+        onNew={fresh} onOpen={() => guard('Importing another show', () => fileRef.current?.click())} onSample={trySample} onSave={save} onSaveAs={saveAs} onPrint={() => setPrinting(true)} onShare={() => setSharing(true)} fileError={fileError}
         selectedMark={selectedMark} setSelectedMark={setSelectedMark} adding={adding} setAdding={setAdding}
         look={look} setLook={setLook}
         clip={clip ? Object.keys(clip).length : 0} onCopy={copySpots} onPaste={pasteSpots} selectedProp={selectedProp} setSelectedProp={setSelectedProp} onTrace={() => setTraceTick((n) => n + 1)}
