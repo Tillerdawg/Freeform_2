@@ -161,7 +161,7 @@ export const TIER_COLOR = { ok: PALETTE['bg-deep'], yellow: PALETTE.warn, red: P
 /** The same tiers as text on the dark panels (the field's bright red is too dim for text there). */
 export const STEP_TEXT = { ok: 'var(--text)', yellow: 'var(--warn)', red: 'var(--danger)' } as const;
 
-export interface Dot { id: string; label: string; at: Point; pin?: LabelSide; color?: string; glyph?: string; facing?: Point; dim?: boolean } // dim: a section dimmed in the editor, drawn faint and unlabeled // glyph: draw this letter instead of a dot; facing: a unit direction on the field
+export interface Dot { id: string; label: string; at: Point; pin?: LabelSide; color?: string; glyph?: string; dim?: boolean } // dim: a section dimmed in the editor, drawn faint and unlabeled // glyph: draw this letter instead of a dot
 export interface Path { from: Point; to: Point; tier: keyof typeof TIER_COLOR }
 
 /**
@@ -222,23 +222,6 @@ export function drawGlyph(ctx: CanvasRenderingContext2D, at: Point, glyph: strin
   if (!badge) { ctx.lineWidth = px * 0.16; ctx.lineJoin = 'round'; ctx.strokeStyle = outline; ctx.strokeText(glyph, c.x, y); }
   ctx.fillStyle = color; ctx.fillText(glyph, c.x, y);
   ctx.restore();
-}
-
-/**
- * Which way a performer faces: a small pointer on the edge of its mark (radius r, in screen px), toward field direction
- * `dir`. Drawn through the canvas's transform, so it turns with a field that's turned around (Facing front).
- */
-export function drawFacing(ctx: CanvasRenderingContext2D, v: View, at: Point, dir: Point, r: number, fill: string, edge: string) {
-  const c = toScreen(v, at), e = toScreen(v, { x: at.x + dir.x, y: at.y + dir.y });
-  const len = Math.hypot(e.x - c.x, e.y - c.y) || 1, ux = (e.x - c.x) / len, uy = (e.y - c.y) / len;
-  const L = Math.max(6, r * 0.75), base = r - Math.max(1, r * 0.1), w = L * 0.6; // its base tucked into the mark's edge: one mark, not two
-  ctx.beginPath();
-  ctx.moveTo(c.x + ux * (base + L), c.y + uy * (base + L));
-  ctx.lineTo(c.x + ux * base - uy * w, c.y + uy * base + ux * w);
-  ctx.lineTo(c.x + ux * base + uy * w, c.y + uy * base - ux * w);
-  ctx.closePath();
-  ctx.lineJoin = 'round'; ctx.lineWidth = Math.max(1.5, L * 0.25); ctx.strokeStyle = edge; ctx.stroke();
-  ctx.fillStyle = fill; ctx.fill();
 }
 
 /** Props under the performers: a shape with its name in the middle; `print` is black on white. */
@@ -315,10 +298,6 @@ export function drawPerformers(
     ctx.stroke();
   }
   ctx.globalAlpha = 1;
-  // Facing, only where the caller gives it (the editor: selected performers), attached to the mark so the letter stays
-  // the spot (Jason): a pointer on the badge's edge.
-  const edge = (d0: Dot) => (d0.glyph ? f * 0.62 : r) + Math.max(1, s * 0.05);
-  for (const d of dots) if (d.facing) drawFacing(ctx, v, d.at, d.facing, edge(d), PALETTE.gold, 'rgba(0,0,0,0.85)');
   drawLabels(ctx, dots.map((d) => ({ ...d, first: selected.has(d.id) })), v, r, Math.max(10 * dpr, s * 0.8), '#fff', 'rgba(0,0,0,0.85)'); // at least 10 CSS px: smaller isn't readable; black outline so yard lines don't swallow them
 
   if (box) {

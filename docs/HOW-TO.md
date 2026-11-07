@@ -18,20 +18,19 @@ The pictures in this guide come from a small sample show (47 performers, 4 sets)
 8. [Rotate, stretch, and flip](#rotate-stretch-and-flip)
 9. [Paths: straight, follow the leader, and custom](#paths-straight-follow-the-leader-and-custom)
 10. [Step-offs and turning moves](#step-offs-and-turning-moves)
-11. [Facing and equipment](#facing-and-equipment)
-12. [Props](#props)
-13. [Step-size and too-close warnings](#step-size-and-too-close-warnings)
-14. [Dot labels](#dot-labels)
-15. [Markup and notes](#markup-and-notes)
-16. [Play it back](#play-it-back)
-17. [Add your music](#add-your-music)
-18. [Print dot sheets and drill charts](#print-dot-sheets-and-drill-charts)
-19. [Send the show to your performers](#send-the-show-to-your-performers)
-20. [What performers see on their phones](#what-performers-see-on-their-phones)
-21. [Using an iPad](#using-an-ipad)
-22. [Saving, backing up, and opening files](#saving-backing-up-and-opening-files)
-23. [Keyboard shortcuts](#keyboard-shortcuts)
-24. [If something goes wrong](#if-something-goes-wrong)
+11. [Props](#props)
+12. [Step-size and too-close warnings](#step-size-and-too-close-warnings)
+13. [Dot labels](#dot-labels)
+14. [Markup and notes](#markup-and-notes)
+15. [Play it back](#play-it-back)
+16. [Add your music](#add-your-music)
+17. [Print dot sheets and drill charts](#print-dot-sheets-and-drill-charts)
+18. [Send the show to your performers](#send-the-show-to-your-performers)
+19. [What performers see on their phones](#what-performers-see-on-their-phones)
+20. [Using an iPad](#using-an-ipad)
+21. [Saving, backing up, and opening files](#saving-backing-up-and-opening-files)
+22. [Keyboard shortcuts](#keyboard-shortcuts)
+23. [If something goes wrong](#if-something-goes-wrong)
 
 ## Before you start
 
@@ -264,16 +263,6 @@ The **Move** menu (in the toolbar) is about the move into the set you're on.
 
 A delayed step-off and a turning move work together: hold 4, then turn in 12, for example.
 
-## Facing and equipment
-
-Select performers, go to a set, and pick which way they face from **Facing** in the sidebar's Selection area: **Front**, **Back**, **Side 1**, **Side 2**, or one of the four diagonals (**Front-Side 2** and so on). Front is toward the front sideline, where the box is.
-
-When you select performers, a small pointer on the edge of each one's gold badge shows which way it faces. Unselected performers don't show it, so the field stays easy to read. On a phone, performers see the pointer on their own mark. A facing carries on into later sets until you change it, so you only set it where it changes. **As in the set before** takes back a change. Performers you never set have no pointer. To check a whole section's facing at once, use **Select a section…**.
-
-Dot sheets say "Face Side 2" on the set where a performer's facing changes, and the phone view shows "facing Side 2" with their spot and "face Back" with their next set when it's about to change.
-
-**Guard equipment.** **Carries** (just under **Facing**) works the same way: pick **Flag**, **Rifle**, or **Saber** on the set where they pick it up, and **Nothing** where they put it down. It shows in the sidebar for the selected performers, and the field keeps their letter or dot. Dot sheets say "Flag" or "Put down equipment" on the set where it changes, and the phone says "pick up rifle" with the next set.
-
 ## Props
 
 ![The Props list in the sidebar, with the platform picked](img/props.png)
@@ -323,7 +312,7 @@ Press Esc (or V) to go back to **Select** when you're done. Click a piece of mar
 There are two kinds of written notes in the sidebar:
 
 - **Ensemble notes** belong to a set and print under that set's drill chart, for everyone.
-- **Performer notes** belong to the selected performers and print on their dot sheets for that set ("Slide L, horns 45").
+- **Performer notes** belong to the selected performers and print on their dot sheets for that set ("Slide L, horns 45"). Write facings and equipment here too: "Face Side 2," "Pick up flag."
 
 ## Play it back
 
@@ -365,7 +354,7 @@ Choose **Dot sheets** or **Drill charts**, and who to print for: **Everyone**, o
 
 Once you've published the show to phones, charts and dot sheets print its revision number next to the title ("rev 6"), so paper and phones can be compared. Print after you publish, so the number matches what students have.
 
-Dot sheets come four cards to a page. Each card has the performer's label, name, and section, then every set with its counts, measures, and coordinates. Under a set go any notes for it: a delayed step-off ("Hold 4, move 12"), a change of facing or equipment, and the performer notes.
+Dot sheets come four cards to a page. Each card has the performer's label, name, and section, then every set with its counts, measures, and coordinates. Under a set go any notes for it: a delayed step-off ("Hold 4, move 12") and the performer notes.
 
 ![A page of dot sheets](img/dot-sheet.png)
 
@@ -463,7 +452,7 @@ With a keyboard attached, the [keyboard shortcuts](#keyboard-shortcuts) work too
   If a show has changes you haven't saved to a file for a week, a note over the field reminds you, with a **Save** button. **Later** asks again tomorrow.
 - **One show at a time.** The browser keeps one show. Before **Import…**, **New**, or **Sample** replaces a show with changes you haven't saved to a file, a note asks first: **Save, then continue**, **Continue without saving**, or **Cancel**. If you cancel the Save dialog, nothing is replaced. Undo brings the old show back until you close the page; after that, only a saved file does.
 - **If the autosave fails.** If the browser refuses to save (its storage is full, or it's a private window), a note over the field says so, with **Save now**. Until it's fixed, your work is only in that open tab and any file you save.
-- **Import…** opens a `.freeform` file (older `.freeform.json` files too). It replaces the current show, and Undo brings the old one back.
+- **Import…** opens a `.freeform` file (older `.freeform.json` files too). It replaces the current show, and Undo brings the old one back. A file from before November 7, 2026 with facings or guard equipment set opens with them as performer notes on the same set ("Face Side 2," "Flag").
 - **Pyware 3D files (`.3dj`)**: Import… also opens these. You get the sets with their counts and names, measures and notes, sections from Pyware's symbols, label positions, and the roster names. Moves that aren't straight in Pyware (follow-the-leader, rotations, delayed step-offs) come in count by count, with even steps. Drawn markup and the 3D figures don't come over.
 
 ## Keyboard shortcuts

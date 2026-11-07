@@ -37,7 +37,6 @@ A note on where the ideas came from: FreeFORM is modeled on Pyware and the Ultim
 - Rotate and stretch a group by dragging handles on the field, or turn it around one performer for a gate turn. Flip across the 50 or front to back, or copy one side to the other.
 - Paths: straight, follow the leader (with turns or a smooth curve, and counter-marches), or a custom path for one performer.
 - Delayed step-offs (hold 4, move 12) and turning moves, where a rotating group marches arcs instead of straight lines.
-- Which way each performer faces (eight directions) and what guard equipment they carry (flag, rifle, or saber), carried from set to set.
 - Props (platforms, backdrops) that sit in a different spot each set and move between sets.
 - Dim or hide sections while you write the others.
 - Select everyone or a whole section, copy spots from one set and paste them into another, and see how far apart two performers are.

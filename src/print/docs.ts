@@ -1,6 +1,6 @@
 // What goes on printed dot sheets and drill charts (pure data; layout is in Print.tsx).
 import { frontToBack, sideToSide } from '../engine/coords';
-import { fieldOf, equipmentIn, equipmentName, facingIn, facingName, timingOf, label, movementOfSet, setStarts, type Performer, type Show } from '../engine/show';
+import { fieldOf, timingOf, label, movementOfSet, setStarts, type Performer, type Show } from '../engine/show';
 
 export const ROWS_PER_CARD = 24; // what fits a quarter-letter card at a readable size
 export const ROWS_PER_PAGE = 34; // one sheet per page, at a bigger size, with a notes column
@@ -23,18 +23,6 @@ function stepOff(show: Show, i: number, id: string): string {
   return t.move < n ? `Hold ${t.wait}, move ${t.move}${n - t.wait - t.move ? `, hold ${n - t.wait - t.move}` : ''}` : '';
 }
 
-/** "Face Side 2" on the set where a performer's facing changes (it carries on until the next change). */
-function faceChange(show: Show, i: number, id: string): string {
-  const f = facingIn(show, i, id);
-  return f && f !== (i ? facingIn(show, i - 1, id) : undefined) ? `Face ${facingName(f)}` : '';
-}
-
-/** "Flag" (or "Put down equipment") on the set where what a performer carries changes. */
-function equipChange(show: Show, i: number, id: string): string {
-  const e = equipmentIn(show, i, id), was = i ? equipmentIn(show, i - 1, id) : undefined;
-  return e === was ? '' : e ? equipmentName(e) : 'Put down equipment';
-}
-
 /** One or more cards per performer (long shows continue onto another card). */
 export function dotCards(show: Show, performers: Performer[], perCard = ROWS_PER_CARD, sets: [number, number] = [0, show.sets.length - 1]): Card[] {
   const cards: Card[] = [];
@@ -43,7 +31,7 @@ export function dotCards(show: Show, performers: Performer[], perCard = ROWS_PER
       set: s.name,
       counts: i === 0 ? '—' : String(s.counts),
       measures: s.measures ?? '',
-      cue: [stepOff(show, i, p.id), faceChange(show, i, p.id), equipChange(show, i, p.id), s.cues?.[p.id]].filter(Boolean).join(' · '),
+      cue: [stepOff(show, i, p.id), s.cues?.[p.id]].filter(Boolean).join(' · '),
       side: sideToSide(s.pos[p.id].x, fieldOf(show)),
       front: frontToBack(s.pos[p.id].y, fieldOf(show)),
     })).slice(sets[0], sets[1] + 1); // a rehearsal packet: just these sets

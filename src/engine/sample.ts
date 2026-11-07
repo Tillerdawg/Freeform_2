@@ -2,7 +2,7 @@
 import type { Point } from './coords';
 import { assign } from './shapes';
 import {
-  addProp, placeProp, addPerformer, addSetAfter, newShow, normalizeFtl, placeInSet, setCue, setEquipment, setFacing, setFtl, setFtlTurns, setMarks, setMeasures, setNames, setNote,
+  addProp, placeProp, addPerformer, addSetAfter, newShow, normalizeFtl, placeInSet, setCue, setFtl, setFtlTurns, setMarks, setMeasures, setNames, setNote,
   type Show,
 } from './show';
 
@@ -42,8 +42,8 @@ export function sampleShow(): Show {
     { id: 'm-arrow', kind: 'arrow', from: { x: 22, y: 10 }, to: { x: 30, y: 10 } },
   ]);
   show = setCue(show, 1, [winds[12]], 'Bell to the 50 on 13');
-  show = setEquipment(show, 0, guard, 'flag'); // flags for the opener
-  show = setFacing(show, 1, guard, 'side2'); // the guard turns to Side 2, ready for its follow-the-leader into set 3
+  show = setCue(show, 0, guard, 'Flag'); // flags for the opener
+  show = setCue(show, 1, guard, 'Face Side 2'); // the guard turns to Side 2, ready for its follow-the-leader into set 3
   // Set 3: company front on the front hash; the guard follows its leader toward Side 2, turning upfield at the 30.
   const lead = guard[5];
   show = placeInSet(show, 2, { ...near(2, winds, Array.from({ length: 30 }, (_, k) => ({ x: -29 + 2 * k, y: 28 }))), ...at(battery, (k) => ({ x: -10 + 2 * k, y: 36 })), [lead]: { x: 32, y: 24 } });

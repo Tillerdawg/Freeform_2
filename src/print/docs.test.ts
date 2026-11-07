@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addPerformer, addSetAfter, newShow, parseShow, placeInSet, setCue, setEquipment, setFacing, setMeasures, setTiming } from '../engine/show';
+import { addPerformer, addSetAfter, newShow, parseShow, placeInSet, setCue, setMeasures, setTiming } from '../engine/show';
 import { ROWS_PER_CARD, ROWS_PER_PAGE, chartTitle, chunk, dotCards, hasMeasures, sortedPerformers } from './docs';
 
 function show3() {
@@ -29,24 +29,10 @@ describe('dot sheets', () => {
       { set: '2', counts: '16', measures: '', side: 'Splitting 35 and 40 on Side 1', front: 'On Back Hash', cue: '' },
     ]);
   });
-  it('notes a facing on the set where it changes, before the performer note', () => {
-    let { s, t1 } = show3();
-    s = addSetAfter(s, 1, 8);
-    s = setCue(setFacing(s, 1, [t1], 'side2'), 1, [t1], 'Slide L');
-    const [card] = dotCards(s, s.performers.filter((p) => p.id === t1));
-    expect(card.rows.map((r) => r.cue)).toEqual(['', 'Face Side 2 · Slide L', '']);
-  });
   it('notes a delayed step-off', () => {
     const { s, t1 } = show3();
     const [card] = dotCards(setTiming(s, 1, [t1], 4, 8), s.performers.filter((p) => p.id === t1));
     expect(card.rows[1].cue).toBe('Hold 4, move 8, hold 4');
-  });
-  it('notes equipment where it changes', () => {
-    let { s, t1 } = show3();
-    s = addSetAfter(s, 1, 8);
-    s = setEquipment(setEquipment(s, 0, [t1], 'flag'), 2, [t1], 'none');
-    const [card] = dotCards(s, s.performers.filter((p) => p.id === t1));
-    expect(card.rows.map((r) => r.cue)).toEqual(['Flag', '', 'Put down equipment']);
   });
   it('one per page holds more sets on a card', () => {
     let { s, t1 } = show3();

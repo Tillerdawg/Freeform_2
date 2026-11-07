@@ -3,7 +3,7 @@ import { HASHES, readout } from './coords';
 import {
   addPerformer, addSetAfter, advance, biggestStep, chainOrder, clearFtl, ftlTrail, moveSteps, normalizeFtl, flip, mirrorSides, moveSetTo, remapHash, rotateScale, setFtl, snapSelection, playRange, playPlan, label, locate, newShow, parseShow, placeInSet, positionsAt,
   removePerformers, renumberSets, scoreOrder, DEFAULT_SECTIONS, removeSet, setAt, setCounts, setStarts, totalCounts, xFrom, yFrom, insertSetAt, showLength, movementAt, movementOfSet, setFtlTurns,
-  addSetHere, newPropSpot, setFtlSmooth, routeTurns, leaderDistance, setTiming, timingOf, fitTurn, setTurning, turnRoute, counterMarch, closeCalls, facingIn, setFacing, facingVector, equipmentIn, setEquipment, addProp, placeProp, propsAt, hitProp, removeProp, fieldOf, moveSegments,
+  addSetHere, setCue, newPropSpot, setFtlSmooth, routeTurns, leaderDistance, setTiming, timingOf, fitTurn, setTurning, turnRoute, counterMarch, closeCalls, addProp, placeProp, propsAt, hitProp, removeProp, fieldOf, moveSegments,
 } from './show';
 
 function twoSetShow() {
@@ -699,35 +699,17 @@ describe('delayed step-offs, turning moves, counter-march, close calls', () => {
   });
 });
 
-describe('facing', () => {
-  it('carries forward until it changes, and checks files', () => {
+describe('facing and equipment (removed)', () => {
+  it("turns an older file's facings and equipment into performer notes", () => {
     let { show, id } = twoSetShow();
-    show = addSetAfter(show, 1, 8);
-    expect(facingIn(show, 2, id)).toBeUndefined();
-    show = setFacing(show, 1, [id], 'side2');
-    expect([facingIn(show, 0, id), facingIn(show, 1, id), facingIn(show, 2, id)]).toEqual([undefined, 'side2', 'side2']);
-    show = setFacing(show, 2, [id], 'back');
-    expect(facingIn(show, 2, id)).toBe('back');
-    expect(facingIn(setFacing(show, 2, [id], null), 2, id)).toBe('side2');
-    expect(facingVector('front-side2').x).toBeCloseTo(Math.SQRT1_2);
-    expect(facingVector('front-side2').y).toBeCloseTo(-Math.SQRT1_2);
-    expect(parseShow(JSON.stringify(show)).sets[2].facing).toEqual({ [id]: 'back' });
-    const bad = JSON.parse(JSON.stringify(show)); bad.sets[2].facing[id] = 'up';
-    expect(() => parseShow(JSON.stringify(bad))).toThrow(/facing/);
-    expect(removePerformers(show, new Set([id])).sets[2].facing).toEqual({});
-  });
-});
-
-describe('equipment', () => {
-  it('carries forward, can be put down, and checks files', () => {
-    let { show, id } = twoSetShow();
-    show = addSetAfter(show, 1, 8);
-    show = setEquipment(setEquipment(show, 0, [id], 'flag'), 2, [id], 'none');
-    expect([0, 1, 2].map((i) => equipmentIn(show, i, id))).toEqual(['flag', 'flag', undefined]);
-    expect(equipmentIn(setEquipment(show, 2, [id], null), 2, id)).toBe('flag');
-    const bad = JSON.parse(JSON.stringify(show)); bad.sets[0].equipment[id] = 'tuba';
-    expect(() => parseShow(JSON.stringify(bad))).toThrow(/equipment/);
-    expect(parseShow(JSON.stringify(show)).sets[2].equipment).toEqual({ [id]: 'none' });
+    show = setCue(show, 1, [id], 'Slide L');
+    const old = JSON.parse(JSON.stringify(show));
+    old.sets[0].equipment = { [id]: 'flag' };
+    old.sets[1].facing = { [id]: 'side2', ghost: 'back' }; // a performer who isn't in the set is skipped
+    old.sets[1].equipment = { [id]: 'none' };
+    const s = parseShow(JSON.stringify(old));
+    expect(s.sets.map((x) => x.cues)).toEqual([{ [id]: 'Flag' }, { [id]: 'Face Side 2 · Put down equipment · Slide L' }]);
+    expect('facing' in s.sets[1] || 'equipment' in s.sets[0]).toBe(false);
   });
 });
 

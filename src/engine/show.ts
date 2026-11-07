@@ -57,10 +57,6 @@ export interface DrillSet {
   timing?: Record<string, { wait: number; move: number }>;
   /** Groups whose move into this set turns (a gate turn, a pivot): each member marches an arc around the one turn that best carries the group from its old spots to its new ones. */
   turning?: string[][];
-  /** Which way performers face in this set, where it changes; a performer keeps facing that way in later sets until it changes again. */
-  facing?: Record<string, Facing>;
-  /** Equipment performers carry from this set on, where it changes ('none' = they put it down); carried forward like facing. */
-  equipment?: Record<string, Equipment | 'none'>;
   /** Where each prop is in this set (every prop has a spot in every set, like performers). */
   props?: Record<string, PropSpot>;
 }
@@ -71,46 +67,17 @@ export interface Prop { id: string; name: string; w: number; h: number; round?: 
 export interface PropSpot { x: number; y: number; angle: number }
 export const MAX_PROPS = 100;
 
-export type Equipment = 'flag' | 'rifle' | 'saber';
-export const EQUIPMENT: [Equipment, string][] = [['flag', 'Flag'], ['rifle', 'Rifle'], ['saber', 'Saber']];
-export const equipmentName = (e: Equipment) => EQUIPMENT.find(([k]) => k === e)![1];
-
-/** What a performer carries in set i (the last set up to i that says), or undefined for nothing. */
-export function equipmentIn(show: Show, i: number, id: string): Equipment | undefined {
-  for (let j = Math.min(i, show.sets.length - 1); j >= 0; j--) { const e = show.sets[j].equipment?.[id]; if (e) return e === 'none' ? undefined : e; }
+// Facing and guard equipment were set per performer until 2026-11-07, when they went back to being written in the notes (Jason).
+const OLD_FACING: Record<string, string> = { front: 'Front', back: 'Back', side1: 'Side 1', side2: 'Side 2', 'front-side1': 'Front-Side 1', 'front-side2': 'Front-Side 2', 'back-side1': 'Back-Side 1', 'back-side2': 'Back-Side 2' };
+const OLD_EQUIPMENT: Record<string, string> = { flag: 'Flag', rifle: 'Rifle', saber: 'Saber', none: 'Put down equipment' };
+/** An older file's facings and equipment become performer notes on the same set ("Face Side 2 · Flag · <the note>"), so nothing written is lost. */
+function oldFacingToCues(set: DrillSet & { facing?: unknown; equipment?: unknown }) {
+  const add: Record<string, string[]> = {};
+  for (const [field, names, pre] of [[set.facing, OLD_FACING, 'Face '], [set.equipment, OLD_EQUIPMENT, '']] as const)
+    if (field && typeof field === 'object') for (const [id, v] of Object.entries(field)) if (id in set.pos && typeof v === 'string' && names[v]) (add[id] ??= []).push(pre + names[v]);
+  if (Object.keys(add).length) set.cues = { ...set.cues, ...Object.fromEntries(Object.entries(add).map(([id, t]) => [id, [...t, set.cues?.[id]].filter(Boolean).join(' · ')])) };
+  delete set.facing; delete set.equipment;
 }
-
-/** These performers carry `e` ('none' = nothing) from set i on; null goes back to whatever the set before had. */
-export const setEquipment = (show: Show, i: number, ids: string[], e: Equipment | 'none' | null): Show =>
-  mapSet(show, i, (s) => {
-    const equipment = { ...s.equipment };
-    for (const id of ids) { if (e) equipment[id] = e; else delete equipment[id]; }
-    return { ...s, equipment: Object.keys(equipment).length ? equipment : undefined };
-  });
-
-/** Eight ways to face, named from the field: Front is toward the front sideline (the box), Side 2 toward Side 2. */
-export type Facing = 'front' | 'back' | 'side1' | 'side2' | 'front-side1' | 'front-side2' | 'back-side1' | 'back-side2';
-export const FACINGS: [Facing, string][] = [['front', 'Front'], ['front-side2', 'Front-Side 2'], ['side2', 'Side 2'], ['back-side2', 'Back-Side 2'],
-  ['back', 'Back'], ['back-side1', 'Back-Side 1'], ['side1', 'Side 1'], ['front-side1', 'Front-Side 1']];
-export const facingName = (f: Facing) => FACINGS.find(([k]) => k === f)![1];
-/** A facing as a unit direction on the field (+x toward Side 2, +y toward the back sideline). */
-export function facingVector(f: Facing): Point {
-  const x = f.includes('side2') ? 1 : f.includes('side1') ? -1 : 0, y = f.startsWith('front') ? -1 : f.startsWith('back') ? 1 : 0, n = Math.hypot(x, y);
-  return { x: x / n, y: y / n };
-}
-
-/** Which way a performer faces in set i: the last set up to i where it was set, or undefined if it never was. */
-export function facingIn(show: Show, i: number, id: string): Facing | undefined {
-  for (let j = Math.min(i, show.sets.length - 1); j >= 0; j--) { const f = show.sets[j].facing?.[id]; if (f) return f; }
-}
-
-/** These performers face `f` from set i on (until a later set changes it); null goes back to whatever the set before had. */
-export const setFacing = (show: Show, i: number, ids: string[], f: Facing | null): Show =>
-  mapSet(show, i, (s) => {
-    const facing = { ...s.facing };
-    for (const id of ids) { if (f) facing[id] = f; else delete facing[id]; }
-    return { ...s, facing: Object.keys(facing).length ? facing : undefined };
-  });
 
 /** Sides are on the field: "above" = toward the back sideline (up on the editor's screen). */
 export type LabelSide = 'above' | 'above-right' | 'right' | 'below-right' | 'below' | 'below-left' | 'left' | 'above-left' | 'hidden';
@@ -280,8 +247,6 @@ export function removePerformers(show: Show, ids: Set<string>): Show {
       cues: s.cues && Object.fromEntries(Object.entries(s.cues).filter(([k]) => !ids.has(k))),
       labels: s.labels && Object.fromEntries(Object.entries(s.labels).filter(([k]) => !ids.has(k))),
       timing: s.timing && Object.fromEntries(Object.entries(s.timing).filter(([k]) => !ids.has(k))),
-      facing: s.facing && Object.fromEntries(Object.entries(s.facing).filter(([k]) => !ids.has(k))),
-      equipment: s.equipment && Object.fromEntries(Object.entries(s.equipment).filter(([k]) => !ids.has(k))),
       turning: s.turning?.map((g) => g.filter((id) => !ids.has(id))).filter((g) => g.length > 1),
     })),
   };
@@ -945,10 +910,7 @@ export function parseShow(text: string): Show {
     }))) bad('set timing');
     if (set.turning !== undefined && (!Array.isArray(set.turning) || set.turning.length > 1000 || !set.turning.every((g: unknown) =>
       Array.isArray(g) && g.length >= 2 && g.every((id) => str(id) && id in set.pos)))) bad('set turning');
-    if (set.facing !== undefined && (typeof set.facing !== 'object' || !set.facing || !Object.entries(set.facing).every(([id, f]) =>
-      id in set.pos && FACINGS.some(([k]) => k === f)))) bad('set facing');
-    if (set.equipment !== undefined && (typeof set.equipment !== 'object' || !set.equipment || !Object.entries(set.equipment).every(([id, e]) =>
-      id in set.pos && (e === 'none' || EQUIPMENT.some(([k]) => k === e))))) bad('set equipment');
+    oldFacingToCues(set);
     if (set.props !== undefined && (typeof set.props !== 'object' || !set.props || !Object.entries(set.props).every(([id, q]) => {
       const x = q as PropSpot;
       return propIds.has(id) && Number.isFinite(x?.x) && Number.isFinite(x.y) && Number.isFinite(x.angle);
