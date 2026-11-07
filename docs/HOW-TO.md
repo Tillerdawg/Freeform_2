@@ -452,9 +452,11 @@ With a keyboard attached, the [keyboard shortcuts](#keyboard-shortcuts) work too
 
 - **Autosave**: every change is saved in your browser right away.
 - **Save** saves the show as a `.freeform` file. This is your real backup, because the autosave lives in only that one browser. Save before big changes and at the end of every session. Where the file goes depends on the browser:
-  - **Chrome and Edge** on a computer open a Save dialog the first time, so you pick the folder and the name (a Dropbox or Google Drive folder works well). After that, **Save** writes to that same file without asking, and a note at the bottom of the field says "Saved to Opener.freeform." **Save As…** (next to **Save**, in these browsers only) always asks, for a copy with a new name or in a new folder; later Saves go to the new file.
+  - **Chrome and Edge** on a computer open a Save dialog the first time, so you pick the folder and the name (a Dropbox or Google Drive folder works well). After that, **Save** writes to that same file without asking, and a note at the bottom of the field says "Saved to Opener.freeform." **Save As…** (next to **Save**) always asks, for a copy with a new name or in a new folder; later Saves go to the new file.
   - **On an iPad,** the share sheet opens. Choose **Save to Files** and pick a folder (iCloud Drive, On My iPad, or a Dropbox or Google Drive folder you've added to Files).
   - **Safari and Firefox** on a computer download the file. It goes to your Downloads folder unless you've set the browser to ask where to save each download (Safari: Settings, General, File download location: Ask for each download; Firefox: Settings, General, Always ask you where to save files).
+
+  In Safari, Firefox, and on an iPad, **Save** and **Save As…** do the same thing (the share sheet or a download), since those browsers can't save back to a file you chose earlier.
 
   **⌘S** (Ctrl+S on Windows) is the same as **Save**, even while you're typing in a box. FreeFORM forgets the file when you open or start another show, or close the page; the next Save asks again.
 

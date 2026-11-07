@@ -82,7 +82,7 @@ export function Sidebar(p: Props) {
         <button onClick={p.onOpen} title="Load a .freeform show file (or an older .freeform.json) or a Pyware 3D .3dj drill (replaces the current show; Undo brings it back)">Import…</button>
         <button onClick={p.onSample} title="Open the 47-performer sample show to look around (offers to save your show to a file first if it has changes you haven't saved)">Sample</button>
         <button onClick={p.onSave} title="Save this show as a .freeform file (⌘S): the first time you choose where, then it saves to that same file">Save</button>
-        {'showSaveFilePicker' in window && <button onClick={p.onSaveAs} title="Save a copy as a new .freeform file, choosing the folder and name">Save As…</button>}
+        <button onClick={p.onSaveAs} title="Save a copy as a new .freeform file, choosing the folder and name">Save As…</button>
         <button onClick={p.onPrint} disabled={!show.performers.length} title="Dot sheets and drill charts (print or save as PDF)">Print…</button>
         <button onClick={p.onShare} disabled={!show.performers.length} title="A link that opens this show on performers' and staff phones">Share…</button>
       </div>
