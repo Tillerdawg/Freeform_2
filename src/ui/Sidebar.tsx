@@ -13,6 +13,7 @@ import {
   type FrontDir, type FrontRef, type Section, type Show, type SideDir,
 } from '../engine/show';
 import { NumberField } from './NumberField';
+import { useDialog } from './useDialog';
 
 export type Tool = 'select' | 'add' | 'text' | 'arrow' | 'draw' | 'turn'; // turn: click to add an FTL leader's turning points
 export type Snap = 1 | 0.5 | 0;
@@ -72,6 +73,7 @@ export function Sidebar(p: Props) {
   const cur = onSet >= 0 ? onSet : locate(show, p.t).to;
   const one = selected.size === 1 ? show.performers.find((x) => selected.has(x.id)) : undefined;
   const [pendingHash, setPendingHash] = useState<HashPreset | null>(null);
+  const hashDialog = useDialog(() => setPendingHash(null), !!pendingHash);
   const ids = [...selected];
 
   return (
@@ -118,7 +120,7 @@ export function Sidebar(p: Props) {
         <p role="status" style={{ color: 'var(--warn)', fontSize: 12, margin: '-4px 0 10px' }}>Some performers are off the floor in some sets. They kept their spots in steps from the center and the front.</p>
       )}
       {pendingHash && (
-        <div role="dialog" aria-modal="true" aria-label="Change hash marks" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'grid', placeItems: 'center', zIndex: 10 }}>
+        <div ref={hashDialog} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Change hash marks" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'grid', placeItems: 'center', zIndex: 10 }}>
           <div style={{ background: 'var(--bg)', border: '1px solid var(--line)', padding: 20, width: 420, maxWidth: 'calc(100vw - 32px)' }}>
             <h2 style={{ margin: '0 0 8px', fontSize: 18 }}>Change to {PRESETS.find(([k]) => k === pendingHash)![1]} hashes</h2>
             <p style={{ margin: '0 0 12px' }}>What should happen to the drill?</p>

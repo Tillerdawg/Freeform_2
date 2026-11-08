@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { label, type Performer, type Show } from '../engine/show';
 import { byLastName, lastFirst, matchesSearch } from '../engine/roster';
+import { useDialog } from '../ui/useDialog';
 
 const STAFF_NAME = 'Staff (whole band)';
 
@@ -23,6 +24,7 @@ export function WhoPicker({ show, value, staff, onPick }: { show: Show; value: s
   const first = groups[0]?.ps[0]?.id ?? (staffShown ? staff : undefined); // Return picks the first match
   const close = () => { setOpen(false); setQ(''); };
   const pick = (v: string) => { onPick(v); close(); };
+  const dialog = useDialog(close, open);
 
   return (
     <>
@@ -30,7 +32,7 @@ export function WhoPicker({ show, value, staff, onPick }: { show: Show; value: s
         <span className="who-current">{current}</span><span aria-hidden="true">▾</span>
       </button>
       {open && (
-        <div className="who-sheet" role="dialog" aria-modal="true" aria-label="Who are you?" onKeyDown={(e) => { if (e.key === 'Escape') close(); }}>
+        <div ref={dialog} tabIndex={-1} className="who-sheet" role="dialog" aria-modal="true" aria-label="Who are you?">
           <div className="who-head"><strong>Who are you?</strong><button onClick={close}>Cancel</button></div>
           <input type="search" autoFocus value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search by name or dot"
             placeholder="Type your name or dot (P4)" autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck={false} enterKeyHint="go"

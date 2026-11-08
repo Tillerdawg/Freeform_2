@@ -1260,3 +1260,36 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Other options:** A second, hand-kept copy on the site (it would drift); showing the guide inside the app (more code, and it would need its own way to show pictures).
 - **Decision:** `docs/HOW-TO.md` stays the only copy. Every build turns it into `guide/index.html` with its pictures beside it (`src/guide/page.ts`, run from `vite.config.ts`), in the app's colors and light or dark mode, with a link back to the app. **Help** opens it, and the README points there. Anchors match GitHub's, and a test checks every contents link has its heading. `marked` (a Markdown reader) is a build-only dependency: nothing new ships to users. The guide is online only (the offline cache keeps the app, not the guide), and `npm run dev` doesn't serve it.
 - Also fixed: the sample show was split into its own file on 2026-11-06, which the offline cache doesn't keep (it saves only the files the page links); it's back in the main file.
+
+## 2026-11-08 09:15 EST — Every show gets a permanent id
+- **Who:** Claude *(Jason can veto)*, from the phone and sharing review.
+- **Context:** A share link has no address of its own, so a phone matched an arriving show to a saved one by title. Two unrelated shows both called "Opener" replaced each other.
+- **Other options:** Match on title plus section list or performer count (still guesses); ask the student "replace or keep both?" each time (a question they can't answer).
+- **Decision:** A show has an optional `id`: 32 random hex characters, made by `newShow` (so New and the sample get one), given to an older autosave or an imported file (including a .3dj) when it's opened, then kept forever in files, share links, and locked files. `parseShow` accepts only letters, digits, `_`, and `-`, up to 64. A phone matches on the id when both copies have one, and on the title otherwise. Save As keeps the id (it's the same show in a new file); a future **Duplicate** should call `newShowId`. The Share dialog now remembers a show's hosted link by id too (it falls back to links saved by title before this).
+
+## 2026-11-08 09:15 EST — A phone that can't save says so
+- **Who:** Claude *(Jason can veto)*.
+- **Context:** In a private window, or with storage full, a phone silently kept nothing, while the screen promised the show "works offline." The recording (kept in the phone's IndexedDB) could fail silently too.
+- **Other options:** A notice that can't be closed (it covers part of the field for the whole rehearsal); saying nothing.
+- **Decision:** The same pattern as the editor's autosave notice: a warning over the bottom of the field ("This show isn't saved on this phone… It will be gone when you close it, and it won't work offline.") with **OK**. After **OK**, a short line stays under the set: "Not saved on this phone: it won't work offline." If only the music fails to save, the warning says the phone plays with a tempo instead. The empty screen promises offline only when storage works.
+
+## 2026-11-08 09:15 EST — One keyboard rule for every dialog
+- **Who:** Claude *(Jason can veto)*.
+- **Context:** Seven dialogs said they were modal but only handled Escape (and the roster import didn't even do that). Tab walked out into the editor behind them.
+- **Decision:** `src/ui/useDialog.ts`: on open, focus moves to the first control (a search box that focuses itself keeps it); Tab and Shift+Tab wrap inside; Escape closes it without reaching the editor's own Escape; on close, focus goes back where it was. Only the newest open dialog listens. Every `aria-modal` dialog uses it.
+
+## 2026-11-08 09:15 EST — Count-in on the phone
+- **Who:** Claude *(Jason can veto)*, from the PLAN follow-up.
+- **Context:** Students looping sets had no way to step off with the drill.
+- **Other options:** A **Count-in** button in the phone's button row (tried: on an iPhone 15 the row has no room, and the labels wrapped); a choice of 2, 4, or 8 counts.
+- **Decision:** A **Count-in** checkbox in the **Loop** panel, remembered on the phone. When it's on, every Play (looping or not) first clicks 4 counts (the first one higher) and shows 4, 3, 2, 1 big over the field, at the tempo, or at the recording's pace where play starts when it plays with the music. Pause during the count-in cancels it. The click sounds even when **Click** is off.
+
+## 2026-11-08 09:15 EST — The Share dialog's two choices
+- **Who:** Claude *(Jason can veto)*, from the PLAN follow-up.
+- **Context:** The share link and the hosted link sat in one long dialog, with GitHub setup in the middle, and it wasn't clear which one to use or what each carried.
+- **Decision:** Two buttons at the top: **Send this version** (the link, its QR code, Copy link, Share…, and Open performer view here) and **Keep phones up to date** (Publish to phones or Publish update, the music checkbox, and the hosted link and its QR code). Each starts with a plain "Included / Not included" line: a share link has the drill, sets, counts, and notes, but no names and no music; a hosted file adds names and, if checked, the music. GitHub setup and "host the file yourself" sit in a **Setup** section at the bottom, open until publishing is set up. The dialog opens on **Keep phones up to date** once a show has a hosted link or GitHub is connected. None of the link-making logic changed.
+
+## 2026-11-08 09:15 EST — Plainer labels on the phone
+- **Who:** Claude *(Jason can veto)*.
+- **Context:** **Director view** / **Facing front** and **My view** / **Whole field** looked like one pair of choices but controlled two things: which way the field faces, and whether the camera follows my dot.
+- **Decision:** The orientation button shows what it's set to, **From the press box** or **Facing the front** (its spoken label starts "Field orientation:"). The other is **Follow my dot**, lit while it's on.

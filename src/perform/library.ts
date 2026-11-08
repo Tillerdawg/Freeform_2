@@ -27,13 +27,15 @@ export function readLibrary(raw: string | null): Library {
 }
 
 /**
- * Add an arriving show and open it. The same show again (the same hosted link, or a share link with the same title) is
+ * Add an arriving show and open it. The same show again (the same hosted link, or a share link of the same show: the same
+ * id, or for shows from before ids, the same title) is
  * replaced in place and keeps who I am. A new show starts on the performer with my label in the show I had open (B5 in
  * the Opener is B5 in the Ballad), or on Staff if I was staff. Past MAX_SHOWS, the oldest goes. Returns what was replaced
  * or dropped, so the phone can tidy their recordings.
  */
 export function addShow(lib: Library, show: Show, source?: string): { lib: Library; replaced?: Saved; dropped?: Saved } {
-  const at = lib.shows.findIndex((s) => (source ? s.source === source : !s.source && s.show.title === show.title));
+  const same = (s: Show) => (s.id && show.id ? s.id === show.id : s.title === show.title);
+  const at = lib.shows.findIndex((s) => (source ? s.source === source : !s.source && same(s.show)));
   const old = at >= 0 ? lib.shows[at] : undefined, cur = lib.shows[lib.current];
   const has = (id: string | null | undefined) => !!id && (id === STAFF || show.performers.some((p) => p.id === id));
   let me: string | null = null;

@@ -48,3 +48,14 @@ it('reads an older phone that kept one show, and skips one that no longer reads'
   expect(readLibrary(JSON.stringify({ shows: [{ show }, { show: { nope: 1 } }], current: 5 })).shows).toHaveLength(1);
   expect(readLibrary(null)).toEqual({ shows: [], current: 0 });
 });
+
+it('tells two share-link shows with the same title apart by their ids, and falls back to the title without ids', () => {
+  const a = tune('Opener').show, b = tune('Opener').show; // two different bands' Openers
+  let lib = addShow({ shows: [], current: 0 }, a).lib;
+  lib = addShow(lib, b).lib;
+  expect(lib.shows).toHaveLength(2);
+  const r = addShow(lib, { ...a, title: 'Opener (rev)' });
+  expect([r.lib.shows.length, r.lib.current, r.replaced?.show.id]).toEqual([2, 0, a.id]); // a renamed update still replaces its own show
+  const { id: _a, ...oldA } = a, { id: _b, ...oldB } = b; // shows from before ids
+  expect(addShow(addShow({ shows: [], current: 0 }, oldA).lib, oldB).lib.shows).toHaveLength(1);
+});

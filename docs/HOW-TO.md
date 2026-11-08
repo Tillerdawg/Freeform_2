@@ -372,21 +372,24 @@ Check **Show the paths into each set** to add a thin dashed line from where each
 
 ## Send the show to your performers
 
-Click **Share…** in the sidebar.
+Click **Share…** in the sidebar. The dialog has two choices at the top, and each one says what's included before it gives you a link.
 
 ![The Share dialog with a link and QR code](img/share.png)
 
-**Share links** are the quick way. The whole show is packed inside the link, so there's no server and no account involved. Text it, email it, or post it in your band's group chat. For a small show you also get a QR code you can put on a screen at rehearsal. Two things to keep in mind:
+**Send this version** is the quick way. The whole show is packed inside the link, so there's no server and no account involved. Text it, email it, or post it in your band's group chat. For a small show you also get a QR code you can put on a screen at rehearsal. Three things to keep in mind:
 
 - Anyone with the link can see the show, so names are left out.
+- A link can't carry audio, so the music isn't included. Phones can still play at a tempo.
 - Changes you make later aren't sent. After you edit, share a new link.
 
-**Hosted links** are better for a real season. Open **Hosted link** in the Share dialog. FreeFORM makes a *locked* show file, encrypted in your browser, and you put that file online. The link that opens it is short, makes a QR code that scans easily, and keeps working when you update the show: performers' phones pick up your latest version the next time they open it online. The key that unlocks the file is only in the link, so whoever hosts the file can't read it. **The link is the password, so share it only with your band.** A locked file can carry names and, if you want, the music.
+**Keep phones up to date** is better for a real season. FreeFORM makes a *locked* show file, encrypted in your browser, and you put that file online. The link that opens it is short, makes a QR code that scans easily, and keeps working when you update the show: performers' phones pick up your latest version the next time they open it online. The key that unlocks the file is only in the link, so whoever hosts the file can't read it. **The link is the password, so share it only with your band.** A locked file carries names and, if you check the box, the music.
 
-There are two ways to put the file online:
+![Keep phones up to date, before setup](img/share-update.png)
 
-- **Publish to phones** does it in one click once you connect FreeFORM to a public GitHub repository of your own. (Public is fine, since the file is encrypted.) You'll need the repository's name and a fine-grained GitHub token that can write only to that repository (*Contents: Read and write*). Both stay in your browser. After that, **Publish update** replaces the file, and the link and QR code never change.
-- **Or host the file yourself**: download the locked file and upload it anywhere that gives you a direct link to it. A GitHub repository works (upload the file, open it, and copy its **Raw** link). Paste that address into the box and FreeFORM makes your short link.
+There are two ways to put the file online. Both are under **Setup** at the bottom of the dialog:
+
+- **Publish to phones** does it in one click once you connect FreeFORM (under **Setup**) to a public GitHub repository of your own. (Public is fine, since the file is encrypted.) You'll need the repository's name and a fine-grained GitHub token that can write only to that repository (*Contents: Read and write*). Both stay in your browser. After that, **Publish update** replaces the file, and the link and QR code never change.
+- **Or host the file yourself** (also under **Setup**): download the locked file and upload it anywhere that gives you a direct link to it. A GitHub repository works (upload the file, open it, and copy its **Raw** link). Paste that address into the box and FreeFORM makes your short link.
 
 **Revision numbers.** Each time you click **Publish to phones** (or **Publish update**), or download a locked file, the show's revision number goes up by one. Phones show it under the set ("Revision 6"), and so do printed charts and dot sheets. At rehearsal, "Does everyone have revision 6?" is a quick check. A hosted show on a phone also says when it last checked for an update ("checked for updates 3:42 PM"). Share links don't change the number.
 
@@ -398,14 +401,14 @@ When a student opens your link on their phone, they pick who they are.
 
 ![Picking who you are on a phone](img/phone-who.png)
 
-They can search by name, by dot (P4), or by section, and **Staff (whole band)** at the top shows everyone. FreeFORM remembers their choice, and the show keeps working offline once it's opened.
+They can search by name, by dot (P4), or by section, and **Staff (whole band)** at the top shows everyone. FreeFORM remembers their choice, and the show keeps working offline once it's opened. (If the phone can't save it, say in a private window or with its storage full, a warning says so: the show will be gone when they close it and won't work offline, so they should open it in a regular window.)
 
 ![A performer's view of set 2 on a phone](img/phone.png)
 
 On the performer screen:
 
-- **My view** follows their dot through each move. **Whole field** shows everything, and pinch-zoom works in both.
-- **Director view** shows the field the way the editor does. Tap it to switch to **Facing front**, which turns the field around to match what they see facing the audience.
+- **Follow my dot** keeps their dot in the middle through each move. Tap it off to see the whole field. Pinch-zoom works either way.
+- The field orientation button reads **From the press box** when the field is drawn the way the editor shows it. Tap it to switch to **Facing the front**, which turns the field around to match what they see facing the audience.
 - Under the field they see the spot they're standing on, then their next spot and how many counts it takes to get there (with measures and step size), plus their notes and the ensemble notes. On the field, the performers closest to them are drawn a little brighter and labeled.
 - They can play at any tempo, step count by count, scrub, or tap a set number to jump to it. If the show has music, Play follows it, and **♪ Music** switches back to a tempo.
 
@@ -413,9 +416,11 @@ On the performer screen:
 
 ![Picking sets 2 to 3 to loop on a phone](img/phone-loop.png)
 
+**Count-in.** The same panel has a **Count-in** checkbox. With it on, every time they press Play the phone clicks 4 counts (and shows 4, 3, 2, 1 over the field) before the drill starts moving, at the tempo, or at the music's pace if it's playing with the music. Tap Pause during the count-in to cancel it. The phone remembers the setting.
+
 **A click for rehearsal.** When there's no recording (or **♪ Music** is off), a **Click** button sits next to the tempo. It clicks every count while the drill plays, with a higher click where each set lands, so a section can run a move with the phone in a pocket or on a stand.
 
-**Several shows on one phone.** If your Opener, Ballad, Drum Feature, and Closer are separate files, send each one's link. Every link a student opens is added to the list on their phone instead of replacing what's there. The show's title at the top of the screen is a menu: tap it and pick another show to switch. Each show remembers who they are, and a new show starts on the same dot (B5 in the Opener starts as B5 in the Ballad). Opening a link for a show that's already on the phone (an updated version of the same hosted link, or a share link with the same title) replaces it in place. **＋ Add a show…** in the same menu opens a box to paste a link or **Scan QR code**, and **Remove this show…** takes the open show off the phone. A phone keeps up to 12 shows.
+**Several shows on one phone.** If your Opener, Ballad, Drum Feature, and Closer are separate files, send each one's link. Every link a student opens is added to the list on their phone instead of replacing what's there. The show's title at the top of the screen is a menu: tap it and pick another show to switch. Each show remembers who they are, and a new show starts on the same dot (B5 in the Opener starts as B5 in the Ballad). Opening a link for a show that's already on the phone (an updated version of the same hosted link, or a new share link of the same show) replaces it in place. Two different shows that happen to have the same title are kept apart. Each show has its own permanent id, made when the show is started, so the copy of the Opener on a phone knows it's your Opener and not another band's. **＋ Add a show…** in the same menu opens a box to paste a link or **Scan QR code**, and **Remove this show…** takes the open show off the phone. A phone keeps up to 12 shows.
 
 Students can add FreeFORM to their home screen. In the home-screen app, they open a show with **Scan QR code** or by pasting the link, and add more with **＋ Add a show…**.
 

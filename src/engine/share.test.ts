@@ -22,6 +22,7 @@ describe('share links', () => {
     expect(back.sets[2].cues).toEqual({ [ids[0]]: 'Horns 45' });
     expect(back.sets[3].pos[ids[5]].x).toBeCloseTo(s.sets[3].pos[ids[5]].x, 3);
     expect(back.performers).toEqual(s.performers);
+    expect(back.id).toBe(s.id); // the show's id rides along, so a phone knows it's the same show
   });
   it('uses only URL-safe characters', async () => {
     expect(await encodeShow(band(5, 2).s)).toMatch(/^[A-Za-z0-9_-]+$/);
