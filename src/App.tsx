@@ -159,7 +159,13 @@ export function App() {
     keepTimer.current = window.setTimeout(async () => { ok = (await keepShow(s)) && ok; setSaveFailed((f) => (ok ? 'no' : f === 'seen' ? f : 'yes')); }, 800);
   };
   /** The open show into the library now (before another one opens, or the library is listed). */
-  const flush = async () => { clearTimeout(keepTimer.current); const ok = await keepShow(showRef.current); if (!ok) setSaveFailed((f) => (f === 'seen' ? f : 'yes')); return ok; };
+  const flush = async () => {
+    clearTimeout(keepTimer.current);
+    const s = showRef.current;
+    // A blank show nobody touched (a first visit, then Try the sample or Import) isn't worth keeping in the list.
+    if (s === firstShow.current && !s.performers.length) { await forgetShow(s.id!); return true; }
+    const ok = await keepShow(s); if (!ok) setSaveFailed((f) => (f === 'seen' ? f : 'yes')); return ok;
+  };
   // Two tabs: when another tab saves this same show, say so and let the director choose, instead of the last write winning.
   const [otherTab, setOtherTab] = useState<Show | null>(null);
   const otherRef = useRef(otherTab); otherRef.current = otherTab;
