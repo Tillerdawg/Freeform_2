@@ -1,7 +1,7 @@
 // Offline support: serve from cache, refresh the cache in the background.
 // The page itself (navigation) prefers the network so a new version shows up as soon as you're online.
 // Bump when a file without a hash in its name changes (icons, manifest): cached copies are otherwise kept forever.
-const CACHE = 'freeform-v7'; // v7: the FreeFORM Drill logos (logo.svg, logo-small.svg, og-image.png)
+const CACHE = 'freeform-v8'; // v8: even spacing in logo-small.svg
 
 self.addEventListener('install', (e) => {
   // Cache the page plus every file it links (the built JS has a hashed name we can't list ahead of time),

@@ -199,9 +199,13 @@ def c09_curve_over(v):
 
 def small_line(v):
     """The editor's top bar (24 to 30 px tall): the curve with fatter dots, FreeFORM with the small-logo tuning, then DRILL."""
-    a = Art(v); a.curve(0, -CAP / 2, 96, r_scale=1.25)
-    _, bf = wordmark(a, 112, 0, boost=1.2, stroke=0.45 * FORM_SIZE / 18)
-    a.txt(BLOCK(500), 'DRILL', FORM_SIZE, bf[2] + 22, 0, a.c['drill'], tracking=3)
+    a = Art(v); cw = 96; a.curve(0, -CAP / 2, cw, r_scale=1.25)
+    curve_right = (252 + 10 * 1.25) * cw / 264  # last dot's center plus its (fattened) radius
+    gap = 22  # ink to ink, the same between the curve and Free and between FORM and DRILL (Jason); less runs FORM DRILL together
+    tune = dict(boost=1.2, stroke=0.45 * FORM_SIZE / 18)
+    free_left = wordmark(Art(v), 0, 0, **tune)[0][0]  # where Free's ink starts, measured on a scratch copy
+    b1, bf = wordmark(a, curve_right + gap - free_left, 0, **tune)
+    a.txt(BLOCK(500), 'DRILL', FORM_SIZE, bf[2] + gap - width_of(BLOCK(500), 'DRILL', FORM_SIZE, tracking=3)[0], 0, a.c['drill'], tracking=3)
     return a.svg()
 
 LOGOS = {'freeform-drill-logo': c09_curve_over, 'freeform-drill-stacked': c05_stacked, 'freeform-drill-badge': c08_badge, 'freeform-drill-logo-small': small_line}
