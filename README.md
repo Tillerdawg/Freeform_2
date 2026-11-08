@@ -56,7 +56,11 @@ A note on where the ideas came from: FreeFORM is modeled on Pyware and the Ultim
 - A performer view for phones: pick who you are, follow your dot, and see your spot now, your next spot, and the counts to get there. A phone keeps several shows (the Opener, Ballad, and Closer as separate files) and switches between them from a menu. Students can loop a range of sets to practice. It works offline once it's opened.
 
 **Files**
-- Autosave in your browser, plus **Save** (to any folder you choose, where the browser allows it) and import of `.freeform` files. FreeFORM offers to save before a show with unsaved changes is replaced, and says so if the browser can't autosave.
+- Autosave in your browser, plus **Save** (to any folder you choose, where the browser allows it) and import of `.freeform` files. FreeFORM says so if the browser can't autosave.
+- Several shows in one browser (Opener, Ballad, Closer) under **Shows…**: open, rename, duplicate, or delete them, each with its own recording and tracing picture.
+- Earlier versions of each show, kept as you work, to look back at and restore.
+- A warning when the same show is changed in two tabs, instead of one quietly saving over the other.
+- **Full backup…**: a show file that also holds the recording and tracing picture, to move a show to another computer complete.
 - A sample show to look around in before you write your own.
 - Import Pyware 3D (`.3dj`) shows, tested with files from 2008 to 2010.
 
@@ -99,9 +103,9 @@ node scripts/screenshots.mjs ftl print    # or just these
 
 | Path | What's there |
 |---|---|
-| `src/engine/` | The drill logic, with no UI: coordinates and readouts, the show model, shapes, markup, undo, music timing, share links and locked files, QR codes, and the Pyware reader. Unit-tested. |
+| `src/engine/` | The drill logic, with no UI: coordinates and readouts, the show model, shapes, markup, undo, which versions to keep, music timing, share links and locked files, QR codes, and the Pyware reader. Unit-tested. |
 | `src/field/` | Drawing the field, performers, shapes, and markup, plus dot-label placement and the rotate/stretch frame |
-| `src/ui/` | The toolbar, sidebar, timeline, music menu, and color palette |
+| `src/ui/` | The toolbar, sidebar, timeline, music menu, show list, color palette, and browser storage (`audioStore.ts`, `showStore.ts`: recordings, pictures, the show library, and versions in IndexedDB) |
 | `src/print/` | Dot sheets and drill charts |
 | `src/perform/` | The performer view, the Share dialog, and the QR scanner |
 | `src/guide/` | Turns `docs/HOW-TO.md` into the guide page on the site (`/guide/`) when the site is built |

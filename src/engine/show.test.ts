@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { HASHES, readout } from './coords';
 import {
-  addPerformer, addSetAfter, advance, biggestStep, chainOrder, clearFtl, ftlTrail, moveSteps, normalizeFtl, flip, mirrorSides, moveSetTo, remapHash, rotateScale, setFtl, snapSelection, playRange, playPlan, label, locate, newShow, parseShow, placeInSet, positionsAt,
+  addPerformer, addSetAfter, advance, biggestStep, chainOrder, clearFtl, ftlTrail, moveSteps, normalizeFtl, flip, mirrorSides, moveSetTo, remapHash, rotateScale, setFtl, newShowId, parseShowFile, snapSelection, playRange, playPlan, label, locate, newShow, parseShow, placeInSet, positionsAt,
   removePerformers, renumberSets, scoreOrder, DEFAULT_SECTIONS, removeSet, setAt, setCounts, setStarts, totalCounts, xFrom, yFrom, insertSetAt, showLength, movementAt, movementOfSet, setFtlTurns,
   addSetHere, setCue, newPropSpot, setFtlSmooth, routeTurns, leaderDistance, setTiming, timingOf, fitTurn, setTurning, turnRoute, counterMarch, closeCalls, addProp, placeProp, propsAt, hitProp, removeProp, fieldOf, moveSegments,
 } from './show';
@@ -803,4 +803,30 @@ it('steps a new prop 2 right and 2 down past props already in the middle', () =>
   expect(newPropSpot(show)).toEqual({ x: mid.x + 2, y: mid.y - 2 });
   show = addProp(show, 'B', 8, 8, false, newPropSpot(show)).show;
   expect(newPropSpot(show)).toEqual({ x: mid.x + 4, y: mid.y - 4 });
+});
+
+describe('show id and full backups', () => {
+  it('keeps a well-formed id and refuses a strange one', () => {
+    const id = newShowId();
+    expect(id).not.toBe(newShowId());
+    expect(parseShow(JSON.stringify({ ...newShow(), id })).id).toBe(id);
+    expect(() => parseShow(JSON.stringify({ ...newShow(), id: '<script>' }))).toThrow(/id/);
+    expect(() => parseShow(JSON.stringify({ ...newShow(), id: 5 }))).toThrow(/id/);
+  });
+  const full = { ...newShow(), music: { name: 'a.mp3', audioId: 'a1', taps: [] }, trace: { id: 't1', x: 0, y: 0, w: 10, opacity: 0.5 } };
+  it('reads the attached recording and picture, and takes them off the show', () => {
+    const r = parseShowFile(JSON.stringify({ ...full, attached: { audio: { type: 'audio/mpeg', data: btoa('abc') }, picture: { type: 'image/png', data: btoa('xy') } } }));
+    expect(r.audio).toEqual({ type: 'audio/mpeg', data: btoa('abc') });
+    expect(r.picture?.type).toBe('image/png');
+    expect('attached' in r.show).toBe(false);
+    expect('attached' in parseShow(JSON.stringify({ ...full, attached: { audio: { type: 'audio/mpeg', data: btoa('abc') } } }))).toBe(false);
+  });
+  it('refuses a bad attachment', () => {
+    const bad = (attached: unknown, show: object = full) => () => parseShowFile(JSON.stringify({ ...show, attached }));
+    expect(bad({ audio: { type: 'text/html', data: btoa('abc') } })).toThrow(/attached/);
+    expect(bad({ picture: { type: 'image/png', data: 'not base64!' } })).toThrow(/attached/);
+    expect(bad({ audio: { type: 'audio/mpeg', data: btoa('abc') } }, newShow())).toThrow(/attached/); // no music to attach it to
+    expect(bad({ audio: { type: 'audio/mpeg', data: 'A'.repeat(40_000_000) } })).toThrow(/attached/);
+    expect(bad('x')).toThrow(/attached/);
+  });
 });

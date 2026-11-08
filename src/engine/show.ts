@@ -85,6 +85,8 @@ export const LABEL_SIDES: LabelSide[] = ['above', 'above-right', 'right', 'below
 export interface Show {
   format: 'freeform-show';
   version: 1;
+  /** Permanent, made once when the show is first kept (newShowId); copies made with Duplicate get a new one. */
+  id?: string;
   title: string;
   hash: HashPreset;
   sections: Section[];
@@ -117,6 +119,9 @@ export const MAX_MOVEMENT = 100_000;
 
 let seq = 0;
 export const newId = (prefix: string) => `${prefix}${Date.now().toString(36)}${(seq++).toString(36)}`;
+/** A show's permanent id: the time plus random letters, so shows started on two computers don't collide. */
+export const newShowId = () => newId('show') + Math.random().toString(36).slice(2, 8);
+const SHOW_ID_RE = /^[\w-]{1,64}$/;
 
 export type SectionList = { name: string; letter: string; color?: string }[];
 
@@ -865,7 +870,36 @@ export function yFrom(ref: FrontRef, steps: number, dir: FrontDir, hash: HashPre
 // ---- File format. Shows from disk are untrusted: check shape before use.
 
 export function parseShow(text: string): Show {
+  return parseShowFile(text).show;
+}
+
+/** A recording or tracing picture packed into a full backup file: its type and its bytes as base64. */
+export interface Attached { type: string; data: string }
+export const MAX_ATTACHED_AUDIO = 25_000_000, MAX_ATTACHED_PICTURE = 10_000_000; // bytes, before base64
+const ATTACHED_TYPE = { audio: /^audio\/[\w.+-]{1,40}$/, picture: /^image\/[\w.+-]{1,40}$/ };
+const B64_RE = /^[A-Za-z0-9+/]*={0,2}$/;
+
+/**
+ * A show file, and the recording and tracing picture a full backup carries ("attached": base64, see Attached).
+ * The attachments are checked (type, size, base64) and taken off the show, so they never reach the autosave.
+ */
+export function parseShowFile(text: string): { show: Show; audio?: Attached; picture?: Attached } {
   const s = JSON.parse(text);
+  const att = s?.attached;
+  if (s && typeof s === 'object') delete s.attached;
+  const show = checkShow(s);
+  if (att === undefined) return { show };
+  const ok = (a: unknown, kind: 'audio' | 'picture', max: number): a is Attached => {
+    const x = a as Attached;
+    return typeof x?.type === 'string' && ATTACHED_TYPE[kind].test(x.type) && typeof x.data === 'string' && x.data.length % 4 === 0
+      && x.data.length <= Math.ceil(max / 3) * 4 && B64_RE.test(x.data);
+  };
+  if (typeof att !== 'object' || !att || (att.audio !== undefined && !(show.music && ok(att.audio, 'audio', MAX_ATTACHED_AUDIO)))
+    || (att.picture !== undefined && !(show.trace && ok(att.picture, 'picture', MAX_ATTACHED_PICTURE)))) throw new Error('Not a valid FreeFORM show: attached recording or picture');
+  return { show, ...(att.audio ? { audio: att.audio } : {}), ...(att.picture ? { picture: att.picture } : {}) };
+}
+
+function checkShow(s: any): Show { // eslint-disable-line @typescript-eslint/no-explicit-any
   const bad = (why: string) => { throw new Error(`Not a valid FreeFORM show: ${why}`); };
   if (s?.format === 'freeform-locked') throw new Error('That is a locked copy made for a hosted link, and only the link can open it. Import the .freeform file instead.');
   if (s?.format !== 'freeform-show') bad('missing format marker');
@@ -874,6 +908,7 @@ export function parseShow(text: string): Show {
   if (!Array.isArray(s.sections) || !Array.isArray(s.performers) || !Array.isArray(s.sets) || !s.sets.length) bad('missing lists');
   const str = (v: unknown) => typeof v === 'string';
   if (typeof s.title !== 'string') bad('title');
+  if (s.id !== undefined && !(typeof s.id === 'string' && SHOW_ID_RE.test(s.id))) bad('id');
   if (s.music !== undefined && !validMusic(s.music)) bad('music');
   if (s.revision !== undefined && !(Number.isInteger(s.revision) && s.revision >= 1 && s.revision <= 1e6)) bad('revision');
   if (s.symbols === 'icons') delete s.symbols; // equipment icons were a choice for a day (2026-11-05): such a show opens with letters

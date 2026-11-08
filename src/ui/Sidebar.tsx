@@ -38,6 +38,8 @@ interface Props {
   onOpen: () => void;
   onSave: () => void | Promise<boolean>;
   onSaveAs: () => void | Promise<boolean>;
+  onShows: () => void; // the shows kept in this browser, and versions
+  onFullBackup: () => void | Promise<boolean>;
   onPrint: () => void;
   onShare: () => void;
   fileError: string;
@@ -77,10 +79,12 @@ export function Sidebar(p: Props) {
   return (
     <aside style={{ width: 300, padding: '8px 14px 0', overflowY: 'auto', borderLeft: '1px solid var(--line)', fontSize: 14, display: 'flex', flexDirection: 'column' }}>
       <div style={row}>
-        <button onClick={p.onNew}>New</button>
-        <button onClick={p.onOpen} title="Load a .freeform show file (or an older .freeform.json) or a Pyware 3D .3dj drill (replaces the current show; Undo brings it back)">Import…</button>
+        <button onClick={p.onShows} title="The shows kept in this browser: open, rename, duplicate, or delete one, and earlier versions of this one">Shows…</button>
+        <button onClick={p.onNew} title="Start a new show (this one stays under Shows…)">New</button>
+        <button onClick={p.onOpen} title="Open a .freeform show file (or an older .freeform.json) or a Pyware 3D .3dj drill as a new show (this one stays under Shows…)">Import…</button>
         <button onClick={p.onSave} title="Save this show as a .freeform file (⌘S): the first time you choose where, then it saves to that same file">Save</button>
         <button onClick={p.onSaveAs} title="Save a copy as a new .freeform file, choosing the folder and name">Save As…</button>
+        <button onClick={p.onFullBackup} disabled={!show.music && !show.trace} title="Save a .freeform file that also holds the recording and tracing picture, to move the show to another computer complete (a much bigger file)">Full backup…</button>
         <button onClick={p.onPrint} disabled={!show.performers.length} title="Dot sheets and drill charts (print or save as PDF)">Print…</button>
         <button onClick={p.onShare} disabled={!show.performers.length} title="A link that opens this show on performers' and staff phones">Share…</button>
       </div>

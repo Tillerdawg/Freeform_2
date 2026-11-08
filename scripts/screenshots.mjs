@@ -109,6 +109,22 @@ shot('start', async () => {
   await page.waitForTimeout(500);
   await save(page, 'start', await around(page.locator('.backup-note')));
 });
+shot('shows', async () => {
+  // The show library with three shows, as a director might keep them.
+  const page = await editor();
+  await page.evaluate(async () => {
+    const { keepShow } = await import('/src/ui/showStore.ts');
+    const { sampleShow } = await import('/src/engine/sample.ts');
+    const { newShowId } = await import('/src/engine/show.ts');
+    const t = Date.now();
+    await keepShow({ ...sampleShow(), id: newShowId(), title: 'Ballad' }, t - 86_400_000);
+    await keepShow({ ...sampleShow(), id: newShowId(), title: 'Closer' }, t - 3 * 86_400_000);
+  });
+  await page.getByLabel('Show title').fill('Opener');
+  await page.getByRole('button', { name: 'Shows…' }).click();
+  await page.waitForTimeout(400);
+  await save(page, 'shows', await around(page.locator('[role=dialog] > div').first()));
+});
 shot('too-close', async () => {
   // Two neighbors in the sample's arc swap spots into set 3, so they pass each other; then the timeline's warning is clicked.
   const page = await editor();
@@ -131,7 +147,7 @@ shot('coordinates', async () => {
   const g = await spot(page, { x: -20, y: 14 });
   await page.mouse.click(g.x, g.y);
   await page.waitForTimeout(200);
-  await save(page, 'coordinates', sidebar);
+  await save(page, 'coordinates', { ...sidebar, height: 680 }); // down to the coordinate, under the file buttons
 });
 shot('step-warnings', async () => {
   const page = await editor();
