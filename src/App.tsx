@@ -883,8 +883,8 @@ export function App() {
         selectedMark={selectedMark} setSelectedMark={setSelectedMark} showSidebar={() => setSideChoice(true)} show={show} setShow={setShow} onSet={onSet} selected={selected} setSelected={setSelected} tool={tool} setTool={setTool}
         section={section} setSection={setSection} snap={snap} setSnap={setSnap}
         onUndo={() => step('undo')} onRedo={() => step('redo')} canUndo={!!hist.past.length} canRedo={!!hist.future.length}
-        onFit={fit} sidebar={{ open: sideOpen, toggle: () => setSideChoice(!sideOpen) }}
-        timeline={{ open: timelineOpen, toggle: () => setTimelineOpen(!timelineOpen) }}
+        onFit={fit} sidebar={{ open: sideOpen, toggle: () => setSideChoice(!sideOpen), left: sideLeft }}
+        timeline={{ open: timelineOpen, toggle: () => setTimelineOpen(!timelineOpen), top: timelineTop }}
         shape={shapeEdit?.shape ?? null} startShape={startShape} updateShape={updateShape} endShape={() => setShapeEdit(null)} />
       <div style={{ flex: 1, display: 'flex', flexDirection: sideLeft ? 'row-reverse' : 'row', minHeight: 0, position: 'relative' }}>
       <div style={{ flex: 1, display: 'flex', flexDirection: timelineTop ? 'column-reverse' : 'column', minWidth: 0 }}>
