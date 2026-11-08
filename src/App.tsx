@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { readout, type Point } from './engine/coords';
+import { insidePolygon, readout, type Point } from './engine/coords';
+import { newlyStraight, reviewShow, type Issue } from './engine/review';
+import { ReviewPanel } from './ui/Review';
 import { emptyHistory, record, redo, undo } from './engine/history';
 import { addInk, hitMark, moveMark, type Mark } from './engine/marks';
 import { assign, fitShape, fitText, isControl, moveHandle, samplePath, slots, type Shape, type ShapeKind } from './engine/shapes';
 import { colorOf,
-  addPerformer, closeCalls, setFtlTurns, locate, label, mark, newId, setMarks, moveSegments, fieldOf,  hitProp, placeProp, propsAt, removeProp, normalizeFtl, snapPoint, playRange, newShow, parseShow, placeInSet, positionsAt, removePerformers,
+  addPerformer, closeCalls, setFtlTurns, locate, label, mark, newId, setMarks, moveSegments, fieldOf,  hitProp, placeProp, propsAt, removeProp, normalizeFtl, overLimit, snapPoint, playRange, newShow, parseShow, placeInSet, positionsAt, removePerformers,
   rotateScale, setAt, setStarts, type Show,
   showLength,
 } from './engine/show';
@@ -52,6 +54,7 @@ type Drag =
   | { kind: 'move'; start: Point; anchor: string; orig: Record<string, Point>; at: [number, number]; moved?: boolean; turns?: Point[] }
   | { kind: 'turn'; k: number }
   | { kind: 'box'; a: Point; b: Point; add: boolean }
+  | { kind: 'lasso'; pts: Point[]; add: boolean }
   | { kind: 'pan'; x: number; y: number }
   | { kind: 'handle'; i: number }
   | { kind: 'mark'; id: string; start: Point; orig: Mark; at: [number, number]; moved?: boolean }
@@ -89,6 +92,9 @@ export function App() {
   const [printing, setPrinting] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [box, setBox] = useState<[Point, Point]>();
+  const [lasso, setLasso] = useState<Point[]>(); // the outline being drawn (Option/Alt-drag, or with Lasso on)
+  const [lassoOn, setLassoOn] = useState(false); // dragging on open field lassos instead of boxing (touch screens: no Option key)
+  const [reviewing, setReviewing] = useState(false);
   const drag = useRef<Drag | null>(null);
   // Sidebar: beside the field on a wide window; on a narrow one (an iPad in portrait, Split View), or a short touch screen
   // (an open iPhone Duo on its side, 585 px tall), hidden until asked for, then over the field's right side, so opening
@@ -155,7 +161,13 @@ export function App() {
   useEffect(() => {
     if (show === lastShow.current) return;
     const prev = lastShow.current, at = performance.now(), b = boundary.current; // read now: the updater runs later
-    const holding = !!drag.current && drag.current.kind !== 'pan' && drag.current.kind !== 'box';
+    const holding = !!drag.current && drag.current.kind !== 'pan' && drag.current.kind !== 'box' && drag.current.kind !== 'lasso';
+    // Imported count-by-count paths fall back to straight lines when an edit moves an end or changes the counts: say so.
+    const straight = newlyStraight(prev, show);
+    if (straight.length) {
+      const n = straight.reduce((k, x) => k + x.ids.length, 0);
+      setNotice({ t, text: `${n} imported ${n === 1 ? 'path' : 'paths'} in the ${straight.length === 1 ? `move into set ${show.sets[straight[0].set].name}` : `moves into sets ${straight.map((x) => show.sets[x.set].name).join(', ')}`} ${n === 1 ? 'is a straight line' : 'are straight lines'} now. Undo, or put the spots and counts back, to bring ${n === 1 ? 'it' : 'them'} back.` });
+    }
     if (fromHistory.current) fromHistory.current = false;
     else setHist((h) => record(h, prev, at, b, holding));
     boundary.current = false;
@@ -251,6 +263,8 @@ export function App() {
   // Paths into the current set, colored by step size. Mid-move, the move being made (so FTL trails show there too).
   const pathSet = onSet >= 0 ? onSet : t < starts.at(-1)! ? locate(show, t).to : -1;
   const paths: Path[] = useMemo(() => (pathSet < 1 ? [] : moveSegments(show, pathSet, (id) => !faded.has(id))), [show, pathSet, faded]);
+  const warn = useMemo(() => new Set(pathSet < 1 ? [] : overLimit(show, pathSet)), [show, pathSet]); // ringed: over the step limit in this move
+  const issues = useMemo(() => reviewShow(show), [show]);
   // The FTL group the selection is, exactly, in the move into this set (where Add turns puts the leader's turning points).
   const ftlGroup = onSet > 0 ? show.sets[onSet].ftl?.find((g) => g.order.length === selected.size && g.order.every((id) => selected.has(id))) : undefined;
   useEffect(() => { if (tool === 'turn' && !ftlGroup) setTool('select'); }, [tool, ftlGroup]);
@@ -280,7 +294,7 @@ export function App() {
     const shown = !playing; // labels jump around as dots move; selected performers keep theirs either way
     const dots = show.performers.filter((p) => positions[p.id] && faded.get(p.id) !== 'hide').map((p) => { const m = mark(show, p), dim = faded.has(p.id); return { id: p.id, dim, label: (shown || selected.has(p.id)) && !dim ? m.label : '', glyph: m.glyph, at: positions[p.id], pin: pins?.[p.id], color: colorOf(show, p) }; });
     if (onSet >= 0) drawMarks(ctx, view, show.sets[onSet].marks ?? [], 'screen', selectedMark);
-    drawPerformers(ctx, view, dots, selected, paths, box, dpr);
+    drawPerformers(ctx, view, dots, selected, paths, box, dpr, { warn, lasso });
     if (ftlGroup?.turns) drawShape(ctx, view, [], false, ftlGroup.turns); // the selected FTL group's turns: drag to move
     const fr = frameNow();
     if (fr) drawShape(ctx, view, fr.corners, true, [...fr.corners, fr.knob], [false, false, false, false, true], [[fr.stem, fr.knob]]);
@@ -296,7 +310,7 @@ export function App() {
         : [];
       drawShape(ctx, view, guide.pts, guide.closed, h, h.map((_, k) => isControl(sh, k)), arms);
     }
-  }, [view, show, positions, selected, paths, box, shapeEdit, onSet, selectedMark, selectedProp, playing, t, theme, tool, trace, faded]);
+  }, [view, show, positions, selected, paths, box, lasso, warn, shapeEdit, onSet, selectedMark, selectedProp, playing, t, theme, tool, trace, faded]);
 
   // Empty text notes are removed as soon as they're not the one being edited (no timing to get wrong).
   useEffect(() => {
@@ -449,7 +463,7 @@ export function App() {
   // A second finger: take back whatever the first one started (a dot added, a drag, a box), then pan and zoom instead.
   const cancelGesture = () => {
     const a = atDown.current;
-    drag.current = null; atDown.current = null; setBox(undefined);
+    drag.current = null; atDown.current = null; setBox(undefined); setLasso(undefined);
     if (!a) return;
     // Put the show back exactly as it was when that finger came down. (Not Undo: if the finger's change isn't in the
     // history yet, Undo would take back the change before it, like a performer just placed with the Pencil.)
@@ -559,7 +573,7 @@ export function App() {
         return;
       }
       setSelectedProp(null);
-      drag.current = { kind: 'box', a: p, b: p, add };
+      drag.current = e.altKey || lassoOn ? { kind: 'lasso', pts: [p], add } : { kind: 'box', a: p, b: p, add };
       if (!add) setSelected(new Set());
     }
   };
@@ -591,6 +605,9 @@ export function App() {
     } else if (d.kind === 'box') {
       drag.current = { ...d, b: p };
       setBox([d.a, p]);
+    } else if (d.kind === 'lasso') {
+      d.pts.push(p);
+      setLasso([...d.pts]);
     } else if (d.kind === 'mark') {
       const q = snapTo({ x: p.x - d.start.x, y: p.y - d.start.y }, d.orig.kind === 'ink' ? 0 : snap);
       setShow((s) => setMarks(s, onSet, (ms) => ms.map((m) => (m.id === d.id ? moveMark(d.orig, q.x, q.y) : m))));
@@ -649,6 +666,11 @@ export function App() {
       const inside = Object.entries(positions).filter(([id, q]) => !faded.has(id) && q.x >= x0 && q.x <= x1 && q.y >= y0 && q.y <= y1).map(([k]) => k);
       setSelected(new Set([...(d.add ? selected : []), ...inside]));
       setBox(undefined);
+    }
+    if (d?.kind === 'lasso') {
+      const inside = Object.entries(positions).filter(([id, q]) => !faded.has(id) && insidePolygon(q, d.pts)).map(([k]) => k);
+      setSelected(new Set([...(d.add ? selected : []), ...inside]));
+      setLasso(undefined);
     }
   };
 
@@ -721,6 +743,13 @@ export function App() {
     setNotice({ t: at, text: `${name(c.a)} and ${name(c.b)}: ${Math.round(c.d * 10) / 10} steps apart on count ${c.count} into set ${show.sets[i].name}.${all.length > 1 ? ` ${all.length - 1} more ${all.length === 2 ? 'pair' : 'pairs'}: see Move in set ${show.sets[i].name}.` : ''}` });
   };
 
+  /** A Review item (or a move's red step on the timeline): go to its count, select its performers, and say what's wrong. */
+  const goToIssue = (x: Issue) => {
+    setPlaying(false); setT(x.t); setSelected(new Set(x.ids.filter((id) => !faded.has(id)))); setSelectedMark(null); setSelectedProp(null);
+    setNotice({ t: x.t, text: x.text + '.' });
+  };
+  const showOverLimit = (i: number) => { const x = issues.find((y) => y.kind === 'steps' && y.set === i); if (x) goToIssue(x); };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Fixed height, no wrapping: nothing up here may resize the field (a canvas resize clears it, which flashes). */}
@@ -733,6 +762,10 @@ export function App() {
         </span>
         <span style={{ flex: '1 1 0', fontSize: 12, opacity: tool === 'turn' ? 1 : 0.7, color: tool === 'turn' ? 'var(--gold)' : undefined, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'right' }}>{tool === 'turn' ? (coarse() ? "Tap the field for each of the leader's turns, in marching order · then tap Select" : "Click the field for each of the leader's turns, in marching order · Esc when done")
           : coarse() ? 'Two fingers: drag to move around, pinch to zoom' : 'Scroll to pan · pinch or ⌘/Ctrl+scroll to zoom · right-drag pans'}</span>
+        <span style={{ flex: 'none' }}>
+          <button aria-pressed={reviewing} onClick={() => setReviewing(!reviewing)} title="Every problem in the show: steps over the limit, performers too close, imported paths gone straight, missing spots, and counts not written">
+            Review{issues.length ? ` (${issues.length})` : ''}</button>
+        </span>
         <span style={{ flex: 'none' }}>
           <Menu label="Help" title="The how-to guide, and a sample show to look around in">{(close) => (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'stretch' }}>
@@ -763,7 +796,7 @@ export function App() {
           onPointerCancel={(e) => { // the system took the touch (an edge swipe, or iPadOS when fingers join a Pencil)
             const finger = touches.current.has(e.pointerId);
             liftFinger(e);
-            if (e.pointerType === 'pen') { drag.current = null; atDown.current = null; setBox(undefined); } // keep what the Pencil did
+            if (e.pointerType === 'pen') { drag.current = null; atDown.current = null; setBox(undefined); setLasso(undefined); } // keep what the Pencil did
             else if (!(finger && penSeen.current)) cancelGesture();
           }}
           onPointerLeave={() => setHover('')}
@@ -798,6 +831,7 @@ export function App() {
             <button onClick={() => { const n = Date.now() + DAY; writeTime(SNOOZE, n); setSnooze(n); }}>Later</button>
           </div>
         )}
+        {reviewing && <ReviewPanel show={show} setShow={setShow} issues={issues} onGo={goToIssue} onClose={() => setReviewing(false)} />}
         {/* Floats over the field so its changing length can't move the layout. */}
         {(notice?.t === t || hover) && (
           <div role={notice?.t === t ? 'status' : undefined} style={{ position: 'absolute', left: 8, bottom: 8, maxWidth: 'calc(100% - 16px)', padding: '4px 8px', borderRadius: 4,
@@ -807,7 +841,7 @@ export function App() {
         {/* Hidden, not unmounted, like the sidebar: its zoom and menus survive. */}
         <div style={timelineOpen ? undefined : { display: 'none' }}>
         <Timeline click={{ on: clickOn, set: (on) => { setClickOn(on); setClickWanted(on); if (on) wakeClick(); } }} wave={wave && show.music && show.music.taps.length >= 2 ? { peaks: wave, taps: show.music.taps } : undefined} show={show} setShow={setShow} t={t} setT={(x) => { setPlaying(false); setT(x); }} playing={playing} setPlaying={setPlaying} bpm={bpm} setBpm={setBpm}
-          range={range} setRange={setRange} span={span} onCloseCall={showCloseCall}
+          range={range} setRange={setRange} span={span} onCloseCall={showCloseCall} onOverLimit={showOverLimit}
           music={<MusicMenu show={show} setShow={setShow} audio={audio} onAudio={() => setAudioTick((n) => n + 1)} useMusic={useMusic} setUseMusic={setUseMusic} />} />
         </div>
       </div>
@@ -819,7 +853,7 @@ export function App() {
         selected={selected} setSelected={setSelected} tool={tool} setTool={setTool}
         section={section} setSection={setSection} snap={snap} setSnap={setSnap} starts={starts}
         onNew={fresh} onOpen={() => guard('Importing another show', () => fileRef.current?.click())} onSave={save} onSaveAs={saveAs} onPrint={() => setPrinting(true)} onShare={() => setSharing(true)} fileError={fileError}
-        selectedMark={selectedMark} setSelectedMark={setSelectedMark} adding={adding} setAdding={setAdding}
+        selectedMark={selectedMark} setSelectedMark={setSelectedMark} adding={adding} setAdding={setAdding} lassoOn={lassoOn} setLassoOn={setLassoOn}
         look={look} setLook={setLook}
         clip={clip ? Object.keys(clip).length : 0} onCopy={copySpots} onPaste={pasteSpots} selectedProp={selectedProp} setSelectedProp={setSelectedProp} onTrace={() => setTraceTick((n) => n + 1)}
         onUndo={() => step('undo')} onRedo={() => step('redo')} canUndo={!!hist.past.length} canRedo={!!hist.future.length}

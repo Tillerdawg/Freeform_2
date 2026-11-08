@@ -260,9 +260,13 @@ export function drawProps(
   }
 }
 
-/** Performers, their incoming paths, and an optional selection box. */
+/**
+ * Performers, their incoming paths, and an optional selection box or lasso. `warn`: performers stepping over the show's
+ * step limit in this move, ringed in the too-big-step red (on a dark casing, since red alone is 1.6:1 on the turf).
+ */
 export function drawPerformers(
   ctx: CanvasRenderingContext2D, v: View, dots: Dot[], selected: Set<string>, paths: Path[], box?: [Point, Point], dpr = 1,
+  { warn, lasso }: { warn?: Set<string>; lasso?: Point[] } = {},
 ) {
   const s = v.scale;
   ctx.setLineDash([s * 0.4, s * 0.3]);
@@ -298,6 +302,13 @@ export function drawPerformers(
     ctx.stroke();
   }
   ctx.globalAlpha = 1;
+  if (warn?.size) for (const d of dots) {
+    if (!warn.has(d.id) || d.dim) continue;
+    const c = toScreen(v, d.at), rr = r * 1.8, lw = Math.max(2, r * 0.3);
+    for (const [color, width] of [[PALETTE['bg-deep'], lw + 3 * dpr], [PALETTE['step-red'], lw]] as const) {
+      ctx.strokeStyle = color; ctx.lineWidth = width; ctx.beginPath(); ctx.arc(c.x, c.y, rr, 0, Math.PI * 2); ctx.stroke();
+    }
+  }
   drawLabels(ctx, dots.map((d) => ({ ...d, first: selected.has(d.id) })), v, r, Math.max(10 * dpr, s * 0.8), '#fff', 'rgba(0,0,0,0.85)'); // at least 10 CSS px: smaller isn't readable; black outline so yard lines don't swallow them
 
   if (box) {
@@ -307,6 +318,13 @@ export function drawPerformers(
     ctx.lineWidth = 1;
     ctx.fillRect(a.x, a.y, b.x - a.x, b.y - a.y);
     ctx.strokeRect(a.x, a.y, b.x - a.x, b.y - a.y);
+  }
+  if (lasso && lasso.length > 1) {
+    ctx.beginPath();
+    lasso.forEach((p, k) => { const q = toScreen(v, p); if (k) ctx.lineTo(q.x, q.y); else ctx.moveTo(q.x, q.y); });
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(255,209,102,0.12)'; ctx.fill(); // the box's fill: gold, faint
+    ctx.strokeStyle = PALETTE.gold; ctx.lineWidth = Math.max(1, dpr); ctx.setLineDash([4 * dpr, 3 * dpr]); ctx.stroke(); ctx.setLineDash([]);
   }
 }
 

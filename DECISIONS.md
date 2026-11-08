@@ -1260,3 +1260,27 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Other options:** A second, hand-kept copy on the site (it would drift); showing the guide inside the app (more code, and it would need its own way to show pictures).
 - **Decision:** `docs/HOW-TO.md` stays the only copy. Every build turns it into `guide/index.html` with its pictures beside it (`src/guide/page.ts`, run from `vite.config.ts`), in the app's colors and light or dark mode, with a link back to the app. **Help** opens it, and the README points there. Anchors match GitHub's, and a test checks every contents link has its heading. `marked` (a Markdown reader) is a build-only dependency: nothing new ships to users. The guide is online only (the offline cache keeps the app, not the guide), and `npm run dev` doesn't serve it.
 - Also fixed: the sample show was split into its own file on 2026-11-06, which the offline cache doesn't keep (it saves only the files the page links); it's back in the main file.
+
+## 2026-11-08 09:30 EST — A step limit per show
+- **Who:** Claude *(Jason can veto)*, asked for by Jason's lead agent; the idea of a threshold per show and drawing over-limit paths so they stand out comes from OpenMarch (ideas only: OpenMarch is AGPL, and no code was copied).
+- **Context:** The timeline showed each move's biggest step, but not who takes it, and the red line (bigger than a 4-to-5) was fixed for every band.
+- **Other options:** A new limit separate from the colors (a third warning beside yellow and red); a default of 6-to-5 (would turn the sample's and most shows' yellow moves into "problems").
+- **Decision:** The limit *is* red: `stepLimit` in the show (N-to-5, 2 to 8, checked in `parseShow`; missing means 4, today's red, so existing shows look the same). Yellow stays "bigger than a 6-to-5"; a limit of 6 or more leaves no yellow. Everyone over the limit in the move on screen gets a red ring on a dark casing (the paths were already red and dashed). A red "max" on the timeline is a button that goes to the set and selects them. The limit is set in **Review**, beside the list it changes, rather than in the sidebar.
+
+## 2026-11-08 09:30 EST — Review: one list of every problem
+- **Who:** Claude *(Jason can veto)*, asked for by Jason's lead agent.
+- **Context:** Warnings were per move (timeline) or per set (**Move**). Nothing listed the whole show.
+- **Other options:** A dialog (blocks the field and the keyboard while fixing); a timeline tab (the bottom panel can't change height); props in the too-close check (left out: standing on a platform is on purpose, so it needs a rule first).
+- **Decision:** A **Review** button in the top bar, with the count of problems, opens a panel floating over the field's top right (so nothing resizes). It lists, in show order: steps over the limit (one item per move), each too-close pair, imported paths gone straight, performers with no spot in a set, and counts in **Movements** not written yet. A click moves the playhead there, selects the performers, and says what's wrong in the note over the field. Detection is `src/engine/review.ts`; close calls are now kept per move (`closeCallsMemo`), shared with the timeline.
+
+## 2026-11-08 09:30 EST — Imported paths that go straight say so
+- **Who:** Claude *(Jason can veto)*.
+- **Context:** Imported Pyware count-by-count paths apply only while both sets and the counts match, so an edit quietly turned them into straight lines.
+- **Other options:** Re-fit the route to the new ends (changes what Pyware wrote); delete the path at once (then moving the dot back couldn't restore it); ask before the edit (a prompt mid-drag).
+- **Decision:** Keep the fallback and the stored path (Undo, or putting the spots and counts back, restores the route). When an edit makes paths stop fitting, the note over the field says "4 imported paths in the move into set 7 are straight lines now…", and Review lists them as **Straight now**.
+
+## 2026-11-08 09:30 EST — Lasso selection
+- **Who:** Claude *(Jason can veto)*.
+- **Context:** Selection was click, Shift-click, and a box. A box can't pick one side of an arc or a diagonal.
+- **Other options:** A lasso tool in the toolbar (another mode to leave); lasso as the default drag (the box is quicker for blocks).
+- **Decision:** Option/Alt-drag on open field draws a lasso (gold, dashed, like the box); everyone inside it is selected (even-odd point-in-polygon), and Shift adds, as with the box. For touch screens, a **Lasso** toggle sits next to **Add to selection** in the sidebar's Selection area and makes a drag on open field lasso instead of box.

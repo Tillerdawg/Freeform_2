@@ -20,17 +20,18 @@ The pictures in this guide come from a small sample show (47 performers, 4 sets)
 10. [Step-offs and turning moves](#step-offs-and-turning-moves)
 11. [Props](#props)
 12. [Step-size and too-close warnings](#step-size-and-too-close-warnings)
-13. [Dot labels](#dot-labels)
-14. [Markup and notes](#markup-and-notes)
-15. [Play it back](#play-it-back)
-16. [Add your music](#add-your-music)
-17. [Print dot sheets and drill charts](#print-dot-sheets-and-drill-charts)
-18. [Send the show to your performers](#send-the-show-to-your-performers)
-19. [What performers see on their phones](#what-performers-see-on-their-phones)
-20. [Using an iPad](#using-an-ipad)
-21. [Saving, backing up, and opening files](#saving-backing-up-and-opening-files)
-22. [Keyboard shortcuts](#keyboard-shortcuts)
-23. [If something goes wrong](#if-something-goes-wrong)
+13. [Review the whole show](#review-the-whole-show)
+14. [Dot labels](#dot-labels)
+15. [Markup and notes](#markup-and-notes)
+16. [Play it back](#play-it-back)
+17. [Add your music](#add-your-music)
+18. [Print dot sheets and drill charts](#print-dot-sheets-and-drill-charts)
+19. [Send the show to your performers](#send-the-show-to-your-performers)
+20. [What performers see on their phones](#what-performers-see-on-their-phones)
+21. [Using an iPad](#using-an-ipad)
+22. [Saving, backing up, and opening files](#saving-backing-up-and-opening-files)
+23. [Keyboard shortcuts](#keyboard-shortcuts)
+24. [If something goes wrong](#if-something-goes-wrong)
 
 ## Before you start
 
@@ -126,9 +127,10 @@ With **Select** on:
 - **Click** a performer to select them.
 - **Shift-click** to add or remove performers from the selection.
 - **Drag a box** on open field to select everyone inside it.
+- **Option-drag** (Alt-drag on Windows) on open field to draw a **lasso**: a freeform outline around the performers you want, for shapes a box can't fit, like one side of an arc. Everyone inside the outline is selected when you let go.
 - **Drag** any selected performer to move the whole selection.
 
-On a touch screen there's no Shift key, so turn on **Add to selection** in the sidebar's Selection area. Every tap or box then adds to what's already selected.
+On a touch screen there's no Shift key, so turn on **Add to selection** in the sidebar's Selection area. Every tap, box, or lasso then adds to what's already selected. There's no Option key either, so turn on **Lasso**, next to it, and dragging on open field draws a lasso instead of a box. (Shift and Option work together too: Shift-Option-drag adds a lasso's performers to the selection.)
 
 The Selection area also has **Select all** (⌘A, or Ctrl+A on Windows) and **Select a section…**, which picks every performer in that section. With two performers selected, it shows how many steps apart they are.
 
@@ -283,13 +285,31 @@ Props show on the field, on printed charts, and on phones.
 FreeFORM checks every move against the counts it has:
 
 - **Yellow** means someone's step is bigger than a 6-to-5.
-- **Red** means it's bigger than a 4-to-5, which is about as big a step as anyone should take.
+- **Red** means it's over the show's **step limit**: bigger than a 4-to-5 unless you change it, which is about as big a step as anyone should take.
 
-The colors show on the path lines on the field and in the timeline's "max" readout for each move. To fix a red move, add counts, shorten the distance, or split the move with a sub-set.
+The colors show on the path lines on the field and in the timeline's "max" readout for each move. On the field, everyone over the limit in the move you're looking at also gets a red ring, so you can see who it is. When a move's "max" is red, it's underlined: click it to go to that set with everyone over the limit selected, and a note at the bottom of the field names them. To fix a red move, add counts, shorten the distance, or split the move with a sub-set.
+
+**Changing the step limit.** Open **Review** (in the top bar) and type a number in **Step limit**. A younger band might use 6 (anything bigger than a 6-to-5 turns red), and a corps-style show might use 8. It's saved with the show, from a 2-to-5 up to an 8-to-5.
 
 **Too close.** FreeFORM also checks every move, start to finish, for two performers less than a step apart, even if they're fine at both ends. It catches fast crossings that happen between counts, too. The timeline shows how many pairs come too close in each move ("2 too close" in red). Click that warning to jump to the count where the closest pair is nearest: both performers are selected, and a note at the bottom of the field says who they are and how close they get. Open **Move** to see every pair, how close they get, and on what count. **Select** picks a pair so you can fix them, by spreading their spots, giving one a delayed step-off, or changing who goes to which spot.
 
 ![A too-close warning, clicked](img/too-close.png)
+
+## Review the whole show
+
+![The Review list, with the step limit](img/review.png)
+
+The warnings on the timeline cover one move at a time. **Review**, in the top bar, lists every problem in the whole show in one place, in show order. The button shows how many there are, like **Review (3)**. It lists:
+
+- **Steps**: everyone over the step limit in a move.
+- **Too close**: each pair of performers who come within a step of each other, and on what count.
+- **Straight now**: imported Pyware paths that are straight lines now (see below).
+- **No spot**: performers missing a spot in a set (this can happen with an imported show).
+- **Not written**: counts in your **Movements** that don't have sets yet.
+
+Click an item to go there: the playhead moves to that set or count, the performers are selected, and a note at the bottom of the field says what's wrong. The list stays open while you fix things and updates as you go, and it says "all clear" when there's nothing left. **Close** puts it away.
+
+**Imported paths that go straight.** A move imported from Pyware count by count (a follow-the-leader, a delayed step-off, a rotation) keeps its route only while both of its sets and its counts stay as they came in. If you move one of those performers in either set, or change the move's counts, that performer marches a straight line instead. When an edit does that, a note at the bottom of the field says so, like "4 imported paths in the move into set 7 are straight lines now." Undo brings the routes back, and so does putting the spots and counts back the way they were. Until then, Review lists them.
 
 ## Dot labels
 
@@ -427,7 +447,7 @@ To check a performer's view while you write, select one performer and click **Pe
 
 The editor works on an iPad the same way it does on a computer, with a few touch habits:
 
-- **One finger** does whatever the tool does: tap to select or add, drag to move, drag on open field for a box.
+- **One finger** does whatever the tool does: tap to select or add, drag to move, drag on open field for a box (or, with **Lasso** on, draw around performers to select them).
 - **Two fingers** pan and pinch-zoom the field. If a second finger lands while the first one has started something, FreeFORM takes that back and moves the view instead.
 - **With an Apple Pencil**, the Pencil does the editing. Once you've used it on the field, a single finger or a palm resting on the screen does nothing there, so you can rest your hand while you work. Two fingers still pan and zoom, and they never undo what the Pencil just did. To go back to editing with your finger, reload the page.
 - Turn on **Add to selection** to build up a selection without a Shift key.
@@ -471,6 +491,7 @@ With a keyboard attached, the [keyboard shortcuts](#keyboard-shortcuts) work too
 | Zoom the field in or out | ⌘+ or ⌘− (Ctrl on Windows) |
 | Fit the whole field | F, or ⌘0 (Ctrl+0) |
 | Select everyone | ⌘A (Ctrl+A on Windows) |
+| Lasso: select everyone inside an outline you draw | Option-drag (Alt-drag) on open field |
 | Copy or paste the selection's spots | ⌘C or ⌘V (Ctrl+C or Ctrl+V) |
 | Delete the selection (asks first) | Delete |
 | Save | ⌘S (Ctrl+S on Windows) |

@@ -19,6 +19,7 @@ export type Snap = 1 | 0.5 | 0;
 
 interface Props {
   adding: boolean; // taps add to the selection (Add to selection, for touch screens)
+  lassoOn: boolean; setLassoOn: (on: boolean) => void; // dragging on open field draws a lasso (Option/Alt-drag without a keyboard)
   setAdding: (b: boolean) => void;
   show: Show;
   setShow: (f: (s: Show) => Show) => void;
@@ -151,9 +152,12 @@ export function Sidebar(p: Props) {
       <section style={box}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
           <strong>Selection</strong>
-          <button aria-pressed={p.adding} onClick={() => p.setAdding(!p.adding)} title="While on, tapping or boxing performers adds to the selection (like shift-click)">Add to selection</button>
+          <span style={{ display: 'flex', gap: 6 }}>
+            <button aria-pressed={p.lassoOn} onClick={() => p.setLassoOn(!p.lassoOn)} title="While on, dragging on open field draws a freeform outline and selects everyone inside it (like Option/Alt-drag)">Lasso</button>
+            <button aria-pressed={p.adding} onClick={() => p.setAdding(!p.adding)} title="While on, tapping or boxing performers adds to the selection (like shift-click)">Add to selection</button>
+          </span>
         </div>
-        {selected.size === 0 && <p style={{ opacity: 0.7, margin: '6px 0 0' }}>{coarse() ? 'Tap a performer or drag a box around several. Turn on Add to selection to pick more.' : 'Click a performer, shift-click to add, or drag a box.'}</p>}
+        {selected.size === 0 && <p style={{ opacity: 0.7, margin: '6px 0 0' }}>{coarse() ? 'Tap a performer or drag a box around several (with Lasso on, draw around them). Turn on Add to selection to pick more.' : 'Click a performer, shift-click to add, drag a box, or Option/Alt-drag a lasso.'}</p>}
         {selected.size > 1 && <p style={{ margin: '6px 0 0' }}>{selected.size} performers selected</p>}
         {selected.size === 2 && (() => {
           const [x, y] = ids.map((id) => show.performers.find((q) => q.id === id)!), pos = onSet >= 0 ? show.sets[onSet].pos : positionsAt(show, p.t);

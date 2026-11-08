@@ -39,8 +39,9 @@ A note on where the ideas came from: FreeFORM is modeled on Pyware and the Ultim
 - Delayed step-offs (hold 4, move 12) and turning moves, where a rotating group marches arcs instead of straight lines.
 - Props (platforms, backdrops) that sit in a different spot each set and move between sets.
 - Dim or hide sections while you write the others.
-- Select everyone or a whole section, copy spots from one set and paste them into another, and see how far apart two performers are.
-- Step-size warnings (yellow past a 6-to-5, red past a 4-to-5), and a warning when two performers come within a step of each other at any point in a move. Click the warning to jump to the closest pair.
+- Lasso selection (Option-drag, or the **Lasso** button on a touch screen). Select everyone or a whole section, copy spots from one set and paste them into another, and see how far apart two performers are.
+- Step-size warnings (yellow past a 6-to-5, red past the show's step limit, a 4-to-5 unless you change it), with a red ring on everyone over the limit, and a warning when two performers come within a step of each other at any point in a move. Click a warning to jump to who it's about.
+- **Review**: one list of every problem in the show (steps over the limit, performers too close, imported Pyware paths that went straight after an edit, missing spots, and counts not written yet). Click one to go there with its performers selected.
 - Text, arrows, and freehand markup on each set, plus ensemble notes and per-performer notes.
 - Undo for every edit.
 
@@ -99,9 +100,9 @@ node scripts/screenshots.mjs ftl print    # or just these
 
 | Path | What's there |
 |---|---|
-| `src/engine/` | The drill logic, with no UI: coordinates and readouts, the show model, shapes, markup, undo, music timing, share links and locked files, QR codes, and the Pyware reader. Unit-tested. |
+| `src/engine/` | The drill logic, with no UI: coordinates and readouts, the show model, shapes, markup, undo, music timing, share links and locked files, QR codes, the Pyware reader, and the whole-show Review. Unit-tested. |
 | `src/field/` | Drawing the field, performers, shapes, and markup, plus dot-label placement and the rotate/stretch frame |
-| `src/ui/` | The toolbar, sidebar, timeline, music menu, and color palette |
+| `src/ui/` | The toolbar, sidebar, timeline, Review list, music menu, and color palette |
 | `src/print/` | Dot sheets and drill charts |
 | `src/perform/` | The performer view, the Share dialog, and the QR scanner |
 | `src/guide/` | Turns `docs/HOW-TO.md` into the guide page on the site (`/guide/`) when the site is built |
