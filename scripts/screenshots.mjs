@@ -294,6 +294,13 @@ shot('share', async () => {
   });
   await save(page, 'share', await around(page.locator('[role=dialog] > div').first()));
 });
+shot('share-update', async () => {
+  const page = await editor();
+  await page.getByRole('button', { name: 'Share…' }).click();
+  await page.getByRole('button', { name: 'Keep phones up to date' }).click();
+  await page.waitForTimeout(300);
+  await save(page, 'share-update', await around(page.locator('[role=dialog] > div').first()));
+});
 shot('ipad', async () => {
   const page = await editor({ ...devices['iPad Pro 11 landscape'] });
   await goSet(page, 2);

@@ -7,7 +7,7 @@ import { addInk, hitMark, moveMark, type Mark } from './engine/marks';
 import { assign, fitShape, fitText, isControl, moveHandle, samplePath, slots, type Shape, type ShapeKind } from './engine/shapes';
 import { colorOf,
   addPerformer, closeCalls, setFtlTurns, locate, label, mark, newId, setMarks, moveSegments, fieldOf,  hitProp, placeProp, propsAt, removeProp, normalizeFtl, overLimit, snapPoint, playRange, newShow, parseShow, placeInSet, positionsAt, removePerformers,
-  rotateScale, setAt, setStarts, type Show,
+  rotateScale, setAt, setStarts, withShowId, type Show,
   showLength,
 } from './engine/show';
 import { pinchView } from './perform/gestures';
@@ -42,7 +42,7 @@ function loadAutosave(): Show {
   let raw: string | null = null;
   try {
     raw = localStorage.getItem(AUTOSAVE);
-    if (raw) return parseShow(raw);
+    if (raw) return withShowId(parseShow(raw)); // an older autosave gets its id now (the autosave keeps it)
   } catch {
     // Bad data: keep a copy before the fresh show's autosave overwrites it.
     try { if (raw) localStorage.setItem(`${AUTOSAVE}:unreadable`, raw); } catch { /* storage blocked */ }
@@ -717,7 +717,7 @@ export function App() {
   const open = async (f: File) => {
     try {
       const s = /\.3dj$/i.test(f.name) ? parse3dj(await f.arrayBuffer(), f.name.replace(/\.3dj$/i, '')) : parseShow(await f.text());
-      replaceShow(s); setFileError(''); // what's open is the file itself
+      replaceShow(withShowId(s)); setFileError(''); // what's open is the file itself (an older file or a .3dj gets an id)
     } catch (err) {
       setFileError(err instanceof Error ? err.message : String(err));
     }

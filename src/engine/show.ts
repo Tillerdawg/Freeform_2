@@ -85,6 +85,9 @@ export const LABEL_SIDES: LabelSide[] = ['above', 'above-right', 'right', 'below
 export interface Show {
   format: 'freeform-show';
   version: 1;
+  /** A permanent random id, made when the show is first created and kept forever (copies made with Duplicate get a new one),
+   * so phones can tell two shows with the same title apart. Shows from before ids have none. */
+  id?: string;
   title: string;
   hash: HashPreset;
   sections: Section[];
@@ -119,6 +122,12 @@ export const MAX_MOVEMENT = 100_000;
 /** The step limits a show can set: from a 2-to-5 (huge) to an 8-to-5 (flag any step bigger than standard). */
 export const MIN_STEP_LIMIT = 2, MAX_STEP_LIMIT = 8;
 
+/** A new show's permanent id: 16 random bytes as hex (getRandomValues works on plain-http pages too, unlike randomUUID). */
+export const newShowId = () => Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, '0')).join('');
+/** The show with an id, making one if it has none (an older file, or an import). */
+export const withShowId = (show: Show): Show => (show.id ? show : { ...show, id: newShowId() });
+const SHOW_ID_RE = /^[\w-]{1,64}$/;
+
 let seq = 0;
 export const newId = (prefix: string) => `${prefix}${Date.now().toString(36)}${(seq++).toString(36)}`;
 
@@ -143,6 +152,7 @@ export function newShow(sections: SectionList = DEFAULT_SECTIONS): Show {
   return {
     format: 'freeform-show',
     version: 1,
+    id: newShowId(),
     title: 'Untitled show',
     hash: 'highSchool',
     sections: sections.map(({ name, letter, color }) => ({ id: newId('s'), name, letter, ...(color ? { color } : {}) })),
@@ -898,6 +908,7 @@ export function parseShow(text: string): Show {
   if (!Array.isArray(s.sections) || !Array.isArray(s.performers) || !Array.isArray(s.sets) || !s.sets.length) bad('missing lists');
   const str = (v: unknown) => typeof v === 'string';
   if (typeof s.title !== 'string') bad('title');
+  if (s.id !== undefined && !(str(s.id) && SHOW_ID_RE.test(s.id))) bad('id');
   if (s.music !== undefined && !validMusic(s.music)) bad('music');
   if (s.revision !== undefined && !(Number.isInteger(s.revision) && s.revision >= 1 && s.revision <= 1e6)) bad('revision');
   if (s.symbols === 'icons') delete s.symbols; // equipment icons were a choice for a day (2026-11-05): such a show opens with letters

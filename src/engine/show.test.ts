@@ -3,7 +3,7 @@ import { HASHES, readout } from './coords';
 import {
   addPerformer, addSetAfter, advance, biggestStep, chainOrder, clearFtl, ftlTrail, moveSteps, normalizeFtl, flip, mirrorSides, moveSetTo, remapHash, rotateScale, setFtl, snapSelection, playRange, playPlan, label, locate, newShow, parseShow, placeInSet, positionsAt,
   removePerformers, renumberSets, scoreOrder, DEFAULT_SECTIONS, removeSet, setAt, setCounts, setStarts, totalCounts, xFrom, yFrom, insertSetAt, showLength, movementAt, movementOfSet, setFtlTurns,
-  addSetHere, setCue, newPropSpot, setFtlSmooth, routeTurns, leaderDistance, setTiming, timingOf, fitTurn, setTurning, turnRoute, counterMarch, closeCalls, addProp, placeProp, propsAt, hitProp, removeProp, fieldOf, moveSegments,
+  addSetHere, setCue, newPropSpot, setFtlSmooth, routeTurns, leaderDistance, setTiming, timingOf, fitTurn, setTurning, turnRoute, counterMarch, closeCalls, addProp, placeProp, propsAt, hitProp, removeProp, fieldOf, moveSegments, withShowId,
 } from './show';
 
 function twoSetShow() {
@@ -16,6 +16,18 @@ function twoSetShow() {
 }
 
 describe('show model', () => {
+  it('gives every new show its own permanent id, kept in the file and checked when read', () => {
+    const a = newShow(), b = newShow();
+    expect(a.id).toMatch(/^[0-9a-f]{32}$/);
+    expect(a.id).not.toBe(b.id);
+    expect(parseShow(JSON.stringify(a)).id).toBe(a.id);
+    const { id: _, ...old } = a;
+    expect(parseShow(JSON.stringify(old)).id).toBeUndefined(); // older files still open
+    expect(withShowId(old).id).toMatch(/^[0-9a-f]{32}$/);
+    expect(withShowId(a)).toBe(a);
+    expect(() => parseShow(JSON.stringify({ ...a, id: '<script>' }))).toThrow(/id/);
+    expect(() => parseShow(JSON.stringify({ ...a, id: 7 }))).toThrow(/id/);
+  });
   it('numbers performers per section and labels them', () => {
     let { show, trumpet } = twoSetShow();
     show = addPerformer(show, trumpet, { x: 4, y: 28 }).show;

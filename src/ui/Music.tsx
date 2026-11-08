@@ -6,6 +6,7 @@ import { newId, showLength, type Show } from '../engine/show';
 import { deleteAudio, putAudio } from './audioStore';
 import { Menu } from './Toolbar';
 import { NumberField } from './NumberField';
+import { useDialog } from './useDialog';
 
 interface Props {
   show: Show;
@@ -118,15 +119,15 @@ function TapDialog({ audio, total, kept, onDone }: { audio: HTMLAudioElement; to
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
       if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); tap(); }
-      if (e.key === 'Escape') { e.stopPropagation(); audio.pause(); onDone(null); }
     };
     window.addEventListener('keydown', key, true); // before the editor's own shortcuts (Space = play)
     return () => window.removeEventListener('keydown', key, true);
   });
   useEffect(() => () => audio.pause(), [audio]);
+  const dialog = useDialog(() => { audio.pause(); onDone(null); });
   const n = all.length;
   return (
-    <div role="dialog" aria-modal="true" aria-label="Tap counts" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'grid', placeItems: 'center', zIndex: 30, whiteSpace: 'normal' }}>
+    <div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Tap counts" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'grid', placeItems: 'center', zIndex: 30, whiteSpace: 'normal' }}>
       <div style={{ background: 'var(--bg)', border: '1px solid var(--line-strong)', borderRadius: 10, padding: 20, width: 440, maxWidth: 'calc(100vw - 32px)' }}>
         <h2 style={{ margin: '0 0 6px', fontSize: 18 }}>Tap the counts</h2>
         <p style={{ margin: '0 0 12px', fontSize: 13, opacity: 0.85 }}>
