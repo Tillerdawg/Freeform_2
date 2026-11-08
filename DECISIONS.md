@@ -1341,3 +1341,7 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Context:** The full product name is FreeFORM Drill (it matches freeformdrill.org and avoids confusion with Apple's Freeform). The logo said only FreeFORM. Claude made ten concepts that keep the existing wordmark and add DRILL.
 - **Other options:** DRILL on a solid plate under FORM (Claude's first recommendation); DRILL tracked out under FORM; DRILL on a yard-line rule; a small curve leading into DRILL ("Flow"); the curve under a one-line name.
 - **Decision:** The main logo is FreeFORM DRILL on one line with the curve centered over it (Jason: it looks more stable than the curve underneath). The stacked square is for avatars, and the round badge, with "Drill, without the bill." over the top and freeformdrill.org along the bottom, is for merch. The main logo replaces the old one on the phone start screen, the old-browser page, the README, and the link-preview card. The editor's top bar keeps the shorter FreeFORM logo and the curve (Claude's call, *Jason can veto*): a one-line FreeFORM DRILL with the curve over it is too tall for a 24 px bar.
+
+## 2026-11-08 10:35 EST — FreeFORM DRILL in the top bar
+- **Who:** Jason (replaces Claude's call above to keep the shorter logo there).
+- **Decision:** The editor's top bar shows the curve, then FreeFORM DRILL on one line (`logo-small.svg`, built by `brand/build_drill_logo.py`). Narrow windows still show just the curve.

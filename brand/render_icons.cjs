@@ -21,7 +21,7 @@ const sizes = { 'apple-touch-icon.png': [180, 'freeform-app-icon-ios.svg'], 'ico
   await og.setContent(`<body style="margin:0;width:1200px;height:630px;background:#1d2a1f;display:grid;place-items:center">${svg('freeform-drill-logo-dark.svg').replace(/width="\d+" height="\d+"/, 'width="820"')}</body>`);
   await og.screenshot({ path: path.join(pub, 'og-image.png') });
   await b.close();
-  const copies = { 'favicon.svg': 'freeform-favicon.svg', 'logo.svg': 'freeform-drill-logo-dark.svg', 'logo-light.svg': 'freeform-drill-logo-light.svg', 'logo-small.svg': 'freeform-logo-small-dark.svg', 'mark.svg': 'freeform-mark-dark.svg' };
+  const copies = { 'favicon.svg': 'freeform-favicon.svg', 'logo.svg': 'freeform-drill-logo-dark.svg', 'logo-light.svg': 'freeform-drill-logo-light.svg', 'logo-small.svg': 'freeform-drill-logo-small-dark.svg', 'logo-small-light.svg': 'freeform-drill-logo-small-light.svg', 'mark.svg': 'freeform-mark-dark.svg' };
   for (const [to, from] of Object.entries(copies)) fs.copyFileSync(path.join(__dirname, from), path.join(pub, to));
   console.log('wrote', [...Object.keys(sizes), 'og-image.png', ...Object.keys(copies)].join(', '));
 })();

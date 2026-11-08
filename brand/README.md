@@ -11,7 +11,7 @@
 
 The mark is the **FreeFORM curve**: 13 dots in an S, evenly spaced (the same idea as FreeFORM's even-steps rule), with the first dot as the accent, like Set 1. The wordmark sets **Free** in a flowing script against **FORM** in sturdy block capitals: the free-form side and the formation side of drill.
 
-The full name is **FreeFORM Drill**. The main logo sets FreeFORM DRILL on one line (DRILL in Barlow Medium, so FreeFORM still leads) with the curve centered over it. Inside the app, where space is tight, the toolbar keeps the shorter FreeFORM logo and the curve.
+The full name is **FreeFORM Drill**. The main logo sets FreeFORM DRILL on one line (DRILL in Barlow Medium, so FreeFORM still leads) with the curve centered over it. The editor's top bar uses a one-line version, with the curve to the left of FreeFORM DRILL.
 
 ## Files
 
@@ -20,6 +20,7 @@ The logo, small logo, FF monogram, and curve each come in a **dark** version (fo
 | File | Use it for |
 |---|---|
 | `freeform-drill-logo-{dark,light}.svg` | **The main logo:** FreeFORM DRILL with the curve over it. README, website, phone start screen, link previews, dot-book covers: anywhere there's room above the name. |
+| `freeform-drill-logo-small-{dark,light}.svg` | The editor's top bar: the curve, then FreeFORM DRILL on one line, tuned like the small logo (heavier "Free", fatter dots) to read at 24 to 30 px tall. |
 | `freeform-drill-stacked-{dark,light}.svg` | Square avatar: the curve, FreeFORM, and DRILL on a rounded tile. App store listings, GitHub and social avatars, title slides. Under about 64 px, use the app icon instead. |
 | `freeform-drill-badge-{dark,light}.svg` | Round badge for merch: "Drill, without the bill." over the top and freeformdrill.org along the bottom, on a filled disc. Shirts, stickers, dot-book covers. Needs about 250 px or more. |
 | `freeform-logo-{dark,light}.svg` | FreeFORM without DRILL, one line. Wide headers where the full name is already nearby. |
@@ -32,7 +33,7 @@ The logo, small logo, FF monogram, and curve each come in a **dark** version (fo
 | `freeform-app-icon-ff.svg` | Alternate app icon: FF on field dark. Not used by the app yet. |
 | `freeform-favicon.svg` | Source of the browser-tab icon: the curve with fatter dots, dark on light tabs and light on dark tabs. |
 
-**In the app** (`public/`): `favicon.svg` (copied from `freeform-favicon.svg`), `favicon-32.png` for browsers without SVG favicons, `apple-touch-icon.png` (from `freeform-app-icon-ios.svg`), and `icon-192.png` and `icon-512.png` (both from `freeform-app-icon.svg`). Also `logo.svg` (the FreeFORM Drill logo: phone start screen, old-browser page), `logo-small.svg` and `mark.svg` (the editor's top bar: the small logo, or just the curve in narrow windows), each with a `-light` version for light mode, and `og-image.png` (the FreeFORM Drill logo), the 1200 × 630 card shown when a FreeFORM link is pasted into a message (its address in `index.html` is freeformdrill.org).
+**In the app** (`public/`): `favicon.svg` (copied from `freeform-favicon.svg`), `favicon-32.png` for browsers without SVG favicons, `apple-touch-icon.png` (from `freeform-app-icon-ios.svg`), and `icon-192.png` and `icon-512.png` (both from `freeform-app-icon.svg`). Also `logo.svg` (the FreeFORM Drill logo: phone start screen, old-browser page), `logo-small.svg` (the curve and FreeFORM DRILL in one line) and `mark.svg` (the editor's top bar: the small logo, or just the curve in narrow windows), each with a `-light` version for light mode, and `og-image.png` (the FreeFORM Drill logo), the 1200 × 630 card shown when a FreeFORM link is pasted into a message (its address in `index.html` is freeformdrill.org).
 
 <p>
   <img src="freeform-app-icon-ios.svg" alt="App icon: the curve on field dark" width="96">

@@ -1,5 +1,5 @@
 """Builds the FreeFORM Drill logos (chosen by Jason, 2026-11-08): the main logo (FreeFORM DRILL on one line with the
-curve over it), the stacked square for avatars, and the round badge for merch. Same fonts, tuning, and colors as
+curve over it), the stacked square for avatars, and the round badge for merch, plus a one-line version for the editor's top bar. Same fonts, tuning, and colors as
 build_logo.py, with letters converted to outlines. Usage: python3 build_drill_logo.py <font dir> <out dir>
 (the font dir is node_modules/@fontsource, as for build_logo.py)."""
 import io, math, os, sys
@@ -196,7 +196,15 @@ def c09_curve_over(v):
 
 
 
-LOGOS = {'freeform-drill-logo': c09_curve_over, 'freeform-drill-stacked': c05_stacked, 'freeform-drill-badge': c08_badge}
+
+def small_line(v):
+    """The editor's top bar (24 to 30 px tall): the curve with fatter dots, FreeFORM with the small-logo tuning, then DRILL."""
+    a = Art(v); a.curve(0, -CAP / 2, 96, r_scale=1.25)
+    _, bf = wordmark(a, 112, 0, boost=1.2, stroke=0.45 * FORM_SIZE / 18)
+    a.txt(BLOCK(500), 'DRILL', FORM_SIZE, bf[2] + 22, 0, a.c['drill'], tracking=3)
+    return a.svg()
+
+LOGOS = {'freeform-drill-logo': c09_curve_over, 'freeform-drill-stacked': c05_stacked, 'freeform-drill-badge': c08_badge, 'freeform-drill-logo-small': small_line}
 os.makedirs(OUT, exist_ok=True)
 for name, make in LOGOS.items():
     for v in COLORS:
