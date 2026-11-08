@@ -16,12 +16,12 @@ const sizes = { 'apple-touch-icon.png': [180, 'freeform-app-icon-ios.svg'], 'ico
     await p.screenshot({ path: path.join(pub, file), clip: { x: 0, y: 0, width: px, height: px } });
     await p.close();
   }
-  // Link-preview card (iMessage, Slack, email): the full logo on field dark, 1200 x 630.
+  // Link-preview card (iMessage, Slack, email): the FreeFORM Drill logo on field dark, 1200 x 630.
   const og = await b.newPage({ viewport: { width: 1200, height: 630 }, deviceScaleFactor: 1 });
-  await og.setContent(`<body style="margin:0;width:1200px;height:630px;background:#1d2a1f;display:grid;place-items:center">${svg('freeform-logo-dark.svg').replace(/width="\d+" height="\d+"/, 'width="900"')}</body>`);
+  await og.setContent(`<body style="margin:0;width:1200px;height:630px;background:#1d2a1f;display:grid;place-items:center">${svg('freeform-drill-logo-dark.svg').replace(/width="\d+" height="\d+"/, 'width="820"')}</body>`);
   await og.screenshot({ path: path.join(pub, 'og-image.png') });
   await b.close();
-  const copies = { 'favicon.svg': 'freeform-favicon.svg', 'logo.svg': 'freeform-logo-dark.svg', 'logo-small.svg': 'freeform-logo-small-dark.svg', 'mark.svg': 'freeform-mark-dark.svg' };
+  const copies = { 'favicon.svg': 'freeform-favicon.svg', 'logo.svg': 'freeform-drill-logo-dark.svg', 'logo-light.svg': 'freeform-drill-logo-light.svg', 'logo-small.svg': 'freeform-logo-small-dark.svg', 'mark.svg': 'freeform-mark-dark.svg' };
   for (const [to, from] of Object.entries(copies)) fs.copyFileSync(path.join(__dirname, from), path.join(pub, to));
   console.log('wrote', [...Object.keys(sizes), 'og-image.png', ...Object.keys(copies)].join(', '));
 })();

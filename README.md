@@ -1,7 +1,7 @@
 <h1 align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="brand/freeform-logo-dark.svg">
-    <img src="brand/freeform-logo-light.svg" alt="FreeFORM" width="420">
+    <source media="(prefers-color-scheme: dark)" srcset="brand/freeform-drill-logo-dark.svg">
+    <img src="brand/freeform-drill-logo-light.svg" alt="FreeFORM Drill" width="420">
   </picture>
 </h1>
 

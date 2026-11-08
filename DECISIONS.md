@@ -1335,3 +1335,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Context:** On a first visit the editor opens a blank show. Clicking **Try the sample show** or **Import…** then left an empty "Untitled show" in the **Shows** list.
 - **Other options:** Keep every show ever opened (the list fills with empty shows); ask before dropping it (a question about nothing).
 - **Decision:** When another show opens, a blank show (no performers) that hasn't been changed since it opened is dropped instead of kept. Anything changed, even just the title, is kept as before.
+
+## 2026-11-08 09:50 EST — The FreeFORM Drill logos
+- **Who:** Jason.
+- **Context:** The full product name is FreeFORM Drill (it matches freeformdrill.org and avoids confusion with Apple's Freeform). The logo said only FreeFORM. Claude made ten concepts that keep the existing wordmark and add DRILL.
+- **Other options:** DRILL on a solid plate under FORM (Claude's first recommendation); DRILL tracked out under FORM; DRILL on a yard-line rule; a small curve leading into DRILL ("Flow"); the curve under a one-line name.
+- **Decision:** The main logo is FreeFORM DRILL on one line with the curve centered over it (Jason: it looks more stable than the curve underneath). The stacked square is for avatars, and the round badge, with "Drill, without the bill." over the top and freeformdrill.org along the bottom, is for merch. The main logo replaces the old one on the phone start screen, the old-browser page, the README, and the link-preview card. The editor's top bar keeps the shorter FreeFORM logo and the curve (Claude's call, *Jason can veto*): a one-line FreeFORM DRILL with the curve over it is too tall for a 24 px bar.
