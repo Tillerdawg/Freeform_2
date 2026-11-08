@@ -80,7 +80,7 @@ export function Sidebar(p: Props) {
   const ids = [...selected];
 
   return (
-    <aside style={{ width: 300, padding: '8px 14px 0', overflowY: 'auto', borderLeft: '1px solid var(--line)', fontSize: 14, display: 'flex', flexDirection: 'column' }}>
+    <aside style={{ width: 300, padding: '8px 14px 0', overflowY: 'auto', fontSize: 14, display: 'flex', flexDirection: 'column' }}>
       <div style={row}>
         <button onClick={p.onShows} title="The shows kept in this browser: open, rename, duplicate, or delete one, and earlier versions of this one">Shows…</button>
         <button onClick={p.onNew} title="Start a new show (this one stays under Shows…)">New</button>

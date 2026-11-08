@@ -44,6 +44,7 @@ A note on where the ideas came from: FreeFORM is modeled on Pyware and the Ultim
 - **Review**: one list of every problem in the show (steps over the limit, performers too close, imported Pyware paths that went straight after an edit, missing spots, and counts not written yet). Click one to go there with its performers selected.
 - Text, arrows, and freehand markup on each set, plus ensemble notes and per-performer notes.
 - Undo for every edit.
+- Sidebar on the left or right, and the timeline on the top or bottom (**Layout**, in the top bar).
 
 **Timing and music**
 - A timeline you can scrub count by count, play at any tempo (with a click if you like, on the computer or the phone), or loop over a range of sets.
@@ -106,7 +107,7 @@ node scripts/screenshots.mjs ftl print    # or just these
 |---|---|
 | `src/engine/` | The drill logic, with no UI: coordinates and readouts, the show model, shapes, markup, undo, which versions to keep, music timing, share links and locked files, QR codes, the Pyware reader, and the whole-show Review. Unit-tested. |
 | `src/field/` | Drawing the field, performers, shapes, and markup, plus dot-label placement and the rotate/stretch frame |
-| `src/ui/` | The toolbar, sidebar, timeline, Review list, music menu, show list, color palette, the keyboard handling every dialog shares (`useDialog`), and browser storage (`audioStore.ts`, `showStore.ts`: recordings, pictures, the show library, and versions in IndexedDB) |
+| `src/ui/` | The toolbar, sidebar, timeline, Review list, music menu, show list, color palette, the keyboard handling every dialog shares (`useDialog`), where the sidebar and timeline sit (`layout.ts`), and browser storage (`audioStore.ts`, `showStore.ts`: recordings, pictures, the show library, and versions in IndexedDB) |
 | `src/print/` | Dot sheets and drill charts |
 | `src/perform/` | The performer view, the Share dialog, and the QR scanner |
 | `src/guide/` | Turns `docs/HOW-TO.md` into the guide page on the site (`/guide/`) when the site is built |

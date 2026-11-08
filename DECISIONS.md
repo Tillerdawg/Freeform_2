@@ -1345,3 +1345,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 ## 2026-11-08 10:35 EST — FreeFORM DRILL in the top bar
 - **Who:** Jason (replaces Claude's call above to keep the shorter logo there).
 - **Decision:** The editor's top bar shows the curve, then FreeFORM DRILL on one line (`logo-small.svg`, built by `brand/build_drill_logo.py`). Narrow windows still show just the curve.
+
+## 2026-11-08 11:45 EST — Sidebar and timeline on either side
+- **Who:** Jason asked for it; Claude chose how it works (*Jason can veto*).
+- **Context:** Some people want the sidebar on the left and/or the timeline above the field.
+- **Other options:** drag the panels to dock them anywhere; put the choices in the sidebar or the Help menu.
+- **Decision:** A **Layout** menu in the top bar with two buttons: **Sidebar on the left/right** and **Timeline at the top/bottom**. The choice is kept in this browser (like light mode), not in the show file, since it's how you like to work, not part of the show. Defaults stay as before: sidebar right, timeline bottom.

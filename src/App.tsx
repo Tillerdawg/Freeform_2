@@ -30,6 +30,7 @@ import { PrintDialog } from './print/Print';
 import { ShareDialog } from './perform/ShareDialog';
 import { PALETTE, useTheme } from './ui/palette';
 import { ThemeButton } from './ui/ThemeButton';
+import { layoutPref, setLayoutPref } from './ui/layout';
 import { RosterImport } from './ui/RosterImport';
 import { sampleShow } from './engine/sample';
 
@@ -125,6 +126,8 @@ export function App() {
   const [sideChoice, setSideChoice] = useState<boolean | null>(null); // null: the default for this width
   useEffect(() => setSideChoice(null), [narrow]);
   const sideOpen = sideChoice ?? !narrow;
+  const [sideLeft, setSideLeft] = useState(() => layoutPref('sideLeft')); // sidebar on the left instead of the right
+  const [timelineTop, setTimelineTop] = useState(() => layoutPref('timelineTop')); // timeline above the field instead of below
   const [timelineOpen, setTimelineOpen] = useState(true); // hide it for more field while writing (a tablet)
   const [adding, setAdding] = useState(false); // tap adds to the selection (shift-click without a keyboard)
   // Fingers on the field (canvas px). Two fingers pan and pinch; what the first one started is undone (atDown).
@@ -866,6 +869,14 @@ export function App() {
             </div>
           )}</Menu>
         </span>
+        <span style={{ flex: 'none' }}>
+          <Menu label="Layout" title="Put the sidebar on the left or right, and the timeline on the top or bottom">{(close) => (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'stretch' }}>
+              <button onClick={() => { close(); setSideLeft(!sideLeft); setLayoutPref('sideLeft', !sideLeft); }}>{sideLeft ? 'Sidebar on the right' : 'Sidebar on the left'}</button>
+              <button onClick={() => { close(); setTimelineTop(!timelineTop); setLayoutPref('timelineTop', !timelineTop); }}>{timelineTop ? 'Timeline at the bottom' : 'Timeline at the top'}</button>
+            </div>
+          )}</Menu>
+        </span>
         <span style={{ flex: 'none' }}><ThemeButton /></span>
       </div>
       <Toolbar openAdd={openAdd} t={t} setT={(x) => { setPlaying(false); setT(x); }} selectedProp={selectedProp} setSelectedProp={setSelectedProp}
@@ -875,8 +886,8 @@ export function App() {
         onFit={fit} sidebar={{ open: sideOpen, toggle: () => setSideChoice(!sideOpen) }}
         timeline={{ open: timelineOpen, toggle: () => setTimelineOpen(!timelineOpen) }}
         shape={shapeEdit?.shape ?? null} startShape={startShape} updateShape={updateShape} endShape={() => setShapeEdit(null)} />
-      <div style={{ flex: 1, display: 'flex', minHeight: 0, position: 'relative' }}>
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: sideLeft ? 'row-reverse' : 'row', minHeight: 0, position: 'relative' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: timelineTop ? 'column-reverse' : 'column', minWidth: 0 }}>
         <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
         <canvas
           ref={canvasRef}
@@ -932,15 +943,15 @@ export function App() {
         )}
         </div>
         {/* Hidden, not unmounted, like the sidebar: its zoom and menus survive. */}
-        <div style={timelineOpen ? undefined : { display: 'none' }}>
+        <div style={timelineOpen ? { [timelineTop ? 'borderBottom' : 'borderTop']: '1px solid var(--line)' } : { display: 'none' }}>
         <Timeline click={{ on: clickOn, set: (on) => { setClickOn(on); setClickWanted(on); if (on) wakeClick(); } }} wave={wave && show.music && show.music.taps.length >= 2 ? { peaks: wave, taps: show.music.taps } : undefined} show={show} setShow={setShow} t={t} setT={(x) => { setPlaying(false); setT(x); }} playing={playing} setPlaying={setPlaying} bpm={bpm} setBpm={setBpm}
           range={range} setRange={setRange} span={span} onCloseCall={showCloseCall} onOverLimit={showOverLimit}
           music={<MusicMenu show={show} setShow={setShow} audio={audio} onAudio={() => setAudioTick((n) => n + 1)} useMusic={useMusic} setUseMusic={setUseMusic} />} />
         </div>
       </div>
       {/* Hidden, not unmounted: open panels and drafts survive closing it. */}
-      <div style={!sideOpen ? { display: 'none' } : narrow ? { position: 'absolute', top: 0, right: 0, bottom: 0, maxWidth: '100%', zIndex: 10, display: 'flex',
-        background: 'var(--bg)', boxShadow: '-6px 0 16px rgba(0,0,0,0.45)' } : { display: 'flex' }}>
+      <div style={!sideOpen ? { display: 'none' } : { display: 'flex', [sideLeft ? 'borderRight' : 'borderLeft']: '1px solid var(--line)', ...(narrow ? { position: 'absolute', top: 0, bottom: 0, [sideLeft ? 'left' : 'right']: 0, maxWidth: '100%', zIndex: 10,
+        background: 'var(--bg)', boxShadow: `${sideLeft ? 6 : -6}px 0 16px rgba(0,0,0,0.45)` } : {}) }}>
       <Sidebar
         show={show} setShow={setShow} t={t} setT={(x) => { setPlaying(false); setT(x); }} onSet={onSet}
         selected={selected} setSelected={setSelected} tool={tool} setTool={setTool}

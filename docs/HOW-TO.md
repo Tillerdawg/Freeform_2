@@ -47,7 +47,7 @@ One thing to know up front: **your shows are saved in the browser you're using.*
 
 From top to bottom:
 
-- **The top bar** has the logo, a reminder of how to move around the field, **Help** (the **How-to guide**, which opens this guide in a new tab at freeformdrill.org/guide/, and **Try the sample show**), and at the far right the sun/moon button, which switches between dark mode (the default) and light mode. The field looks the same either way.
+- **The top bar** has the logo, a reminder of how to move around the field, **Help** (the **How-to guide**, which opens this guide in a new tab at freeformdrill.org/guide/, and **Try the sample show**), **Layout** (**Sidebar on the left** or right, and **Timeline at the top** or bottom; this browser remembers your choice), and at the far right the sun/moon button, which switches between dark mode (the default) and light mode. The field looks the same either way.
 - **The drill toolbar** has two rows. The first row has **Select**, **Add** (performers, a set, or a prop), and **Delete**, then the set you're on with its **Counts** and **Measures**. At the right end are Undo, Redo, Fit (zooms back out to the whole field), the timeline button, and the sidebar button. The second row has the tools for placing and moving performers: **Snap to grid**, **Markup**, **Shape**, **Transform**, **Path**, **Move**, **Labels**, and **Reset to set**.
 - **The field** is in the middle. You're looking at it from the press box: the front sideline is at the bottom and Side 1 is on the left. Scroll to move around, and pinch (or hold ⌘ or Ctrl and scroll) to zoom.
 - **The timeline** runs across the bottom. Each set has a numbered button, and each move between sets shows its counts, measures, and biggest step size.
