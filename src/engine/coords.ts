@@ -81,16 +81,29 @@ export const readout = (p: Point, f: FieldSpec) =>
 
 export type StepTier = 'ok' | 'yellow' | 'red';
 
-/** Step size for a move of `dist` steps over `counts` counts, as N-to-5 (8 = standard). */
-export function stepSize(dist: number, counts: number): { per5: number; tier: StepTier } {
+/** The show's step limit when it sets none: a step bigger than a 4-to-5 is over it (red). */
+export const STEP_LIMIT = 4;
+
+/** Step size for a move of `dist` steps over `counts` counts, as N-to-5 (8 = standard). Bigger than a `limit`-to-5 is red; bigger than a 6-to-5, yellow. */
+export function stepSize(dist: number, counts: number, limit = STEP_LIMIT): { per5: number; tier: StepTier } {
   if (!(counts > 0)) throw new RangeError('counts must be > 0');
   const len = dist / counts; // steps per count, in 8-to-5 steps
   const per5 = len === 0 ? Infinity : 8 / len;
-  const tier: StepTier = per5 < 4 - EPS ? 'red' : per5 < 6 - EPS ? 'yellow' : 'ok';
+  const tier: StepTier = per5 < limit - EPS ? 'red' : per5 < 6 - EPS ? 'yellow' : 'ok';
   return { per5, tier };
 }
 
 export const distance = (a: Point, b: Point) => Math.hypot(b.x - a.x, b.y - a.y);
+
+/** Whether `p` is inside the polygon `poly` (a lasso), by the even-odd rule: count the edges a ray to the right crosses. */
+export function insidePolygon(p: Point, poly: Point[]): boolean {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const a = poly[i], b = poly[j];
+    if ((a.y > p.y) !== (b.y > p.y) && p.x < a.x + ((p.y - a.y) * (b.x - a.x)) / (b.y - a.y)) inside = !inside;
+  }
+  return inside;
+}
 
 /**
  * Follow-the-leader. `starts[0]` is the leader; the rest follow in order.

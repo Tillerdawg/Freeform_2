@@ -1,5 +1,5 @@
 // Show data model and the pure operations on it. All positions are in steps (see coords.ts).
-import { HASHES, FIELD_WIDTH, distance, fieldDepth, ftlPositions, stepSize, type FieldSpec, type Floor, type HashPreset, type Point, type StepTier } from './coords';
+import { HASHES, FIELD_WIDTH, STEP_LIMIT, distance, fieldDepth, ftlPositions, stepSize, type FieldSpec, type Floor, type HashPreset, type Point, type StepTier } from './coords';
 import { assign } from './shapes';
 import { validMusic, type Music } from './music';
 import { validMark, type Mark } from './marks';
@@ -49,8 +49,8 @@ export interface DrillSet {
   /**
    * Count-by-count spots for performers whose move into this set isn't a straight line (imported from Pyware's
    * per-count pages: follow-the-leader, delayed step-offs, rotations). path[k] = spot on count k, from the previous
-   * set (k = 0) to this one (k = counts). Used only while both ends still match, so editing either set or the counts
-   * quietly falls back to a straight line.
+   * set (k = 0) to this one (k = counts). Used only while both ends still match: editing either set or the counts falls
+   * back to a straight line (the editor says so, and Review lists it; see brokenPaths). Kept, so moving back restores it.
    */
   paths?: Record<string, Point[]>;
   /** Delayed step-offs: hold `wait` counts, then move `move` counts (any counts left over are a hold at the end). Missing = moves all counts. */
@@ -85,7 +85,8 @@ export const LABEL_SIDES: LabelSide[] = ['above', 'above-right', 'right', 'below
 export interface Show {
   format: 'freeform-show';
   version: 1;
-  /** Permanent, made once when the show is first kept (newShowId); copies made with Duplicate get a new one. */
+  /** A permanent random id, made when the show is first created and kept forever (copies made with Duplicate get a new one),
+   * so phones can tell two shows with the same title apart. Shows from before ids have none. */
   id?: string;
   title: string;
   hash: HashPreset;
@@ -107,6 +108,8 @@ export interface Show {
   trace?: Trace;
   /** An indoor surface instead of the football field; `hash` is kept (and used again) if the show goes back outside. */
   surface?: Floor;
+  /** The biggest step allowed, as N-to-5: a step bigger than a `stepLimit`-to-5 is red and listed in Review. Missing = STEP_LIMIT (4). */
+  stepLimit?: number;
 }
 
 /** What the show is written on: its floor, or the football field with its hashes. */
@@ -116,12 +119,17 @@ export interface Trace { id: string; x: number; y: number; w: number; opacity: n
 
 export interface Movement { id: string; name: string; counts: number }
 export const MAX_MOVEMENT = 100_000;
+/** The step limits a show can set: from a 2-to-5 (huge) to an 8-to-5 (flag any step bigger than standard). */
+export const MIN_STEP_LIMIT = 2, MAX_STEP_LIMIT = 8;
+
+/** A new show's permanent id: 16 random bytes as hex (getRandomValues works on plain-http pages too, unlike randomUUID). */
+export const newShowId = () => Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, '0')).join('');
+/** The show with an id, making one if it has none (an older file, or an import). */
+export const withShowId = (show: Show): Show => (show.id ? show : { ...show, id: newShowId() });
+const SHOW_ID_RE = /^[\w-]{1,64}$/;
 
 let seq = 0;
 export const newId = (prefix: string) => `${prefix}${Date.now().toString(36)}${(seq++).toString(36)}`;
-/** A show's permanent id: the time plus random letters, so shows started on two computers don't collide. */
-export const newShowId = () => newId('show') + Math.random().toString(36).slice(2, 8);
-const SHOW_ID_RE = /^[\w-]{1,64}$/;
 
 export type SectionList = { name: string; letter: string; color?: string }[];
 
@@ -144,6 +152,7 @@ export function newShow(sections: SectionList = DEFAULT_SECTIONS): Show {
   return {
     format: 'freeform-show',
     version: 1,
+    id: newShowId(),
     title: 'Untitled show',
     hash: 'highSchool',
     sections: sections.map(({ name, letter, color }) => ({ id: newId('s'), name, letter, ...(color ? { color } : {}) })),
@@ -656,6 +665,16 @@ export function closeCalls(show: Show, i: number): { a: string; b: string; count
   return [...best.values()].sort((x, y) => x.d - y.d);
 }
 
+/** closeCalls, kept per move: a move is checked again only when its set or the set before it changed (those are all it reads). */
+const closeMemo = new WeakMap<DrillSet, { prev: DrillSet | undefined; calls: ReturnType<typeof closeCalls> }>();
+export function closeCallsMemo(show: Show, i: number) {
+  const set = show.sets[i], prev = show.sets[i - 1], hit = closeMemo.get(set);
+  if (hit && hit.prev === prev) return hit.calls;
+  const calls = closeCalls(show, i);
+  closeMemo.set(set, { prev, calls });
+  return calls;
+}
+
 // ---- Props.
 
 /** Add a prop at `at` in every set. */
@@ -839,8 +858,18 @@ export function moveSteps(show: Show, i: number): Record<string, { per5: number;
   const n = set.counts;
   for (const [id, path] of Object.entries(set.paths ?? {}))
     if (pathFits(path, a[id] ?? b[id], b[id], n)) { dist[id] = n * Math.max(...path.slice(1).map((p, k) => distance(path[k], p))); counts[id] = n; }
-  return Object.fromEntries(Object.entries(dist).map(([id, d]) => [id, stepSize(d, counts[id])]));
+  return Object.fromEntries(Object.entries(dist).map(([id, d]) => [id, stepSize(d, counts[id], show.stepLimit ?? STEP_LIMIT)]));
 }
+
+/** Performers whose step in the move into set i is bigger than the show's step limit (red). */
+export const overLimit = (show: Show, i: number): string[] =>
+  Object.entries(moveSteps(show, i)).filter(([, st]) => st.tier === 'red').map(([id]) => id);
+
+/** Performers in the move into set i whose imported count-by-count path no longer fits (an edit changed an end or the counts), so they march a straight line. */
+export const brokenPaths = (show: Show, i: number): string[] => {
+  const set = show.sets[i], a = show.sets[i - 1]?.pos ?? {};
+  return Object.entries(set.paths ?? {}).filter(([id, path]) => !pathFits(path, a[id] ?? set.pos[id], set.pos[id], set.counts)).map(([id]) => id);
+};
 
 /** The largest step (smallest N-to-5) in the move into set i. */
 export function biggestStep(show: Show, i: number) {
@@ -908,7 +937,7 @@ function checkShow(s: any): Show { // eslint-disable-line @typescript-eslint/no-
   if (!Array.isArray(s.sections) || !Array.isArray(s.performers) || !Array.isArray(s.sets) || !s.sets.length) bad('missing lists');
   const str = (v: unknown) => typeof v === 'string';
   if (typeof s.title !== 'string') bad('title');
-  if (s.id !== undefined && !(typeof s.id === 'string' && SHOW_ID_RE.test(s.id))) bad('id');
+  if (s.id !== undefined && !(str(s.id) && SHOW_ID_RE.test(s.id))) bad('id');
   if (s.music !== undefined && !validMusic(s.music)) bad('music');
   if (s.revision !== undefined && !(Number.isInteger(s.revision) && s.revision >= 1 && s.revision <= 1e6)) bad('revision');
   if (s.symbols === 'icons') delete s.symbols; // equipment icons were a choice for a day (2026-11-05): such a show opens with letters
@@ -923,6 +952,7 @@ function checkShow(s: any): Show { // eslint-disable-line @typescript-eslint/no-
     && Number.isFinite(s.trace.opacity) && s.trace.opacity >= 0 && s.trace.opacity <= 1)) bad('trace');
   if (s.surface !== undefined && !((s.surface?.kind === 'court' || s.surface?.kind === 'floor') && Number.isFinite(s.surface.w) && s.surface.w >= 4 && s.surface.w <= 400
     && Number.isFinite(s.surface.d) && s.surface.d >= 4 && s.surface.d <= 400)) bad('surface');
+  if (s.stepLimit !== undefined && !(Number.isFinite(s.stepLimit) && s.stepLimit >= MIN_STEP_LIMIT && s.stepLimit <= MAX_STEP_LIMIT)) bad('step limit');
   const propIds = new Set((s.props ?? []).map((p: Prop) => p.id));
   for (const set of s.sets) {
     if (!str(set?.id) || !str(set.name) || !Number.isFinite(set.counts) || typeof set.pos !== 'object' || !set.pos) bad('set');

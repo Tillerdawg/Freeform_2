@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import jsQR from 'jsqr';
 import { linkHash } from '../engine/share';
+import { useDialog } from '../ui/useDialog';
 
 /**
  * Scan a FreeFORM QR code with the camera, from inside the app. On iPhone, scanning with the
@@ -47,13 +48,9 @@ export function Scanner({ onClose }: { onClose: () => void }) {
       .catch(() => setMsg('The camera isn’t available. Allow camera access for FreeFORM in Settings, or paste the link instead.'));
     return () => { stopped = true; cancelAnimationFrame(raf); stream?.getTracks().forEach((t) => t.stop()); };
   }, []);
-  useEffect(() => {
-    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', esc);
-    return () => window.removeEventListener('keydown', esc);
-  }, [onClose]);
+  const dialog = useDialog(onClose);
   return (
-    <div role="dialog" aria-modal="true" aria-label="Scan QR code"
+    <div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Scan QR code"
       style={{ position: 'fixed', inset: 0, background: '#000', zIndex: 20, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, padding: 16 }}>
       <video ref={video} playsInline muted style={{ maxWidth: '100%', maxHeight: '70vh', background: '#111' }} />
       <p role="status" style={{ margin: 0, textAlign: 'center', color: '#fff' }}>{msg}</p>

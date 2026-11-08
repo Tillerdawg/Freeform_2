@@ -39,8 +39,9 @@ A note on where the ideas came from: FreeFORM is modeled on Pyware and the Ultim
 - Delayed step-offs (hold 4, move 12) and turning moves, where a rotating group marches arcs instead of straight lines.
 - Props (platforms, backdrops) that sit in a different spot each set and move between sets.
 - Dim or hide sections while you write the others.
-- Select everyone or a whole section, copy spots from one set and paste them into another, and see how far apart two performers are.
-- Step-size warnings (yellow past a 6-to-5, red past a 4-to-5), and a warning when two performers come within a step of each other at any point in a move. Click the warning to jump to the closest pair.
+- Lasso selection (Option-drag, or the **Lasso** button on a touch screen). Select everyone or a whole section, copy spots from one set and paste them into another, and see how far apart two performers are.
+- Step-size warnings (yellow past a 6-to-5, red past the show's step limit, a 4-to-5 unless you change it), with a red ring on everyone over the limit, and a warning when two performers come within a step of each other at any point in a move. Click a warning to jump to who it's about.
+- **Review**: one list of every problem in the show (steps over the limit, performers too close, imported Pyware paths that went straight after an edit, missing spots, and counts not written yet). Click one to go there with its performers selected.
 - Text, arrows, and freehand markup on each set, plus ensemble notes and per-performer notes.
 - Undo for every edit.
 
@@ -51,9 +52,9 @@ A note on where the ideas came from: FreeFORM is modeled on Pyware and the Ultim
 
 **Getting it to the band**
 - Dot sheets (four cards per page, or one per page with a notes column) and drill charts (one per set, with or without the paths into it), printed or saved as PDF, for the whole show or a range of sets.
-- Share links with a QR code. The whole show is in the link, with no server involved.
+- A Share dialog with two choices: **Send this version** (a link with a QR code; the whole show is in the link, with no server involved) or **Keep phones up to date**. Each says what's included (names, notes, music) before you get a link.
 - Locked hosted links that update themselves on phones, can carry the music, and keep names private. One-click publishing to your own GitHub repository. Each publish gets a revision number that shows on phones and printed sheets.
-- A performer view for phones: pick who you are, follow your dot, and see your spot now, your next spot, and the counts to get there. A phone keeps several shows (the Opener, Ballad, and Closer as separate files) and switches between them from a menu. Students can loop a range of sets to practice. It works offline once it's opened.
+- A performer view for phones: pick who you are, follow your dot, and see your spot now, your next spot, and the counts to get there. A phone keeps several shows (the Opener, Ballad, and Closer as separate files) and switches between them from a menu. Students can loop a range of sets to practice, with a 4-count count-in if they like. It works offline once it's opened, and it says so plainly if the phone can't save it.
 
 **Files**
 - Autosave in your browser, plus **Save** (to any folder you choose, where the browser allows it) and import of `.freeform` files. FreeFORM says so if the browser can't autosave.
@@ -103,9 +104,9 @@ node scripts/screenshots.mjs ftl print    # or just these
 
 | Path | What's there |
 |---|---|
-| `src/engine/` | The drill logic, with no UI: coordinates and readouts, the show model, shapes, markup, undo, which versions to keep, music timing, share links and locked files, QR codes, and the Pyware reader. Unit-tested. |
+| `src/engine/` | The drill logic, with no UI: coordinates and readouts, the show model, shapes, markup, undo, which versions to keep, music timing, share links and locked files, QR codes, the Pyware reader, and the whole-show Review. Unit-tested. |
 | `src/field/` | Drawing the field, performers, shapes, and markup, plus dot-label placement and the rotate/stretch frame |
-| `src/ui/` | The toolbar, sidebar, timeline, music menu, show list, color palette, and browser storage (`audioStore.ts`, `showStore.ts`: recordings, pictures, the show library, and versions in IndexedDB) |
+| `src/ui/` | The toolbar, sidebar, timeline, Review list, music menu, show list, color palette, the keyboard handling every dialog shares (`useDialog`), and browser storage (`audioStore.ts`, `showStore.ts`: recordings, pictures, the show library, and versions in IndexedDB) |
 | `src/print/` | Dot sheets and drill charts |
 | `src/perform/` | The performer view, the Share dialog, and the QR scanner |
 | `src/guide/` | Turns `docs/HOW-TO.md` into the guide page on the site (`/guide/`) when the site is built |

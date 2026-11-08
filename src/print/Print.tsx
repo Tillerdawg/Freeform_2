@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useDialog } from '../ui/useDialog';
 import { colorOf, fieldOf, mark, moveSegments, type Show } from '../engine/show';
 import { drawProps, drawField, drawGlyph, drawLabels, drawMarks, fitView, toScreen } from '../field/drawField';
 import { ROWS_PER_PAGE, chartTitle, chunk, dotCards, hasMeasures, sortedPerformers } from './docs';
@@ -70,14 +71,13 @@ export function PrintDialog({ show, selected, onClose }: Props) {
   }, [job]);
   useEffect(() => {
     const done = () => { setJob(null); onClose(); };
-    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('afterprint', done);
-    window.addEventListener('keydown', esc);
-    return () => { window.removeEventListener('afterprint', done); window.removeEventListener('keydown', esc); };
+    return () => window.removeEventListener('afterprint', done);
   }, [onClose]);
+  const dialog = useDialog(onClose);
 
   return (
-    <div role="dialog" aria-modal="true" aria-label="Print" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'grid', placeItems: 'center', zIndex: 10 }}>
+    <div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Print" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'grid', placeItems: 'center', zIndex: 10 }}>
       <div style={{ background: 'var(--bg)', border: '1px solid var(--line)', padding: 20, width: 360, maxWidth: 'calc(100vw - 32px)', fontSize: 14 }}>
         <h2 style={{ margin: '0 0 12px', fontSize: 18 }}>Print</h2>
         <fieldset style={{ border: 'none', padding: 0, margin: '0 0 12px' }}>

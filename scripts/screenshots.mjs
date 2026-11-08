@@ -154,6 +154,14 @@ shot('step-warnings', async () => {
   await goSet(page, 4);
   await save(page, 'step-warnings', await fieldClip(page, { x: -32, y: 54 }, { x: 32, y: 22 }));
 });
+shot('review', async () => {
+  // The whole-show Review list over the field; its first item (set 4's big steps) clicked, so they're ringed and selected.
+  const page = await editor();
+  await menu(page, 'Review');
+  await page.locator('section[aria-label=Review] li button').first().click();
+  await page.waitForTimeout(300);
+  await save(page, 'review', { x: 380, y: 128, width: 730, height: 610 });
+});
 shot('ftl', async () => {
   const page = await editor();
   await goSet(page, 3);
@@ -301,6 +309,13 @@ shot('share', async () => {
     if (svg) svg.innerHTML = qrSvg(t.value); // so the pictured code scans to the real address too
   });
   await save(page, 'share', await around(page.locator('[role=dialog] > div').first()));
+});
+shot('share-update', async () => {
+  const page = await editor();
+  await page.getByRole('button', { name: 'Share…' }).click();
+  await page.getByRole('button', { name: 'Keep phones up to date' }).click();
+  await page.waitForTimeout(300);
+  await save(page, 'share-update', await around(page.locator('[role=dialog] > div').first()));
 });
 shot('ipad', async () => {
   const page = await editor({ ...devices['iPad Pro 11 landscape'] });

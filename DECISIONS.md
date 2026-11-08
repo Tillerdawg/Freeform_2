@@ -1261,12 +1261,69 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Decision:** `docs/HOW-TO.md` stays the only copy. Every build turns it into `guide/index.html` with its pictures beside it (`src/guide/page.ts`, run from `vite.config.ts`), in the app's colors and light or dark mode, with a link back to the app. **Help** opens it, and the README points there. Anchors match GitHub's, and a test checks every contents link has its heading. `marked` (a Markdown reader) is a build-only dependency: nothing new ships to users. The guide is online only (the offline cache keeps the app, not the guide), and `npm run dev` doesn't serve it.
 - Also fixed: the sample show was split into its own file on 2026-11-06, which the offline cache doesn't keep (it saves only the files the page links); it's back in the main file.
 
+## 2026-11-08 09:15 EST — Every show gets a permanent id
+- **Who:** Claude *(Jason can veto)*, from the phone and sharing review.
+- **Context:** A share link has no address of its own, so a phone matched an arriving show to a saved one by title. Two unrelated shows both called "Opener" replaced each other.
+- **Other options:** Match on title plus section list or performer count (still guesses); ask the student "replace or keep both?" each time (a question they can't answer).
+- **Decision:** A show has an optional `id`: 32 random hex characters, made by `newShow` (so New and the sample get one), given to an older autosave or an imported file (including a .3dj) when it's opened, then kept forever in files, share links, and locked files. `parseShow` accepts only letters, digits, `_`, and `-`, up to 64. A phone matches on the id when both copies have one, and on the title otherwise. Save As keeps the id (it's the same show in a new file); a future **Duplicate** should call `newShowId`. The Share dialog now remembers a show's hosted link by id too (it falls back to links saved by title before this).
+
+## 2026-11-08 09:15 EST — A phone that can't save says so
+- **Who:** Claude *(Jason can veto)*.
+- **Context:** In a private window, or with storage full, a phone silently kept nothing, while the screen promised the show "works offline." The recording (kept in the phone's IndexedDB) could fail silently too.
+- **Other options:** A notice that can't be closed (it covers part of the field for the whole rehearsal); saying nothing.
+- **Decision:** The same pattern as the editor's autosave notice: a warning over the bottom of the field ("This show isn't saved on this phone… It will be gone when you close it, and it won't work offline.") with **OK**. After **OK**, a short line stays under the set: "Not saved on this phone: it won't work offline." If only the music fails to save, the warning says the phone plays with a tempo instead. The empty screen promises offline only when storage works.
+
+## 2026-11-08 09:15 EST — One keyboard rule for every dialog
+- **Who:** Claude *(Jason can veto)*.
+- **Context:** Seven dialogs said they were modal but only handled Escape (and the roster import didn't even do that). Tab walked out into the editor behind them.
+- **Decision:** `src/ui/useDialog.ts`: on open, focus moves to the first control (a search box that focuses itself keeps it); Tab and Shift+Tab wrap inside; Escape closes it without reaching the editor's own Escape; on close, focus goes back where it was. Only the newest open dialog listens. Every `aria-modal` dialog uses it.
+
+## 2026-11-08 09:15 EST — Count-in on the phone
+- **Who:** Claude *(Jason can veto)*, from the PLAN follow-up.
+- **Context:** Students looping sets had no way to step off with the drill.
+- **Other options:** A **Count-in** button in the phone's button row (tried: on an iPhone 15 the row has no room, and the labels wrapped); a choice of 2, 4, or 8 counts.
+- **Decision:** A **Count-in** checkbox in the **Loop** panel, remembered on the phone. When it's on, every Play (looping or not) first clicks 4 counts (the first one higher) and shows 4, 3, 2, 1 big over the field, at the tempo, or at the recording's pace where play starts when it plays with the music. Pause during the count-in cancels it. The click sounds even when **Click** is off.
+
+## 2026-11-08 09:15 EST — The Share dialog's two choices
+- **Who:** Claude *(Jason can veto)*, from the PLAN follow-up.
+- **Context:** The share link and the hosted link sat in one long dialog, with GitHub setup in the middle, and it wasn't clear which one to use or what each carried.
+- **Decision:** Two buttons at the top: **Send this version** (the link, its QR code, Copy link, Share…, and Open performer view here) and **Keep phones up to date** (Publish to phones or Publish update, the music checkbox, and the hosted link and its QR code). Each starts with a plain "Included / Not included" line: a share link has the drill, sets, counts, and notes, but no names and no music; a hosted file adds names and, if checked, the music. GitHub setup and "host the file yourself" sit in a **Setup** section at the bottom, open until publishing is set up. The dialog opens on **Keep phones up to date** once a show has a hosted link or GitHub is connected. None of the link-making logic changed.
+
+## 2026-11-08 09:15 EST — Plainer labels on the phone
+- **Who:** Claude *(Jason can veto)*.
+- **Context:** **Director view** / **Facing front** and **My view** / **Whole field** looked like one pair of choices but controlled two things: which way the field faces, and whether the camera follows my dot.
+- **Decision:** The orientation button shows what it's set to, **From the press box** or **Facing the front** (its spoken label starts "Field orientation:"). The other is **Follow my dot**, lit while it's on.
+
+## 2026-11-08 09:30 EST — A step limit per show
+- **Who:** Claude *(Jason can veto)*, asked for by Jason's lead agent; the idea of a threshold per show and drawing over-limit paths so they stand out comes from OpenMarch (ideas only: OpenMarch is AGPL, and no code was copied).
+- **Context:** The timeline showed each move's biggest step, but not who takes it, and the red line (bigger than a 4-to-5) was fixed for every band.
+- **Other options:** A new limit separate from the colors (a third warning beside yellow and red); a default of 6-to-5 (would turn the sample's and most shows' yellow moves into "problems").
+- **Decision:** The limit *is* red: `stepLimit` in the show (N-to-5, 2 to 8, checked in `parseShow`; missing means 4, today's red, so existing shows look the same). Yellow stays "bigger than a 6-to-5"; a limit of 6 or more leaves no yellow. Everyone over the limit in the move on screen gets a red ring on a dark casing (the paths were already red and dashed). A red "max" on the timeline is a button that goes to the set and selects them. The limit is set in **Review**, beside the list it changes, rather than in the sidebar.
+
+## 2026-11-08 09:30 EST — Review: one list of every problem
+- **Who:** Claude *(Jason can veto)*, asked for by Jason's lead agent.
+- **Context:** Warnings were per move (timeline) or per set (**Move**). Nothing listed the whole show.
+- **Other options:** A dialog (blocks the field and the keyboard while fixing); a timeline tab (the bottom panel can't change height); props in the too-close check (left out: standing on a platform is on purpose, so it needs a rule first).
+- **Decision:** A **Review** button in the top bar, with the count of problems, opens a panel floating over the field's top right (so nothing resizes). It lists, in show order: steps over the limit (one item per move), each too-close pair, imported paths gone straight, performers with no spot in a set, and counts in **Movements** not written yet. A click moves the playhead there, selects the performers, and says what's wrong in the note over the field. Detection is `src/engine/review.ts`; close calls are now kept per move (`closeCallsMemo`), shared with the timeline.
+
+## 2026-11-08 09:30 EST — Imported paths that go straight say so
+- **Who:** Claude *(Jason can veto)*.
+- **Context:** Imported Pyware count-by-count paths apply only while both sets and the counts match, so an edit quietly turned them into straight lines.
+- **Other options:** Re-fit the route to the new ends (changes what Pyware wrote); delete the path at once (then moving the dot back couldn't restore it); ask before the edit (a prompt mid-drag).
+- **Decision:** Keep the fallback and the stored path (Undo, or putting the spots and counts back, restores the route). When an edit makes paths stop fitting, the note over the field says "4 imported paths in the move into set 7 are straight lines now…", and Review lists them as **Straight now**.
+
+## 2026-11-08 09:30 EST — Lasso selection
+- **Who:** Claude *(Jason can veto)*.
+- **Context:** Selection was click, Shift-click, and a box. A box can't pick one side of an arc or a diagonal.
+- **Other options:** A lasso tool in the toolbar (another mode to leave); lasso as the default drag (the box is quicker for blocks).
+- **Decision:** Option/Alt-drag on open field draws a lasso (gold, dashed, like the box); everyone inside it is selected (even-odd point-in-polygon), and Shift adds, as with the box. For touch screens, a **Lasso** toggle sits next to **Add to selection** in the sidebar's Selection area and makes a drag on open field lasso instead of box.
+
 ## 2026-11-08 09:20 EST — Several shows in one browser, versions, two tabs, and full backups
 - **Who:** Jason Tiller asked for a show library, version history, a two-tab warning, and a complete backup. Every choice below is Claude's *(Jason can veto)*.
 - **Context:** The browser kept exactly one show (localStorage), so **Import…**, **New**, and the sample replaced it, with a note offering to save first. Nothing older than Undo could be recovered, two tabs on the same show silently saved over each other, and the recording and tracing picture never left the browser.
 - **Other options:** Keep every show in localStorage (about 5 MB in all; a few big shows plus versions would fill it). Re-key recordings and pictures by show id (needs a migration; the ids the show already keeps do the same job). A preview of a version drawn on its own small field (more code; Restore plus Undo does the job). A zip file for full backups (needs a new dependency). Keeping the "save first?" note for Import (nothing is replaced any more).
 - **Decision:**
-  - **Library:** every show has a permanent `id` (`newShowId()` in `src/engine/show.ts`, checked in `parseShow`; the same simple form as feat/phone's). Shows live in IndexedDB beside the recordings (`src/ui/showStore.ts`). The open show is still written to localStorage on every change (what a reload opens, the error page's download, and the editor's Performer view), and into the library 0.8 seconds later and before any other show opens. On first load, the old single autosave gets an id and moves into the library by itself; its backup reminder date moves with it. **Shows…** is the first of the sidebar's file buttons (the sidebar isn't fixed height, so the top bar and bottom panel don't change).
+  - **Library:** every show has a permanent `id` (`newShowId()` and `withShowId()` from the phone work, checked in `parseShow`; **Duplicate** gives the copy a new one). Shows live in IndexedDB beside the recordings (`src/ui/showStore.ts`). The open show is still written to localStorage on every change (what a reload opens, the error page's download, and the editor's Performer view), and into the library 0.8 seconds later and before any other show opens. On first load, the old single autosave gets an id and moves into the library by itself; its backup reminder date moves with it. **Shows…** is the first of the sidebar's file buttons (the sidebar isn't fixed height, so the top bar and bottom panel don't change). Its dialog (the show list and the versions list) uses `useDialog` like the others.
   - **Recordings and pictures** stay keyed by the ids the show already holds (`music.audioId`, `trace.id`). **Duplicate**, and importing a show that's already in the library, copy them to new ids so each show has its own. **Delete** removes them unless another kept show uses them.
   - **New, Import…, and Try the sample show add a show** instead of replacing one, so the "Save, then continue" note is gone. Importing a show whose id is already here makes a copy beside it, never over it. Opening another show starts Undo fresh (Undo never reaches into another show), and each show has its own backup-reminder date.
   - **Versions:** before the library copy is written over, it becomes a version if the newest version is 10 minutes older (`versionDue`), so a version is "the show as it was at 3:12." Kept: the newest 20, plus the newest of each day for 60 days (`versionsToDrop`, tested). **Restore** is an ordinary edit (Undo takes it back) and keeps the show as it was as a version first. The version list shows when, the title, and the counts of performers and sets; there's no drawn preview.

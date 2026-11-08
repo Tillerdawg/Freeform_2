@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { wakeClick } from './click';
 import { peakBetween, timeAt } from '../engine/music';
 import { chrome, useTheme } from './palette';
-import { biggestStep, closeCalls, locate, MAX_MOVEMENT, movementAt, movementOfSet, movementStarts, moveSetTo, newId, setAt, setCounts, setMeasures, playPlan, setStarts, showLength, totalCounts, type DrillSet, type Show } from '../engine/show';
+import { biggestStep, closeCallsMemo, locate, MAX_MOVEMENT, movementAt, movementOfSet, movementStarts, moveSetTo, newId, setAt, setCounts, setMeasures, playPlan, setStarts, showLength, totalCounts, type Show } from '../engine/show';
 import { Menu } from './Toolbar';
 import { STEP_TEXT } from '../field/drawField';
 import { fmtStep } from './format';
@@ -33,24 +33,16 @@ interface Props {
   wave?: { peaks: Float32Array; taps: number[] }; // the recording's loudness (100 slices a second) and its tapped counts
   click: { on: boolean; set: (on: boolean) => void }; // the metronome click while playing at a tempo
   onCloseCall?: (i: number) => void; // a move's "too close" warning was clicked: show the closest pair
+  onOverLimit?: (i: number) => void; // a move's red "max" step was clicked: show who takes steps over the limit
 }
 
 /** One segment per move, width proportional to its counts; click or drag to scrub by whole counts. */
-/** Close-call counts by move, kept while the move's two sets are unchanged (a whole-show check takes too long to redo on every drag). */
-const closeCache = new WeakMap<DrillSet, { prev: DrillSet; n: number }>();
 
-export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, setBpm, range, setRange, span, music, wave, click, onCloseCall }: Props) {
+export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, setBpm, range, setRange, span, music, wave, click, onCloseCall, onOverLimit }: Props) {
   const total = showLength(show); // the timeline runs through any part not written yet (count-first)
   const written = totalCounts(show);
   const starts = setStarts(show);
-  const close = useMemo(() => show.sets.map((set, i) => { // pairs under a step apart, per move; only moves whose sets changed are checked again
-    if (!i) return 0;
-    const hit = closeCache.get(set);
-    if (hit?.prev === show.sets[i - 1]) return hit.n;
-    const n = closeCalls(show, i).length;
-    closeCache.set(set, { prev: show.sets[i - 1], n });
-    return n;
-  }), [show]);
+  const close = useMemo(() => show.sets.map((_, i) => (i ? closeCallsMemo(show, i).length : 0)), [show]); // pairs under a step apart, per move; only moves whose sets changed are checked again
   const { to, count } = locate(show, t);
   const onSet = setAt(show, t);
   // A move's close-call warning: click it to go to the closest pair (it sits on the scrub strip, so it keeps the press to itself).
@@ -59,6 +51,14 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
       title="Performers who come within a step of each other: click to go to the closest pair (Move lists them all)"
       onPointerDown={(e) => e.stopPropagation()} onClick={() => onCloseCall?.(i)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onCloseCall?.(i); } }}>
       {close[i]} too close
+    </span>
+  );
+  // A move's biggest step; over the show's limit (red), it's a button that goes to the set and picks who takes those steps.
+  const maxStep = (i: number, per5: number, tier: keyof typeof STEP_TEXT) => tier !== 'red' ? <span style={{ color: STEP_TEXT[tier] }}>max {fmtStep(per5)}</span> : (
+    <span role="button" tabIndex={0} style={{ color: STEP_TEXT.red, textDecoration: 'underline', cursor: 'pointer' }}
+      title="Steps bigger than the show's step limit: click to go to the set and select who takes them"
+      onPointerDown={(e) => e.stopPropagation()} onClick={() => onOverLimit?.(i)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOverLimit?.(i); } }}>
+      max {fmtStep(per5)}
     </span>
   );
   const past = t > written; // in the part not written yet: performers hold on the last set
@@ -253,9 +253,9 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
               <div key={s.id} style={{ ...box(starts[i - 1], s.counts), background: i === to && onSet < 0 && !past ? 'var(--surface-2)' : 'var(--surface)', boxShadow: i === to && onSet < 0 && !past ? 'inset 0 -3px 0 var(--gold)' : undefined }}>
                 <div style={{ padding: '2px 6px' }}>
                   <div>{show.sets[i - 1].name} → {s.name} · {s.counts} cts{s.measures ? ` · m. ${s.measures}` : ''}{s.ftl?.some((g) => g.order.length > 1) ? ' · FTL' : s.ftl?.length ? ' · custom path' : ''}
-                    {big && short && <span style={{ color: STEP_TEXT[big.tier] }}> · max {fmtStep(big.per5)}</span>}
+                    {big && short && <> · {maxStep(i, big.per5, big.tier)}</>}
                     {!!close[i] && short && <> · {tooClose(i)}</>}</div>
-                  {big && !short && <div style={{ color: STEP_TEXT[big.tier] }}>max {fmtStep(big.per5)}{!!close[i] && <> · {tooClose(i)}</>}</div>}
+                  {big && !short && <div>{maxStep(i, big.per5, big.tier)}{!!close[i] && <> · {tooClose(i)}</>}</div>}
                 </div>
               </div>
             );

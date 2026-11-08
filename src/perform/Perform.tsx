@@ -10,7 +10,8 @@ import { colorOf, fieldOf, propsAt, locate, mark, moveSteps, timingOf, parseShow
 import { drawField, drawGlyph, drawLabels, drawMarks, drawPerformers, drawProps, fitView, STEP_TEXT, toScreen, type View } from '../field/drawField';
 import { fmtStep } from '../ui/format';
 import { usePlayback } from '../ui/usePlayback';
-import { clickWanted, setClickWanted, wakeClick } from '../ui/click';
+import { audioTime, clickAt, clickWanted, setClickWanted, wakeClick } from '../ui/click';
+import { COUNT_IN, countInBeat } from './countIn';
 import { synced } from '../engine/music';
 import { deleteAudio, getAudio, putAudio } from '../ui/audioStore';
 import { IconNext, IconPause, IconPlay, IconPrev } from '../ui/icons';
@@ -25,10 +26,13 @@ import { addShow, readLibrary, removeShow, STAFF, type Library, type Saved } fro
 const checkedAt = (ms: number) => new Date(ms).toDateString() === new Date().toDateString()
   ? new Date(ms).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : new Date(ms).toLocaleDateString([], { month: 'short', day: 'numeric' });
 const STORE = 'freeform:performer'; // separate from the editor's autosave, so opening a link never touches a director's work
+const COUNT_KEY = 'freeform:count-in'; // whether Count-in is on, kept on this phone
 const FOLLOW_STEPS = 36; // how much field fits across the screen when following a performer
 
 const loadLib = (): Library => { try { return readLibrary(localStorage.getItem(STORE)); } catch { return { shows: [], current: 0 }; } };
-const saveLib = (l: Library) => { try { localStorage.setItem(STORE, JSON.stringify(l)); } catch { /* private mode: nothing kept */ } };
+/** False when the phone refuses (storage full, or turned off as in a private window): then nothing is kept. */
+const saveLib = (l: Library) => { try { localStorage.setItem(STORE, JSON.stringify(l)); return true; } catch { return false; } };
+const canStore = () => { try { localStorage.setItem(`${STORE}:probe`, '1'); localStorage.removeItem(`${STORE}:probe`); return true; } catch { return false; } };
 
 /** The editor's Performer view: "#perform-editor=<performer id>" shows the editor's own show from that performer, kept off this device's saved show. */
 export const PREVIEW = '#perform-editor';
@@ -45,7 +49,10 @@ export function Perform() {
   const preview = !!previewState;
   const [lib, setLibState] = useState<Library>(loadLib);
   const libRef = useRef(lib); libRef.current = lib; // for downloads that finish later
-  const setLib = (l: Library) => { libRef.current = l; saveLib(l); setLibState(l); };
+  // Storage refused: say so (as the editor does) and stop claiming the show works offline. 'seen': the notice was closed.
+  const [unsaved, setUnsaved] = useState<'no' | 'yes' | 'seen'>('no');
+  const [musicUnsaved, setMusicUnsaved] = useState(false);
+  const setLib = (l: Library) => { libRef.current = l; const ok = saveLib(l); setUnsaved((f) => (ok ? 'no' : f === 'seen' ? f : 'yes')); setLibState(l); };
   const state = previewState ?? lib.shows[lib.current] ?? null;
   const theme = useTheme();
   const [error, setError] = useState('');
@@ -61,7 +68,7 @@ export function Perform() {
   // The show's recording from a hosted file goes in this phone's storage (too big for localStorage), under the show's audio id.
   const keepAudio = async (show: Show, audio: Blob | undefined, prev: Show | undefined) => {
     if (!audio || !show.music) return;
-    if (await putAudio(show.music.audioId, audio)) setAudioVer((v) => v + 1);
+    if (await putAudio(show.music.audioId, audio)) { setAudioVer((v) => v + 1); setMusicUnsaved(false); } else setMusicUnsaved(true);
     const old = prev?.music?.audioId;
     if (old && old !== show.music.audioId) deleteAudio(old);
   };
@@ -142,6 +149,33 @@ export function Perform() {
   const music = useMemo(() => (audio && useMusic && show?.music ? { audio, taps: show.music.taps } : null), [audio, useMusic, show?.music]);
   const [clickOn, setClickOn] = useState(clickWanted);
   usePlayback(playing, setPlaying, t, setT, bpm, span, !!loop, total, music, clickOn && !music ? starts : null);
+  // Count-in: COUNT_IN clicks (and 4-3-2-1 on the field) at the playing tempo before play starts.
+  const [countIn, setCountIn] = useState(() => { try { return localStorage.getItem(COUNT_KEY) === '1'; } catch { return false; } });
+  const [counting, setCounting] = useState(0); // the number on screen during a count-in; 0 when not counting
+  const countTimers = useRef<number[]>([]);
+  const stopCount = () => { countTimers.current.forEach(clearTimeout); countTimers.current = []; setCounting(0); };
+  useEffect(() => stopCount, [lib.current]); // another show, or leaving the page
+  const togglePlay = () => {
+    if (counting) { stopCount(); return; }
+    if (playing) { setPlaying(false); return; }
+    const from = loop && (t < span[0] || t >= span[1]) ? span[0] : t; // a loop plays from its first set
+    if (from !== t) setT(from);
+    if (clickOn || countIn) wakeClick(); // start sound inside the tap: phones only allow it there
+    if (!countIn) { if (music) music.audio.play().catch(() => {}); setPlaying(true); return; }
+    if (music) { // unlock the recording inside the tap too (silently); it starts after the count-in
+      const a = music.audio; a.muted = true;
+      a.play().then(() => { a.pause(); a.muted = false; }, () => { a.muted = false; });
+    }
+    const beat = countInBeat(bpm, music?.taps ?? null, from), lead = 0.1, t0 = audioTime() + lead;
+    countTimers.current = Array.from({ length: COUNT_IN + 1 }, (_, k) => {
+      if (k < COUNT_IN) clickAt(t0 + k * beat, k === 0);
+      return window.setTimeout(() => {
+        if (k < COUNT_IN) setCounting(COUNT_IN - k);
+        else { countTimers.current = []; setCounting(0); setPlaying(true); }
+      }, (lead + k * beat) * 1000);
+    });
+    setCounting(COUNT_IN);
+  };
 
   // Keep the screen awake while the show plays (where the browser allows it), so the phone doesn't dim mid-rep.
   useEffect(() => {
@@ -200,7 +234,7 @@ export function Perform() {
   }, [dpr, !!show]);
 
   const me = state?.me && state.me !== STAFF ? show?.performers.find((p) => p.id === state.me) : undefined;
-  // Both views zoom in as close as My view does at its max (the whole field starts much further out).
+  // Both views zoom in as close as Follow my dot does at its max (the whole field starts much further out).
   const maxZoom = me && state?.follow ? ZOOM_MAX : size[0] ? (ZOOM_MAX * size[0]) / FOLLOW_STEPS / fitView(size[0], size[1], show ? fieldOf(show) : undefined).scale : ZOOM_MAX;
   maxRef.current = maxZoom;
   const positions = useMemo(() => (show ? positionsAt(show, t) : {}), [show, t]);
@@ -322,7 +356,8 @@ export function Perform() {
         <h1><img src={theme === 'light' ? './logo-light.svg' : './logo.svg'} alt="FreeFORM" style={{ width: 'min(280px, 100%)', display: 'block' }} /></h1>
         {error ? <p role="alert">{error}</p>
           : location.hash.startsWith(LOAD_PREFIX) ? <p>Downloading the show…</p>
-          : <p>Open the show link your director sent you. It will be saved on this phone and work offline after that.</p>}
+          : canStore() ? <p>Open the show link your director sent you. It will be saved on this phone and work offline after that.</p>
+          : <p>Open the show link your director sent you. This phone can't save shows right now (its storage is full or turned off, as in a private window), so you'll need the link each time, and it won't work offline.</p>}
         <PasteLink />
         {!isPhone() && <p><a href="#" style={{ color: 'var(--blue)' }} onClick={(e) => { e.preventDefault(); toEditor(); }}>← Editor</a></p>}
       </main>
@@ -336,9 +371,9 @@ export function Perform() {
 
   const toggles = (
       <div className="perform-toggles">
-        <button aria-pressed={state!.facingFront} onClick={() => update({ facingFront: !state!.facingFront })}>{state!.facingFront ? 'Facing front' : 'Director view'}</button>
+        <button aria-label={`Field orientation: ${state!.facingFront ? 'facing the front' : 'from the press box'}. Tap to turn it around.`} onClick={() => update({ facingFront: !state!.facingFront })}>{state!.facingFront ? 'Facing the front' : 'From the press box'}</button>
         {(zoom !== 1 || center.x !== 0 || center.y !== 42) && <button onClick={() => { setZoom(1); setCenter({ x: 0, y: 42 }); }}>Reset zoom</button>}
-        {me && <button aria-pressed={state!.follow} onClick={() => { update({ follow: !state!.follow }); setZoom(1); setCenter({ x: 0, y: 42 }); }}>{state!.follow ? 'My view' : 'Whole field'}</button>}
+        {me && <button aria-pressed={state!.follow} onClick={() => { update({ follow: !state!.follow }); setZoom(1); setCenter({ x: 0, y: 42 }); }}>Follow my dot</button>}
         <ThemeButton />
       </div>
   );
@@ -385,7 +420,7 @@ export function Perform() {
               const [a, b] = [...touches.current.values()];
               setZoom(pinchZoom(pinch.current.zoom, pinch.current.dist, Math.hypot(a.x - b.x, a.y - b.y), maxZoom));
             }
-            // In My view the camera stays on my dot; elsewhere, dragging (one finger or two) moves around the field.
+            // With Follow my dot on, the camera stays on my dot; elsewhere, dragging (one finger or two) moves around the field.
             if (!(me && state!.follow) && viewRef.current) {
               const share = touches.current.size; // two fingers each move half the drag
               setCenter((c) => panCenter(c, ((e.clientX - prev.x) * dpr) / share, ((e.clientY - prev.y) * dpr) / share, viewRef.current!.scale, state!.facingFront));
@@ -394,6 +429,14 @@ export function Perform() {
           onPointerUp={(e) => { touches.current.delete(e.pointerId); if (touches.current.size < 2) pinch.current = null; }}
           onPointerCancel={(e) => { touches.current.delete(e.pointerId); pinch.current = null; }} />
         {!land && toggles}
+        {counting > 0 && <div className="perform-countin" role="status">{counting}</div>}
+        {(unsaved === 'yes' || musicUnsaved) && !preview && (
+          <div role="alert" className="backup-note" style={{ top: 'auto', bottom: 30 }}>
+            <span>{unsaved === 'yes' ? "This show isn't saved on this phone (its storage is full or turned off). It will be gone when you close it, and it won't work offline."
+              : "This phone couldn't keep the show's music (its storage is full or turned off), so it plays with a tempo instead."}</span>
+            <button onClick={() => { if (unsaved === 'yes') setUnsaved('seen'); setMusicUnsaved(false); }}>OK</button>
+          </div>
+        )}
       </div>
       <section className="perform-info" aria-live="off">
         {land && toggles}
@@ -403,6 +446,7 @@ export function Perform() {
           {s.measures && <span> · m. {s.measures}</span>}
           {onSet < 0 && <span> · count {Math.floor(count)} of {s.counts}</span>}
         </div>
+        {unsaved === 'seen' && !preview && <p className="perform-note" style={{ color: 'var(--warn)' }}>Not saved on this phone: it won't work offline.</p>}
         {(show.revision || state!.source) && <p className="perform-note">{show.revision ? `Revision ${show.revision}` : 'No revision number'}{state!.source && <> · {state!.checked ? `checked for updates ${checkedAt(state!.checked)}` : 'not checked for updates yet'}</>}</p>}
         {me ? (
           <>
@@ -434,6 +478,9 @@ export function Perform() {
                 {show.sets.map((x, i) => (i > picking[0] ? <option key={x.id} value={i}>{x.name}</option> : null))}
               </select>
             </span>
+            {/* In this panel: the button row has no room left on a phone, and a count-in matters most for practice reps. */}
+            <label><input type="checkbox" checked={countIn} onChange={(e) => { const on = e.target.checked; setCountIn(on); try { if (on) localStorage.setItem(COUNT_KEY, '1'); else localStorage.removeItem(COUNT_KEY); } catch { /* not remembered */ } }} />{' '}
+              Count-in: {COUNT_IN} clicks before every play</label>
             <span style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <button className="primary" onClick={() => { const r: [number, number] = [picking[0], Math.max(picking[0] + 1, picking[1])]; setLoop(r); setPicking(null); setPlaying(false); setT(starts[r[0]]); }}>Loop these sets</button>
               {loop && <button onClick={() => { setLoop(null); setPicking(null); }}>Stop looping</button>}
@@ -449,7 +496,7 @@ export function Perform() {
         <input type="range" aria-label="Count" min={0} max={total} step={1} value={t} onChange={(e) => { setPlaying(false); setT(Number(e.target.value)); }} disabled={!total} />
         <div className="perform-buttons">
           <button style={btn} aria-label="Previous count" onClick={() => { setPlaying(false); setT(Math.max(0, Math.ceil(t) - 1)); }}><IconPrev /></button>
-          <button style={btn} aria-label={playing ? 'Pause' : 'Play'} disabled={!total || (!playing && t >= total && !loop)} title={t >= total && !loop ? 'End of the show: tap set 1 (or another set) to play from there' : undefined} onClick={() => { if (!playing && loop && (t < span[0] || t >= span[1])) setT(span[0]); /* a loop plays from its first set */ if (!playing && music) music.audio.play().catch(() => {}); /* start sound inside the tap: phones only allow it there */ if (!playing && clickOn) wakeClick(); setPlaying(!playing); }}>{playing ? <IconPause /> : <IconPlay />}</button>
+          <button style={btn} aria-label={playing || counting ? 'Pause' : 'Play'} disabled={!total || (!playing && !counting && t >= total && !loop)} title={t >= total && !loop ? 'End of the show: tap set 1 (or another set) to play from there' : undefined} onClick={togglePlay}>{playing || counting ? <IconPause /> : <IconPlay />}</button>
           <button style={btn} aria-label="Next count" onClick={() => { setPlaying(false); setT(Math.min(total, Math.floor(t) + 1)); }}><IconNext /></button>
           {audio && <button aria-pressed={useMusic} title={useMusic ? 'Playing with the music. Tap to use a tempo instead.' : 'Play with the music'} onClick={() => { setPlaying(false); setUseMusic(!useMusic); }} style={{ fontSize: 14, minHeight: 40 }}>♪ Music</button>}
           {!music && <label style={{ fontSize: 14 }}><NumberField aria-label="Tempo" min={20} max={300} integer value={bpm} onValue={setBpm} style={{ width: 52, fontSize: 16 }} /> bpm</label>}

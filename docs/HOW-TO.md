@@ -20,17 +20,18 @@ The pictures in this guide come from a small sample show (47 performers, 4 sets)
 10. [Step-offs and turning moves](#step-offs-and-turning-moves)
 11. [Props](#props)
 12. [Step-size and too-close warnings](#step-size-and-too-close-warnings)
-13. [Dot labels](#dot-labels)
-14. [Markup and notes](#markup-and-notes)
-15. [Play it back](#play-it-back)
-16. [Add your music](#add-your-music)
-17. [Print dot sheets and drill charts](#print-dot-sheets-and-drill-charts)
-18. [Send the show to your performers](#send-the-show-to-your-performers)
-19. [What performers see on their phones](#what-performers-see-on-their-phones)
-20. [Using an iPad](#using-an-ipad)
-21. [Saving, backing up, and opening files](#saving-backing-up-and-opening-files)
-22. [Keyboard shortcuts](#keyboard-shortcuts)
-23. [If something goes wrong](#if-something-goes-wrong)
+13. [Review the whole show](#review-the-whole-show)
+14. [Dot labels](#dot-labels)
+15. [Markup and notes](#markup-and-notes)
+16. [Play it back](#play-it-back)
+17. [Add your music](#add-your-music)
+18. [Print dot sheets and drill charts](#print-dot-sheets-and-drill-charts)
+19. [Send the show to your performers](#send-the-show-to-your-performers)
+20. [What performers see on their phones](#what-performers-see-on-their-phones)
+21. [Using an iPad](#using-an-ipad)
+22. [Saving, backing up, and opening files](#saving-backing-up-and-opening-files)
+23. [Keyboard shortcuts](#keyboard-shortcuts)
+24. [If something goes wrong](#if-something-goes-wrong)
 
 ## Before you start
 
@@ -126,9 +127,10 @@ With **Select** on:
 - **Click** a performer to select them.
 - **Shift-click** to add or remove performers from the selection.
 - **Drag a box** on open field to select everyone inside it.
+- **Option-drag** (Alt-drag on Windows) on open field to draw a **lasso**: a freeform outline around the performers you want, for shapes a box can't fit, like one side of an arc. Everyone inside the outline is selected when you let go.
 - **Drag** any selected performer to move the whole selection.
 
-On a touch screen there's no Shift key, so turn on **Add to selection** in the sidebar's Selection area. Every tap or box then adds to what's already selected.
+On a touch screen there's no Shift key, so turn on **Add to selection** in the sidebar's Selection area. Every tap, box, or lasso then adds to what's already selected. There's no Option key either, so turn on **Lasso**, next to it, and dragging on open field draws a lasso instead of a box. (Shift and Option work together too: Shift-Option-drag adds a lasso's performers to the selection.)
 
 The Selection area also has **Select all** (⌘A, or Ctrl+A on Windows) and **Select a section…**, which picks every performer in that section. With two performers selected, it shows how many steps apart they are.
 
@@ -283,13 +285,31 @@ Props show on the field, on printed charts, and on phones.
 FreeFORM checks every move against the counts it has:
 
 - **Yellow** means someone's step is bigger than a 6-to-5.
-- **Red** means it's bigger than a 4-to-5, which is about as big a step as anyone should take.
+- **Red** means it's over the show's **step limit**: bigger than a 4-to-5 unless you change it, which is about as big a step as anyone should take.
 
-The colors show on the path lines on the field and in the timeline's "max" readout for each move. To fix a red move, add counts, shorten the distance, or split the move with a sub-set.
+The colors show on the path lines on the field and in the timeline's "max" readout for each move. On the field, everyone over the limit in the move you're looking at also gets a red ring, so you can see who it is. When a move's "max" is red, it's underlined: click it to go to that set with everyone over the limit selected, and a note at the bottom of the field names them. To fix a red move, add counts, shorten the distance, or split the move with a sub-set.
+
+**Changing the step limit.** Open **Review** (in the top bar) and type a number in **Step limit**. A younger band might use 6 (anything bigger than a 6-to-5 turns red), and a corps-style show might use 8. It's saved with the show, from a 2-to-5 up to an 8-to-5.
 
 **Too close.** FreeFORM also checks every move, start to finish, for two performers less than a step apart, even if they're fine at both ends. It catches fast crossings that happen between counts, too. The timeline shows how many pairs come too close in each move ("2 too close" in red). Click that warning to jump to the count where the closest pair is nearest: both performers are selected, and a note at the bottom of the field says who they are and how close they get. Open **Move** to see every pair, how close they get, and on what count. **Select** picks a pair so you can fix them, by spreading their spots, giving one a delayed step-off, or changing who goes to which spot.
 
 ![A too-close warning, clicked](img/too-close.png)
+
+## Review the whole show
+
+![The Review list, with the step limit](img/review.png)
+
+The warnings on the timeline cover one move at a time. **Review**, in the top bar, lists every problem in the whole show in one place, in show order. The button shows how many there are, like **Review (3)**. It lists:
+
+- **Steps**: everyone over the step limit in a move.
+- **Too close**: each pair of performers who come within a step of each other, and on what count.
+- **Straight now**: imported Pyware paths that are straight lines now (see below).
+- **No spot**: performers missing a spot in a set (this can happen with an imported show).
+- **Not written**: counts in your **Movements** that don't have sets yet.
+
+Click an item to go there: the playhead moves to that set or count, the performers are selected, and a note at the bottom of the field says what's wrong. The list stays open while you fix things and updates as you go, and it says "all clear" when there's nothing left. **Close** puts it away.
+
+**Imported paths that go straight.** A move imported from Pyware count by count (a follow-the-leader, a delayed step-off, a rotation) keeps its route only while both of its sets and its counts stay as they came in. If you move one of those performers in either set, or change the move's counts, that performer marches a straight line instead. When an edit does that, a note at the bottom of the field says so, like "4 imported paths in the move into set 7 are straight lines now." Undo brings the routes back, and so does putting the spots and counts back the way they were. Until then, Review lists them.
 
 ## Dot labels
 
@@ -372,21 +392,24 @@ Check **Show the paths into each set** to add a thin dashed line from where each
 
 ## Send the show to your performers
 
-Click **Share…** in the sidebar.
+Click **Share…** in the sidebar. The dialog has two choices at the top, and each one says what's included before it gives you a link.
 
 ![The Share dialog with a link and QR code](img/share.png)
 
-**Share links** are the quick way. The whole show is packed inside the link, so there's no server and no account involved. Text it, email it, or post it in your band's group chat. For a small show you also get a QR code you can put on a screen at rehearsal. Two things to keep in mind:
+**Send this version** is the quick way. The whole show is packed inside the link, so there's no server and no account involved. Text it, email it, or post it in your band's group chat. For a small show you also get a QR code you can put on a screen at rehearsal. Three things to keep in mind:
 
 - Anyone with the link can see the show, so names are left out.
+- A link can't carry audio, so the music isn't included. Phones can still play at a tempo.
 - Changes you make later aren't sent. After you edit, share a new link.
 
-**Hosted links** are better for a real season. Open **Hosted link** in the Share dialog. FreeFORM makes a *locked* show file, encrypted in your browser, and you put that file online. The link that opens it is short, makes a QR code that scans easily, and keeps working when you update the show: performers' phones pick up your latest version the next time they open it online. The key that unlocks the file is only in the link, so whoever hosts the file can't read it. **The link is the password, so share it only with your band.** A locked file can carry names and, if you want, the music.
+**Keep phones up to date** is better for a real season. FreeFORM makes a *locked* show file, encrypted in your browser, and you put that file online. The link that opens it is short, makes a QR code that scans easily, and keeps working when you update the show: performers' phones pick up your latest version the next time they open it online. The key that unlocks the file is only in the link, so whoever hosts the file can't read it. **The link is the password, so share it only with your band.** A locked file carries names and, if you check the box, the music.
 
-There are two ways to put the file online:
+![Keep phones up to date, before setup](img/share-update.png)
 
-- **Publish to phones** does it in one click once you connect FreeFORM to a public GitHub repository of your own. (Public is fine, since the file is encrypted.) You'll need the repository's name and a fine-grained GitHub token that can write only to that repository (*Contents: Read and write*). Both stay in your browser. After that, **Publish update** replaces the file, and the link and QR code never change.
-- **Or host the file yourself**: download the locked file and upload it anywhere that gives you a direct link to it. A GitHub repository works (upload the file, open it, and copy its **Raw** link). Paste that address into the box and FreeFORM makes your short link.
+There are two ways to put the file online. Both are under **Setup** at the bottom of the dialog:
+
+- **Publish to phones** does it in one click once you connect FreeFORM (under **Setup**) to a public GitHub repository of your own. (Public is fine, since the file is encrypted.) You'll need the repository's name and a fine-grained GitHub token that can write only to that repository (*Contents: Read and write*). Both stay in your browser. After that, **Publish update** replaces the file, and the link and QR code never change.
+- **Or host the file yourself** (also under **Setup**): download the locked file and upload it anywhere that gives you a direct link to it. A GitHub repository works (upload the file, open it, and copy its **Raw** link). Paste that address into the box and FreeFORM makes your short link.
 
 **Revision numbers.** Each time you click **Publish to phones** (or **Publish update**), or download a locked file, the show's revision number goes up by one. Phones show it under the set ("Revision 6"), and so do printed charts and dot sheets. At rehearsal, "Does everyone have revision 6?" is a quick check. A hosted show on a phone also says when it last checked for an update ("checked for updates 3:42 PM"). Share links don't change the number.
 
@@ -398,14 +421,14 @@ When a student opens your link on their phone, they pick who they are.
 
 ![Picking who you are on a phone](img/phone-who.png)
 
-They can search by name, by dot (P4), or by section, and **Staff (whole band)** at the top shows everyone. FreeFORM remembers their choice, and the show keeps working offline once it's opened.
+They can search by name, by dot (P4), or by section, and **Staff (whole band)** at the top shows everyone. FreeFORM remembers their choice, and the show keeps working offline once it's opened. (If the phone can't save it, say in a private window or with its storage full, a warning says so: the show will be gone when they close it and won't work offline, so they should open it in a regular window.)
 
 ![A performer's view of set 2 on a phone](img/phone.png)
 
 On the performer screen:
 
-- **My view** follows their dot through each move. **Whole field** shows everything, and pinch-zoom works in both.
-- **Director view** shows the field the way the editor does. Tap it to switch to **Facing front**, which turns the field around to match what they see facing the audience.
+- **Follow my dot** keeps their dot in the middle through each move. Tap it off to see the whole field. Pinch-zoom works either way.
+- The field orientation button reads **From the press box** when the field is drawn the way the editor shows it. Tap it to switch to **Facing the front**, which turns the field around to match what they see facing the audience.
 - Under the field they see the spot they're standing on, then their next spot and how many counts it takes to get there (with measures and step size), plus their notes and the ensemble notes. On the field, the performers closest to them are drawn a little brighter and labeled.
 - They can play at any tempo, step count by count, scrub, or tap a set number to jump to it. If the show has music, Play follows it, and **♪ Music** switches back to a tempo.
 
@@ -413,9 +436,11 @@ On the performer screen:
 
 ![Picking sets 2 to 3 to loop on a phone](img/phone-loop.png)
 
+**Count-in.** The same panel has a **Count-in** checkbox. With it on, every time they press Play the phone clicks 4 counts (and shows 4, 3, 2, 1 over the field) before the drill starts moving, at the tempo, or at the music's pace if it's playing with the music. Tap Pause during the count-in to cancel it. The phone remembers the setting.
+
 **A click for rehearsal.** When there's no recording (or **♪ Music** is off), a **Click** button sits next to the tempo. It clicks every count while the drill plays, with a higher click where each set lands, so a section can run a move with the phone in a pocket or on a stand.
 
-**Several shows on one phone.** If your Opener, Ballad, Drum Feature, and Closer are separate files, send each one's link. Every link a student opens is added to the list on their phone instead of replacing what's there. The show's title at the top of the screen is a menu: tap it and pick another show to switch. Each show remembers who they are, and a new show starts on the same dot (B5 in the Opener starts as B5 in the Ballad). Opening a link for a show that's already on the phone (an updated version of the same hosted link, or a share link with the same title) replaces it in place. **＋ Add a show…** in the same menu opens a box to paste a link or **Scan QR code**, and **Remove this show…** takes the open show off the phone. A phone keeps up to 12 shows.
+**Several shows on one phone.** If your Opener, Ballad, Drum Feature, and Closer are separate files, send each one's link. Every link a student opens is added to the list on their phone instead of replacing what's there. The show's title at the top of the screen is a menu: tap it and pick another show to switch. Each show remembers who they are, and a new show starts on the same dot (B5 in the Opener starts as B5 in the Ballad). Opening a link for a show that's already on the phone (an updated version of the same hosted link, or a new share link of the same show) replaces it in place. Two different shows that happen to have the same title are kept apart. Each show has its own permanent id, made when the show is started, so the copy of the Opener on a phone knows it's your Opener and not another band's. **＋ Add a show…** in the same menu opens a box to paste a link or **Scan QR code**, and **Remove this show…** takes the open show off the phone. A phone keeps up to 12 shows.
 
 Students can add FreeFORM to their home screen. In the home-screen app, they open a show with **Scan QR code** or by pasting the link, and add more with **＋ Add a show…**.
 
@@ -427,7 +452,7 @@ To check a performer's view while you write, select one performer and click **Pe
 
 The editor works on an iPad the same way it does on a computer, with a few touch habits:
 
-- **One finger** does whatever the tool does: tap to select or add, drag to move, drag on open field for a box.
+- **One finger** does whatever the tool does: tap to select or add, drag to move, drag on open field for a box (or, with **Lasso** on, draw around performers to select them).
 - **Two fingers** pan and pinch-zoom the field. If a second finger lands while the first one has started something, FreeFORM takes that back and moves the view instead.
 - **With an Apple Pencil**, the Pencil does the editing. Once you've used it on the field, a single finger or a palm resting on the screen does nothing there, so you can rest your hand while you work. Two fingers still pan and zoom, and they never undo what the Pencil just did. To go back to editing with your finger, reload the page.
 - Turn on **Add to selection** to build up a selection without a Shift key.
@@ -476,6 +501,7 @@ With a keyboard attached, the [keyboard shortcuts](#keyboard-shortcuts) work too
 | Zoom the field in or out | ⌘+ or ⌘− (Ctrl on Windows) |
 | Fit the whole field | F, or ⌘0 (Ctrl+0) |
 | Select everyone | ⌘A (Ctrl+A on Windows) |
+| Lasso: select everyone inside an outline you draw | Option-drag (Alt-drag) on open field |
 | Copy or paste the selection's spots | ⌘C or ⌘V (Ctrl+C or Ctrl+V) |
 | Delete the selection (asks first) | Delete |
 | Save | ⌘S (Ctrl+S on Windows) |
