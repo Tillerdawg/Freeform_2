@@ -44,6 +44,7 @@ interface Props {
   onFullBackup: () => void | Promise<boolean>;
   onPrint: () => void;
   onShare: () => void;
+  onVideo: () => void;
   fileError: string;
   onUndo: () => void;
   onRedo: () => void;
@@ -93,6 +94,7 @@ export function Sidebar(p: Props) {
       <div role="group" aria-label="Get it to the band" style={{ ...row, flexWrap: 'nowrap' }}>
         <button className="primary" onClick={p.onPrint} disabled={!show.performers.length} title="Dot sheets and drill charts (print or save as PDF)" style={{ flex: 1 }}>Print…</button>
         <button className="primary" onClick={p.onShare} disabled={!show.performers.length} title="A link that opens this show on performers' and staff phones" style={{ flex: 1 }}>Share…</button>
+        <button className="primary" onClick={p.onVideo} disabled={!show.performers.length} title="An MP4 video of the show, with the music, for a group chat or the boosters" style={{ flex: 1 }}>Video…</button>
       </div>
       {p.fileError && <div role="alert" style={{ color: 'var(--danger)', marginTop: 6 }}>{p.fileError}</div>}
       <div style={{ ...row, marginBottom: 10 }}>

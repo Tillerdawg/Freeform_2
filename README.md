@@ -53,6 +53,7 @@ A note on where the ideas came from: FreeFORM is modeled on Pyware and the Ultim
 
 **Getting it to the band**
 - Dot sheets (four cards per page, one per page with a notes column, or one per page with a small field picture for each set, like a dot book) and drill charts (one per set, with or without the paths into it), printed or saved as PDF, for the whole show or a range of sets.
+- A video of the show (MP4, the whole field, with the music and the set and count on screen) for the group chat, staff, or boosters.
 - A Share dialog with two choices: **Send this version** (a link with a QR code; the whole show is in the link, with no server involved) or **Keep phones up to date**. Each says what's included (names, notes, music) before you get a link.
 - Locked hosted links that update themselves on phones, can carry the music, and keep names private. One-click publishing to your own GitHub repository. Each publish gets a revision number that shows on phones and printed sheets.
 - The phone's performer view and the front page in Spanish (a first draft; the editor is next).
