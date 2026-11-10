@@ -43,9 +43,9 @@ const precache: Plugin = {
 };
 
 // Relative base: the same build works at a domain root, under /Freeform_2/ on GitHub Pages, or opened locally.
-// Two pages: the front page (index.html) and the app (app/index.html), which old links (/#show=…) are forwarded to.
+// The front page (index.html, and es/index.html in Spanish) and the app (app/index.html), which old links (/#show=…) are forwarded to.
 export default defineConfig({
   base: './',
   plugins: [react(), guide, sample, precache],
-  build: { rollupOptions: { input: { main: 'index.html', app: 'app/index.html' } } },
+  build: { rollupOptions: { input: { main: 'index.html', es: 'es/index.html', app: 'app/index.html' } } },
 });

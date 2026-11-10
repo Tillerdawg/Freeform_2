@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import jsQR from 'jsqr';
 import { linkHash } from '../engine/share';
 import { useDialog } from '../ui/useDialog';
+import { tr } from '../i18n';
 
 /**
  * Scan a FreeFORM QR code with the camera, from inside the app. On iPhone, scanning with the
@@ -9,7 +10,7 @@ import { useDialog } from '../ui/useDialog';
  */
 export function Scanner({ onClose }: { onClose: () => void }) {
   const video = useRef<HTMLVideoElement>(null);
-  const [msg, setMsg] = useState('Starting the camera…');
+  const [msg, setMsg] = useState(tr('Starting the camera…'));
   const close = useRef(onClose);
   close.current = onClose; // the parent passes a new function each render; don't restart the camera for it
   useEffect(() => {
@@ -31,7 +32,7 @@ export function Scanner({ onClose }: { onClose: () => void }) {
         if (code) {
           const hash = linkHash(code.data);
           if (hash) { stopped = true; location.hash = hash; close.current(); return; }
-          setMsg("That QR code isn't a FreeFORM show link.");
+          setMsg(tr("That QR code isn't a FreeFORM show link."));
         }
       }
       raf = requestAnimationFrame(tick);
@@ -42,19 +43,19 @@ export function Scanner({ onClose }: { onClose: () => void }) {
         stream = s;
         video.current!.srcObject = s;
         video.current!.play().catch(() => {});
-        setMsg('Point the camera at the show’s QR code.');
+        setMsg(tr('Point the camera at the show’s QR code.'));
         raf = requestAnimationFrame(tick);
       })
-      .catch(() => setMsg('The camera isn’t available. Allow camera access for FreeFORM in Settings, or paste the link instead.'));
+      .catch(() => setMsg(tr('The camera isn’t available. Allow camera access for FreeFORM in Settings, or paste the link instead.')));
     return () => { stopped = true; cancelAnimationFrame(raf); stream?.getTracks().forEach((t) => t.stop()); };
   }, []);
   const dialog = useDialog(onClose);
   return (
-    <div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Scan QR code"
+    <div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-label={tr('Scan QR code')}
       style={{ position: 'fixed', inset: 0, background: '#000', zIndex: 20, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, padding: 16 }}>
       <video ref={video} playsInline muted style={{ maxWidth: '100%', maxHeight: '70vh', background: '#111' }} />
       <p role="status" style={{ margin: 0, textAlign: 'center', color: '#fff' }}>{msg}</p>
-      <button onClick={onClose} style={{ fontSize: 16 }}>Cancel</button>
+      <button onClick={onClose} style={{ fontSize: 16 }}>{tr('Cancel')}</button>
     </div>
   );
 }

@@ -35,8 +35,41 @@ const quarter = (n: number) => Math.round(n * 4) / 4;
 const steps = (n: number) => `${n} step${n === 1 ? '' : 's'}`;
 const lineName = (k: number) => (k === 10 ? 'Goal Line' : String(50 - 5 * k));
 
+// Spanish (a first draft: a Spanish-speaking drill writer should check the terms). Yard lines are feminine ("la 45",
+// la yarda); the hashes are "el Hash", the sidelines "la línea lateral".
+const pasos = (n: number) => `${n} paso${n === 1 ? '' : 's'}`;
+const linea = (k: number) => (k === 10 ? 'la línea de gol' : `la ${50 - 5 * k}`);
+const de = (x: string) => x.replace(/^el /, 'del ').replace(/^la /, 'de la ');
+
+function ladoAlLado(x: number, f: FieldSpec): string {
+  const ax = quarter(Math.abs(x)), lado = `Lado ${x < 0 ? 1 : 2}`;
+  if (typeof f !== 'string') return ax === 0 ? 'En el centro' : `${pasos(ax)} hacia el ${lado} del centro`;
+  if (ax === 0) return 'Sobre la 50';
+  const k = Math.min(Math.round(ax / YARDLINE_SPACING), 10), d = ax - k * YARDLINE_SPACING;
+  if (Math.abs(d) === 4) { const [a, b] = d > 0 ? [k + 1, k] : [k, k - 1]; return `Entre ${linea(a)} y ${linea(b)}, ${lado}`; }
+  if (k === 0) return `${pasos(d)} afuera de la 50, ${lado}`;
+  if (d === 0) return `Sobre ${linea(k)} del ${lado}`;
+  return `${pasos(Math.abs(d))} ${d > 0 ? 'afuera' : 'adentro'} de ${linea(k)} del ${lado}`;
+}
+
+function frenteAtras(y: number, f: FieldSpec): string {
+  let name: string, ref: number;
+  if (typeof f !== 'string') {
+    const back = y > f.d / 2 + EPS, edge = f.kind === 'court' ? 'la línea lateral' : 'el borde';
+    name = `${edge} ${back ? (f.kind === 'court' ? 'trasera' : 'trasero') : (f.kind === 'court' ? 'delantera' : 'delantero')}`; ref = back ? f.d : 0;
+  } else {
+    const h = HASHES[f], refs: [string, number][] = [['la línea lateral delantera', 0], ['el Hash delantero', h], ['el Hash trasero', FIELD_WIDTH - h], ['la línea lateral trasera', FIELD_WIDTH]];
+    [name, ref] = refs[0];
+    for (const r of refs) if (Math.abs(y - r[1]) < Math.abs(y - ref) - EPS) [name, ref] = r;
+  }
+  const d = quarter(y - ref);
+  if (d === 0) return `Sobre ${name}`;
+  return `${pasos(Math.abs(d))} ${d < 0 ? 'delante' : 'detrás'} ${de(name)}`;
+}
+
 /** Side-to-side part, e.g. "2 steps outside the Side 2 45" (on a floor, "3 steps Side 1 of center"). */
-export function sideToSide(x: number, f: FieldSpec = 'highSchool'): string {
+export function sideToSide(x: number, f: FieldSpec = 'highSchool', lang: 'en' | 'es' = 'en'): string {
+  if (lang === 'es') return ladoAlLado(x, f);
   const ax = quarter(Math.abs(x));
   if (typeof f !== 'string') return ax === 0 ? 'On center' : `${steps(ax)} Side ${x < 0 ? 1 : 2} of center`;
   if (ax === 0) return 'On the 50';
@@ -55,7 +88,8 @@ export function sideToSide(x: number, f: FieldSpec = 'highSchool'): string {
 }
 
 /** Front-to-back part, e.g. "2 steps in front of Front Hash". */
-export function frontToBack(y: number, hash: FieldSpec): string {
+export function frontToBack(y: number, hash: FieldSpec, lang: 'en' | 'es' = 'en'): string {
+  if (lang === 'es') return frenteAtras(y, hash);
   if (typeof hash !== 'string') { // a floor: the nearer of its front and back edges
     const edge = hash.kind === 'court' ? 'Sideline' : 'Edge', back = y > hash.d / 2 + EPS; // ties go to the front
     const d = quarter(back ? y - hash.d : y), name = `${back ? 'Back' : 'Front'} ${edge}`;
@@ -76,8 +110,8 @@ export function frontToBack(y: number, hash: FieldSpec): string {
   return `${steps(Math.abs(d))} ${d < 0 ? 'in front of' : 'behind'} ${name}`;
 }
 
-export const readout = (p: Point, f: FieldSpec) =>
-  `${sideToSide(p.x, f)}, ${frontToBack(p.y, f).replace(/^On /, 'on ')}`;
+export const readout = (p: Point, f: FieldSpec, lang: 'en' | 'es' = 'en') =>
+  `${sideToSide(p.x, f, lang)}, ${frontToBack(p.y, f, lang).replace(/^On /, 'on ').replace(/^Sobre /, 'sobre ')}`;
 
 export type StepTier = 'ok' | 'yellow' | 'red';
 

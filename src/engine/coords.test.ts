@@ -81,3 +81,28 @@ describe('indoor floors', () => {
     expect(fieldDepth('college')).toBe(84);
   });
 });
+
+describe('readouts in Spanish', () => {
+  it('reads side to side', () => {
+    expect(sideToSide(0, 'highSchool', 'es')).toBe('Sobre la 50');
+    expect(sideToSide(16 + 2, 'highSchool', 'es')).toBe('2 pasos afuera de la 40 del Lado 2');
+    expect(sideToSide(-(8 + 1), 'highSchool', 'es')).toBe('1 paso afuera de la 45 del Lado 1');
+    expect(sideToSide(-(16 - 3), 'highSchool', 'es')).toBe('3 pasos adentro de la 40 del Lado 1');
+    expect(sideToSide(-12, 'highSchool', 'es')).toBe('Entre la 40 y la 45, Lado 1');
+    expect(sideToSide(2, 'highSchool', 'es')).toBe('2 pasos afuera de la 50, Lado 2');
+    expect(sideToSide(-80, 'highSchool', 'es')).toBe('Sobre la línea de gol del Lado 1');
+    expect(sideToSide(-24, 'highSchool', 'es')).toBe('Sobre la 35 del Lado 1');
+  });
+  it('reads front to back, with the right article', () => {
+    expect(frontToBack(28 - 2, 'highSchool', 'es')).toBe('2 pasos delante del Hash delantero');
+    expect(frontToBack(56, 'highSchool', 'es')).toBe('Sobre el Hash trasero');
+    expect(frontToBack(1.5, 'highSchool', 'es')).toBe('1.5 pasos detrás de la línea lateral delantera');
+    expect(frontToBack(84, 'highSchool', 'es')).toBe('Sobre la línea lateral trasera');
+    expect(frontToBack(3, COURT, 'es')).toBe('3 pasos detrás de la línea lateral delantera');
+    expect(frontToBack(3, { kind: 'floor', w: 40, d: 30 }, 'es')).toBe('3 pasos detrás del borde delantero');
+  });
+  it('puts the two together', () => {
+    expect(readout({ x: 18, y: 26 }, 'highSchool', 'es')).toBe('2 pasos afuera de la 40 del Lado 2, 2 pasos delante del Hash delantero');
+    expect(readout({ x: 0, y: 28 }, 'highSchool', 'es')).toBe('Sobre la 50, sobre el Hash delantero');
+  });
+});

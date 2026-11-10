@@ -1,5 +1,6 @@
 // "Who's around me": the performers nearest my spot, and where they are relative to me in field terms.
 import type { Point } from '../engine/coords';
+import { lang as current, tr, type Lang } from '../i18n';
 
 export interface Neighbor { id: string; dx: number; dy: number; dist: number }
 
@@ -16,27 +17,25 @@ export function nearest(pos: Record<string, Point>, me: string, n = 4, within = 
 }
 
 /** Ruler label for the yard line at x steps from the 50 (multiples of 8): "50", "S1 40", "G" for goal lines. */
-export function yardLabel(x: number): string {
+export function yardLabel(x: number, l: Lang = 'en'): string {
   const yd = 50 - Math.abs(x) / 1.6;
   if (yd === 50) return '50';
   if (yd === 0) return 'G';
-  return `S${x < 0 ? 1 : 2} ${yd}`;
+  return `${l === 'es' ? 'L' : 'S'}${x < 0 ? 1 : 2} ${yd}`; // L: Lado
 }
 
 /** A step size in words a student knows: 8-to-5 is a normal step, fewer steps per 5 yards is a bigger step. */
-export function stepWords(per5: number): string {
-  if (per5 === Infinity) return 'stand still';
-  if (per5 > 9) return 'smaller steps than normal';
-  if (per5 >= 7) return 'normal steps';
-  if (per5 >= 6) return 'bigger steps than normal';
-  return 'very big steps';
+export function stepWords(per5: number, l: Lang = current): string {
+  const w = per5 === Infinity ? 'stand still' : per5 > 9 ? 'smaller steps than normal' : per5 >= 7 ? 'normal steps' : per5 >= 6 ? 'bigger steps than normal' : 'very big steps';
+  return tr(w, undefined, l);
 }
 
 /** Which way a move ends up, for a performer facing the front: +y is toward the back sideline, +x toward Side 2 (their left). */
-export function moveWords(from: Point, to: Point): string {
+export function moveWords(from: Point, to: Point, l: Lang = current): string {
   const dx = to.x - from.x, dy = to.y - from.y;
   const counts = (a: number, b: number) => Math.abs(a) >= 0.5 && Math.abs(a) >= 0.3 * Math.abs(b); // a small sideways drift isn't worth saying
   const fb = counts(dy, dx) ? (dy > 0 ? 'back' : 'forward') : '', side = counts(dx, dy) ? (dx > 0 ? 'to your left' : 'to your right') : '';
   if (!fb && !side) return '';
-  return `moving ${[fb, side].filter(Boolean).join(' and ')} (facing the front)`;
+  const way = fb && side ? `${fb} and ${side}` : fb || side; // one of eight phrases, so each has its own translation
+  return tr('moving {way} (facing the front)', { way: tr(way, undefined, l) }, l);
 }

@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- The Spanish front page (the English one is index.html; keep them saying the same things). Show links go straight to the app. -->
+    <script>
+      (function () {
+        var standalone = window.navigator.standalone || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
+        if (/^#(show=|load=|perform)/.test(location.hash) || standalone) location.replace('../app/' + location.hash);
+        try { var t = localStorage.getItem('freeform:theme'); } catch (e) {}
+        document.documentElement.dataset.theme = t === 'light' || t === 'dark' ? t : window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+      })();
+    </script>
+    <title>FreeFORM Drill: diseño de drill gratis para bandas de marcha</title>
+    <meta name="description" content="FreeFORM Drill es una herramienta gratuita y de código abierto para diseñar drill para bandas de marcha, drum corps e indoor. Escribe el drill en tu navegador, imprime hojas de puntos y gráficas, y manda el show a los teléfonos de tus estudiantes." />
+    <meta name="theme-color" content="#1d2a1f" />
+    <link rel="alternate" hreflang="en" href="https://freeformdrill.org/" />
+    <link rel="manifest" href="../manifest.webmanifest" />
+    <link rel="icon" href="../favicon-32.png" sizes="32x32" />
+    <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="../apple-touch-icon.png" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://freeformdrill.org/es/" />
+    <meta property="og:title" content="FreeFORM Drill" />
+    <meta property="og:description" content="Una herramienta gratuita y de código abierto para diseñar drill para bandas de marcha, drum corps e indoor." />
+    <meta property="og:image" content="https://freeformdrill.org/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <style>
+      :root { --bg: #1d2a1f; --bg-deep: #182419; --surface: #22302a; --surface-2: #2b3b2f; --line: #33443a; --line-strong: #44594a; --muted: #6b8270; --green: #3d6b4a; --green-line: #7cc08b; --text: #e9f0ea; --gold: #ffd166; --gold-fill: #ffd166; --on-gold: #182419; --warn: #f5c518; --warn-line: #5a4a1a; --danger: #ff8080; --step-red: #ff4d4d; --danger-bg: #5a2b2b; --danger-line: #a04848; --blue: #5ad1ff; --turf: #357842; --floor: #8a6a45; } /* = src/ui/palette.ts */
+      :root[data-theme=light] { --bg: #eef3ef; --bg-deep: #ffffff; --surface: #e3ebe5; --surface-2: #d5e0d8; --line: #bfcdc3; --line-strong: #8ea596; --muted: #5f7564; --green: #c4e3cc; --green-line: #2a6e3b; --text: #14201a; --gold: #1d2a1f; --gold-fill: #ffd166; --on-gold: #14201a; --warn: #7a5200; --warn-line: #c9a447; --danger: #b3261e; --step-red: #c41e1e; --danger-bg: #f6d5d3; --danger-line: #c96a64; --blue: #075f85; --turf: #357842; --floor: #8a6a45; } /* = LIGHT in src/ui/palette.ts */
+      * { box-sizing: border-box; }
+      html { background: var(--bg); color: var(--text); }
+      body { margin: 0; font: 18px/1.55 system-ui, -apple-system, sans-serif; }
+      a { color: var(--blue); }
+      a:focus-visible, .button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+      .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+      header.top { border-bottom: 1px solid var(--line); background: var(--bg-deep); }
+      header.top .wrap { display: flex; align-items: center; gap: 16px; min-height: 60px; flex-wrap: wrap; padding-top: 8px; padding-bottom: 8px; }
+      header.top img { height: 28px; display: block; }
+      :root[data-theme=light] .dark-only, :root:not([data-theme=light]) .light-only { display: none !important; }
+      header.top nav { margin-left: auto; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; font-size: 16px; }
+      .button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 8px 18px; border-radius: 8px; border: 1px solid var(--line-strong);
+        background: var(--surface-2); color: var(--text); text-decoration: none; font-weight: 600; }
+      .button.primary { background: var(--gold-fill); border-color: var(--gold-fill); color: var(--on-gold); }
+      .hero { padding-top: 56px; padding-bottom: 32px; display: grid; gap: 12px; }
+      .hero h1 { font-size: clamp(30px, 5vw, 48px); line-height: 1.15; margin: 0; max-width: 18em; }
+      .tagline { font-style: italic; font-size: 20px; margin: 0; color: var(--green-line); }
+      .lede { max-width: 38em; margin: 4px 0 8px; }
+      .actions { display: flex; gap: 12px; flex-wrap: wrap; }
+      .shot { width: 100%; height: auto; display: block; border: 1px solid var(--line); border-radius: 10px; }
+      section { padding: 40px 0; border-top: 1px solid var(--line); }
+      section h2 { font-size: 28px; margin: 0 0 12px; }
+      .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 32px; align-items: start; }
+      ul { padding-left: 1.2em; margin: 8px 0; }
+      li { margin: 4px 0; }
+      .phone { max-width: 300px; width: 100%; height: auto; display: block; border: 1px solid var(--line); border-radius: 18px; }
+      .qr { background: #fff; width: 200px; padding: 6px; border-radius: 8px; }
+      .qr svg { display: block; width: 100%; height: auto; }
+      .note { color: var(--text); opacity: .85; font-size: 16px; }
+      /* Phones get only the performer view (the editor needs a computer or an iPad), so their buttons point there. */
+      .phone-only { display: none; }
+      @media (pointer: coarse) and (max-width: 499px), (pointer: coarse) and (max-height: 499px) { .editor-only { display: none !important; } .phone-only { display: inline-flex; } p.phone-only { display: block; } .hero { padding-top: 32px; } } /* = isPhone() in src/perform/device.ts */
+      footer { border-top: 1px solid var(--line); padding: 28px 0 48px; font-size: 16px; }
+      footer .wrap { display: flex; gap: 20px; flex-wrap: wrap; }
+    </style>
+  </head>
+  <body>
+    <header class="top">
+      <div class="wrap">
+        <a href="./"><img class="dark-only" src="../logo-small.svg" alt="FreeFORM Drill" /><img class="light-only" src="../logo-small-light.svg" alt="FreeFORM Drill" /></a>
+        <nav aria-label="Sitio">
+          <a href="../guide/">Guía (en inglés)</a>
+          <a href="https://github.com/Tillerdawg/Freeform_2">Código fuente</a>
+          <a href="../" lang="en" hreflang="en" onclick="try { localStorage.setItem('freeform:lang', 'en'); } catch (e) {}">English</a>
+          <a class="button primary editor-only" href="../app/">Abrir el editor</a>
+        </nav>
+      </div>
+    </header>
+    <main>
+      <div class="wrap hero">
+        <h1>Diseño de drill gratis para bandas de marcha, drum corps e indoor</h1>
+        <p class="tagline" lang="en">Drill, without the bill.</p>
+        <p class="lede">FreeFORM Drill funciona en tu navegador. Escribe el show en una computadora o un iPad, mira cada movimiento tiempo por tiempo con tu música, imprime hojas de puntos y gráficas de drill, y manda el drill a los teléfonos de tus estudiantes. No hay nada que instalar, ninguna cuenta que crear y ninguna licencia que pagar, para una banda de cualquier tamaño.</p>
+        <p class="note">El editor todavía está en inglés; la vista de los estudiantes en el teléfono ya está en español.</p>
+        <p class="note phone-only">En un teléfono, FreeFORM muestra el drill como lo ven tus integrantes. Para escribir drill, abre esta página en una computadora o un iPad.</p>
+        <div class="actions">
+          <a class="button primary editor-only" href="../app/">Abrir el editor</a>
+          <a class="button editor-only" href="../app/?sample">Probar el show de ejemplo</a>
+          <a class="button primary phone-only" href="%SAMPLE_PHONE_LINK%">Ver el show de ejemplo</a>
+          <a class="button" href="../guide/">Leer la guía (en inglés)</a>
+        </div>
+      </div>
+      <div class="wrap"><img class="shot" src="../docs/img/editor.png" width="1440" height="900" alt="El editor de FreeFORM: un campo de fútbol americano con un show de 47 integrantes, la línea de tiempo abajo y el panel lateral a la derecha" /></div>
+
+      <section aria-labelledby="directors">
+        <div class="wrap">
+          <h2 id="directors">Para directores y escritores de drill</h2>
+          <ul>
+            <li>Hashes de preparatoria (high school), universidad o NFL, una cancha de básquetbol o un piso a la medida, con coordenadas en el lenguaje de drill de siempre.</li>
+            <li>Líneas, arcos, curvas, círculos, bloques, estrellas, espirales y letras, con los lugares repartidos por el menor recorrido total para que los caminos no se crucen.</li>
+            <li>Follow the leader, contramarchas, caminos a la medida, salidas con retraso y giros en grupo, todo con un tamaño de paso parejo.</li>
+            <li>Avisos de pasos demasiado grandes y de integrantes demasiado cerca, y una sola lista con cada problema del show.</li>
+            <li>Reprodúcelo con tu partitura de MuseScore y tu grabación, o marca los tiempos sobre cualquier mp3.</li>
+            <li>Hojas de puntos y gráficas de drill del show completo o de unos sets, impresas o en PDF.</li>
+            <li>Todas las herramientas desde el principio. Sin niveles ni límite de integrantes.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section aria-labelledby="students">
+        <div class="wrap cols">
+          <div>
+            <h2 id="students">Para estudiantes y staff</h2>
+            <p>Los estudiantes escanean un código QR (o abren un enlace que les mandas), eligen quiénes son y ven su punto: dónde están ahora, a dónde van después, cuántos tiempos tienen y qué tan grandes son los pasos. Pueden ver cualquier movimiento desde el palco o mirando al frente, repetir unos sets con cuenta de entrada, y todo funciona sin internet una vez abierto. La vista del teléfono está en español.</p>
+            <p><strong>Estudiantes:</strong> abran el enlace que les mandó su director.</p>
+            <p>Para ver lo que reciben tus estudiantes, escanea esto con tu teléfono, o <a href="%SAMPLE_PHONE_LINK%">abre aquí el show de ejemplo</a>.</p>
+            <div class="qr" role="img" aria-label="Código QR que abre el show de ejemplo en un teléfono">%SAMPLE_QR%</div>
+          </div>
+          <img class="phone" src="../docs/img/phone.png" alt="La vista de un integrante en el teléfono: su lugar, su siguiente lugar y el campo a su alrededor" loading="lazy" />
+        </div>
+      </section>
+
+      <section aria-labelledby="pyware">
+        <div class="wrap">
+          <h2 id="pyware">Si vienes de Pyware o UDB</h2>
+          <p>FreeFORM funciona como estás acostumbrado: sets y tiempos, una cuadrícula de 8 a 5 vista desde el palco, Lado 1 y Lado 2, y coordenadas desde la yarda y el hash más cercanos. Casi todo te va a resultar familiar.</p>
+          <ul>
+            <li><strong>Trae tus shows.</strong> FreeFORM abre archivos de Pyware 3D (<code>.3dj</code>): sets, tiempos, notas, compases, secciones y nombres. Se ha probado con archivos de 2008 a 2010, así que los más nuevos quizá todavía no entren bien. Si uno no entra, por favor avísame.</li>
+            <li><strong>Lo que FreeFORM todavía no hace:</strong> una vista en 3D, sincronizar entre computadoras y apps en las tiendas de apps. Tus shows se guardan en tu navegador y en los archivos que guardes.</li>
+            <li>FreeFORM no está afiliado con Pyware ni con Ultimate Drill Book. Se escribió desde cero, a partir de cómo funcionan esos programas y lo que dice su documentación, sin nada de su código.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section aria-labelledby="privacy">
+        <div class="wrap">
+          <h2 id="privacy">Privacidad</h2>
+          <p>FreeFORM no tiene servidor ni cuentas, así que no hay nada que FreeFORM pueda recopilar.</p>
+          <ul>
+            <li>Tus shows se guardan en tu propio navegador y en los archivos que guardes. No se mandan a ningún lado.</li>
+            <li>Este sitio no tiene anuncios, rastreadores ni analíticas.</li>
+            <li>Los nombres de los estudiantes no van en los enlaces normales, porque cualquiera con el enlace puede abrirlo.</li>
+            <li>Un archivo de show bloqueado (para mantener los teléfonos al día) se cifra en tu navegador antes de subirlo. La clave solo está en el enlace, así que quien guarde el archivo no puede leerlo.</li>
+            <li>Si publicas en GitHub desde FreeFORM, tu token se queda en tu navegador.</li>
+            <li>El sitio lo sirve GitHub Pages, que guarda los registros normales de cualquier servidor web.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section aria-labelledby="about">
+        <div class="wrap">
+          <h2 id="about">Gratis y de código abierto</h2>
+          <p>Soy Jason Tiller, exdirector de banda. Escribí shows en Pyware durante años, y la licencia anual, los límites de integrantes y las herramientas reservadas para los niveles más caros me cansaron. FreeFORM es mi respuesta: todas las herramientas desde el principio, para una banda de cualquier tamaño, gratis. Es de código abierto con la licencia MIT, así que cualquiera puede usarlo, compartirlo y cambiarlo.</p>
+          <p class="note"><strong>¿Diriges una banda y hablas español?</strong> Esta traducción es un primer borrador. Me encantaría que un director o instructor revisara los términos de drill (cómo dicen "set", "hash", "8 a 5" y "follow the leader" en tu banda). Escríbeme abajo, en español o en inglés.</p>
+          <div class="actions">
+            <a class="button" href="https://github.com/Tillerdawg/Freeform_2/issues/new/choose">Enviar comentarios</a>
+            <a class="button" href="https://github.com/Tillerdawg/Freeform_2">Ver el código en GitHub</a>
+          </div>
+        </div>
+      </section>
+    </main>
+    <footer>
+      <div class="wrap">
+        <span>© Jason Tiller y colaboradores de FreeFORM · licencia MIT</span>
+        <a href="../app/">Abrir el editor</a>
+        <a href="../guide/">Guía (en inglés)</a>
+        <a href="#privacy">Privacidad</a>
+      </div>
+    </footer>
+  </body>
+</html>

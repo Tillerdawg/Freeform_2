@@ -1,0 +1,131 @@
+// Spanish, looked up by the English text (see index.ts). A first draft by Claude, written for students (tú) in neutral
+// Latin American Spanish: a Spanish-speaking band director should check it, the drill terms most of all. Drill words kept
+// as bands say them: "set" stays "set", counts are "tiempos", measures are "compases" (c.), a dot is a "punto".
+export const ES: Record<string, string> = {
+  // Starting out and opening links
+  'Downloading the show…': 'Descargando el show…',
+  'Open the show link your director sent you. It will be saved on this phone and work offline after that.':
+    'Abre el enlace del show que te mandó tu director. Se guardará en este teléfono y después funcionará sin internet.',
+  "Open the show link your director sent you. This phone can't save shows right now (its storage is full or turned off, as in a private window), so you'll need the link each time, and it won't work offline.":
+    'Abre el enlace del show que te mandó tu director. Este teléfono no puede guardar shows ahora (su almacenamiento está lleno o desactivado, como en una ventana privada), así que necesitarás el enlace cada vez y no funcionará sin internet.',
+  "What's FreeFORM Drill?": '¿Qué es FreeFORM Drill?',
+  '← Editor': '← Editor',
+  'Back to the drill editor': 'Volver al editor de drill',
+  'Paste a share link': 'Pega un enlace del show',
+  'Open': 'Abrir',
+  'Scan QR code': 'Escanear código QR',
+  "That doesn't look like a FreeFORM share link.": 'Eso no parece un enlace de FreeFORM.',
+  'Starting the camera…': 'Encendiendo la cámara…',
+  "That QR code isn't a FreeFORM show link.": 'Ese código QR no es un enlace de un show de FreeFORM.',
+  'Point the camera at the show’s QR code.': 'Apunta la cámara al código QR del show.',
+  'The camera isn’t available. Allow camera access for FreeFORM in Settings, or paste the link instead.':
+    'La cámara no está disponible. Permite el acceso a la cámara para FreeFORM en Configuración, o pega el enlace.',
+  'Updated to revision {n}.': 'Actualizado a la revisión {n}.',
+  'Show updated.': 'Show actualizado.',
+  'Showing your saved copy.': 'Mostrando tu copia guardada.',
+  // Errors from links and show files (src/engine/share.ts)
+  'This share link is damaged or incomplete. Ask for the link again.': 'Este enlace está dañado o incompleto. Pide el enlace otra vez.',
+  'This link is damaged or incomplete. Ask for the link again.': 'Este enlace está dañado o incompleto. Pide el enlace otra vez.',
+  'This link is missing its key. Ask for the link again.': 'A este enlace le falta su clave. Pide el enlace otra vez.',
+  "This link's key doesn't open the show file. Ask for the link again.": 'La clave de este enlace no abre el archivo del show. Pide el enlace otra vez.',
+  'That show file is damaged.': 'Ese archivo del show está dañado.',
+  'The recording in that file is too big.': 'La grabación de ese archivo es demasiado grande.',
+  "Couldn't download the show. Check your connection, or that the file allows other sites to read it.":
+    'No se pudo descargar el show. Revisa tu conexión, o que el archivo permita que otros sitios lo lean.',
+  'That file is too big to be a show.': 'Ese archivo es demasiado grande para ser un show.',
+
+  // The shows on this phone
+  'Show': 'Show',
+  '＋ Add a show…': '＋ Agregar un show…',
+  'Remove this show…': 'Quitar este show…',
+  'Remove "{title}" from this phone? You can open its link again later.': '¿Quitar "{title}" de este teléfono? Puedes abrir su enlace otra vez después.',
+  'Add a show': 'Agregar un show',
+  "Open another show's link, or paste it or scan its QR code here. It's added to this phone's list.":
+    'Abre el enlace de otro show, o pégalo o escanea su código QR aquí. Se agrega a la lista de este teléfono.',
+  'Cancel': 'Cancelar',
+  'OK': 'OK',
+  "This show isn't saved on this phone (its storage is full or turned off). It will be gone when you close it, and it won't work offline.":
+    'Este show no está guardado en este teléfono (su almacenamiento está lleno o desactivado). Se perderá cuando lo cierres y no funcionará sin internet.',
+  "This phone couldn't keep the show's music (its storage is full or turned off), so it plays with a tempo instead.":
+    'Este teléfono no pudo guardar la música del show (su almacenamiento está lleno o desactivado), así que se reproduce con un tempo.',
+  "Not saved on this phone: it won't work offline.": 'No está guardado en este teléfono: no funcionará sin internet.',
+  'Revision {n}': 'Revisión {n}',
+  'No revision number': 'Sin número de revisión',
+  'checked for updates {time}': 'buscó actualizaciones a las {time}',
+  'not checked for updates yet': 'todavía no ha buscado actualizaciones',
+
+  // Who are you?
+  'Who are you?': '¿Quién eres?',
+  'Staff (whole band)': 'Staff (toda la banda)',
+  'Search by name or dot': 'Buscar por nombre o punto',
+  'Type your name or dot (P4)': 'Escribe tu nombre o tu punto (P4)',
+  'No one matches “{q}”. Try your last name or your dot (like P4).': 'Nadie coincide con “{q}”. Prueba tu apellido o tu punto (como P4).',
+  'Pick who you are above to see your spot.': 'Elige quién eres arriba para ver tu lugar.',
+
+  // The field and the view
+  'Field': 'Campo',
+  'From the press box': 'Desde el palco',
+  'Facing the front': 'Mirando al frente',
+  'Field orientation: from the press box. Tap to turn it around.': 'Vista del campo: desde el palco. Toca para darle la vuelta.',
+  'Field orientation: facing the front. Tap to turn it around.': 'Vista del campo: mirando al frente. Toca para darle la vuelta.',
+  'Follow my dot': 'Seguir mi punto',
+  'Reset zoom': 'Restablecer zoom',
+
+  // Where I am and where I go
+  'Where you are': 'Dónde estás',
+  'Set {name}': 'Set {name}',
+  '{n} cts': '{n} tiempos',
+  'm. {m}': 'c. {m}',
+  'count {c} of {n}': 'tiempo {c} de {n}',
+  'My spot': 'Mi lugar',
+  'Now': 'Ahora',
+  'Next: set {name} in {n} cts': 'Siguiente: set {name} en {n} tiempos',
+  'hold {w}, move {m}': 'quieto {w}, mover {m}',
+  'hold {w}': 'quieto {w}',
+  'My notes': 'Mis notas',
+  'Ensemble': 'Para todos',
+  'stand still': 'quieto en tu lugar',
+  'smaller steps than normal': 'pasos más chicos de lo normal',
+  'normal steps': 'pasos normales',
+  'bigger steps than normal': 'pasos más grandes de lo normal',
+  'very big steps': 'pasos muy grandes',
+  'moving {way} (facing the front)': 'moviéndote {way} (mirando al frente)',
+  'back': 'hacia atrás',
+  'forward': 'hacia adelante',
+  'to your left': 'a tu izquierda',
+  'to your right': 'a tu derecha',
+  'back and to your left': 'hacia atrás y a tu izquierda',
+  'back and to your right': 'hacia atrás y a tu derecha',
+  'forward and to your left': 'hacia adelante y a tu izquierda',
+  'forward and to your right': 'hacia adelante y a tu derecha',
+
+  // Playing and practicing
+  'Go to set': 'Ir al set',
+  'Count': 'Tiempo',
+  'Previous count': 'Tiempo anterior',
+  'Next count': 'Tiempo siguiente',
+  'Play': 'Reproducir',
+  'Pause': 'Pausa',
+  'End of the show: tap set 1 (or another set) to play from there': 'Fin del show: toca el set 1 (u otro set) para reproducir desde ahí',
+  '♪ Music': '♪ Música',
+  'Playing with the music. Tap to use a tempo instead.': 'Con la música. Toca para usar un tempo.',
+  'Play with the music': 'Reproducir con la música',
+  'Tempo': 'Tempo',
+  'Loop': 'Repetir',
+  'Loop {a}–{b}': 'Repetir {a}–{b}',
+  'Looping sets {a} to {b}. Tap to change or stop.': 'Repitiendo los sets {a} a {b}. Toca para cambiar o parar.',
+  'Practice a few sets over and over': 'Practica unos sets una y otra vez',
+  'Loop sets': 'Repetir sets',
+  'Practice a few sets over and over. Play starts on the first set and jumps back to it after the last one.':
+    'Practica unos sets una y otra vez. Empieza en el primer set y vuelve a él después del último.',
+  'Sets': 'Sets',
+  'to': 'a',
+  'Loop from set': 'Repetir desde el set',
+  'Loop to set': 'Repetir hasta el set',
+  'Count-in: {n} clicks before every play': 'Cuenta de entrada: {n} clics antes de empezar',
+  'Loop these sets': 'Repetir estos sets',
+  'Stop looping': 'Dejar de repetir',
+  'Click': 'Clic',
+  'A click on every count while it plays': 'Un clic en cada tiempo mientras se reproduce',
+  'A click on every count. Tap to turn it off.': 'Un clic en cada tiempo. Toca para apagarlo.',
+};

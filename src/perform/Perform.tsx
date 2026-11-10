@@ -18,6 +18,7 @@ import { IconNext, IconPause, IconPlay, IconPrev } from '../ui/icons';
 import { moveWords, nearest, stepWords, yardLabel } from './neighbors';
 import { panCenter, pinchZoom, ZOOM_MAX } from './gestures';
 import { WhoPicker } from './WhoPicker';
+import { lang, setLang, tr } from '../i18n';
 import { NumberField } from '../ui/NumberField';
 import { AUTOSAVE } from '../ui/showStore';
 import { addShow, readLibrary, removeShow, STAFF, type Library, type Saved } from './library';
@@ -93,7 +94,7 @@ export function Perform() {
     if (!saved?.source || !navigator.onLine) return;
     // An unchanged file isn't downloaded again: the fetch revalidates (cache: 'no-cache'), and GitHub answers 304 for the same ETag.
     fetchHosted(saved.source).then(({ show, audio }) => {
-      if (JSON.stringify(show) !== JSON.stringify(saved.show)) { adopt(show, saved.source, false, audio); setNotice(show.revision ? `Updated to revision ${show.revision}.` : 'Show updated.'); }
+      if (JSON.stringify(show) !== JSON.stringify(saved.show)) { adopt(show, saved.source, false, audio); setNotice(show.revision ? tr('Updated to revision {n}.', { n: show.revision }) : tr('Show updated.')); }
       else keepAudio(show, audio, saved.show); // same show; the recording may be new (added to the file later)
       markChecked(saved.source!);
     }).catch(() => { /* keep the saved copy */ });
@@ -349,7 +350,7 @@ export function Perform() {
         ctx.fillStyle = 'rgba(255,255,255,0.35)';
         ctx.fillRect(at - dpr, H - band, 2 * dpr, 5 * dpr); // tick where the line meets the ruler
         ctx.fillStyle = '#fff';
-        ctx.fillText(yardLabel(x), at, H - band / 2 + 2 * dpr);
+        ctx.fillText(yardLabel(x, lang), at, H - band / 2 + 2 * dpr);
       }
     }
   }, [show, size, positions, me, state, onSet, myPath, dpr, around, zoom, center, playing, t, theme]);
@@ -358,13 +359,14 @@ export function Perform() {
     return (
       <main className="perform-empty">
         <h1><img src={theme === 'light' ? '../logo-light.svg' : '../logo.svg'} alt="FreeFORM Drill" style={{ width: 'min(280px, 100%)', display: 'block' }} /></h1>
-        {error ? <p role="alert">{error}</p>
-          : location.hash.startsWith(LOAD_PREFIX) ? <p>Downloading the show…</p>
-          : canStore() ? <p>Open the show link your director sent you. It will be saved on this phone and work offline after that.</p>
-          : <p>Open the show link your director sent you. This phone can't save shows right now (its storage is full or turned off, as in a private window), so you'll need the link each time, and it won't work offline.</p>}
+        {error ? <p role="alert">{tr(error)}</p>
+          : location.hash.startsWith(LOAD_PREFIX) ? <p>{tr('Downloading the show…')}</p>
+          : canStore() ? <p>{tr('Open the show link your director sent you. It will be saved on this phone and work offline after that.')}</p>
+          : <p>{tr("Open the show link your director sent you. This phone can't save shows right now (its storage is full or turned off, as in a private window), so you'll need the link each time, and it won't work offline.")}</p>}
 <PasteLink />
-        <p><a href="../" style={{ color: 'var(--blue)' }}>What's FreeFORM Drill?</a></p>
-        {!isPhone() && <p><a href="#" style={{ color: 'var(--blue)' }} onClick={(e) => { e.preventDefault(); toEditor(); }}>← Editor</a></p>}
+        <p><a href={lang === 'es' ? '../es/' : '../'} style={{ color: 'var(--blue)' }}>{tr("What's FreeFORM Drill?")}</a></p>
+        <LanguageButton />
+        {!isPhone() && <p><a href="#" style={{ color: 'var(--blue)' }} onClick={(e) => { e.preventDefault(); toEditor(); }}>{tr('← Editor')}</a></p>}
       </main>
     );
   }
@@ -382,103 +384,103 @@ export function Perform() {
       <div className="perform-side">
       <header className="perform-bar">
         <div className="perform-titlebar">
-          <span className="perform-title">{error ? <span role="alert" title={error} style={{ color: 'var(--danger)' }}>{error} Showing your saved copy. </span>
+          <span className="perform-title">{error ? <span role="alert" title={tr(error)} style={{ color: 'var(--danger)' }}>{tr(error)} {tr('Showing your saved copy.')} </span>
             : notice ? <span role="status" style={{ color: 'var(--green-line)' }}>{notice} </span> : null}
             {preview ? show.title : (
               // The shows on this phone: pick one to open it (an Opener, a Ballad, a Closer…), or add or remove one.
-              <select aria-label="Show" className="perform-shows" value={lib.current} onChange={(e) => {
+              <select aria-label={tr('Show')} className="perform-shows" value={lib.current} onChange={(e) => {
                 const v = e.target.value;
                 if (v === 'add') setAdding(true);
-                else if (v === 'remove') { if (confirm(`Remove "${show.title}" from this phone? You can open its link again later.`)) remove(lib.current); }
+                else if (v === 'remove') { if (confirm(tr('Remove "{title}" from this phone? You can open its link again later.', { title: show.title }))) remove(lib.current); }
                 else switchTo(Number(v));
               }}>
                 {lib.shows.map((x, i) => <option key={i} value={i}>{x.show.title}</option>)}
-                <option value="add">＋ Add a show…</option>
-                <option value="remove">Remove this show…</option>
+                <option value="add">{tr('＋ Add a show…')}</option>
+                <option value="remove">{tr('Remove this show…')}</option>
               </select>
             )}</span>
-          {!isPhone() && <button onClick={toEditor} title="Back to the drill editor" style={{ fontSize: 14 }}>← Editor</button>}
+          {!isPhone() && <button onClick={toEditor} title={tr('Back to the drill editor')} style={{ fontSize: 14 }}>{tr('← Editor')}</button>}
           {/* The view buttons sit up here, beside the title, so nothing covers the field (they used to float over it). */}
-          <button className="perform-view" aria-label={`Field orientation: ${state!.facingFront ? 'facing the front' : 'from the press box'}. Tap to turn it around.`} onClick={() => update({ facingFront: !state!.facingFront })}>{state!.facingFront ? 'Facing the front' : 'From the press box'}</button>
+          <button className="perform-view" aria-label={state!.facingFront ? tr('Field orientation: facing the front. Tap to turn it around.') : tr('Field orientation: from the press box. Tap to turn it around.')} onClick={() => update({ facingFront: !state!.facingFront })}>{state!.facingFront ? tr('Facing the front') : tr('From the press box')}</button>
           <ThemeButton />
         </div>
-        {adding && <div className="perform-add" role="dialog" aria-label="Add a show"><span>Open another show's link, or paste it or scan its QR code here. It's added to this phone's list.</span><PasteLink /><button onClick={() => setAdding(false)}>Cancel</button></div>}
+        {adding && <div className="perform-add" role="dialog" aria-label={tr('Add a show')}><span>{tr("Open another show's link, or paste it or scan its QR code here. It's added to this phone's list.")}</span><PasteLink /><button onClick={() => setAdding(false)}>{tr('Cancel')}</button></div>}
         <div className="perform-who">
           <WhoPicker show={show} value={state!.me} staff={STAFF} onPick={(v) => { update({ me: v }); setZoom(1); setCenter({ x: 0, y: 42 }); }} />
-          {me && <button className="perform-view" aria-pressed={state!.follow} onClick={() => { update({ follow: !state!.follow }); setZoom(1); setCenter({ x: 0, y: 42 }); }}>Follow my dot</button>}
+          {me && <button className="perform-view" aria-pressed={state!.follow} onClick={() => { update({ follow: !state!.follow }); setZoom(1); setCenter({ x: 0, y: 42 }); }}>{tr('Follow my dot')}</button>}
         </div>
       </header>
-      <section className="perform-info" aria-live="off">
+      <section className="perform-info" aria-live="off" aria-label={tr('Where you are')} tabIndex={0}>{/* focusable: it scrolls when the notes are long */}
         <div className="perform-set">
-          <strong>Set {s.name}</strong>
-          {cur > 0 && <span> · {s.counts} cts</span>}
-          {s.measures && <span> · m. {s.measures}</span>}
-          {onSet < 0 && <span> · count {Math.floor(count)} of {s.counts}</span>}
+          <strong>{tr('Set {name}', { name: s.name })}</strong>
+          {cur > 0 && <span> · {tr('{n} cts', { n: s.counts })}</span>}
+          {s.measures && <span> · {tr('m. {m}', { m: s.measures })}</span>}
+          {onSet < 0 && <span> · {tr('count {c} of {n}', { c: Math.floor(count), n: s.counts })}</span>}
         </div>
-        {unsaved === 'seen' && !preview && <p className="perform-note" style={{ color: 'var(--warn)' }}>Not saved on this phone: it won't work offline.</p>}
-        {(show.revision || state!.source) && <p className="perform-note">{show.revision ? `Revision ${show.revision}` : 'No revision number'}{state!.source && <> · {state!.checked ? `checked for updates ${checkedAt(state!.checked)}` : 'not checked for updates yet'}</>}</p>}
+        {unsaved === 'seen' && !preview && <p className="perform-note" style={{ color: 'var(--warn)' }}>{tr("Not saved on this phone: it won't work offline.")}</p>}
+        {(show.revision || state!.source) && <p className="perform-note">{show.revision ? tr('Revision {n}', { n: show.revision }) : tr('No revision number')}{state!.source && <> · {state!.checked ? tr('checked for updates {time}', { time: checkedAt(state!.checked) }) : tr('not checked for updates yet')}</>}</p>}
         {me ? (
           <>
-            <p className="perform-coord"><span className="perform-k">{onSet >= 0 ? 'My spot' : 'Now'}</span> {readout(positions[me.id], fieldOf(show))}</p>
+            <p className="perform-coord"><span className="perform-k">{onSet >= 0 ? tr('My spot') : tr('Now')}</span> {readout(positions[me.id], fieldOf(show), lang)}</p>
             {nx && (
               <p className="perform-coord">
-                <span className="perform-k">Next: set {nx.name} in {nx.counts} cts{nx.measures ? ` (m. ${nx.measures})` : ''}</span>{' '}
-                {readout(nx.pos[me.id], fieldOf(show))}
-                {steps && <span style={{ color: STEP_TEXT[steps.tier] }}> · {fmtStep(steps.per5)}</span>}
+                <span className="perform-k">{tr('Next: set {name} in {n} cts', { name: nx.name, n: nx.counts })}{nx.measures ? ` (${tr('m. {m}', { m: nx.measures })})` : ''}</span>{' '}
+                {readout(nx.pos[me.id], fieldOf(show), lang)}
+                {steps && <span style={{ color: STEP_TEXT[steps.tier] }}> · {fmtStep(steps.per5, lang)}</span>}
                 {steps && <span className="perform-plain">{[stepWords(steps.per5), steps.per5 === Infinity ? '' : moveWords(show.sets[next - 1].pos[me.id], nx.pos[me.id])].filter(Boolean).join(', ')}</span>}
-                {(() => { const tm = timingOf(nx, me.id); return tm.move < nx.counts ? <span> · hold {tm.wait}, move {tm.move}{nx.counts - tm.wait - tm.move ? `, hold ${nx.counts - tm.wait - tm.move}` : ''}</span> : null; })()}
+                {(() => { const tm = timingOf(nx, me.id); return tm.move < nx.counts ? <span> · {tr('hold {w}, move {m}', { w: tm.wait, m: tm.move })}{nx.counts - tm.wait - tm.move ? `, ${tr('hold {w}', { w: nx.counts - tm.wait - tm.move })}` : ''}</span> : null; })()}
               </p>
             )}
-            {myCue(cur) && <p className="perform-note"><span className="perform-k">My notes</span> {myCue(cur)}</p>}
+            {myCue(cur) && <p className="perform-note"><span className="perform-k">{tr('My notes')}</span> {myCue(cur)}</p>}
           </>
         ) : state!.me === STAFF ? null : (
-          <p className="perform-note">Pick who you are above to see your spot.</p>
+          <p className="perform-note">{tr('Pick who you are above to see your spot.')}</p>
         )}
-        {s.note && <p className="perform-note"><span className="perform-k">Ensemble</span> {s.note}</p>}
+        {s.note && <p className="perform-note"><span className="perform-k">{tr('Ensemble')}</span> {s.note}</p>}
       </section>
       <footer className="perform-controls">
         {picking && (
-          <div className="perform-add" role="dialog" aria-label="Loop sets">
-            <span>Practice a few sets over and over. Play starts on the first set and jumps back to it after the last one.</span>
-            <span>Sets{' '}
-              <select aria-label="Loop from set" value={picking[0]} onChange={(e) => { const v = Number(e.target.value); setPicking([v, Math.max(v + 1, picking[1])]); }} style={{ fontSize: 16 }}>
+          <div className="perform-add" role="dialog" aria-label={tr('Loop sets')}>
+            <span>{tr('Practice a few sets over and over. Play starts on the first set and jumps back to it after the last one.')}</span>
+            <span>{tr('Sets')}{' '}
+              <select aria-label={tr('Loop from set')} value={picking[0]} onChange={(e) => { const v = Number(e.target.value); setPicking([v, Math.max(v + 1, picking[1])]); }} style={{ fontSize: 16 }}>
                 {show.sets.slice(0, -1).map((x, i) => <option key={x.id} value={i}>{x.name}</option>)}
-              </select>{' '}to{' '}
-              <select aria-label="Loop to set" value={picking[1]} onChange={(e) => setPicking([picking[0], Number(e.target.value)])} style={{ fontSize: 16 }}>
+              </select>{' '}{tr('to')}{' '}
+              <select aria-label={tr('Loop to set')} value={picking[1]} onChange={(e) => setPicking([picking[0], Number(e.target.value)])} style={{ fontSize: 16 }}>
                 {show.sets.map((x, i) => (i > picking[0] ? <option key={x.id} value={i}>{x.name}</option> : null))}
               </select>
             </span>
             {/* In this panel: the button row has no room left on a phone, and a count-in matters most for practice reps. */}
             <label><input type="checkbox" checked={countIn} onChange={(e) => { const on = e.target.checked; setCountIn(on); try { if (on) localStorage.setItem(COUNT_KEY, '1'); else localStorage.removeItem(COUNT_KEY); } catch { /* not remembered */ } }} />{' '}
-              Count-in: {COUNT_IN} clicks before every play</label>
+              {tr('Count-in: {n} clicks before every play', { n: COUNT_IN })}</label>
             <span style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <button className="primary" onClick={() => { const r: [number, number] = [picking[0], Math.max(picking[0] + 1, picking[1])]; setLoop(r); setPicking(null); setPlaying(false); setT(starts[r[0]]); }}>Loop these sets</button>
-              {loop && <button onClick={() => { setLoop(null); setPicking(null); }}>Stop looping</button>}
-              <button onClick={() => setPicking(null)}>Cancel</button>
+              <button className="primary" onClick={() => { const r: [number, number] = [picking[0], Math.max(picking[0] + 1, picking[1])]; setLoop(r); setPicking(null); setPlaying(false); setT(starts[r[0]]); }}>{tr('Loop these sets')}</button>
+              {loop && <button onClick={() => { setLoop(null); setPicking(null); }}>{tr('Stop looping')}</button>}
+              <button onClick={() => setPicking(null)}>{tr('Cancel')}</button>
             </span>
           </div>
         )}
-        <div className="perform-sets" data-more={more} ref={setStrip} onScroll={checkMore} role="group" aria-label="Go to set">
+        <div className="perform-sets" data-more={more} ref={setStrip} onScroll={checkMore} role="group" aria-label={tr('Go to set')}>
           {show.sets.map((x, i) => (
             <button key={x.id} aria-pressed={i === onSet} onClick={() => { setPlaying(false); setT(starts[i]); }}>{x.name}</button>
           ))}
         </div>
-        <input type="range" aria-label="Count" min={0} max={total} step={1} value={t} onChange={(e) => { setPlaying(false); setT(Number(e.target.value)); }} disabled={!total} />
+        <input type="range" aria-label={tr('Count')} min={0} max={total} step={1} value={t} onChange={(e) => { setPlaying(false); setT(Number(e.target.value)); }} disabled={!total} />
         <div className="perform-buttons">
-          <button style={btn} aria-label="Previous count" onClick={() => { setPlaying(false); setT(Math.max(0, Math.ceil(t) - 1)); }}><IconPrev /></button>
-          <button style={btn} aria-label={playing || counting ? 'Pause' : 'Play'} disabled={!total || (!playing && !counting && t >= total && !loop)} title={t >= total && !loop ? 'End of the show: tap set 1 (or another set) to play from there' : undefined} onClick={togglePlay}>{playing || counting ? <IconPause /> : <IconPlay />}</button>
-          <button style={btn} aria-label="Next count" onClick={() => { setPlaying(false); setT(Math.min(total, Math.floor(t) + 1)); }}><IconNext /></button>
-          {audio && <button aria-pressed={useMusic} title={useMusic ? 'Playing with the music. Tap to use a tempo instead.' : 'Play with the music'} onClick={() => { setPlaying(false); setUseMusic(!useMusic); }} style={{ fontSize: 14, minHeight: 44 }}>♪ Music</button>}
-          {!music && <label style={{ fontSize: 14, whiteSpace: 'nowrap' }}><NumberField aria-label="Tempo" min={20} max={300} integer value={bpm} onValue={setBpm} style={{ width: 52, fontSize: 16 }} /><span className="perform-bpm"> bpm</span></label>}
+          <button style={btn} aria-label={tr('Previous count')} onClick={() => { setPlaying(false); setT(Math.max(0, Math.ceil(t) - 1)); }}><IconPrev /></button>
+          <button style={btn} aria-label={playing || counting ? tr('Pause') : tr('Play')} disabled={!total || (!playing && !counting && t >= total && !loop)} title={t >= total && !loop ? tr('End of the show: tap set 1 (or another set) to play from there') : undefined} onClick={togglePlay}>{playing || counting ? <IconPause /> : <IconPlay />}</button>
+          <button style={btn} aria-label={tr('Next count')} onClick={() => { setPlaying(false); setT(Math.min(total, Math.floor(t) + 1)); }}><IconNext /></button>
+          {audio && <button aria-pressed={useMusic} title={useMusic ? tr('Playing with the music. Tap to use a tempo instead.') : tr('Play with the music')} onClick={() => { setPlaying(false); setUseMusic(!useMusic); }} style={{ fontSize: 14, minHeight: 44 }}>{tr('♪ Music')}</button>}
+          {!music && <label style={{ fontSize: 14, whiteSpace: 'nowrap' }}><NumberField aria-label={tr('Tempo')} min={20} max={300} integer value={bpm} onValue={setBpm} style={{ width: 52, fontSize: 16 }} /><span className="perform-bpm"> bpm</span></label>}
           {show.sets.length > 1 && <button aria-pressed={!!loop} onClick={() => setPicking(loop ?? [Math.max(0, cur - 1), Math.min(show.sets.length - 1, Math.max(1, cur))])}
-            title={loop ? `Looping sets ${show.sets[loop[0]].name} to ${show.sets[loop[1]].name}. Tap to change or stop.` : 'Practice a few sets over and over'} style={{ fontSize: 14, minHeight: 44 }}>
-            {loop ? `Loop ${show.sets[loop[0]].name}–${show.sets[loop[1]].name}` : 'Loop'}</button>}
-          {!music && <button aria-pressed={clickOn} title={clickOn ? 'A click on every count. Tap to turn it off.' : 'A click on every count while it plays'} onClick={() => { setClickOn(!clickOn); setClickWanted(!clickOn); if (!clickOn) wakeClick(); }} style={{ fontSize: 14, minHeight: 44 }}>Click</button>}
+            title={loop ? tr('Looping sets {a} to {b}. Tap to change or stop.', { a: show.sets[loop[0]].name, b: show.sets[loop[1]].name }) : tr('Practice a few sets over and over')} style={{ fontSize: 14, minHeight: 44 }}>
+            {loop ? tr('Loop {a}–{b}', { a: show.sets[loop[0]].name, b: show.sets[loop[1]].name }) : tr('Loop')}</button>}
+          {!music && <button aria-pressed={clickOn} title={clickOn ? tr('A click on every count. Tap to turn it off.') : tr('A click on every count while it plays')} onClick={() => { setClickOn(!clickOn); setClickWanted(!clickOn); if (!clickOn) wakeClick(); }} style={{ fontSize: 14, minHeight: 44 }}>{tr('Click')}</button>}
         </div>
       </footer>
       </div>
       <div className="perform-field">
-        <canvas ref={canvasRef} aria-label="Field" style={{ width: '100%', height: '100%', display: 'block', touchAction: 'none' }}
+        <canvas ref={canvasRef} aria-label={tr('Field')} style={{ width: '100%', height: '100%', display: 'block', touchAction: 'none' }}
           onPointerDown={(e) => {
             e.currentTarget.setPointerCapture(e.pointerId);
             touches.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
@@ -503,13 +505,13 @@ export function Perform() {
           }}
           onPointerUp={(e) => { touches.current.delete(e.pointerId); if (touches.current.size < 2) pinch.current = null; }}
           onPointerCancel={(e) => { touches.current.delete(e.pointerId); pinch.current = null; }} />
-        {(zoom !== 1 || center.x !== 0 || center.y !== 42) && <button className="perform-reset" onClick={() => { setZoom(1); setCenter({ x: 0, y: 42 }); }}>Reset zoom</button>}
+        {(zoom !== 1 || center.x !== 0 || center.y !== 42) && <button className="perform-reset" onClick={() => { setZoom(1); setCenter({ x: 0, y: 42 }); }}>{tr('Reset zoom')}</button>}
         {counting > 0 && <div className="perform-countin" role="status">{counting}</div>}
         {(unsaved === 'yes' || musicUnsaved) && !preview && (
           <div role="alert" className="backup-note" style={{ top: 'auto', bottom: 30 }}>
-            <span>{unsaved === 'yes' ? "This show isn't saved on this phone (its storage is full or turned off). It will be gone when you close it, and it won't work offline."
-              : "This phone couldn't keep the show's music (its storage is full or turned off), so it plays with a tempo instead."}</span>
-            <button onClick={() => { if (unsaved === 'yes') setUnsaved('seen'); setMusicUnsaved(false); }}>OK</button>
+            <span>{unsaved === 'yes' ? tr("This show isn't saved on this phone (its storage is full or turned off). It will be gone when you close it, and it won't work offline.")
+              : tr("This phone couldn't keep the show's music (its storage is full or turned off), so it plays with a tempo instead.")}</span>
+            <button onClick={() => { if (unsaved === 'yes') setUnsaved('seen'); setMusicUnsaved(false); }}>{tr('OK')}</button>
           </div>
         )}
       </div>
@@ -518,6 +520,11 @@ export function Perform() {
 }
 
 const toEditor = () => { location.hash = ''; location.reload(); };
+
+/** English or Spanish (FreeFORM starts in the phone's own language). */
+export function LanguageButton() {
+  return <button lang={lang === 'es' ? 'en' : 'es'} onClick={() => setLang(lang === 'es' ? 'en' : 'es')} style={{ fontSize: 16 }}>{lang === 'es' ? 'English' : 'Español'}</button>;
+}
 
 /** For the home-screen app, which has no address bar: paste a share link to open it here. */
 function PasteLink() {
@@ -531,12 +538,12 @@ function PasteLink() {
   const [scan, setScan] = useState(false);
   return (
     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
-      <input aria-label="Paste a share link" placeholder="Paste a share link" value={text} onChange={(e) => { setText(e.target.value); setBad(false); }}
+      <input aria-label={tr('Paste a share link')} placeholder={tr('Paste a share link')} value={text} onChange={(e) => { setText(e.target.value); setBad(false); }}
         style={{ flex: 1, minWidth: 180, fontSize: 16 }} />
-      <button onClick={open} disabled={!text.trim()} style={{ fontSize: 16 }}>Open</button>
-      {'mediaDevices' in navigator && <button onClick={() => setScan(true)} style={{ fontSize: 16 }}>Scan QR code</button>}
+      <button onClick={open} disabled={!text.trim()} style={{ fontSize: 16 }}>{tr('Open')}</button>
+      {'mediaDevices' in navigator && <button onClick={() => setScan(true)} style={{ fontSize: 16 }}>{tr('Scan QR code')}</button>}
       {scan && <Suspense fallback={null}><Scanner onClose={() => setScan(false)} /></Suspense>}
-      {bad && <span role="alert" style={{ width: '100%', color: 'var(--danger)' }}>That doesn't look like a FreeFORM share link.</span>}
+      {bad && <span role="alert" style={{ width: '100%', color: 'var(--danger)' }}>{tr("That doesn't look like a FreeFORM share link.")}</span>}
     </div>
   );
 }

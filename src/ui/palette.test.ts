@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import app from '../../app/index.html?raw';
 import front from '../../index.html?raw';
+import frontEs from '../../es/index.html?raw';
 import { LIGHT, PALETTE } from './palette';
 
-describe.each([['app/index.html', app], ['index.html (the front page)', front]])('one palette: %s', (_, html) => {
+describe.each([['app/index.html', app], ['index.html (the front page)', front], ['es/index.html (the Spanish front page)', frontEs]])('one palette: %s', (_, html) => {
   it("the page's CSS variables are exactly the palette the canvas uses", () => {
     const root = html.match(/:root \{([^}]*)\}/)![1];
     const vars = Object.fromEntries([...root.matchAll(/--([\w-]+):\s*(#[0-9a-f]{6})/g)].map((m) => [m[1], m[2]]));
