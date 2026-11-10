@@ -95,7 +95,7 @@ Claude went through the docs, ran the tests, and clicked through the editor and 
 ### Dot sheets and sharing
 - ✅ Dot sheets with a small field picture for each set (**1 per page, with a small field picture for each set**): the whole field, everyone faint, the performer as a big black dot; 12 sets a page.
 - A FreeFORM-run upload service, so **Keep phones up to date** doesn't need a GitHub token (also a follow-up under Protected hosting and Music on phones). The biggest barrier for other directors. The files are already locked in the browser, so the service only ever holds ciphertext. Cloudflare (a Worker and R2) is the likely home, since the domain is there. Needs Jason's Cloudflare setup. Before cloud sync.
-- Video export of the animation, for the band's group chat, staff, and boosters.
+- ✅ Video export (2026-11-10, Jason's choices): **Video…** makes an MP4 of the whole field from the press box, with the music when the show has it, the title, the piece, the set, and the count across the top, for any range of sets; made in the browser, faster than real time, with a progress bar. Follow-ups: check the sound on Jason's Mac (AAC there, Opus where the browser can't do AAC); one performer's view as an option.
 - Pyware import for current files. Tested on 2008 to 2010 files only; needs newer sample files from Jason.
 - Spanish. Every string is written into the components, so this costs more each week. Decide soon, even if the answer is "later."
 

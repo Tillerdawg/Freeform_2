@@ -296,6 +296,12 @@ shot('print', async () => {
   await page.waitForTimeout(400);
   await save(page, 'print', await around(page.locator('[role=dialog] > div').first()));
 });
+shot('video', async () => {
+  const page = await editor();
+  await page.getByRole('button', { name: 'Video…' }).click();
+  await page.waitForTimeout(400);
+  await save(page, 'video', await around(page.locator('[role=dialog] > div').first()));
+});
 shot('share', async () => {
   const page = await editor();
   await page.getByRole('button', { name: 'Share…' }).click();

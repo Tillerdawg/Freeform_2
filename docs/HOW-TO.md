@@ -26,12 +26,13 @@ The pictures in this guide come from a small sample show (47 performers, 4 sets)
 16. [Play it back](#play-it-back)
 17. [Add your music](#add-your-music)
 18. [Print dot sheets and drill charts](#print-dot-sheets-and-drill-charts)
-19. [Send the show to your performers](#send-the-show-to-your-performers)
-20. [What performers see on their phones](#what-performers-see-on-their-phones)
-21. [Using an iPad](#using-an-ipad)
-22. [Saving, backing up, and opening files](#saving-backing-up-and-opening-files)
-23. [Keyboard shortcuts](#keyboard-shortcuts)
-24. [If something goes wrong](#if-something-goes-wrong)
+19. [Make a video](#make-a-video)
+20. [Send the show to your performers](#send-the-show-to-your-performers)
+21. [What performers see on their phones](#what-performers-see-on-their-phones)
+22. [Using an iPad](#using-an-ipad)
+23. [Saving, backing up, and opening files](#saving-backing-up-and-opening-files)
+24. [Keyboard shortcuts](#keyboard-shortcuts)
+25. [If something goes wrong](#if-something-goes-wrong)
 
 ## Before you start
 
@@ -397,6 +398,18 @@ Drill charts are one page per set, with every dot labeled, the set's markup, pro
 Check **Show the paths into each set** to add a thin dashed line from where each performer was in the set before, along the route they march (follow-the-leader trails and turning moves included).
 
 ![Set 3's chart with its paths](img/drill-chart-paths.png)
+
+## Make a video
+
+**Video…** (in the sidebar, next to **Print…** and **Share…**) makes an MP4 of the show: the whole field from the press box, with the show's title, the piece (from **Movements**), the set, and the count across the top. Post it in the band's group chat, send it to your staff, or show it at a booster meeting.
+
+![The Make a video dialog](img/video.png)
+
+1. Pick the sets with **Sets … to …** (**All** puts it back to the whole show).
+2. If the show has its recording and counts (see [Add your music](#add-your-music)), **With the music** puts the recording in the video, and the drill follows it. Without a recording, the video moves at the **Tempo** and has no sound.
+3. Click **Make the video**. A bar shows how far along it is, usually much faster than the show plays. Keep the tab open until it's done. The file goes where your browser saves downloads.
+
+The video is 1920 by 1080 (full HD). It needs a current browser; one that can't make videos says so. The sound is saved as AAC, which plays everywhere, when the browser can; otherwise it's saved as Opus, which plays in browsers and most video players but not in some older Apple apps. If the sound matters, try Chrome or Edge on a Mac or Windows computer first, and check the file before you send it.
 
 ## Send the show to your performers
 

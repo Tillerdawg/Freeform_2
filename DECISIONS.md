@@ -1411,3 +1411,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Context:** Unit tests can't catch a screen that crashes or a button that's gone.
 - **Other options:** a separate end-to-end test suite.
 - **Decision:** The deploy workflow installs Playwright and runs `scripts/screenshots.mjs`, which already clicks through every screen in the guide; if it fails, the site doesn't update. It adds a few minutes to each deploy. Version 0.1.0, issue forms, and CONTRIBUTING.md came with it.
+
+## 2026-11-10 12:00 EST — Video export
+- **Who:** Jason chose what's in it (the whole field from the press box, the music if there is any, the set and count with the show's title and the piece, a range of sets, MP4); Claude chose how it's made (*Jason can veto*).
+- **Context:** Directors want to post the drill in a group chat or show it to boosters.
+- **Other options:** record the screen while it plays (MediaRecorder: real time, and only WebM in some browsers); a server to make videos.
+- **Decision:** **Video…** in the sidebar's Get-it-to-the-band row. Frames are drawn off screen at 1920 by 1080, 30 a second, and encoded in the browser with WebCodecs through **Mediabunny** (MPL-2.0, a new dependency, loaded only when someone makes a video: about 57 KB zipped), so a 7-minute show takes well under 7 minutes. Video is H.264 when the browser has it; sound is AAC when it can encode it, otherwise Opus (plays in browsers and most players, not some older Apple apps). With the recording, frames follow the tapped counts; without, the Tempo. The caption sits in a band above the field so it covers nothing; labels are left off, as during playback, so nothing jumps. The last set holds 1.5 seconds at the end. Version 1.62.1 of Mediabunny, the newest at least two weeks old.
