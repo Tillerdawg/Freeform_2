@@ -42,7 +42,7 @@ export async function unpublishCloud(c: CloudShow, fetcher: typeof fetch = fetch
 
 /**
  * Everything a browser needs to keep publishing a show to the same link: the link (with its key) and, for a show on
- * FreeFORM's service, its id and edit token. Carried by Full backup files and by a publishing code, so a director who
+ * FreeFORM's service, its id and edit token. Carried by Full backup files and by a recovery code, so a director who
  * moves to a new computer mid-season keeps the link students already have. Like the link, it's a password.
  */
 export interface Publishing { link: string; cloud?: CloudShow; show?: { id?: string; title?: string } }
@@ -63,10 +63,24 @@ export function readPublishing(x: unknown): Publishing | null {
   return { link: p.link, ...(cloud ? { cloud } : {}), ...(show ? { show } : {}) };
 }
 
-/** The publishing code to copy to another device. */
+/** The recovery code to copy to another device. */
 export const publishingCode = (p: Publishing) => PREFIX + b64url(JSON.stringify(p));
 
-/** A pasted publishing code (spaces and line breaks from an email are fine), or null if it isn't one. */
+/**
+ * The code wrapped in its own instructions, for the clipboard or an email: whoever finds it later (weeks later, on a new
+ * device) knows what to do with it. Pasting the whole message works: readPublishingCode finds the code inside.
+ */
+export const publishingMessage = (p: Publishing, title: string) => [
+  `FreeFORM recovery code for "${title || 'Untitled show'}"`,
+  '',
+  'To keep updating the same phone link from a new computer or iPad: open https://freeformdrill.org/app/, click Open from a link or recovery code… (on a blank field, or under Shows…), and paste this whole message. The show opens, and Publish update keeps the link your students already have.',
+  '',
+  'Keep this private: like the show’s link, it’s a password, and it can also change the show on your students’ phones.',
+  '',
+  publishingCode(p),
+].join('\n');
+
+/** A pasted recovery code (spaces and line breaks from an email are fine), or null if it isn't one. */
 export function readPublishingCode(text: string): Publishing | null {
   const m = text.replace(/\s+/g, '').match(/FREEFORM-PUBLISHING-1\.([A-Za-z0-9_-]+)/);
   if (!m) return null;

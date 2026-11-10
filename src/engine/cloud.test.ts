@@ -49,14 +49,17 @@ describe('publishing through FreeFORM’s service', () => {
 });
 
 describe('moving publishing to another device', async () => {
-  const { publishingCode, readPublishingCode, readPublishing } = await import('./cloud');
+  const { publishingCode, publishingMessage, readPublishingCode, readPublishing } = await import('./cloud');
   const id = 'KFyp3kS7Vc6xYFo0dDPrGw', token = 'ju86AYRqJQaALlfmnqkRCIjpvXiY6wRRvO8ui9dzGiQ', key = 'a9JS5tRnpADy2UmXXXXXXXXXXXXXXXXXXXXXXXXXXXX';
   const link = `https://freeformdrill.org/app/#load=${encodeURIComponent(cloudUrl(id))}&key=${key}`;
-  it('round-trips a publishing code, even wrapped by an email program', () => {
+  it('round-trips a recovery code, even wrapped by an email program', () => {
     const p = { link, cloud: { id, token }, show: { id: 'abc', title: 'Ballad' } };
     const code = publishingCode(p);
     expect(code.startsWith('FREEFORM-PUBLISHING-1.')).toBe(true);
     expect(readPublishingCode(`Here it is:\n${code.slice(0, 40)}\n${code.slice(40)}  `)).toEqual(p);
+    const msg = publishingMessage(p, 'Ballad');
+    expect(msg).toContain('Open from a link or recovery code…');
+    expect(readPublishingCode(msg)).toEqual(p); // the whole message pastes in
   });
   it('turns away anything that isn’t one, or a token for a different show', () => {
     expect(readPublishingCode('hello')).toBeNull();

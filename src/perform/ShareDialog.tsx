@@ -6,7 +6,7 @@ import { synced } from '../engine/music';
 import { getAudio } from '../ui/audioStore';
 import { useDialog } from '../ui/useDialog';
 import { checkRepo, fileNameFor, publishFile, REPO_RE, type GitHubTarget } from '../engine/github';
-import { cloudUrl, publishCloud, publishingCode, readPublishingCode, unpublishCloud, type CloudShow } from '../engine/cloud';
+import { cloudUrl, publishCloud, publishingMessage, readPublishingCode, unpublishCloud, type CloudShow } from '../engine/cloud';
 import { getPublishing, loadCloud, loadLinks, saveCloud, saveLink, setPublishing } from '../ui/publishing';
 
 // The director's GitHub repository and token for one-click publishing, kept only in this browser.
@@ -104,15 +104,16 @@ export function ShareDialog({ show, onClose, setRevision }: { show: Show; onClos
         : `Published revision ${s.revision}, ${at}. Phones that already have the show get this version the next time they open it (within a minute or so).`);
     } catch (e) { setBusy(`✗ ${e instanceof Error ? e.message : String(e)}`); }
   };
-  // Moving to another device: the publishing code carries the link and the edit token (Full backup carries them too).
+  // Moving to another device: the recovery code carries the link and the edit token (Full backup carries them too).
   const [code, setCode] = useState('');
   const takeCode = () => {
     const p = readPublishingCode(code);
-    if (!p) { setBusy("✗ That isn't a FreeFORM publishing code. Copy the whole code from the other device."); return; }
+    if (!p) { setBusy("✗ That isn't a FreeFORM recovery code. Copy the whole code from the other device."); return; }
     if (p.show?.id && p.show.id !== show.id && !confirm(`This code is for "${p.show.title || 'another show'}", and the show open here is "${show.title}". Publishing here would replace that show on phones with this one. Use it anyway?`)) return;
     setPublishing(sid, p); setCloud(p.cloud ?? null); setField(p.link); setMadeKey(null); saveKey(null); setCode('');
     setBusy(p.cloud ? 'Done: this browser can now update that link. Click Publish update after your edits.' : 'Done: this browser has the link. To update it, publish the file where it was hosted before.');
   };
+  const codeMessage = onService && cloud && hosted ? publishingMessage(getPublishing(sid, show.title) ?? { link: hosted, cloud }, show.title) : '';
   const stopSharing = async () => {
     if (!cloud || !confirm('Take this show off FreeFORM’s service? The link stops working. Phones that already have the show keep the copy they have, but get no more updates.')) return;
     setBusy('Taking it offline…');
@@ -200,22 +201,26 @@ export function ShareDialog({ show, onClose, setRevision }: { show: Show; onClos
             <details style={{ margin: '10px 0 0' }}>
               <summary>Use on another device</summary>
               <p style={small}>
-                Got a new computer or iPad? This code lets it keep updating this same link, so students don't need a new one. Copy it
-                (email it to yourself, say), then on the new device open this show from a Full backup or with <strong>Shows… → Open from a link</strong>, and
-                paste the code there. <strong>Keep it private:</strong> like the link, it's a password, and it can also change the show.
-                A <strong>Full backup</strong> file carries it too.
+                Got a new computer or iPad? This code lets it keep updating this same link, so students don't need a new one. Email it to
+                yourself, or copy it somewhere safe: the instructions travel with it. On the new device, click <strong>Open from a link or recovery code…</strong>
+                (on a blank field, or under <strong>Shows…</strong>) and paste the whole message. <strong>Keep it private:</strong> like the link, it's a
+                password, and it can also change the show. A <strong>Full backup</strong> file carries it too.
               </p>
-              <textarea aria-label="Publishing code" readOnly rows={3} value={publishingCode(getPublishing(sid, show.title) ?? { link: hosted, cloud })} onFocus={(e) => e.currentTarget.select()}
+              <textarea aria-label="Recovery code" readOnly rows={5} value={codeMessage} onFocus={(e) => e.currentTarget.select()}
                 style={{ width: '100%', boxSizing: 'border-box', font: 'inherit', fontSize: 11 }} />
-              <div style={{ display: 'flex', justifyContent: 'flex-end' }}><button onClick={() => copy(publishingCode(getPublishing(sid, show.title) ?? { link: hosted, cloud }))}>Copy publishing code</button></div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap' }}>
+                <a className="button-link" href={`mailto:?subject=${encodeURIComponent(`FreeFORM recovery code: ${show.title || 'Untitled show'}`)}&body=${encodeURIComponent(codeMessage)}`}
+                  style={{ color: 'var(--blue)', alignSelf: 'center' }}>Email it to yourself</a>
+                <button onClick={() => copy(codeMessage)}>Copy recovery code</button>
+              </div>
             </details>
           )}
           {!onService && (
             <details style={{ margin: '10px 0 0' }}>
               <summary>Published this show from another device?</summary>
-              <p style={small}>Paste the publishing code from that device (under <strong>Use on another device</strong> there), and this browser can update the same link.</p>
+              <p style={small}>Paste the recovery code from that device (under <strong>Use on another device</strong> there), and this browser can update the same link.</p>
               <div style={{ display: 'flex', gap: 6 }}>
-                <input aria-label="Paste a publishing code" placeholder="FREEFORM-PUBLISHING-1.…" value={code} onChange={(e) => setCode(e.target.value)} style={{ flex: 1, font: 'inherit', fontSize: 12 }} />
+                <input aria-label="Paste a recovery code" placeholder="FREEFORM-PUBLISHING-1.…" value={code} onChange={(e) => setCode(e.target.value)} style={{ flex: 1, font: 'inherit', fontSize: 12 }} />
                 <button disabled={!code.trim()} onClick={takeCode}>Use code</button>
               </div>
             </details>

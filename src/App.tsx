@@ -813,18 +813,18 @@ export function App() {
   const trySample = async () => { await flush(); openShow({ ...sampleShow(), id: newShowId() }); setTool('select'); }; // in the main bundle: the offline cache only keeps files the page links
   // The front page's "Try the sample show" opens app/?sample.
   useEffect(() => { if (new URLSearchParams(location.search).has('sample')) { history.replaceState(null, '', location.pathname + location.hash); trySample(); } }, []); // eslint-disable-line react-hooks/exhaustive-deps
-  const [library, setLibrary] = useState(false);
+  const [library, setLibrary] = useState<boolean | 'link'>(false); // 'link': opened on Open from a link
   const [video, setVideo] = useState(false); // the Make a video dialog
   const [feedback, setFeedback] = useState(false); // the Send feedback form
   const act: ShowActions = {
     flush,
     fresh: () => fresh().then(() => setLibrary(false)),
     open: async (id) => { const s = await loadShow(id); await flush(); openShow(s); setLibrary(false); },
-    // Open a show from a phone link or a publishing code: recovers the drill (the link holds the key that unlocks it), and
-    // with a publishing code, keeps updating the same link from here.
+    // Open a show from a phone link or a recovery code: recovers the drill (the link holds the key that unlocks it), and
+    // with a recovery code, keeps updating the same link from here.
     openLink: async (text) => {
       const code = readPublishingCode(text), hash = code ? code.link.slice(code.link.indexOf('#')) : linkHash(text);
-      if (!hash) throw new Error("That isn't a FreeFORM link or publishing code. Paste the whole link students open, or the publishing code.");
+      if (!hash) throw new Error("That isn't a FreeFORM link or recovery code. Paste the whole link students open, or the recovery code.");
       const got = hash.startsWith(SHARE_PREFIX) ? { show: await decodeShow(hash.slice(SHARE_PREFIX.length)), audio: undefined } : await fetchHosted(hash);
       let s = got.show;
       await flush();
@@ -835,7 +835,7 @@ export function App() {
       openShow(s); setLibrary(false);
       setNotice({ t: 0, text: code ? `Opened "${s.title}". This browser can keep updating the same link: Share…, then Publish update.`
         : hash.startsWith(SHARE_PREFIX) ? `Opened "${s.title}" from a share link. Performers' names aren't in share links, so add them again in Roster.`
-        : `Opened "${s.title}". To keep updating the same link from here, paste the publishing code from the device that published it (Share…, Keep phones up to date). Publishing without it makes a new link.` }); // over the field, where the show just opened
+        : `Opened "${s.title}". To keep updating the same link from here, paste the recovery code from the device that published it (Share…, Keep phones up to date). Publishing without it makes a new link.` }); // over the field, where the show just opened
     },
     rename: async (id, title) => {
       if (id === show.id) { setShow((s) => ({ ...s, title })); await keepShow({ ...show, title }); }
@@ -941,10 +941,11 @@ export function App() {
         />
         {show.performers.length === 0 && !otherTab && (
           <div className="backup-note" role="group" aria-label="Start a show">
-            <span><strong>Start your show.</strong> Place performers on the field, bring in a roster from Excel, or look around a finished sample first.</span>
+            <span><strong>Start your show.</strong> Place performers on the field, bring in a roster from Excel, or look around a finished sample first. On a new computer? Open your show from its phone link or recovery code.</span>
             <button className="primary" onClick={() => { setTool('add'); setOpenAdd((n) => n + 1); }}>Place performers</button>
             <button onClick={() => setRoster(true)}>Import a roster…</button>
             <button onClick={trySample}>Try the sample show</button>
+            <button onClick={() => setLibrary('link')} title="Open a show from the link students use, or from a recovery code from your other computer">Open from a link or recovery code…</button>
           </div>
         )}
         {otherTab && (
@@ -1002,7 +1003,7 @@ export function App() {
       </div>
       {sharing && <ShareDialog show={show} onClose={() => setSharing(false)} setRevision={(n) => setShow((s) => ({ ...s, revision: n }))} />}
       {roster && <RosterImport show={show} setShow={setShow} onClose={() => setRoster(false)} />}
-      {library && <ShowsDialog show={show} act={act} onClose={() => setLibrary(false)} />}
+      {library && <ShowsDialog show={show} act={act} linkFirst={library === 'link'} onClose={() => setLibrary(false)} />}
       {feedback && <FeedbackDialog onClose={() => setFeedback(false)} />}
       {video && <VideoDialog show={show} bpm={bpm} onClose={() => setVideo(false)} />}
       {printing && <PrintDialog show={show} selected={selected} onClose={() => setPrinting(false)} />}

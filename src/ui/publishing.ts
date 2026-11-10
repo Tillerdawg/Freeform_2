@@ -1,5 +1,5 @@
 // Where this browser keeps each show's publishing: its hosted link (with the key) and, for a show on FreeFORM's service,
-// the id and edit token. Shared by the Share dialog, Full backup, and Open from a link.
+// the id and edit token. Shared by the Share dialog, Full backup, and Open from a link or recovery code.
 import type { CloudShow, Publishing } from '../engine/cloud';
 
 const LINKS = 'freeform:hosted-links'; // per show id (or title, for a show from before ids)
@@ -20,7 +20,7 @@ export function getPublishing(sid: string, title?: string): Publishing | null {
   return { link, ...(cloud ? { cloud } : {}), show: { id: sid, title } };
 }
 
-/** Take on publishing brought from another device (a Full backup or a publishing code). */
+/** Take on publishing brought from another device (a Full backup or a recovery code). */
 export function setPublishing(sid: string, p: Publishing) {
   saveLink(sid, p.link);
   saveCloud(sid, p.cloud ?? null);
