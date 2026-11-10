@@ -9,9 +9,11 @@
 //         x, y are offset by 0x8000 from the field's center; 120 units = one 8-to-5 step; +x = Side 2, +y = front.
 //   PROP  ends a set: the PAGEs since the previous PROP are that set's counts (the last one is the set itself), one
 //         spot per count, so curved, follow-the-leader and delayed moves come through as drawn.
+//         A follow-the-leader the writer only described in the note is saved as straight lines that run through
+//         each other; hiddenFtl (below) rebuilds those.
 //         Byte 25 starts a u16 length and the set's note text.
 // Files keep 300+ PAGEs; the ones after the last PROP are unused.
-import { FIELD_WIDTH } from './coords';
+import { FIELD_WIDTH, ftlPositions } from './coords';
 import type { HashPreset } from './coords';
 import { MAX_NAME, evenPath, newId, parseShow, scoreOrder, type DrillSet, type LabelSide, type Performer, type Section, type Show } from './show';
 
@@ -160,12 +162,85 @@ export function parse3dj(data: ArrayBuffer, title = 'Imported show'): Show {
         if (path.some((q, k) => Math.hypot(q!.x - (from.x + ((to.x - from.x) * k) / n), q!.y - (from.y + ((to.y - from.y) * k) / n)) > 0.02)) paths[p] = path as { x: number; y: number }[];
       }
       if (Object.keys(paths).length) set.paths = paths;
+      // Performers whose straight lines put them on one spot mid-move: a follow-the-leader, if their spots fit one.
+      const crowded = new Set<string>();
+      for (const pg of r.pages.slice(0, -1)) {
+        const dots = [...pg].filter(([id]) => r.last.has(id) && !paths[pid.get(id)!]);
+        for (const [id, a] of dots) if (dots.some(([other, c]) => other !== id && Math.hypot(a.x - c.x, a.y - c.y) < UNIT * SHARED)) crowded.add(pid.get(id)!);
+      }
+      const ftl = hiddenFtl(prev, pos, [...crowded].filter((p) => prev[p]), r.counts);
+      if (ftl.length) set.ftl = ftl;
     }
     sets.push(set); prev = pos;
   });
 
   const show: Show = { format: 'freeform-show', version: 1, title, hash: hashFrom(b, first('GRID')), sections: scoreOrder(sections), performers, sets };
   return parseShow(JSON.stringify(show)); // same checks as any imported file
+}
+
+type Pt = { x: number; y: number };
+const SHARED = 0.3; // steps: closer than this on the same count is one spot
+const NEAR = 0.02; // steps: Pyware's spots are whole file units, so this is "the same place"
+const REACH = 16; // steps: the most room between two performers in a file
+
+/**
+ * Follow-the-leader moves that Pyware kept as straight lines. A writer who only wrote "follow-the-leader" in the
+ * set's note (and didn't draw the route) left Pyware to move every dot straight to its next spot, so a file that
+ * snakes around a corner collapses onto one spot mid-move. `ids` are the performers who share a spot that way.
+ * This looks for the files that explain their two sets exactly: an order and a leader's route where everyone marches
+ * the same distance along the trail and lands on their own spot. It prefers the longest file, then the shortest
+ * march, then the leader who starts nearest the front (a file that fits with the turn at either end; Jason's did), and takes nothing shorter than three performers or faster than a 4-to-5. A file is used only if nobody in
+ * it comes within a step of anyone else in it on any count. Anything else is left as Pyware had it (Review lists the too-close performers).
+ */
+export function hiddenFtl(from: Record<string, Pt>, to: Record<string, Pt>, ids: string[], counts: number): { order: string[]; turns?: Pt[] }[] {
+  const d = (a: Pt, b: Pt) => Math.hypot(b.x - a.x, b.y - a.y);
+  const cap = counts * 2, groups: { order: string[]; turns?: Pt[] }[] = [];
+  let pool = ids.filter((id) => d(from[id], to[id]) > NEAR);
+  while (pool.length > 2) {
+    let budget = 0; // tries left for this leader: gives up on a crowd too tangled to read
+    let best: { order: string[]; s: number[]; len: number } | undefined;
+    // order: the file so far, leader first. s: how far behind the leader's start each one starts, along the trail.
+    // len: the leader's route length, known once someone ends on the trail (until then, everyone ends on the route ahead).
+    const grow = (order: string[], s: number[], len?: number) => {
+      const last = order[order.length - 1], sl = s[s.length - 1];
+      const L = len ?? sl + d(from[order[0]], to[last]);
+      if (L > cap + NEAR) return;
+      if (order.length > 2 && (!best || order.length > best.order.length || (order.length === best.order.length && (L < best.len - NEAR || (L < best.len + NEAR && from[order[0]].y < from[best.order[0]].y - NEAR))))) best = { order, s, len: L };
+      const next = pool.filter((id) => !order.includes(id) && d(from[last], from[id]) > NEAR && d(from[last], from[id]) <= REACH)
+        .sort((a, c) => d(from[last], from[a]) - d(from[last], from[c])).slice(0, 4);
+      for (const id of next) {
+        if (budget-- <= 0) return;
+        const gap = d(from[last], from[id]), sc = sl + gap;
+        // Ends on the leader's route, as far behind the one in front as they started.
+        if (len === undefined && Math.abs(d(to[id], to[last]) - gap) < NEAR) grow([...order, id], [...s, sc]);
+        // Ends on the trail, L ahead of their start.
+        if (L > NEAR && sc >= L - NEAR) {
+          const want = sc - L, hit = s.findIndex((x) => x >= want - 1e-9), k = hit < 0 ? order.length : Math.max(1, hit); // the stretch of trail it lands in
+          const a = from[order[k - 1]], b = from[order[k] ?? id], f = (want - s[k - 1]) / ((s[k] ?? sc) - s[k - 1]);
+          if (d(to[id], { x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f }) < NEAR) grow([...order, id], [...s, sc], L);
+        }
+      }
+    };
+    for (const lead of pool) { budget = 20_000; grow([lead], [0]); }
+    const found = best as { order: string[]; s: number[]; len: number } | undefined; // (assigned inside grow)
+    if (!found) break;
+    // The leader's turns: where the ones just behind the leader end up, nearest the leader's start first, corners only.
+    const { order, s, len } = found, start = from[order[0]], end = to[order[0]];
+    const ahead = order.filter((_, k) => k > 0 && s[k] < len - NEAR).reverse().map((id) => to[id]);
+    const turns = ahead.filter((p, k) => {
+      const a = ahead[k - 1] ?? start, b = ahead[k + 1] ?? end, u = { x: p.x - a.x, y: p.y - a.y }, w = { x: b.x - p.x, y: b.y - p.y };
+      return d(a, p) > NEAR && (Math.abs(u.x * w.y - u.y * w.x) > 1e-6 || u.x * w.x + u.y * w.y < 0);
+    });
+    const starts = order.map((id) => from[id]);
+    const at = (k: number) => ftlPositions(starts, end, k / counts, turns);
+    const lands = at(counts).every((p, k) => d(p, to[order[k]]) < NEAR);
+    let clear = true;
+    for (let k = 1; k < counts && clear; k++) { const now = at(k); clear = now.every((p, i) => now.every((q, j) => j <= i || d(p, q) >= 1)); }
+    if (!lands || !clear) break;
+    groups.push(turns.length ? { order, turns } : { order });
+    pool = pool.filter((id) => !order.includes(id));
+  }
+  return groups;
 }
 
 /** Hashes from the GRID text ("HZHS -8.75" = yards from center): high school ±8.75, college ±6.25, NFL ±3.75. */

@@ -116,3 +116,34 @@ describe('Pyware label sides', () => {
     expect(byLabel).toEqual({ T1: 'below', T2: 'above', A1: 'left', X1: 'above-right' }); // 0 = toward the front, then around toward Side 2
   });
 });
+
+describe('Pyware follow-the-leader saved as straight lines', () => {
+  // Pyware moves every dot straight to its next spot unless the writer drew a route. `to` is each dot's next spot.
+  const move = (from: Dot[], to: Dot[], counts: number) =>
+    Array.from({ length: counts }, (_, k) => page(from.map((a, i) => ({ ...a, x: a.x + ((to[i].x - a.x) * (k + 1)) / counts, y: a.y + ((to[i].y - a.y) * (k + 1)) / counts }))));
+  const label = (s: ReturnType<typeof parse3dj>, id: string) => { const p = s.performers.find((x) => x.id === id)!; return s.sections.find((x) => x.id === p.section)!.letter + p.number; };
+
+  it('rebuilds a file that snakes around a corner (straight lines put all four on one spot)', () => {
+    // A file of four, 2 steps apart, marches to the front, turns toward Side 2, and comes back: 8 steps each.
+    const from = [{ id: 1, sym: 'T', x: 0, y: 6 }, { id: 2, sym: 'T', x: 0, y: 4 }, { id: 3, sym: 'A', x: 0, y: 2 }, { id: 4, sym: 'X', x: 0, y: 0 }];
+    const to = [{ id: 1, sym: 'T', x: 2, y: 0 }, { id: 2, sym: 'T', x: 2, y: 2 }, { id: 3, sym: 'A', x: 2, y: 4 }, { id: 4, sym: 'X', x: 2, y: 6 }];
+    const s = parse3dj(file([page(from), prop('Set 1'), ...move(from, to, 8), prop('Set 2 mm. 1-2 follow-the-leader')]));
+    const set = s.sets[1];
+    expect(set.ftl!.length).toBe(1);
+    expect(set.ftl![0].order.map((id) => label(s, id))).toEqual(['T1', 'T2', 'A1', 'X1']); // fits from either end: the one nearest the front leads
+    expect(set.ftl![0].turns).toEqual([{ x: 2, y: 36 }]); // the corner: 2 steps toward Side 2 of where the leader started
+    expect(set.paths).toBeUndefined();
+    const x1 = s.performers.find((p) => label(s, p.id) === 'X1')!, t1 = s.performers.find((p) => label(s, p.id) === 'T1')!;
+    expect(set.pos[x1.id]).toEqual({ x: 2, y: 36 }); // the last in the file ends where Pyware put it
+    const mid = positionsAt(s, 4); // halfway: Pyware had all four on (1, 3)
+    expect(mid[x1.id]).toEqual({ x: 0, y: 38 });
+    expect(mid[t1.id]).toEqual({ x: 2, y: 38 });
+    expect(moveSteps(s, 1)[x1.id].per5).toBeCloseTo(8, 6); // 8 steps in 8 counts: an 8-to-5
+  });
+  it('leaves a plain crossing alone (two dots trading spots is not a file)', () => {
+    const from = [{ id: 1, sym: 'T', x: 0, y: 0 }, { id: 2, sym: 'T', x: 4, y: 0 }, { id: 3, sym: 'A', x: 20, y: 0 }, { id: 4, sym: 'X', x: 30, y: 0 }];
+    const to = [{ ...from[0], x: 4 }, { ...from[1], x: 0 }, from[2], from[3]];
+    const s = parse3dj(file([page(from), prop('Set 1'), ...move(from, to, 4), prop('Set 2')]));
+    expect(s.sets[1].ftl).toBeUndefined();
+  });
+});
