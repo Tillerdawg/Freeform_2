@@ -38,7 +38,7 @@ export function FeedbackDialog({ onClose }: { onClose: () => void }) {
           </>
         ) : (
           <>
-            <p style={{ margin: '0 0 12px' }}>Something that doesn't work, an idea, or how drill writers do it in your program. It goes straight to Jason; no account needed.</p>
+            <p style={{ margin: '0 0 12px' }}>Something that doesn't work, an idea, or how drill writers do it in your program. It goes straight to me, with no account needed.</p>
             <label style={{ display: 'block', marginBottom: 8 }}>What is it?{' '}
               <select value={kind} onChange={(e) => setKind(e.target.value)}>
                 <option value="problem">Something doesn't work</option>

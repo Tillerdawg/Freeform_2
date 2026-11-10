@@ -874,7 +874,7 @@ export function App() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'stretch' }}>
               <button onClick={() => { close(); window.open(GUIDE, '_blank', 'noopener'); }} title="The step-by-step guide, with pictures (opens in a new tab)">How-to guide</button>
               <button onClick={() => { close(); trySample(); }} title="Open the 47-performer sample show as a show of its own (yours stays under Shows…)">Try the sample show</button>
-              <button onClick={() => { close(); setFeedback(true); }} title="Report a problem or suggest something: it goes straight to Jason, no account needed">Send feedback</button>
+              <button onClick={() => { close(); setFeedback(true); }} title="Report a problem or suggest something: it goes straight to me, with no account needed">Send feedback</button>
               <button onClick={() => { close(); window.open('https://ko-fi.com/tillerdawg', '_blank', 'noopener'); }} title="FreeFORM is free and always will be. A tip on Ko-fi helps with hosting (opens in a new tab)">Support FreeFORM</button>
               <button onClick={() => { close(); window.open('../', '_blank', 'noopener'); }} title="FreeFORM Drill's front page: what it is, privacy, and coming from Pyware (opens in a new tab)">About FreeFORM Drill</button>
             </div>
