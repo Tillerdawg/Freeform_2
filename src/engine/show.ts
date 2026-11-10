@@ -110,6 +110,8 @@ export interface Show {
   surface?: Floor;
   /** The biggest step allowed, as N-to-5: a step bigger than a `stepLimit`-to-5 is red and listed in Review. Missing = STEP_LIMIT (4). */
   stepLimit?: number;
+  /** Review warnings the director has looked at and dismissed (see issueKey in review.ts). */
+  dismissed?: string[];
 }
 
 /** What the show is written on: its floor, or the football field with its hashes. */
@@ -954,6 +956,7 @@ function checkShow(s: any): Show { // eslint-disable-line @typescript-eslint/no-
     && Number.isFinite(s.trace.opacity) && s.trace.opacity >= 0 && s.trace.opacity <= 1)) bad('trace');
   if (s.surface !== undefined && !((s.surface?.kind === 'court' || s.surface?.kind === 'floor') && Number.isFinite(s.surface.w) && s.surface.w >= 4 && s.surface.w <= 400
     && Number.isFinite(s.surface.d) && s.surface.d >= 4 && s.surface.d <= 400)) bad('surface');
+  if (s.dismissed !== undefined && !(Array.isArray(s.dismissed) && s.dismissed.length <= 5000 && s.dismissed.every((k: unknown) => typeof k === 'string' && k.length <= 20_000))) bad('dismissed warnings');
   if (s.stepLimit !== undefined && !(Number.isFinite(s.stepLimit) && s.stepLimit >= MIN_STEP_LIMIT && s.stepLimit <= MAX_STEP_LIMIT)) bad('step limit');
   const propIds = new Set((s.props ?? []).map((p: Prop) => p.id));
   for (const set of s.sets) {

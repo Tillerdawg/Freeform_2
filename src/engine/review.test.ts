@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { insidePolygon, stepSize } from './coords';
-import { newlyStraight, reviewShow } from './review';
+import { issueKey, newlyStraight, reviewShow, splitDismissed } from './review';
 import { addPerformer, addSetAfter, brokenPaths, closeCalls, closeCallsMemo, newShow, overLimit, parseShow, placeInSet, setCounts, type Show } from './show';
 
 /** Two trumpets 16 steps apart, then a 16-count move: T1 marches 16 steps (8-to-5), T2 holds. */
@@ -85,5 +85,19 @@ describe('lasso', () => {
     expect(insidePolygon({ x: 5, y: 8 }, l)).toBe(false); // in the notch
     expect(insidePolygon({ x: 11, y: 5 }, l)).toBe(false);
     expect(insidePolygon({ x: 1, y: 1 }, l.slice(0, 2))).toBe(false); // a line has no inside
+  });
+});
+
+describe('dismissing a warning', () => {
+  it('hides it, is saved with the show, and comes back when the problem changes', () => {
+    const { show: s0, a, b } = show2();
+    const over = setCounts(s0, 1, 4); // T1: a 2-to-5, over the limit
+    const x = reviewShow(over).find((i) => i.kind === 'steps')!;
+    const show = { ...over, dismissed: [issueKey(over, x)] };
+    expect(splitDismissed(show, reviewShow(show)).open.some((i) => i.kind === 'steps')).toBe(false);
+    expect(splitDismissed(show, reviewShow(show)).dismissed).toHaveLength(1);
+    expect(parseShow(JSON.stringify(show)).dismissed).toEqual(show.dismissed);
+    const both = placeInSet(show, 1, { [b]: { x: 32, y: 28 } }); // now T2 is over too: a new warning
+    expect(splitDismissed(both, reviewShow(both)).open.find((i) => i.kind === 'steps')?.ids.sort()).toEqual([a, b].sort());
   });
 });

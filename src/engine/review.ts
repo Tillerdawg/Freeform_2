@@ -20,7 +20,7 @@ export function reviewShow(show: Show): Issue[] {
     const missing = show.performers.filter((p) => !set.pos[p.id]).map((p) => p.id);
     if (missing.length) out.push({ kind: 'missing', set: i, t: starts[i], ids: missing, text: `${people(missing.length)} with no spot: ${names(missing)}` });
     for (const c of i ? closeCallsMemo(show, i) : closeCalls(show, 0))
-      out.push({ kind: 'close', set: i, t: (i ? starts[i - 1] : 0) + c.count, ids: [c.a, c.b], text: `${names([c.a, c.b]).replace(', ', ' and ')} ${Math.round(c.d * 10) / 10} steps apart${i ? ` on count ${c.count}` : ''}` });
+      out.push({ kind: 'close', set: i, t: (i ? starts[i - 1] : 0) + c.count, ids: [c.a, c.b], text: `${names([c.a, c.b]).replace(', ', ' and ')} ${Math.round(c.d * 10) / 10} ${Math.round(c.d * 10) === 10 ? 'step' : 'steps'} apart${i ? ` on count ${c.count}` : ''}` });
     if (!i) return;
     const over = overLimit(show, i);
     if (over.length) {
@@ -33,6 +33,18 @@ export function reviewShow(show: Show): Issue[] {
   const written = totalCounts(show), length = showLength(show);
   if (length > written) out.push({ kind: 'unwritten', set: show.sets.length - 1, t: written, ids: [], text: `Counts ${written + 1} to ${length} aren't written yet` });
   return out;
+}
+
+/**
+ * Which warning this is, for Dismiss: the kind, the set (by id, so adding a set doesn't move it), and who. If the problem
+ * changes (someone else joins it, or it moves to another set), it's a new warning and shows again.
+ */
+export const issueKey = (show: Show, x: Issue) => `${x.kind}:${show.sets[x.set]?.id}:${[...x.ids].sort().join(',')}`;
+
+/** Review's warnings split into the ones to check and the ones the director dismissed. */
+export function splitDismissed(show: Show, all: Issue[]): { open: Issue[]; dismissed: Issue[] } {
+  const d = new Set(show.dismissed ?? []);
+  return { open: all.filter((x) => !d.has(issueKey(show, x))), dismissed: all.filter((x) => d.has(issueKey(show, x))) };
 }
 
 /** Imported paths an edit just made fall back to straight lines: per move (by the set it goes into, in `after`), who. */

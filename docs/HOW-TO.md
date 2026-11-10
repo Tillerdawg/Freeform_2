@@ -294,7 +294,7 @@ FreeFORM checks every move against the counts it has:
 
 The colors show on the path lines on the field and in the timeline's "max" readout for each move. A red path is also solid and wider than the others (the rest are dashed), so it stands out even for someone who can't tell red from green. On the field, everyone over the limit in the move you're looking at also gets a red ring, so you can see who it is. When a move's "max" is red, it's underlined: click it to go to that set with everyone over the limit selected, and a note at the bottom of the field names them. To fix a red move, add counts, shorten the distance, or split the move with a sub-set.
 
-**Changing the step limit.** Open **Review** (in the top bar) and type a number in **Step limit**. A younger band might use 6 (anything bigger than a 6-to-5 turns red), and a corps-style show might use 8. It's saved with the show, from a 2-to-5 up to an 8-to-5.
+**Changing the step size limit.** Open **Review** (in the top bar) and type a number in **Step size limit** at the top. It's a setting, not a warning: it tells Review when to warn. A younger band might use 6 (anything bigger than a 6-to-5 turns red), and a corps-style show might use 8. It's saved with the show, from a 2-to-5 up to an 8-to-5.
 
 **Too close.** FreeFORM also checks every move, start to finish, for two performers less than a step apart, even if they're fine at both ends. It catches fast crossings that happen between counts, too. The timeline shows how many pairs come too close in each move ("2 too close" in red). Click that warning to jump to the count where the closest pair is nearest: both performers are selected, and a note at the bottom of the field says who they are and how close they get. Open **Move** to see every pair, how close they get, and on what count. **Select** picks a pair so you can fix them, by spreading their spots, giving one a delayed step-off, or changing who goes to which spot.
 
@@ -313,6 +313,8 @@ The warnings on the timeline cover one move at a time. **Review**, in the top ba
 - **Not written**: counts in your **Movements** that don't have sets yet.
 
 Click an item to go there: the playhead moves to that set or count, the performers are selected, and a note at the bottom of the field says what's wrong. The list stays open while you fix things and updates as you go, and it says "all clear" when there's nothing left. **Close** puts it away.
+
+**Dismissing a warning.** Some warnings are fine as written: two performers who pass each other on purpose, or one long step you've already planned for. Click **Dismiss** beside it, and it leaves the list and the count on the **Review** button. It's saved with the show. If the problem changes (another performer joins it, say), it shows up again as a new warning. **Show them again**, at the bottom of the list, brings back everything you dismissed.
 
 **Imported paths that go straight.** A move imported from Pyware count by count (a follow-the-leader, a delayed step-off, a rotation) keeps its route only while both of its sets and its counts stay as they came in. If you move one of those performers in either set, or change the move's counts, that performer marches a straight line instead. When an edit does that, a note at the bottom of the field says so, like "4 imported paths in the move into set 7 are straight lines now." Undo brings the routes back, and so does putting the spots and counts back the way they were. Until then, Review lists them.
 

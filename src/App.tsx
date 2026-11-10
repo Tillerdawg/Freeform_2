@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { insidePolygon, readout, type Point } from './engine/coords';
-import { newlyStraight, reviewShow, type Issue } from './engine/review';
+import { newlyStraight, reviewShow, splitDismissed, type Issue } from './engine/review';
 import { ReviewPanel } from './ui/Review';
 import { emptyHistory, record, redo, undo } from './engine/history';
 import { addInk, hitMark, moveMark, type Mark } from './engine/marks';
@@ -323,7 +323,8 @@ export function App() {
   const pathSet = onSet >= 0 ? onSet : t < starts.at(-1)! ? locate(show, t).to : -1;
   const paths: Path[] = useMemo(() => (pathSet < 1 ? [] : moveSegments(show, pathSet, (id) => !faded.has(id))), [show, pathSet, faded]);
   const warn = useMemo(() => new Set(pathSet < 1 ? [] : overLimit(show, pathSet)), [show, pathSet]); // ringed: over the step limit in this move
-  const issues = useMemo(() => reviewShow(show), [show]);
+  const allIssues = useMemo(() => reviewShow(show), [show]);
+  const { open: issues, dismissed } = useMemo(() => splitDismissed(show, allIssues), [show, allIssues]);
   // The FTL group the selection is, exactly, in the move into this set (where Add turns puts the leader's turning points).
   const ftlGroup = onSet > 0 ? show.sets[onSet].ftl?.find((g) => g.order.length === selected.size && g.order.every((id) => selected.has(id))) : undefined;
   useEffect(() => { if (tool === 'turn' && !ftlGroup) setTool('select'); }, [tool, ftlGroup]);
@@ -971,7 +972,7 @@ export function App() {
             <button onClick={() => { const n = Date.now() + DAY; writeTime(SNOOZE, n); setSnooze(n); }}>Later</button>
           </div>
         )}
-        {reviewing && <ReviewPanel show={show} setShow={setShow} issues={issues} onGo={goToIssue} onClose={() => setReviewing(false)} />}
+        {reviewing && <ReviewPanel show={show} setShow={setShow} issues={issues} all={allIssues} dismissed={dismissed.length} onGo={goToIssue} onClose={() => setReviewing(false)} />}
         {/* Floats over the field so its changing length can't move the layout. */}
         {(notice?.t === t || hover) && (
           <div role={notice?.t === t ? 'status' : undefined} style={{ position: 'absolute', left: 8, bottom: 8, maxWidth: 'calc(100% - 16px)', padding: '4px 8px', borderRadius: 4,
