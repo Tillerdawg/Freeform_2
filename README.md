@@ -130,6 +130,10 @@ Every design decision is logged in [DECISIONS.md](DECISIONS.md): when, who made 
 
 FreeFORM is written from scratch. I studied Pyware and UDB only through how they behave and what their documentation says, never by decompiling them, and there's no third-party code or show file in this repo.
 
+## Supporting FreeFORM
+
+FreeFORM is free and always will be. If it saves your program money, you can [buy me a coffee on Ko-fi](https://ko-fi.com/tillerdawg) to help with hosting. It's never required.
+
 ## Contributing
 
 Issues and pull requests are welcome (see [CONTRIBUTING.md](CONTRIBUTING.md)), especially from drill writers and band directors who can say how things *should* work. If you change or add a feature, please update this README, the [How-to guide](docs/HOW-TO.md) (and its screenshots, if they show it) and [DECISIONS.md](DECISIONS.md) in the same change. [CLAUDE.md](CLAUDE.md) has the house rules.

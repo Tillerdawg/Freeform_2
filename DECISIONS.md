@@ -1427,3 +1427,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Who:** Jason.
 - **Context:** Jason works at the University of Georgia, and his Ko-fi page says so.
 - **Decision:** The front page (English and Spanish) says FreeFORM Drill is a personal project, not affiliated with or endorsed by the University of Georgia, and that Jason doesn't speak for the University there.
+
+## 2026-11-10 12:45 EST — A Ko-fi tip jar
+- **Who:** Jason chose Ko-fi (ko-fi.com/tillerdawg); Claude chose where the links go (*Jason can veto*).
+- **Context:** Hosting (the coming upload service) may cost something someday, and FreeFORM must stay free.
+- **Other options:** GitHub Sponsors (donors need a GitHub account), Open Collective (a host fee, a public ledger), Buy Me a Coffee (a 5% fee).
+- **Decision:** **Support FreeFORM** on the front page (English and Spanish, with "free, and it always will be"), in the editor's **Help** menu, in the README, and as GitHub's Sponsor button (`.github/FUNDING.yml`). Not on the phone view: that's students, and it stays about the drill.
