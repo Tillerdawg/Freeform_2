@@ -1351,3 +1351,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Context:** Some people want the sidebar on the left and/or the timeline above the field.
 - **Other options:** drag the panels to dock them anywhere; put the choices in the sidebar or the Help menu.
 - **Decision:** A **Layout** menu in the top bar with two buttons: **Sidebar on the left/right** and **Timeline at the top/bottom**. The choice is kept in this browser (like light mode), not in the show file, since it's how you like to work, not part of the show. Defaults stay as before: sidebar right, timeline bottom.
+
+## 2026-11-10 09:56 EST — The review's suggestions go on the plan
+- **Who:** Jason, on Claude's review.
+- **Context:** Jason asked Claude to go through the docs, the app, and the tests, and say what would make FreeFORM better for drill writers, directors, and students. The review found phone layout problems, small click targets, accessibility gaps, no front door on the site, and the GitHub token as the main barrier to other directors using hosted links.
+- **Other options:** take only some of them; open GitHub issues instead of plan items.
+- **Decision:** All of them go in PLAN.md under "From the 2026-11-10 review." The order within it (phone layout, front door, upload service, pilot) is Claude's suggestion (*Jason can veto*). Nothing is built yet.
