@@ -1439,3 +1439,8 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Context:** The repository was `Freeform_2`, left over from an earlier prototype (`Freeform`, last changed 2026-10-05, superseded).
 - **Other options:** keep the name.
 - **Decision:** Renamed **freeform-drill**, matching freeformdrill.org. Links in the app, the front pages, the guide, the README, and CONTRIBUTING.md use the new address (GitHub forwards the old one); the site's address doesn't change. The old `Freeform` repository is to be deleted (Claude's access can't delete repositories; Jason does it in GitHub's settings). Claude made a full backup first (a git bundle of all 69 commits), and Jason has it. `freeform-shows` stays until Jason checks whether Publish to phones uses it.
+
+## 2026-11-10 13:05 EST — Old repositories deleted
+- **Who:** Jason.
+- **Context:** `Freeform` was the superseded prototype; `freeform-shows` held old test files for Publish to phones (no browser on the new address was connected to it).
+- **Decision:** Both deleted. `Freeform` was backed up first as a git bundle (Jason has it). Phones that opened a hosted test show from `freeform-shows` keep their saved copy but get no more updates. Publishing will move to the FreeFORM upload service.

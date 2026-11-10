@@ -110,7 +110,7 @@ Claude went through the docs, ran the tests, and clicked through the editor and 
 
 ### Repository
 - ✅ The deploy workflow runs `scripts/screenshots.mjs` after the build, as a smoke test: it clicks through every screen in the guide, and a failure stops the deploy.
-- ✅ Issue forms (a problem, an idea), CONTRIBUTING.md, and version 0.1.0. ✅ The repository is renamed **freeform-drill** (2026-11-10; GitHub forwards the old `Freeform_2` address). Follow-ups (Jason): delete the old prototype repository `Freeform` (Claude made a full backup bundle first; Jason has it), and a GitHub release for 0.1.0.
+- ✅ Issue forms (a problem, an idea), CONTRIBUTING.md, and version 0.1.0. ✅ The repository is renamed **freeform-drill** (2026-11-10; GitHub forwards the old `Freeform_2` address). ✅ The old prototype repository `Freeform` (backed up first; Jason has the bundle) and the unused `freeform-shows` (old test files for Publish to phones) were deleted the same day. Follow-up (Jason): a GitHub release for 0.1.0.
 
 ### Getting the word out (Jason)
 - A pilot season with a real band (Blake's, at Oconee County, is the obvious one): a testimonial, and the student testing the phone readout needs.
