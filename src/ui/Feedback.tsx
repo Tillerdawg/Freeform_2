@@ -33,7 +33,7 @@ export function FeedbackDialog({ onClose }: { onClose: () => void }) {
         <h2 style={{ margin: '0 0 8px', fontSize: 18 }}>Send feedback</h2>
         {state === 'sent' ? (
           <>
-            <p role="status">Thanks! Your message is on its way to Jason{email ? ', and he can write back to you' : ''}.</p>
+            <p role="status">Thanks! Your message is on its way.</p>{/* the same words as the front page's form */}
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}><button onClick={onClose}>Close</button></div>
           </>
         ) : (
