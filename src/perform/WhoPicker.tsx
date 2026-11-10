@@ -48,7 +48,7 @@ export function WhoPicker({ show, value, staff, onPick }: { show: Show; value: s
               </section>
             ))}
             {!staffShown && !groups.length && <p>{tr('No one matches “{q}”. Try your last name or your dot (like P4).', { q: q.trim() })}</p>}
-            <p><LanguageButton /></p>
+            <p className="who-lang"><span lang="en">Language</span> · <span lang="es">Idioma</span> <LanguageButton /></p>
           </div>
         </div>
       )}
