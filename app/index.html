@@ -48,6 +48,14 @@
       button > svg:only-child { margin: 0 auto; } /* icons are blocks: center them when the button is wider (44 px on touch) */
       button.primary { background: var(--green); border-color: var(--green-line); }
       @media (hover: hover) { button.danger:hover:not(:disabled) { background: var(--danger-bg); border-color: var(--danger-line); } }
+      /* Checkboxes in the house colors, big enough to hit: a dark box with a gold fill and a dark check when on (one palette). */
+      input[type=checkbox] { appearance: none; -webkit-appearance: none; flex: none; width: 20px; height: 20px; margin: 0 4px 0 0; vertical-align: middle; cursor: pointer;
+        background: var(--bg-deep) center / 14px no-repeat; border: 2px solid var(--line-strong); border-radius: 5px; }
+      input[type=checkbox]:hover { border-color: var(--gold-fill); }
+      input[type=checkbox]:checked, input[type=checkbox]:indeterminate { background-color: var(--gold-fill); border-color: var(--gold-fill); }
+      input[type=checkbox]:checked { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8.5l3.2 3L13 4.5' fill='none' stroke='%23182419' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+      input[type=checkbox]:indeterminate { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8h9' stroke='%23182419' stroke-width='2.6' stroke-linecap='round'/%3E%3C/svg%3E"); }
+      input[type=checkbox]:disabled { opacity: 0.45; cursor: default; }
       select, input:not([type=radio]):not([type=checkbox]):not([type=range]), textarea { font: inherit; font-size: 13px; color: var(--text); background: var(--bg-deep);
         border: 1px solid var(--line-strong); border-radius: 6px; padding: 3px 6px; }
       select { padding-right: 4px; }

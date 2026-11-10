@@ -155,10 +155,11 @@ shot('step-warnings', async () => {
   await save(page, 'step-warnings', await fieldClip(page, { x: -32, y: 54 }, { x: 32, y: 22 }));
 });
 shot('review', async () => {
-  // The whole-show Review list over the field; its first item (set 4's big steps) clicked, so they're ringed and selected.
+  // The whole-show Review list over the field; its first item (set 4's big steps) clicked, so they're ringed and selected, and checked.
   const page = await editor();
   await menu(page, 'Review');
   await page.locator('section[aria-label=Review] li button').first().click();
+  await page.locator('section[aria-label=Review] li input[type=checkbox]').first().check(); // shows a checked box and the Dismiss count
   await page.waitForTimeout(300);
   await save(page, 'review', { x: 380, y: 128, width: 730, height: 610 });
 });

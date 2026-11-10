@@ -70,7 +70,7 @@ export function ReviewPanel({ show, setShow, issues, all, dismissed, onGo, onClo
         <ul style={{ listStyle: 'none', margin: 0, padding: 4, overflowY: 'auto' }}>
           {list.map((x, k) => (
             <li key={keys[k]} style={{ display: 'flex', gap: 4, alignItems: 'stretch', margin: '2px 0', background: 'var(--surface)' }}>
-              <input type="checkbox" checked={picked.has(keys[k])} onChange={() => toggle(keys[k])} style={{ margin: '8px 2px 8px 8px', flex: 'none' }}
+              <input type="checkbox" checked={picked.has(keys[k])} onChange={() => toggle(keys[k])} style={{ margin: '6px 2px 6px 8px' }}
                 aria-label={`Select: ${KIND[x.kind][0]}, ${where(x)}, ${x.text}`} />
               <button onClick={() => onGo(x)} style={{ display: 'block', flex: 1, textAlign: 'left', padding: '4px 6px', border: 'none', background: 'none', opacity: showingDismissed ? 0.75 : 1 }}>
                 <span style={{ color: KIND[x.kind][1], fontWeight: 700 }}>{KIND[x.kind][0]}</span> <span style={{ opacity: 0.8 }}>· {where(x)}</span>
