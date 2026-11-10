@@ -972,7 +972,7 @@ export function App() {
             <button onClick={() => { const n = Date.now() + DAY; writeTime(SNOOZE, n); setSnooze(n); }}>Later</button>
           </div>
         )}
-        {reviewing && <ReviewPanel show={show} setShow={setShow} issues={issues} all={allIssues} dismissed={dismissed.length} onGo={goToIssue} onClose={() => setReviewing(false)} />}
+        {reviewing && <ReviewPanel show={show} setShow={setShow} issues={issues} all={allIssues} dismissed={dismissed} onGo={goToIssue} onClose={() => setReviewing(false)} />}
         {/* Floats over the field so its changing length can't move the layout. */}
         {(notice?.t === t || hover) && (
           <div role={notice?.t === t ? 'status' : undefined} style={{ position: 'absolute', left: 8, bottom: 8, maxWidth: 'calc(100% - 16px)', padding: '4px 8px', borderRadius: 4,

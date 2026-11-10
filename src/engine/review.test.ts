@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { insidePolygon, stepSize } from './coords';
-import { issueKey, newlyStraight, reviewShow, splitDismissed } from './review';
+import { dismissIssues, issueKey, newlyStraight, restoreIssues, reviewShow, splitDismissed } from './review';
 import { addPerformer, addSetAfter, brokenPaths, closeCalls, closeCallsMemo, newShow, overLimit, parseShow, placeInSet, setCounts, type Show } from './show';
 
 /** Two trumpets 16 steps apart, then a 16-count move: T1 marches 16 steps (8-to-5), T2 holds. */
@@ -99,5 +99,19 @@ describe('dismissing a warning', () => {
     expect(parseShow(JSON.stringify(show)).dismissed).toEqual(show.dismissed);
     const both = placeInSet(show, 1, { [b]: { x: 32, y: 28 } }); // now T2 is over too: a new warning
     expect(splitDismissed(both, reviewShow(both)).open.find((i) => i.kind === 'steps')?.ids.sort()).toEqual([a, b].sort());
+  });
+});
+
+describe('dismissing and bringing back several at once', () => {
+  it('dismisses the chosen ones, drops keys for problems that are gone, and brings back some or all', () => {
+    const { show: s0 } = show2();
+    const show = { ...setCounts(s0, 1, 4), movements: [{ id: 'm', name: 'Opener', counts: 64 }] }; // a big step, and counts not written
+    const all = reviewShow(show), keys = all.map((x) => issueKey(show, x));
+    expect(keys).toHaveLength(2);
+    const d = dismissIssues({ ...show, dismissed: ['close:gone:x,y'] }, all, keys);
+    expect(d.dismissed!.sort()).toEqual([...keys].sort()); // the stale key is gone
+    const one = restoreIssues(d, [keys[0]]);
+    expect(splitDismissed(one, reviewShow(one)).open.map((x) => issueKey(one, x))).toEqual([keys[0]]);
+    expect(restoreIssues(d, keys).dismissed).toBeUndefined();
   });
 });

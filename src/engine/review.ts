@@ -47,6 +47,19 @@ export function splitDismissed(show: Show, all: Issue[]): { open: Issue[]; dismi
   return { open: all.filter((x) => !d.has(issueKey(show, x))), dismissed: all.filter((x) => d.has(issueKey(show, x))) };
 }
 
+/** Dismiss these warnings (by issueKey). Keys for problems that are gone are dropped, so the saved list doesn't grow. */
+export function dismissIssues(show: Show, all: Issue[], keys: string[]): Show {
+  const live = new Set(all.map((x) => issueKey(show, x)));
+  return { ...show, dismissed: [...new Set([...(show.dismissed ?? []).filter((k) => live.has(k)), ...keys])] };
+}
+
+/** Bring dismissed warnings back to the list. */
+export function restoreIssues(show: Show, keys: string[]): Show {
+  const drop = new Set(keys), { dismissed: _, ...rest } = show;
+  const left = (show.dismissed ?? []).filter((k) => !drop.has(k));
+  return left.length ? { ...rest, dismissed: left } : rest;
+}
+
 /** Imported paths an edit just made fall back to straight lines: per move (by the set it goes into, in `after`), who. */
 export function newlyStraight(before: Show, after: Show): { set: number; ids: string[] }[] {
   return after.sets.flatMap((set, i) => {
