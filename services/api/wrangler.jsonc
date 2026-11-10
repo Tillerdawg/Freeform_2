@@ -1,0 +1,12 @@
+// FreeFORM's web service. Deploy from this folder: npx wrangler@4.153.0 deploy (see README.md here).
+{
+  "name": "freeform-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-26",
+  "routes": [{ "pattern": "api.freeformdrill.org", "custom_domain": true }],
+  // Sends only to destination addresses verified in Email Routing; which one is the FEEDBACK_TO secret.
+  "send_email": [{ "name": "EMAIL" }],
+  // 3 messages a minute from one visitor.
+  "ratelimits": [{ "name": "LIMITER", "namespace_id": "1001", "simple": { "limit": 3, "period": 60 } }],
+  "observability": { "enabled": true }
+}

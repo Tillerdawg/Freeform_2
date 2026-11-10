@@ -1444,3 +1444,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Who:** Jason.
 - **Context:** `Freeform` was the superseded prototype; `freeform-shows` held old test files for Publish to phones (no browser on the new address was connected to it).
 - **Decision:** Both deleted. `Freeform` was backed up first as a git bundle (Jason has it). Phones that opened a hosted test show from `freeform-shows` keep their saved copy but get no more updates. Publishing will move to the FreeFORM upload service.
+
+## 2026-11-10 13:40 EST — A feedback form, through FreeFORM's own service
+- **Who:** Jason chose a form built into FreeFORM, emailed to his Gmail without showing the address; Claude chose how (*Jason can veto*).
+- **Context:** **Send feedback** opened GitHub's issue forms, which need a GitHub account; Jason didn't want to publish his email address.
+- **Other options:** a Google Form; a forwarding address (feedback@freeformdrill.org); GitHub only.
+- **Decision:** A Cloudflare Worker at api.freeformdrill.org (`services/api`), the start of the service the upload feature will use. The editor's **Help → Send feedback** and the front page's form post a message, an optional name and email, and what it's about; the Worker checks it and sends it with Cloudflare's Email Sending, from feedback@freeformdrill.org, to a verified destination whose address is a Cloudflare secret (`FEEDBACK_TO`), so it's in neither the code nor the site. Replies go to the sender's address when they give one. Guardrails: CORS and an Origin check (only freeformdrill.org), a hidden honeypot field (bots are told it worked), size caps, 3 messages a minute per IP (Workers rate limiting), plain-text email only, and nothing stored. The front page's privacy section says so. A GitHub issue stays the way to attach a show file. Wrangler 4.153.0, the newest at least two weeks old.

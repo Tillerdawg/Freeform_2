@@ -64,6 +64,13 @@
       /* Phones get only the performer view (the editor needs a computer or an iPad), so their buttons point there. */
       .phone-only { display: none; }
       @media (pointer: coarse) and (max-width: 499px), (pointer: coarse) and (max-height: 499px) { .editor-only { display: none !important; } .phone-only { display: inline-flex; } p.phone-only { display: block; } .hero { padding-top: 32px; } } /* = isPhone() in src/perform/device.ts */
+      .fb { display: grid; gap: 12px; max-width: 560px; }
+      .fb label { display: grid; gap: 4px; font-size: 16px; }
+      .fb input, .fb select, .fb textarea { font: inherit; font-size: 16px; color: var(--text); background: var(--bg-deep); border: 1px solid var(--line-strong); border-radius: 6px; padding: 8px; min-height: 44px; box-sizing: border-box; }
+      .fb input:focus-visible, .fb select:focus-visible, .fb textarea:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+      .fb button { justify-self: start; cursor: pointer; font: inherit; }
+      .fb-trap { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; } /* a hidden field only bots fill in */
+      .fb-status { margin: 0; min-height: 1.5em; }
       footer { border-top: 1px solid var(--line); padding: 28px 0 48px; font-size: 16px; }
       footer .wrap { display: flex; gap: 20px; flex-wrap: wrap; }
     </style>
@@ -138,10 +145,11 @@
       <section aria-labelledby="privacy">
         <div class="wrap">
           <h2 id="privacy">Privacy</h2>
-          <p>There's no FreeFORM server and no account, so there's nothing for FreeFORM to collect.</p>
+          <p>FreeFORM has no accounts, and the drill you write never leaves your browser unless you share it.</p>
           <ul>
             <li>Your shows are saved in your own browser, and in the files you save. They aren't sent anywhere.</li>
             <li>There are no ads, no trackers, and no analytics on this site.</li>
+            <li>The feedback form goes to a small FreeFORM service that emails it to me. It isn't stored or used for anything else, and your email address (if you give one) is only for writing back. The service sees your internet address for a moment, to stop anyone sending floods of messages, and doesn't keep it.</li>
             <li>Students' names are left out of plain share links, since anyone with the link can open it.</li>
             <li>A locked show file (for keeping phones up to date) is encrypted in your browser before you put it online. The key is only in the link, so whoever hosts the file can't read it.</li>
             <li>If you publish to GitHub from FreeFORM, your token stays in your browser.</li>
@@ -158,9 +166,33 @@
           <p class="note">FreeFORM is new, and I'm working on it actively. If something doesn't work the way a drill writer would expect, I'd like to hear about it.</p>
           <div class="actions">
             <a class="button primary" href="https://ko-fi.com/tillerdawg">Support FreeFORM</a>
-            <a class="button" href="https://github.com/Tillerdawg/freeform-drill/issues/new/choose">Send feedback</a>
+            <a class="button" href="#feedback">Send feedback</a>
             <a class="button" href="https://github.com/Tillerdawg/freeform-drill">See the code on GitHub</a>
           </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="feedback">
+        <div class="wrap">
+          <h2 id="feedback">Send feedback</h2>
+          <p>Something that doesn't work, an idea, or how drill is done in your program. It goes straight to me, with no account needed, and it isn't posted anywhere.</p>
+          <form id="feedback-form" class="fb">
+            <label>What is it?
+              <select name="kind">
+                <option value="problem">Something doesn't work</option>
+                <option value="idea">An idea</option>
+                <option value="spanish">The Spanish translation</option>
+                <option value="other">Something else</option>
+              </select>
+            </label>
+            <label>Message <textarea name="message" rows="6" maxlength="5000" required></textarea></label>
+            <label>Your name (optional) <input name="name" maxlength="100" autocomplete="name" /></label>
+            <label>Your email (optional, if you'd like an answer) <input name="email" type="email" maxlength="200" autocomplete="email" /></label>
+            <label class="fb-trap" aria-hidden="true">Website <input name="website" tabindex="-1" autocomplete="off" /></label>
+            <button class="button primary" type="submit">Send</button>
+            <p class="fb-status" role="status" aria-live="polite"></p>
+          </form>
+          <p class="note">To share a show file, or if you use GitHub, you can also <a href="https://github.com/Tillerdawg/freeform-drill/issues/new/choose">open an issue</a>.</p>
         </div>
       </section>
     </main>
@@ -173,5 +205,22 @@
         <a href="https://ko-fi.com/tillerdawg">Support FreeFORM</a>
       </div>
     </footer>
+    <script>
+      // The feedback form: sent to FreeFORM's service (services/api in the code), which emails it to Jason.
+      (function () {
+        var f = document.getElementById('feedback-form'), status = f.querySelector('.fb-status'), button = f.querySelector('button');
+        f.addEventListener('submit', function (e) {
+          e.preventDefault();
+          var d = new FormData(f), body = { page: location.pathname, lang: 'en' };
+          d.forEach(function (v, k) { body[k] = v; });
+          button.disabled = true; status.textContent = 'Sending…';
+          fetch('https://api.freeformdrill.org/feedback', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+            .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { if (!r.ok) throw new Error(j.error || r.status); }); })
+            .then(function () { f.reset(); status.textContent = 'Thanks! Your message is on its way.'; })
+            .catch(function (err) { status.textContent = err instanceof TypeError ? "The message couldn't be sent. Check your connection and try again." : err.message; })
+            .then(function () { button.disabled = false; });
+        });
+      })();
+    </script>
   </body>
 </html>

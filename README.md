@@ -115,6 +115,7 @@ node scripts/screenshots.mjs ftl print    # or just these
 | `src/perform/` | The performer view, the Share dialog, and the QR scanner |
 | `index.html`, `app/index.html` | The front page (freeformdrill.org) and the app (freeformdrill.org/app/), which old links (`/#show=…`) are forwarded to |
 | `src/guide/` | Turns `docs/HOW-TO.md` into the guide page on the site (`/guide/`) when the site is built |
+| `services/api/` | FreeFORM's small web service on Cloudflare (api.freeformdrill.org): for now, the feedback form, emailed to Jason. Deploy steps in its README |
 | `public/` | App icons, logos, the link-preview image, the manifest, and the offline service worker (it keeps what the build lists in `precache.json`) |
 | `docs/` | The How-to guide and its screenshots (the only copy: the site's guide page is made from it) |
 | `scripts/` | The screenshot script |

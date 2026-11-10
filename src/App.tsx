@@ -27,6 +27,7 @@ import { parse3dj } from './engine/pyware';
 import { usePlayback } from './ui/usePlayback';
 import { clickWanted, setClickWanted, wakeClick } from './ui/click';
 import { VideoDialog } from './ui/VideoExport';
+import { FeedbackDialog } from './ui/Feedback';
 import { PrintDialog } from './print/Print';
 import { ShareDialog } from './perform/ShareDialog';
 import { PALETTE, useTheme } from './ui/palette';
@@ -38,7 +39,6 @@ import { sampleShow } from './engine/sample';
 import { AUTOSAVE } from './ui/showStore';
 export { AUTOSAVE };
 const GUIDE = '../guide/'; // made from docs/HOW-TO.md when the site is built
-const FEEDBACK = 'https://github.com/Tillerdawg/freeform-drill/issues/new/choose'; // shortcut: needs a GitHub account; swap in a form or email address for people without one
 const UNEXPORTED = 'freeform:unexported-since', unexportedKey = (id?: string) => `${UNEXPORTED}:${id}`, SNOOZE = 'freeform:backup-later', DAY = 86_400_000, BACKUP_DAYS = 7;
 const readTime = (k: string) => { try { const n = Number(localStorage.getItem(k)); return n > 0 ? n : null; } catch { return null; } };
 const writeTime = (k: string, n: number | null) => { try { if (n) localStorage.setItem(k, String(n)); else localStorage.removeItem(k); } catch { /* storage blocked */ } };
@@ -809,6 +809,7 @@ export function App() {
   useEffect(() => { if (new URLSearchParams(location.search).has('sample')) { history.replaceState(null, '', location.pathname + location.hash); trySample(); } }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const [library, setLibrary] = useState(false);
   const [video, setVideo] = useState(false); // the Make a video dialog
+  const [feedback, setFeedback] = useState(false); // the Send feedback form
   const act: ShowActions = {
     flush,
     fresh: () => fresh().then(() => setLibrary(false)),
@@ -873,7 +874,7 @@ export function App() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'stretch' }}>
               <button onClick={() => { close(); window.open(GUIDE, '_blank', 'noopener'); }} title="The step-by-step guide, with pictures (opens in a new tab)">How-to guide</button>
               <button onClick={() => { close(); trySample(); }} title="Open the 47-performer sample show as a show of its own (yours stays under Shows…)">Try the sample show</button>
-              <button onClick={() => { close(); window.open(FEEDBACK, '_blank', 'noopener'); }} title="Report a problem or suggest something (opens in a new tab)">Send feedback</button>
+              <button onClick={() => { close(); setFeedback(true); }} title="Report a problem or suggest something: it goes straight to Jason, no account needed">Send feedback</button>
               <button onClick={() => { close(); window.open('https://ko-fi.com/tillerdawg', '_blank', 'noopener'); }} title="FreeFORM is free and always will be. A tip on Ko-fi helps with hosting (opens in a new tab)">Support FreeFORM</button>
               <button onClick={() => { close(); window.open('../', '_blank', 'noopener'); }} title="FreeFORM Drill's front page: what it is, privacy, and coming from Pyware (opens in a new tab)">About FreeFORM Drill</button>
             </div>
@@ -979,6 +980,7 @@ export function App() {
       {sharing && <ShareDialog show={show} onClose={() => setSharing(false)} setRevision={(n) => setShow((s) => ({ ...s, revision: n }))} />}
       {roster && <RosterImport show={show} setShow={setShow} onClose={() => setRoster(false)} />}
       {library && <ShowsDialog show={show} act={act} onClose={() => setLibrary(false)} />}
+      {feedback && <FeedbackDialog onClose={() => setFeedback(false)} />}
       {video && <VideoDialog show={show} bpm={bpm} onClose={() => setVideo(false)} />}
       {printing && <PrintDialog show={show} selected={selected} onClose={() => setPrinting(false)} />}
       <input ref={fileRef} type="file" accept=".freeform,.json,application/json,.3dj" hidden

@@ -105,7 +105,7 @@ Claude went through the docs, ran the tests, and clicked through the editor and 
 - ✅ "Coming from Pyware or UDB" on the front page: what's the same, the `.3dj` import and its limits, what FreeFORM doesn't do yet, and that it isn't affiliated with either.
 - ✅ Privacy on the front page: no server, no accounts, no trackers or analytics, names out of plain share links, locked files, the GitHub token, and GitHub Pages' logs.
 - ✅ A school Chromebook warning in the guide's Before you start.
-- ✅ **Send feedback** under **Help** and on the front page. For now it opens GitHub's issue forms, which need a GitHub account. Next (Jason, 2026-11-10): a feedback form built into FreeFORM, no account and no email address shown, sent to a small FreeFORM service on Cloudflare (the same Worker as the upload service), with the same guardrails (rate limits, size limits, a spam check).
+- ✅ **Send feedback** under **Help** and on the front page. For now it opens GitHub's issue forms, which need a GitHub account. ✅ Built (2026-11-10): **Send feedback** is a form in the editor and on the front page (English and Spanish), sent to FreeFORM's service at api.freeformdrill.org (`services/api`, a Cloudflare Worker) and emailed to Jason; his address is a Cloudflare secret, never public. Guardrails: only the site may post, a hidden bot field, a 5,000-character cap, 3 messages a minute per visitor, nothing stored. Waiting on: Jason's Email Routing and Email Sending setup and the first deploy (steps in `services/api/README.md`).
 - ✅ **About FreeFORM Drill** under **Help** (the front page), and "What's FreeFORM Drill?" on the phone's start screen.
 
 ### Repository
