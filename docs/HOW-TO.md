@@ -423,18 +423,22 @@ Click **Share…** in the sidebar. The dialog has two choices at the top, and ea
 - A link can't carry audio, so the music isn't included. Phones can still play at a tempo.
 - Changes you make later aren't sent. After you edit, share a new link.
 
-**Keep phones up to date** is better for a real season. FreeFORM makes a *locked* show file, encrypted in your browser, and you put that file online. The link that opens it is short, makes a QR code that scans easily, and keeps working when you update the show: performers' phones pick up your latest version the next time they open it online. The key that unlocks the file is only in the link, so whoever hosts the file can't read it. **The link is the password, so share it only with your band.** A locked file carries names and, if you check the box, the music.
+**Keep phones up to date** is better for a real season. Click **Publish to phones**, and you get one short link (and a QR code that scans easily) that keeps working when you change the show: after an edit, click **Publish update**, and performers' phones pick up your latest version the next time they open it online, within a minute or so. There's no account and no setup. A published show carries performers' names and, if you check the box, the music.
 
-![Keep phones up to date, before setup](img/share-update.png)
+![Keep phones up to date](img/share-update.png)
 
-There are two ways to put the file online. Both are under **Setup** at the bottom of the dialog:
+**Your show is encrypted before it leaves your computer.** FreeFORM locks the show in your browser with a secret key, and the key is only in your link: in the part after the #, which browsers never send to any server. The file that goes online is unreadable without that key. No one can open your show, not even FreeFORM or me, unless they have your link. That makes **the link the password, so share it only with your band.** Your browser remembers the link, but keep a copy too (your band's group chat is fine): without the link, no one can recover the key.
 
-- **Publish to phones** does it in one click once you connect FreeFORM (under **Setup**) to a public GitHub repository of your own. (Public is fine, since the file is encrypted.) You'll need the repository's name and a fine-grained GitHub token that can write only to that repository (*Contents: Read and write*). Both stay in your browser. After that, **Publish update** replaces the file, and the link and QR code never change.
-- **Or host the file yourself** (also under **Setup**): download the locked file and upload it anywhere that gives you a direct link to it. A GitHub repository works (upload the file, open it, and copy its **Raw** link). Paste that address into the box and FreeFORM makes your short link.
+FreeFORM's service keeps published shows for free. A show nobody has opened or updated for a year is deleted automatically. **Stop sharing** takes a show off right away.
+
+**Other ways to host it**, at the bottom of the dialog, are for directors who'd rather keep the file themselves. It's the same locked file either way:
+
+- **Publish to your own GitHub repository** in one click, once you connect FreeFORM to a public repository of your own. (Public is fine, since the file is encrypted.) You'll need the repository's name and a fine-grained GitHub token that can write only to that repository (*Contents: Read and write*). Both stay in your browser.
+- **Host the file yourself**: download the locked file and upload it anywhere that gives you a direct link to it. Paste that address into the box, and FreeFORM makes your short link.
 
 **Revision numbers.** Each time you click **Publish to phones** (or **Publish update**), or download a locked file, the show's revision number goes up by one. Phones show it under the set ("Revision 6"), and so do printed charts and dot sheets. At rehearsal, "Does everyone have revision 6?" is a quick check. A hosted show on a phone also says when it last checked for an update ("checked for updates 3:42 PM"). Share links don't change the number.
 
-To cut off old links (say, a student leaves the program), clear the address and start over. Phones that already have the show keep their copy but get no more updates.
+To cut off a link (say, a student leaves the program), click **Stop sharing**, then **Publish to phones** again for a new link, and send the new one to everyone else. Phones that already had the show keep their copy but get no more updates, and a student who opens the old link is told it isn't online anymore.
 
 ## What performers see on their phones
 

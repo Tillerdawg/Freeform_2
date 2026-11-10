@@ -6,11 +6,20 @@ import { synced } from '../engine/music';
 import { getAudio } from '../ui/audioStore';
 import { useDialog } from '../ui/useDialog';
 import { checkRepo, fileNameFor, publishFile, REPO_RE, type GitHubTarget } from '../engine/github';
+import { cloudUrl, publishCloud, unpublishCloud, type CloudShow } from '../engine/cloud';
 
 // The director's GitHub repository and token for one-click publishing, kept only in this browser.
 const GH = 'freeform:github';
 const loadGh = (): GitHubTarget | null => { try { const g = JSON.parse(localStorage.getItem(GH) ?? 'null'); return g && typeof g.token === 'string' && REPO_RE.test(g.repo) ? g : null; } catch { return null; } };
 const saveGh = (g: GitHubTarget | null) => { try { if (g) localStorage.setItem(GH, JSON.stringify(g)); else localStorage.removeItem(GH); } catch { /* not remembered */ } };
+
+// Shows published through FreeFORM's service, per show in this browser: the service's id and the edit token that lets
+// this browser update or remove it (the key is in the link, as for any hosted show).
+const CLOUD = 'freeform:cloud';
+const loadCloud = (): Record<string, CloudShow> => { try { return JSON.parse(localStorage.getItem(CLOUD) ?? '{}') ?? {}; } catch { return {}; } };
+const saveCloud = (id: string, c: CloudShow | null) => {
+  try { const all = loadCloud(); if (c) all[id] = { id: c.id, token: c.token }; else delete all[id]; localStorage.setItem(CLOUD, JSON.stringify(all)); } catch { /* not remembered */ }
+};
 
 // Hosted links are remembered per show in this browser: by its id, or by title for a show from before ids (and links saved before ids).
 const LINKS = 'freeform:hosted-links';
@@ -39,7 +48,8 @@ export function ShareDialog({ show, onClose, setRevision }: { show: Show; onClos
   const [field, setField] = useState(() => loadLinks()[sid] ?? loadLinks()[show.title] ?? '');
   const [madeKey, setMadeKey] = useState<string | null>(() => loadKeys()[sid] ?? loadKeys()[show.title] ?? null);
   const [gh, setGh] = useState(loadGh);
-  const [mode, setMode] = useState<'send' | 'live'>(field || gh ? 'live' : 'send'); // starts on Keep phones up to date once that's set up
+  const [cloud, setCloud] = useState<CloudShow | null>(() => loadCloud()[sid] ?? null);
+  const [mode, setMode] = useState<'send' | 'live'>(field || gh || cloud ? 'live' : 'send'); // starts on Keep phones up to date once it's in use
   const pasted = (() => { const h = linkHash(field); return h ? parseHosted(h) : null; })();
   const fileUrl = pasted ? pasted.url : field.trim();
   const key = pasted ? pasted.key : madeKey;
@@ -89,6 +99,31 @@ export function ShareDialog({ show, onClose, setRevision }: { show: Show; onClos
       setBusy(`Published revision ${s.revision}, ${new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}. Phones that already have the show get this version the next time they open it (GitHub can take a few minutes to serve it).`);
     } catch (e) { setBusy(`✗ ${e instanceof Error ? e.message : String(e)}`); }
   };
+  // One click with FreeFORM's own service: lock (with this link's key), upload, show the link. No account or setup.
+  const onService = !!cloud && fileUrl === cloudUrl(cloud.id);
+  const publishFF = async () => {
+    setBusy('Publishing…');
+    try {
+      const k = key ?? newKey();
+      const s = next();
+      const r = await publishCloud(await lockShow(s, k, withMusic && audio ? audio : undefined), cloud);
+      const replaced = r.fresh && !!hosted; // a new address: the link they had stops updating
+      saveCloud(sid, r); setCloud(r); setField(hostedLink(base, cloudUrl(r.id), k)); saveKey(null); setRevision(s.revision!);
+      const at = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+      setBusy(r.fresh
+        ? `Published revision ${s.revision}, ${at}. Send this link to your band.${replaced ? ' It’s a new link: phones with the old one keep their copy but won’t get updates.' : ''}`
+        : `Published revision ${s.revision}, ${at}. Phones that already have the show get this version the next time they open it (within a minute or so).`);
+    } catch (e) { setBusy(`✗ ${e instanceof Error ? e.message : String(e)}`); }
+  };
+  const stopSharing = async () => {
+    if (!cloud || !confirm('Take this show off FreeFORM’s service? The link stops working. Phones that already have the show keep the copy they have, but get no more updates.')) return;
+    setBusy('Taking it offline…');
+    try {
+      await unpublishCloud(cloud);
+      saveCloud(sid, null); setCloud(null); setField(''); setMadeKey(null); saveKey(null);
+      setBusy('Taken offline. Publish again for a new link.');
+    } catch (e) { setBusy(`✗ ${e instanceof Error ? e.message : String(e)}`); }
+  };
   const copy = async (text: string) => {
     try { await navigator.clipboard.writeText(text); setNote('Link copied.'); } catch { setNote('Copy failed: select the link and copy it.'); }
   };
@@ -124,34 +159,52 @@ export function ShareDialog({ show, onClose, setRevision }: { show: Show; onClos
             <button className="primary" disabled={!url} onClick={() => copy(url)}>Copy link</button>
           </div>
         </> : <>
-          <p style={{ margin: '0 0 6px' }}>
-            One short link that stays the same. When you publish an update, phones get it the next time they open the show with a connection. The show is
-            encrypted in this browser before it goes online: without your link, the file is unreadable.
+          <p style={{ margin: '0 0 8px' }}>
+            One short link that stays the same. When you publish an update, phones get it the next time they open the show with a connection.
           </p>
+          {/* Jason: make sure directors know the file is encrypted and unreadable without their key. */}
+          <div role="note" aria-label="Your show is encrypted" style={{ border: '1px solid var(--green-line)', borderRadius: 8, padding: '8px 10px', margin: '0 0 10px' }}>
+            <strong>Your show is encrypted before it leaves this computer.</strong>
+            <p style={{ margin: '6px 0 0' }}>
+              FreeFORM locks the show in this browser with a secret key, and that key is only in your link (the part after the #, which
+              browsers never send to any server). The file that goes online is unreadable without it: no one can open your show, not even
+              FreeFORM, unless they have your link.
+            </p>
+            <p style={{ margin: '6px 0 0' }}>
+              So the link is the password. Share it only with your band. This browser remembers it, but keep a copy too: without the link,
+              no one can recover the key.
+            </p>
+          </div>
           <p style={{ margin: '0 0 8px' }}>
             <strong>Included:</strong> the drill, sets, counts, notes, and performers' names{synced(show.music) ? ', and the music if you include it below' : ''}.
           </p>
           {audio && <label style={{ display: 'block', fontSize: 12, margin: '0 0 6px' }}><input type="checkbox" checked={withMusic} onChange={(e) => setWithMusic(e.target.checked)} />{' '}
             Include the music ({show.music!.name}, {(audio.size / 1e6).toFixed(1)} MB), so phones play the drill with it</label>}
           {!audio && synced(show.music) && <p style={{ ...small, margin: '0 0 6px' }}>To include the music, load {show.music!.name} in Music ▾ first.</p>}
-          {gh ? <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-            <button className="primary" disabled={busy === 'Publishing…'} onClick={publish}>{hosted ? 'Publish update' : 'Publish to phones'}</button>
-            <span style={{ fontSize: 12, opacity: 0.8 }}>to {gh.repo}</span>
-          </div> : !hosted && <p style={small}>Publishing needs a one-time setup first: open <strong>Setup</strong> below.</p>}
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            <button className="primary" disabled={busy === 'Publishing…'} onClick={publishFF}>{onService ? 'Publish update' : 'Publish to phones'}</button>
+            <span style={{ fontSize: 12, opacity: 0.8 }}>Free, with no account. Shows nobody opens for a year are deleted.</span>
+          </div>
           {busy && <p role="status" style={{ fontSize: 12, margin: '6px 0 0' }}>{busy}</p>}
           {hosted && <>
             {hostedQr && <div role="img" aria-label="QR code for the hosted link" style={{ background: '#fff', width: 200, margin: '8px auto' }} dangerouslySetInnerHTML={{ __html: hostedQr }} />}
             <p role="status" style={{ fontSize: 12, margin: '4px 0' }}>{check}</p>
-            <div style={{ display: 'flex', justifyContent: 'flex-end' }}><button onClick={() => copy(hosted)}>Copy hosted link</button></div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap' }}>
+              {onService && <button onClick={stopSharing} title="Take the show off FreeFORM's service: the link stops working">Stop sharing</button>}
+              <button onClick={() => copy(hosted)}>Copy link</button>
+            </div>
             <p style={{ fontSize: 12, opacity: 0.75, margin: '6px 0 0' }}>
-              The link is the password: anyone who has it can open the show, so share it only with your band. <strong>To update</strong> after
-              edits, publish again (or download the locked file again, which reuses this link's key, and replace the file online), and phones
-              pick it up. To cut off old links, clear the address box (under "host the file yourself") and publish or download a new file.
+              <strong>To update</strong> after edits, publish again: the link stays the same, and phones pick up the new version. <strong>To cut off a
+              link</strong> (say, a student leaves the program), click <strong>Stop sharing</strong>, then publish again for a new link.
             </p>
           </>}
-          <details style={{ margin: '10px 0' }} open={!gh && !field}>
-            <summary>Setup{gh ? '' : ' (once)'}</summary>
-            {gh ? <p style={small}>Publishing to {gh.repo} on GitHub. <button style={{ fontSize: 12 }} onClick={() => { saveGh(null); setGh(null); setBusy(''); }}>Disconnect</button></p>
+          <details style={{ margin: '10px 0' }}>
+            <summary>Other ways to host it</summary>
+            <p style={small}>The same locked file, kept somewhere of your own instead of FreeFORM's service.</p>
+            {gh ? <div style={{ ...small, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                <button disabled={busy === 'Publishing…'} onClick={publish}>Publish to {gh.repo} on GitHub</button>
+                <button style={{ fontSize: 12 }} onClick={() => { saveGh(null); setGh(null); setBusy(''); }}>Disconnect GitHub</button>
+              </div>
               : <ConnectGitHub onConnected={(g) => { saveGh(g); setGh(g); }} />}
             <details style={{ margin: '8px 0 0', fontSize: 12 }}>
               <summary>Or host the file yourself</summary>
@@ -191,7 +244,7 @@ function ConnectGitHub({ onConnected }: { onConnected: (g: GitHubTarget) => void
   };
   return (
     <div style={{ fontSize: 12, border: '1px solid var(--line)', padding: 8 }}>
-      <strong>Publish straight from FreeFORM</strong> (one-time setup with GitHub):
+      <strong>Publish to your own GitHub repository</strong> (one-time setup):
       <ol style={{ margin: '4px 0', paddingLeft: 20 }}>
         <li>Make a <em>public</em> repository for your shows (e.g. freeform-shows), with a README so it isn't empty.</li>
         <li><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noreferrer" style={{ color: 'var(--blue)' }}>Make a fine-grained token</a>:

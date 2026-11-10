@@ -99,7 +99,8 @@ describe('hosted links', () => {
     const link = '#load=' + encodeURIComponent(gist);
     expect((await fetchShow(link, serve(JSON.stringify(show)))).performers).toEqual(show.performers); // unlocked files still open
     await expect(fetchShow(link, serve('{"not":"a show"}'))).rejects.toThrow(/Not a valid FreeFORM show/);
-    await expect(fetchShow(link, serve('', 404))).rejects.toThrow(/404/);
+    await expect(fetchShow(link, serve('', 404))).rejects.toThrow(/isn't online anymore/);
+    await expect(fetchShow(link, serve('', 500))).rejects.toThrow(/500/);
     const down = (async () => { throw new TypeError('Failed to fetch'); }) as unknown as typeof fetch;
     await expect(fetchShow(link, down)).rejects.toThrow(/allows other sites/);
   });

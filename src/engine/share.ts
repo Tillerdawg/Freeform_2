@@ -119,6 +119,7 @@ export async function fetchHosted(hash: string, fetcher: typeof fetch = fetch): 
   try { res = await fetcher(h.url, { cache: 'no-cache' }); } catch {
     throw new Error("Couldn't download the show. Check your connection, or that the file allows other sites to read it.");
   }
+  if (res.status === 404) throw new Error("This show isn't online anymore. Ask your director for a new link.");
   if (!res.ok) throw new Error(`Couldn't download the show (the server said ${res.status}).`);
   const text = await res.text();
   if (text.length > MAX_BYTES) throw new Error('That file is too big to be a show.');

@@ -1,8 +1,11 @@
 # FreeFORM's web service (api.freeformdrill.org)
 
-A Cloudflare Worker. For now it does one thing: the feedback form (in the editor's **Help** menu and on the front page) posts here, and it emails the message to Jason. Nothing is stored. Later the upload service for **Keep phones up to date** goes here too.
+A Cloudflare Worker with two jobs:
 
-Guardrails: only freeformdrill.org may post (CORS and the Origin header), a hidden field catches bots, messages are capped at 5,000 characters, and each visitor can send 3 messages a minute. The email is plain text, so nothing a sender types is ever treated as HTML.
+- **Feedback** (`POST /feedback`): the form in the editor's **Help** menu and on the front page posts here, and the message is emailed to Jason. Nothing is stored.
+- **Published shows** (`/shows`): **Publish to phones** in the Share dialog. The director's browser uploads a show file it has already encrypted (the key is only in the link it gives performers, after the #), and phones download it with `GET /shows/<id>`. The service can't read the files. `POST /shows` publishes and returns an id and an edit token (only its hash is kept); `PUT` and `DELETE /shows/<id>` with that token update or remove it. Files live in Workers KV (free: 1 GB in all, 25 MB a file); a daily job deletes shows nobody has opened or updated for a year.
+
+Guardrails: only freeformdrill.org may post (CORS and the Origin header); feedback has a hidden field that catches bots, a 5,000-character cap, and 3 messages a minute per visitor, and the email is plain text, so nothing a sender types is ever treated as HTML; publishing takes only locked show files (checked by shape), up to 24 MB, 6 publishes a minute per visitor, and changes only with the show's edit token.
 
 The address the email goes to is a Cloudflare secret, `FEEDBACK_TO`. It isn't in this code or on the site.
 
@@ -17,7 +20,7 @@ That's all: the service sends through Email Routing, which is free for verified 
 ```sh
 cd services/api
 npx wrangler@4.153.0 secret put FEEDBACK_TO   # paste the verified address when it asks
-npx wrangler@4.153.0 deploy                   # also creates api.freeformdrill.org
+npx wrangler@4.153.0 deploy                   # also creates api.freeformdrill.org and, the first time, the KV storage for shows
 ```
 
 Then send a test from the front page's form. `npx wrangler@4.153.0 tail` shows the service's log live.

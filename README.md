@@ -55,7 +55,7 @@ A note on where the ideas came from: FreeFORM is modeled on Pyware and the Ultim
 - Dot sheets (four cards per page, one per page with a notes column, or one per page with a small field picture for each set, like a dot book) and drill charts (one per set, with or without the paths into it), printed or saved as PDF, for the whole show or a range of sets.
 - A video of the show (MP4, the whole field, with the music and the set and count on screen) for the group chat, staff, or boosters.
 - A Share dialog with two choices: **Send this version** (a link with a QR code; the whole show is in the link, with no server involved) or **Keep phones up to date**. Each says what's included (names, notes, music) before you get a link.
-- Locked hosted links that update themselves on phones, can carry the music, and keep names private. One-click publishing to your own GitHub repository. Each publish gets a revision number that shows on phones and printed sheets.
+- **Publish to phones**: one click, no account. The show is encrypted in your browser, and the key is only in the link, so the copy online can't be read without it. The link updates itself on phones, can carry the music, and keeps names private. (Or publish to your own GitHub repository, or host the file anywhere.) Each publish gets a revision number that shows on phones and printed sheets.
 - The phone's performer view and the front page in Spanish (a first draft; the editor is next).
 - A performer view for phones: pick who you are, follow your dot, and see your spot now, your next spot, and the counts to get there, with the step size in plain words ("normal steps, moving back and to your left"). A phone keeps several shows (the Opener, Ballad, and Closer as separate files) and switches between them from a menu. Students can loop a range of sets to practice, with a 4-count count-in if they like. It works offline once it's opened, and it says so plainly if the phone can't save it.
 
@@ -115,7 +115,7 @@ node scripts/screenshots.mjs ftl print    # or just these
 | `src/perform/` | The performer view, the Share dialog, and the QR scanner |
 | `index.html`, `app/index.html` | The front page (freeformdrill.org) and the app (freeformdrill.org/app/), which old links (`/#show=…`) are forwarded to |
 | `src/guide/` | Turns `docs/HOW-TO.md` into the guide page on the site (`/guide/`) when the site is built |
-| `services/api/` | FreeFORM's small web service on Cloudflare (api.freeformdrill.org): for now, the feedback form, emailed to Jason. Deploy steps in its README |
+| `services/api/` | FreeFORM's small web service on Cloudflare (api.freeformdrill.org): the feedback form (emailed to Jason) and published shows (encrypted files only, in Workers KV, cleaned up after a year unused). Deploy steps in its README |
 | `public/` | App icons, logos, the link-preview image, the manifest, and the offline service worker (it keeps what the build lists in `precache.json`) |
 | `docs/` | The How-to guide and its screenshots (the only copy: the site's guide page is made from it) |
 | `scripts/` | The screenshot script |
