@@ -34,8 +34,10 @@ import { layoutPref, setLayoutPref } from './ui/layout';
 import { RosterImport } from './ui/RosterImport';
 import { sampleShow } from './engine/sample';
 
-export const AUTOSAVE = 'freeform:autosave';
-const GUIDE = './guide/'; // made from docs/HOW-TO.md when the site is built
+import { AUTOSAVE } from './ui/showStore';
+export { AUTOSAVE };
+const GUIDE = '../guide/'; // made from docs/HOW-TO.md when the site is built
+const FEEDBACK = 'https://github.com/Tillerdawg/Freeform_2/issues/new/choose'; // shortcut: needs a GitHub account; swap in a form or email address for people without one
 const UNEXPORTED = 'freeform:unexported-since', unexportedKey = (id?: string) => `${UNEXPORTED}:${id}`, SNOOZE = 'freeform:backup-later', DAY = 86_400_000, BACKUP_DAYS = 7;
 const readTime = (k: string) => { try { const n = Number(localStorage.getItem(k)); return n > 0 ? n : null; } catch { return null; } };
 const writeTime = (k: string, n: number | null) => { try { if (n) localStorage.setItem(k, String(n)); else localStorage.removeItem(k); } catch { /* storage blocked */ } };
@@ -802,6 +804,8 @@ export function App() {
   const [openAdd, setOpenAdd] = useState(0);
   // The docs' demo show, to look around in before writing one: a show of its own in the library.
   const trySample = async () => { await flush(); openShow({ ...sampleShow(), id: newShowId() }); setTool('select'); }; // in the main bundle: the offline cache only keeps files the page links
+  // The front page's "Try the sample show" opens app/?sample.
+  useEffect(() => { if (new URLSearchParams(location.search).has('sample')) { history.replaceState(null, '', location.pathname + location.hash); trySample(); } }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const [library, setLibrary] = useState(false);
   const act: ShowActions = {
     flush,
@@ -848,12 +852,13 @@ export function App() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Fixed height, no wrapping: nothing up here may resize the field (a canvas resize clears it, which flashes). */}
+      <header style={{ display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
       {/* The logo, a hint, and the theme button; the hint gives up space first. */}
       <div style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '0 12px', height: coarse() ? 56 : 40, flexShrink: 0, whiteSpace: 'nowrap', overflowX: 'auto', overflowY: 'hidden', scrollbarWidth: 'none' }}>
         {/* The small logo; just the curve when the window is narrow. */}
         <span className="tb-long-sm" style={{ flex: '1 1 0', minWidth: 0, display: 'flex' }}>
-          <picture><source media="(max-width: 1000px)" srcSet={theme === 'light' ? './mark-light.svg' : './mark.svg'} />
-            <img src={theme === 'light' ? './logo-small-light.svg' : './logo-small.svg'} alt="FreeFORM Drill" style={{ height: coarse() ? 30 : 24, display: 'block' }} /></picture>
+          <picture><source media="(max-width: 1000px)" srcSet={theme === 'light' ? '../mark-light.svg' : '../mark.svg'} />
+            <img src={theme === 'light' ? '../logo-small-light.svg' : '../logo-small.svg'} alt="FreeFORM Drill" style={{ height: coarse() ? 30 : 24, display: 'block' }} /></picture>
         </span>
         <span style={{ flex: '1 1 0', fontSize: 12, opacity: tool === 'turn' ? 1 : 0.7, color: tool === 'turn' ? 'var(--gold)' : undefined, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'right' }}>{tool === 'turn' ? (coarse() ? "Tap the field for each of the leader's turns, in marching order · then tap Select" : "Click the field for each of the leader's turns, in marching order · Esc when done")
           : coarse() ? 'Two fingers: drag to move around, pinch to zoom' : 'Scroll to pan · pinch or ⌘/Ctrl+scroll to zoom · right-drag pans'}</span>
@@ -866,6 +871,8 @@ export function App() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'stretch' }}>
               <button onClick={() => { close(); window.open(GUIDE, '_blank', 'noopener'); }} title="The step-by-step guide, with pictures (opens in a new tab)">How-to guide</button>
               <button onClick={() => { close(); trySample(); }} title="Open the 47-performer sample show as a show of its own (yours stays under Shows…)">Try the sample show</button>
+              <button onClick={() => { close(); window.open(FEEDBACK, '_blank', 'noopener'); }} title="Report a problem or suggest something (opens in a new tab)">Send feedback</button>
+              <button onClick={() => { close(); window.open('../', '_blank', 'noopener'); }} title="FreeFORM Drill's front page: what it is, privacy, and coming from Pyware (opens in a new tab)">About FreeFORM Drill</button>
             </div>
           )}</Menu>
         </span>
@@ -886,11 +893,12 @@ export function App() {
         onFit={fit} sidebar={{ open: sideOpen, toggle: () => setSideChoice(!sideOpen), left: sideLeft }}
         timeline={{ open: timelineOpen, toggle: () => setTimelineOpen(!timelineOpen), top: timelineTop }}
         shape={shapeEdit?.shape ?? null} startShape={startShape} updateShape={updateShape} endShape={() => setShapeEdit(null)} />
+      </header>
       <div style={{ flex: 1, display: 'flex', flexDirection: sideLeft ? 'row-reverse' : 'row', minHeight: 0, position: 'relative' }}>
-      <div style={{ flex: 1, display: 'flex', flexDirection: timelineTop ? 'column-reverse' : 'column', minWidth: 0 }}>
+      <main style={{ flex: 1, display: 'flex', flexDirection: timelineTop ? 'column-reverse' : 'column', minWidth: 0 }}>
         <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
         <canvas
-          ref={canvasRef}
+          ref={canvasRef} aria-label="Drill field: click a performer to select them (the sidebar's Roster lists everyone)"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', touchAction: 'none', cursor: tool === 'add' ? 'copy' : tool === 'text' ? 'text' : tool === 'select' ? 'default' : 'crosshair' }}
           onContextMenu={(e) => e.preventDefault()}
           onPointerDown={onPointerDown}
@@ -943,12 +951,12 @@ export function App() {
         )}
         </div>
         {/* Hidden, not unmounted, like the sidebar: its zoom and menus survive. */}
-        <div style={timelineOpen ? { [timelineTop ? 'borderBottom' : 'borderTop']: '1px solid var(--line)' } : { display: 'none' }}>
+        <section aria-label="Timeline" style={timelineOpen ? { [timelineTop ? 'borderBottom' : 'borderTop']: '1px solid var(--line)' } : { display: 'none' }}>
         <Timeline click={{ on: clickOn, set: (on) => { setClickOn(on); setClickWanted(on); if (on) wakeClick(); } }} wave={wave && show.music && show.music.taps.length >= 2 ? { peaks: wave, taps: show.music.taps } : undefined} show={show} setShow={setShow} t={t} setT={(x) => { setPlaying(false); setT(x); }} playing={playing} setPlaying={setPlaying} bpm={bpm} setBpm={setBpm}
           range={range} setRange={setRange} span={span} onCloseCall={showCloseCall} onOverLimit={showOverLimit}
           music={<MusicMenu show={show} setShow={setShow} audio={audio} onAudio={() => setAudioTick((n) => n + 1)} useMusic={useMusic} setUseMusic={setUseMusic} />} />
-        </div>
-      </div>
+        </section>
+      </main>
       {/* Hidden, not unmounted: open panels and drafts survive closing it. */}
       <div style={!sideOpen ? { display: 'none' } : { display: 'flex', [sideLeft ? 'borderRight' : 'borderLeft']: '1px solid var(--line)', ...(narrow ? { position: 'absolute', top: 0, bottom: 0, [sideLeft ? 'left' : 'right']: 0, maxWidth: '100%', zIndex: 10,
         background: 'var(--bg)', boxShadow: `${sideLeft ? 6 : -6}px 0 16px rgba(0,0,0,0.45)` } : {}) }}>

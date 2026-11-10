@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import html from '../../index.html?raw';
+import app from '../../app/index.html?raw';
+import front from '../../index.html?raw';
 import { LIGHT, PALETTE } from './palette';
 
-describe('one palette', () => {
-  it("index.html's CSS variables are exactly the palette the canvas uses", () => {
+describe.each([['app/index.html', app], ['index.html (the front page)', front]])('one palette: %s', (_, html) => {
+  it("the page's CSS variables are exactly the palette the canvas uses", () => {
     const root = html.match(/:root \{([^}]*)\}/)![1];
     const vars = Object.fromEntries([...root.matchAll(/--([\w-]+):\s*(#[0-9a-f]{6})/g)].map((m) => [m[1], m[2]]));
     expect(vars).toEqual(PALETTE);
@@ -11,7 +12,8 @@ describe('one palette', () => {
     expect(Object.fromEntries([...light.matchAll(/--([\w-]+):\s*(#[0-9a-f]{6})/g)].map((m) => [m[1], m[2]]))).toEqual(LIGHT);
   });
   it('the page styles name colors from the palette, not loose hex values (print styles excepted)', () => {
-    const screen = html.slice(html.indexOf(':root {'), html.indexOf('@media print'));
+    const end = html.indexOf('@media print');
+    const screen = html.slice(html.indexOf(':root {'), end < 0 ? html.indexOf('</style>') : end);
     const loose = screen.replace(/:root \{[^}]*\}/, '').replace(/:root\[data-theme=light\] \{[^}]*\}/, '').match(/#[0-9a-fA-F]{3,6}\b/g) ?? [];
     expect(loose.filter((c: string) => !['#000', '#fff'].includes(c))).toEqual([]);
   });

@@ -1357,3 +1357,57 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Context:** Jason asked Claude to go through the docs, the app, and the tests, and say what would make FreeFORM better for drill writers, directors, and students. The review found phone layout problems, small click targets, accessibility gaps, no front door on the site, and the GitHub token as the main barrier to other directors using hosted links.
 - **Other options:** take only some of them; open GitHub issues instead of plan items.
 - **Decision:** All of them go in PLAN.md under "From the 2026-11-10 review." The order within it (phone layout, front door, upload service, pilot) is Claude's suggestion (*Jason can veto*). Nothing is built yet.
+
+## 2026-11-10 10:45 EST — A front page at /, the editor at /app/
+- **Who:** Jason chose the layout (landing at /, editor at /app/); Claude chose the details (*Jason can veto*).
+- **Context:** freeformdrill.org opened straight into the editor, and on a phone it said only "Open the show link your director sent you," with nothing about what FreeFORM is.
+- **Other options:** a page at /about/ with the editor staying at /; no front page yet.
+- **Decision:** `index.html` is the front page; the app is `app/index.html`. Links made before the move (`/#show=…`, `/#load=…`, `/#perform`) and a home-screen app opened at / are forwarded to /app/ before the page draws, so nothing a student has stops working. The manifest keeps its identity (`id: "./"`, the old start address) and starts at app/. Browser storage is per site, not per page, so shows, phones' saved shows, and settings carry over. Privacy and "Coming from Pyware or UDB" are sections of the front page rather than pages of their own (Claude: one page to keep up to date). Its QR code opens the sample show from a file the build writes (`sample.freeform`, the same ids every build), so the code stays short enough to scan off a screen; a share link with the whole show inside made a very dense code. The comparison says only what FreeFORM does and doesn't do, not Pyware's prices or tiers, which change and which Claude couldn't check.
+
+## 2026-11-10 10:45 EST — The editor and the performer view are separate downloads
+- **Who:** Claude (*Jason can veto*), from the review.
+- **Context:** A phone downloaded the whole editor (216 KB zipped) to show one dot. The single bundle was on purpose: the offline cache kept only files the page linked.
+- **Other options:** keep one bundle.
+- **Decision:** `main.tsx` loads the editor or the performer view on demand, and the QR scanner loads only when someone scans (a phone now fetches about 107 KB zipped). The build writes `precache.json` (both pages, every built file, the icons and logos); the service worker caches all of it at install and tops it up after each online visit, so the view you haven't opened yet still works offline. Checked offline in Chromium for the editor, the performer view, and the front page.
+
+## 2026-11-10 10:45 EST — Light or dark follows the device
+- **Who:** Claude, from the review item Jason approved (*Jason can veto*).
+- **Context:** Dark was the default for everyone; the plan had "follow the device's setting" as "later, if wanted."
+- **Other options:** keep dark as the default.
+- **Decision:** Until someone clicks the sun/moon button, FreeFORM (editor, phone, front page) follows the device's light or dark setting, and changes with it. A click is remembered as before and wins. Most Macs and Windows PCs are set to light, so many directors will now see light mode first. The screenshot script asks for dark, so the guide's pictures don't change.
+
+## 2026-11-10 10:45 EST — The phone view's layout
+- **Who:** Claude (*Jason can veto*), from the review.
+- **Context:** On an upright phone the view buttons floated over the field and covered the neighbors' labels, and the field was about a fifth of the screen. On its side, the play controls ran off the edge.
+- **Other options:** a row of view buttons under the field (costs field height); shorter button labels (Jason chose the current ones on 2026-11-08).
+- **Decision:** **From the press box** and the sun/moon button sit beside the show's title, and **Follow my dot** beside the who button, so the header is no taller and nothing covers the field. The readout panel is a share of the screen's height (130 to 230 px) instead of 230 px, and still fixed, so the field never resizes as the text changes. On its side, the field gets the left side at full height and everything else scrolls in one column on the right. The staff view draws dots instead of letters while letters would overlap.
+
+## 2026-11-10 10:45 EST — The step size in plain words on phones
+- **Who:** Claude chose the words (*Jason can veto*); Jason approved the idea in the review.
+- **Context:** "8.3-to-5" means nothing to many students.
+- **Other options:** replace the number; words only for big steps.
+- **Decision:** The number stays, with a line under it: smaller steps than normal (past 9-to-5), normal (7 to 9), bigger than normal (6 to 7), or very big (under 6), then the overall direction for a performer facing the front ("moving back and to your left"). A sideways drift under a third of the main direction isn't mentioned. For a follow-the-leader or curved move it's where they end up, not the route.
+
+## 2026-11-10 10:45 EST — Red paths are solid, not only red
+- **Who:** Claude (*Jason can veto*).
+- **Context:** In a simulation of red-green color blindness, a red (over the limit) path looked like a plain dark one.
+- **Other options:** a different warning color.
+- **Decision:** Red paths are solid and 1.6 times as wide; the others stay dashed. The red rings and the underlined red "max" on the timeline already work without color.
+
+## 2026-11-10 10:45 EST — Dot sheets with field pictures
+- **Who:** Claude (*Jason can veto*), from the review.
+- **Context:** A UDB-style dot book shows a little field for each set.
+- **Other options:** pictures on the 4-per-page cards (no room); a separate dot-book print type.
+- **Decision:** A third dot-sheet layout, **1 per page, with a small field picture for each set**: a 1.3-inch picture of the whole field on each set's row, everyone faint gray and the performer a big black dot, 12 sets a page (checked: 12 rows with two-line notes fit).
+
+## 2026-11-10 10:45 EST — Send feedback goes to GitHub for now
+- **Who:** Claude (*Jason can veto*).
+- **Context:** The review asked for a way to send feedback without GitHub. Any other channel (an email address, a form service) is Jason's to choose and would put his address or an outside service on the page.
+- **Other options:** a mailto link; a form service.
+- **Decision:** **Send feedback** (Help menu and front page) opens GitHub's new issue forms (a problem, an idea) until Jason picks a channel for people without a GitHub account. The address is one constant (`FEEDBACK` in `src/App.tsx`) plus the front page's link.
+
+## 2026-11-10 10:45 EST — A smoke test before every deploy
+- **Who:** Claude (*Jason can veto*).
+- **Context:** Unit tests can't catch a screen that crashes or a button that's gone.
+- **Other options:** a separate end-to-end test suite.
+- **Decision:** The deploy workflow installs Playwright and runs `scripts/screenshots.mjs`, which already clicks through every screen in the guide; if it fails, the site doesn't update. It adds a few minutes to each deploy. Version 0.1.0, issue forms, and CONTRIBUTING.md came with it.

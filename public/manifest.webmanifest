@@ -1,8 +1,9 @@
 {
+  "id": "./",
   "name": "FreeFORM Drill Design",
   "short_name": "FreeFORM",
   "description": "FreeFORM is a free and open-source drill design and learning tool for all marching arts organizations.",
-  "start_url": ".",
+  "start_url": "app/",
   "scope": ".",
   "display": "standalone",
   "background_color": "#1d2a1f",

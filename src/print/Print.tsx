@@ -3,11 +3,11 @@ import { createPortal } from 'react-dom';
 import { useDialog } from '../ui/useDialog';
 import { colorOf, fieldOf, mark, moveSegments, type Show } from '../engine/show';
 import { drawProps, drawField, drawGlyph, drawLabels, drawMarks, fitView, toScreen } from '../field/drawField';
-import { ROWS_PER_PAGE, chartTitle, chunk, dotCards, hasMeasures, sortedPerformers } from './docs';
+import { ROWS_PER_PAGE, ROWS_WITH_PICTURES, chartTitle, chunk, dotCards, hasMeasures, sortedPerformers, type Card } from './docs';
 
 type Kind = 'dots' | 'charts';
 type Who = 'all' | 'section' | 'selected';
-interface Job { kind: Kind; ids: Set<string> | undefined; single: boolean; paths: boolean; sets: [number, number] } // single: one dot sheet per page; paths: the moves into each set on its chart; sets: first and last set printed
+interface Job { kind: Kind; ids: Set<string> | undefined; single: boolean; pics: boolean; paths: boolean; sets: [number, number] } // single: one dot sheet per page; pics: with a field picture per set (single only); paths: the moves into each set on its chart; sets: first and last set printed
 
 /** A set's field chart as a high-resolution black-on-white image. */
 function chartImage(show: Show, i: number, paths: boolean): string {
@@ -40,6 +40,38 @@ function chartImage(show: Show, i: number, paths: boolean): string {
   return c.toDataURL('image/png');
 }
 
+/**
+ * Small field pictures for dot sheets, like a dot book: the whole field with everyone faint and this performer as a big
+ * black dot, one per set. Each set's faint band is drawn once and copied for every performer.
+ */
+function dotPictures(show: Show, cards: Card[]): Map<string, string> {
+  const W = 480, H = 240, out = new Map<string, string>(), bases = new Map<number, HTMLCanvasElement>();
+  const v = fitView(W, H, fieldOf(show));
+  const base = (i: number) => {
+    let c = bases.get(i);
+    if (c) return c;
+    c = document.createElement('canvas'); c.width = W; c.height = H;
+    const ctx = c.getContext('2d')!;
+    drawField(ctx, v, fieldOf(show), 'print'); // this small, the field has no step grid: just its lines
+    ctx.fillStyle = '#9a9a9a';
+    for (const q of Object.values(show.sets[i].pos)) { const p = toScreen(v, q); ctx.beginPath(); ctx.arc(p.x, p.y, 2.2, 0, Math.PI * 2); ctx.fill(); }
+    bases.set(i, c);
+    return c;
+  };
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const ctx = c.getContext('2d')!;
+  for (const card of cards) for (const r of card.rows) {
+    const at = show.sets[r.index].pos[card.id];
+    if (!at) continue;
+    ctx.drawImage(base(r.index), 0, 0);
+    const p = toScreen(v, at);
+    ctx.fillStyle = '#000'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(p.x, p.y, 9, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    out.set(`${card.id}:${r.index}`, c.toDataURL('image/png'));
+  }
+  return out;
+}
+
 /** Keep the pieces a performer reads as one unit on one line ("Side 2 45", "Front Hash", "the 50"). */
 const keep = (t: string) => t
   .replace(/Side ([12]) (\d+|Goal Line)/g, 'Side\u00a0$1\u00a0$2').replace(/Side ([12])/g, 'Side\u00a0$1')
@@ -53,6 +85,7 @@ export function PrintDialog({ show, selected, onClose }: Props) {
   const [section, setSection] = useState(show.sections[0]?.id ?? '');
   const [job, setJob] = useState<Job | null>(null);
   const [single, setSingle] = useState(false);
+  const [pics, setPics] = useState(false);
   const [paths, setPaths] = useState(false); // off by default: charts have shown only each set's spots (Jason)
   const last = show.sets.length - 1;
   const [from, setFrom] = useState(0), [to, setTo] = useState(last); // a rehearsal packet: "work 8–10 tonight"
@@ -100,8 +133,9 @@ export function PrintDialog({ show, selected, onClose }: Props) {
         {kind === 'dots' && (
           <fieldset style={{ border: 'none', padding: 0, margin: '0 0 12px' }}>
             <legend style={{ fontWeight: 700, marginBottom: 4 }}>Layout</legend>
-            <label style={{ display: 'block' }}><input type="radio" name="layout" checked={!single} onChange={() => setSingle(false)} /> 4 cards per page</label>
-            <label style={{ display: 'block' }}><input type="radio" name="layout" checked={single} onChange={() => setSingle(true)} /> 1 per page, bigger, with a notes column</label>
+            <label style={{ display: 'block' }}><input type="radio" name="layout" checked={!single} onChange={() => { setSingle(false); setPics(false); }} /> 4 cards per page</label>
+            <label style={{ display: 'block' }}><input type="radio" name="layout" checked={single && !pics} onChange={() => { setSingle(true); setPics(false); }} /> 1 per page, bigger, with a notes column</label>
+            <label style={{ display: 'block' }}><input type="radio" name="layout" checked={pics} onChange={() => { setSingle(true); setPics(true); }} /> 1 per page, with a small field picture for each set</label>
           </fieldset>
         )}
         {kind === 'charts' && (
@@ -123,7 +157,7 @@ export function PrintDialog({ show, selected, onClose }: Props) {
         <p style={{ opacity: 0.75, fontSize: 12, margin: '0 0 12px' }}>Opens your browser's print dialog. Choose "Save as PDF" there to get a PDF.</p>
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
           <button onClick={onClose}>Cancel</button>
-          <button onClick={() => setJob({ kind, ids, single, paths, sets })} disabled={kind === 'dots' && !count}>Print{kind === 'dots' ? ` ${count}` : ''}</button>
+          <button onClick={() => setJob({ kind, ids, single, pics, paths, sets })} disabled={kind === 'dots' && !count}>Print{kind === 'dots' ? ` ${count}` : ''}</button>
         </div>
       </div>
       {job && createPortal(<Pages show={show} job={job} />, document.getElementById('print-root')!)}
@@ -136,13 +170,15 @@ function Pages({ show, job }: { show: Show; job: Job }) {
   const charts = useMemo(() => (job.kind === 'charts' ? nums.map((i) => chartImage(show, i, job.paths)) : []), [show, job]); // eslint-disable-line react-hooks/exhaustive-deps
   const rev = show.revision ? ` · rev ${show.revision}` : ''; // so "who has revision 6?" works on paper too
   const meas = hasMeasures(show);
+  const cards = useMemo(() => (job.kind === 'dots' ? dotCards(show, sortedPerformers(show, job.ids), job.pics ? ROWS_WITH_PICTURES : job.single ? ROWS_PER_PAGE : undefined, job.sets) : []), [show, job]);
+  const pictures = useMemo(() => (job.pics ? dotPictures(show, cards) : null), [show, job, cards]);
   const pageStyle = job.kind === 'charts' ? '@page { size: letter landscape; margin: 0.4in; }' : '@page { size: letter portrait; margin: 0.4in; }';
   return (
     <>
       <style>{pageStyle}</style>
       {job.kind === 'dots'
-        ? chunk(dotCards(show, sortedPerformers(show, job.ids), job.single ? ROWS_PER_PAGE : undefined, job.sets), job.single ? 1 : 4).map((page, k) => (
-          <div className={job.single ? 'dot-page single' : 'dot-page'} key={k}>
+        ? chunk(cards, job.single ? 1 : 4).map((page, k) => (
+          <div className={job.pics ? 'dot-page single pics' : job.single ? 'dot-page single' : 'dot-page'} key={k}>
             {page.map((c, j) => (
               <section className="dot-card" key={j}>
                 <header>
@@ -150,10 +186,10 @@ function Pages({ show, job }: { show: Show; job: Job }) {
                   <span className="dot-show">{show.title}{rev}{c.parts > 1 ? ` · card ${c.part} of ${c.parts}` : ''}</span>
                 </header>
                 <table className={meas ? "with-meas" : undefined}>
-                  <thead><tr><th>Set</th><th>Cts</th>{meas && <th>Meas.</th>}<th>Side to side</th><th>Front to back</th>{job.single && <th>Notes</th>}</tr></thead>
+                  <thead><tr><th>Set</th><th>Cts</th>{meas && <th>Meas.</th>}<th>Side to side</th><th>Front to back</th>{job.single && <th>Notes</th>}{pictures && <th>Where</th>}</tr></thead>
                   <tbody>{c.rows.map((r) => (
                     <Fragment key={r.set}>
-                      <tr className={r.cue && !job.single ? 'has-cue' : undefined}><td>{r.set}</td><td>{r.counts}</td>{meas && <td className="meas">{r.measures}</td>}<td>{keep(r.side)}</td><td>{keep(r.front)}</td>{job.single && <td className="notes">{r.cue}</td>}</tr>
+                      <tr className={r.cue && !job.single ? 'has-cue' : undefined}><td>{r.set}</td><td>{r.counts}</td>{meas && <td className="meas">{r.measures}</td>}<td>{keep(r.side)}</td><td>{keep(r.front)}</td>{job.single && <td className="notes">{r.cue}</td>}{pictures && <td className="pic">{pictures.has(`${c.id}:${r.index}`) && <img src={pictures.get(`${c.id}:${r.index}`)} alt="" />}</td>}</tr>
                       {r.cue && !job.single && <tr className="cue"><td></td><td colSpan={meas ? 4 : 3}>{r.cue}</td></tr>}
                     </Fragment>
                   ))}</tbody>

@@ -1,7 +1,7 @@
-import { Component, type ReactNode } from 'react';
+import { Component, lazy, Suspense, type ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { App, AUTOSAVE } from './App';
-import { Perform } from './perform/Perform';
+import './ui/palette'; // light or dark before either view loads, so the page doesn't flash
+import { AUTOSAVE } from './ui/showStore';
 import { isPhone } from './perform/device';
 
 /** If the app crashes, show the error and keep the autosaved show recoverable (a bad save would otherwise crash every reload). */
@@ -66,9 +66,12 @@ window.addEventListener('resize', () => {
     else if (!phone && perform && noted()) { note(false); history.replaceState(null, '', location.pathname); location.reload(); }
   }, 400);
 });
-createRoot(document.getElementById('root')!).render(<Crash>{perform ? <Perform /> : <App />}</Crash>);
+// Each view is its own download, so a phone opening a show doesn't fetch the whole editor (the offline cache keeps both; see sw.js).
+const App = lazy(() => import('./App').then((m) => ({ default: m.App })));
+const Perform = lazy(() => import('./perform/Perform').then((m) => ({ default: m.Perform })));
+createRoot(document.getElementById('root')!).render(<Crash><Suspense fallback={null}>{perform ? <Perform /> : <App />}</Suspense></Crash>);
 
 // Offline support in the published app only (in development it would cache stale code).
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => { /* offline just won't be available */ }));
+  window.addEventListener('load', () => navigator.serviceWorker.register('../sw.js').catch(() => { /* offline just won't be available */ }));
 }

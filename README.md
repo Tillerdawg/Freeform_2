@@ -52,10 +52,10 @@ A note on where the ideas came from: FreeFORM is modeled on Pyware and the Ultim
 - Sync to a recording: take every count's timing from the MuseScore score (or MusicXML or MIDI), or tap the counts along with any mp3.
 
 **Getting it to the band**
-- Dot sheets (four cards per page, or one per page with a notes column) and drill charts (one per set, with or without the paths into it), printed or saved as PDF, for the whole show or a range of sets.
+- Dot sheets (four cards per page, one per page with a notes column, or one per page with a small field picture for each set, like a dot book) and drill charts (one per set, with or without the paths into it), printed or saved as PDF, for the whole show or a range of sets.
 - A Share dialog with two choices: **Send this version** (a link with a QR code; the whole show is in the link, with no server involved) or **Keep phones up to date**. Each says what's included (names, notes, music) before you get a link.
 - Locked hosted links that update themselves on phones, can carry the music, and keep names private. One-click publishing to your own GitHub repository. Each publish gets a revision number that shows on phones and printed sheets.
-- A performer view for phones: pick who you are, follow your dot, and see your spot now, your next spot, and the counts to get there. A phone keeps several shows (the Opener, Ballad, and Closer as separate files) and switches between them from a menu. Students can loop a range of sets to practice, with a 4-count count-in if they like. It works offline once it's opened, and it says so plainly if the phone can't save it.
+- A performer view for phones: pick who you are, follow your dot, and see your spot now, your next spot, and the counts to get there, with the step size in plain words ("normal steps, moving back and to your left"). A phone keeps several shows (the Opener, Ballad, and Closer as separate files) and switches between them from a menu. Students can loop a range of sets to practice, with a 4-count count-in if they like. It works offline once it's opened, and it says so plainly if the phone can't save it.
 
 **Files**
 - Autosave in your browser, plus **Save** (to any folder you choose, where the browser allows it) and import of `.freeform` files. FreeFORM says so if the browser can't autosave.
@@ -72,6 +72,7 @@ It runs on a current Chrome, Edge, Firefox, or Safari, and on iPadOS/iOS 16.4 or
 
 The full list is in [PLAN.md](PLAN.md). What's next, roughly:
 
+- A FreeFORM-run upload service, so keeping phones up to date doesn't need a GitHub account
 - Touch versions of the few actions that still need a keyboard key
 - Faster count entry for recordings that weren't made from the score (tap a few downbeats, FreeFORM fills in the rest)
 - Markup that spans several sets
@@ -83,7 +84,7 @@ You need [Node.js](https://nodejs.org/) 22 or newer.
 
 ```sh
 npm install
-npm run dev        # the editor, at the address it prints
+npm run dev        # the site, at the address it prints (the editor is at /app/)
 npm test           # unit tests
 npm run typecheck  # TypeScript checks
 npm run build      # production build in dist/
@@ -110,8 +111,9 @@ node scripts/screenshots.mjs ftl print    # or just these
 | `src/ui/` | The toolbar, sidebar, timeline, Review list, music menu, show list, color palette, the keyboard handling every dialog shares (`useDialog`), where the sidebar and timeline sit (`layout.ts`), and browser storage (`audioStore.ts`, `showStore.ts`: recordings, pictures, the show library, and versions in IndexedDB) |
 | `src/print/` | Dot sheets and drill charts |
 | `src/perform/` | The performer view, the Share dialog, and the QR scanner |
+| `index.html`, `app/index.html` | The front page (freeformdrill.org) and the app (freeformdrill.org/app/), which old links (`/#show=…`) are forwarded to |
 | `src/guide/` | Turns `docs/HOW-TO.md` into the guide page on the site (`/guide/`) when the site is built |
-| `public/` | App icons, logos, the link-preview image, the manifest, and the offline service worker |
+| `public/` | App icons, logos, the link-preview image, the manifest, and the offline service worker (it keeps what the build lists in `precache.json`) |
 | `docs/` | The How-to guide and its screenshots (the only copy: the site's guide page is made from it) |
 | `scripts/` | The screenshot script |
 | `brand/` | Logo files, colors, and rules ([brand/README.md](brand/README.md)) |
@@ -128,7 +130,7 @@ FreeFORM is written from scratch. I studied Pyware and UDB only through how they
 
 ## Contributing
 
-Issues and pull requests are welcome, especially from drill writers and band directors who can say how things *should* work. If you change or add a feature, please update this README, the [How-to guide](docs/HOW-TO.md) (and its screenshots, if they show it) and [DECISIONS.md](DECISIONS.md) in the same change. [CLAUDE.md](CLAUDE.md) has the house rules.
+Issues and pull requests are welcome (see [CONTRIBUTING.md](CONTRIBUTING.md)), especially from drill writers and band directors who can say how things *should* work. If you change or add a feature, please update this README, the [How-to guide](docs/HOW-TO.md) (and its screenshots, if they show it) and [DECISIONS.md](DECISIONS.md) in the same change. [CLAUDE.md](CLAUDE.md) has the house rules.
 
 ## License
 

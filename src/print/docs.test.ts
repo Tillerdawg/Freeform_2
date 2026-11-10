@@ -25,8 +25,8 @@ describe('dot sheets', () => {
     expect(card.name).toBe('');
     expect(card.section).toBe('Tuba');
     expect(card.rows).toEqual([
-      { set: '1', counts: '—', measures: '', side: '2 steps outside the Side 2 45', front: '2 steps in front of Front Hash', cue: '' },
-      { set: '2', counts: '16', measures: '', side: 'Splitting 35 and 40 on Side 1', front: 'On Back Hash', cue: '' },
+      { index: 0, set: '1', counts: '—', measures: '', side: '2 steps outside the Side 2 45', front: '2 steps in front of Front Hash', cue: '' },
+      { index: 1, set: '2', counts: '16', measures: '', side: 'Splitting 35 and 40 on Side 1', front: 'On Back Hash', cue: '' },
     ]);
   });
   it('notes a delayed step-off', () => {
@@ -87,4 +87,16 @@ it('cues print on the performer\'s own card only', () => {
   const cards = dotCards(c, c.performers.filter((p) => p.id === t1 || p.id === t2));
   expect(cards[0].rows.map((r) => r.cue)).toEqual(['', 'Horns 45, slide L']);
   expect(cards[1].rows.map((r) => r.cue)).toEqual(['', '']);
+});
+
+it('fewer rows per page when each set gets a field picture, and each card knows its performer', async () => {
+  const { ROWS_WITH_PICTURES } = await import('./docs');
+  const { sampleShow } = await import('../engine/sample');
+  const { addSetAfter } = await import('../engine/show');
+  let s = sampleShow();
+  for (let k = 0; k < ROWS_WITH_PICTURES; k++) s = addSetAfter(s, s.sets.length - 1, 8);
+  const cards = dotCards(s, s.performers.slice(0, 1), ROWS_WITH_PICTURES);
+  expect(cards.map((c) => c.rows.length)).toEqual([ROWS_WITH_PICTURES, s.sets.length - ROWS_WITH_PICTURES]);
+  expect(cards.every((c) => c.id === s.performers[0].id)).toBe(true);
+  expect(cards[1].rows[0].index).toBe(ROWS_WITH_PICTURES); // the row's set, for its picture
 });

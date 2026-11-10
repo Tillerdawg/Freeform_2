@@ -2,7 +2,7 @@
 
 This guide walks you through writing a show in FreeFORM, from an empty field to dot sheets in your students' hands and the drill on their phones. It's written for band directors and drill writers. You don't need to have used Pyware or UDB before, but if you have, most of this will feel familiar.
 
-FreeFORM runs in your web browser at <https://freeformdrill.org/>. There's nothing to install and no account to make.
+FreeFORM runs in your web browser. The front page, <https://freeformdrill.org/>, says what it is; click **Open the editor** there, or go straight to <https://freeformdrill.org/app/>. There's nothing to install and no account to make. (Share links made before the editor moved to /app/ still work.)
 
 The pictures in this guide come from a small sample show (47 performers, 4 sets) that ships with the code. Your screen will look the same, just with your own drill on it.
 
@@ -39,6 +39,8 @@ You'll want a computer or an iPad to write drill. FreeFORM needs a current versi
 
 Phones only get the performer view. That's on purpose: a phone screen is too small to write drill on, but it's perfect for a student checking their spot.
 
+**On a school Chromebook,** check before you rely on the autosave. Many schools set Chromebooks to clear everything in the browser when you sign out, which would take your shows with it. Save to a file (Google Drive works) at the end of every session, and use **Import…** to open it next time.
+
 One thing to know up front: **your shows are saved in the browser you're using.** FreeFORM saves every change automatically, but only on that computer, in that browser. If you clear your browser data, or switch from Chrome to Safari, your shows won't be there. Use **Save** often to keep a file you control (see [Saving, backing up, and opening files](#saving-backing-up-and-opening-files)).
 
 ## A quick tour of the editor
@@ -47,11 +49,11 @@ One thing to know up front: **your shows are saved in the browser you're using.*
 
 From top to bottom:
 
-- **The top bar** has the logo, a reminder of how to move around the field, **Help** (the **How-to guide**, which opens this guide in a new tab at freeformdrill.org/guide/, and **Try the sample show**), **Layout** (**Sidebar on the left** or right, and **Timeline at the top** or bottom; this browser remembers your choice), and at the far right the sun/moon button, which switches between dark mode (the default) and light mode. The field looks the same either way.
+- **The top bar** has the logo, a reminder of how to move around the field, **Help** (the **How-to guide**, which opens this guide in a new tab at freeformdrill.org/guide/, **Try the sample show**, **Send feedback**, which opens a page on GitHub to report a problem or suggest something, and **About FreeFORM Drill**, the front page), **Layout** (**Sidebar on the left** or right, and **Timeline at the top** or bottom; this browser remembers your choice), and at the far right the sun/moon button, which switches between dark mode and light mode. Until you click it, FreeFORM follows your computer's or iPad's own light or dark setting. The field looks the same either way.
 - **The drill toolbar** has two rows. The first row has **Select**, **Add** (performers, a set, or a prop), and **Delete**, then the set you're on with its **Counts** and **Measures**. At the right end are Undo, Redo, Fit (zooms back out to the whole field), the timeline button, and the sidebar button. The second row has the tools for placing and moving performers: **Snap to grid**, **Markup**, **Shape**, **Transform**, **Path**, **Move**, **Labels**, and **Reset to set**.
 - **The field** is in the middle. You're looking at it from the press box: the front sideline is at the bottom and Side 1 is on the left. Scroll to move around, and pinch (or hold ⌘ or Ctrl and scroll) to zoom.
 - **The timeline** runs across the bottom. Each set has a numbered button, and each move between sets shows its counts, measures, and biggest step size.
-- **The sidebar** on the right (or the left, under **Layout**) holds the show's file buttons (including **Shows…**, the list of every show in this browser), title, and hash marks; the current set's notes; whatever you have selected; and the **Sections** and **Roster** lists. The sidebar button (at the right end of the toolbar) shows and hides it.
+- **The sidebar** on the right (or the left, under **Layout**) holds the show's file buttons (including **Shows…**, the list of every show in this browser), then **Print…** and **Share…** on a row of their own, the title, and hash marks; the current set's notes; whatever you have selected; and the **Sections** and **Roster** lists. The sidebar button (at the right end of the toolbar) shows and hides it.
 
 ## Set up a new show
 
@@ -167,6 +169,8 @@ A set is one picture of the drill, and the move into it takes a number of counts
 - **Drag a set's button** to move it to a different count. The sets around it stay where they are.
 
 Each move on the timeline shows its counts, measures, and the biggest step anyone takes (colored if it's too big, see [Step-size warnings](#step-size-and-too-close-warnings)).
+
+In a narrow window, the row of play controls at the top of the timeline scrolls sideways too: a faded edge means there's more past it.
 
 The timeline scrolls sideways for a long show. Use the mouse wheel or a swipe over it, or right-drag. The magnifying glasses at the right end zoom the timeline in and out, and **Fit** shows the whole show.
 
@@ -287,7 +291,7 @@ FreeFORM checks every move against the counts it has:
 - **Yellow** means someone's step is bigger than a 6-to-5.
 - **Red** means it's over the show's **step limit**: bigger than a 4-to-5 unless you change it, which is about as big a step as anyone should take.
 
-The colors show on the path lines on the field and in the timeline's "max" readout for each move. On the field, everyone over the limit in the move you're looking at also gets a red ring, so you can see who it is. When a move's "max" is red, it's underlined: click it to go to that set with everyone over the limit selected, and a note at the bottom of the field names them. To fix a red move, add counts, shorten the distance, or split the move with a sub-set.
+The colors show on the path lines on the field and in the timeline's "max" readout for each move. A red path is also solid and wider than the others (the rest are dashed), so it stands out even for someone who can't tell red from green. On the field, everyone over the limit in the move you're looking at also gets a red ring, so you can see who it is. When a move's "max" is red, it's underlined: click it to go to that set with everyone over the limit selected, and a note at the bottom of the field names them. To fix a red move, add counts, shorten the distance, or split the move with a sub-set.
 
 **Changing the step limit.** Open **Review** (in the top bar) and type a number in **Step limit**. A younger band might use 6 (anything bigger than a 6-to-5 turns red), and a corps-style show might use 8. It's saved with the show, from a 2-to-5 up to an 8-to-5.
 
@@ -382,6 +386,10 @@ For bigger print, choose **1 per page, bigger, with a notes column** under **Lay
 
 ![The top of a one-per-page dot sheet](img/dot-sheet-page.png)
 
+To give performers a dot book, choose **1 per page, with a small field picture for each set**. Each set's row gets a little picture of the whole field, with everyone else faint and that performer as a big black dot, so a student can see the shape of the picture at a glance. It takes more paper: about 12 sets fit on a page.
+
+![A dot sheet with a field picture on each set](img/dot-sheet-pictures.png)
+
 Drill charts are one page per set, with every dot labeled, the set's markup, props, and its ensemble notes underneath. They're black on white so they copy well. Sections with a color print as colored dots, which come out as shades of gray on a black-and-white printer.
 
 ![A drill chart for set 2](img/drill-chart.png)
@@ -427,10 +435,11 @@ They can search by name, by dot (P4), or by section, and **Staff (whole band)** 
 
 On the performer screen:
 
-- **Follow my dot** keeps their dot in the middle through each move. Tap it off to see the whole field. Pinch-zoom works either way.
-- The field orientation button reads **From the press box** when the field is drawn the way the editor shows it. Tap it to switch to **Facing the front**, which turns the field around to match what they see facing the audience.
-- Under the field they see the spot they're standing on, then their next spot and how many counts it takes to get there (with measures and step size), plus their notes and the ensemble notes. On the field, the performers closest to them are drawn a little brighter and labeled.
+- **Follow my dot** (next to who they are) keeps their dot in the middle through each move. Tap it off to see the whole field. Pinch-zoom works either way. Zoomed out on the whole band, performers show as dots until a pinch makes room for their letters.
+- The field orientation button, next to the show's title, reads **From the press box** when the field is drawn the way the editor shows it. Tap it to switch to **Facing the front**, which turns the field around to match what they see facing the audience.
+- Under the field they see the spot they're standing on, then their next spot and how many counts it takes to get there (with measures and step size), plus their notes and the ensemble notes. Under the step size, the move is in plain words too, like "normal steps, moving back and to your left (facing the front)." On the field, the performers closest to them are drawn a little brighter and labeled.
 - They can play at any tempo, step count by count, scrub, or tap a set number to jump to it. If the show has music, Play follows it, and **♪ Music** switches back to a tempo.
+- With the phone on its side, the field takes the left side and gets the whole height; everything else is in a column on the right that scrolls.
 
 **Loop a few sets.** **Loop** (next to the tempo) opens a panel to pick **Sets … to …**. Tap **Loop these sets**, and Play starts on the first set and jumps back to it each time it reaches the last one, at the tempo or with the music. The button then reads **Loop 8–10** (or whichever sets). Tap it again to change the sets or **Stop looping**.
 
@@ -508,6 +517,7 @@ With a keyboard attached, the [keyboard shortcuts](#keyboard-shortcuts) work too
 | Undo | ⌘Z (Ctrl+Z on Windows) |
 | Redo | ⇧⌘Z (Ctrl+Y or Ctrl+Shift+Z on Windows) |
 | Close a menu; back to Select from any other tool; then clear the selection | Esc |
+| Move the playhead by keyboard | Tab to the timeline, then ← or → (Home and End for the start and end) |
 | Move around the field | Scroll, or right-drag |
 | Zoom | Pinch, or ⌘/Ctrl + scroll |
 
@@ -523,4 +533,4 @@ Arrows move the selection the way it looks on screen: ↑ is toward the back sid
 
 **The browser says it's too old.** Update your browser, or on an iPad, update iPadOS to 16.4 or later.
 
-**FreeFORM hit an error.** The error page has **Download autosaved show**, so you can save your work before you reload. If it keeps happening, please [open an issue](https://github.com/Tillerdawg/Freeform_2/issues) and say what you were doing.
+**FreeFORM hit an error.** The error page has **Download autosaved show**, so you can save your work before you reload. If it keeps happening, please [tell me about it](https://github.com/Tillerdawg/Freeform_2/issues/new/choose) and say what you were doing.

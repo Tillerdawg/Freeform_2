@@ -1,10 +1,10 @@
 import { PALETTE, useTheme } from '../ui/palette';
 import { ThemeButton } from '../ui/ThemeButton';
 // Performer / staff view: read-only playback of a shared show, centered on "my" dot. Built for phones (portrait).
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { fieldDepth, readout, type Point } from '../engine/coords';
 import { decodeShow, fetchHosted, LOAD_PREFIX, linkHash, parseHosted, SHARE_PREFIX } from '../engine/share';
-import { Scanner } from './Scanner';
+const Scanner = lazy(() => import('./Scanner').then((m) => ({ default: m.Scanner }))); // the QR reader is big; only a scan loads it
 import { isPhone } from './device';
 import { colorOf, fieldOf, propsAt, locate, mark, moveSteps, timingOf, parseShow, positionsAt, setAt, setStarts, showLength, type Show } from '../engine/show';
 import { drawField, drawGlyph, drawLabels, drawMarks, drawPerformers, drawProps, fitView, STEP_TEXT, toScreen, type View } from '../field/drawField';
@@ -15,11 +15,11 @@ import { COUNT_IN, countInBeat } from './countIn';
 import { synced } from '../engine/music';
 import { deleteAudio, getAudio, putAudio } from '../ui/audioStore';
 import { IconNext, IconPause, IconPlay, IconPrev } from '../ui/icons';
-import { nearest, yardLabel } from './neighbors';
+import { moveWords, nearest, stepWords, yardLabel } from './neighbors';
 import { panCenter, pinchZoom, ZOOM_MAX } from './gestures';
 import { WhoPicker } from './WhoPicker';
 import { NumberField } from '../ui/NumberField';
-import { AUTOSAVE } from '../App';
+import { AUTOSAVE } from '../ui/showStore';
 import { addShow, readLibrary, removeShow, STAFF, type Library, type Saved } from './library';
 
 /** "3:42 PM" today, "Nov 5" before that. */
@@ -190,10 +190,6 @@ export function Perform() {
 
   // Pinch zoom (both views) and drag to look around (whole field). Not saved: switching views resets it.
   const [zoom, setZoom] = useState(1);
-  // Landscape puts the view buttons atop the side column (over the field they covered its yard numbers).
-  const LAND = 'screen and (orientation: landscape)';
-  const [land, setLand] = useState(() => matchMedia(LAND).matches);
-  useEffect(() => { const m = matchMedia(LAND), f = () => setLand(m.matches); m.addEventListener('change', f); return () => m.removeEventListener('change', f); }, []);
   const zoomRef = useRef(zoom);
   zoomRef.current = zoom;
   const maxRef = useRef(ZOOM_MAX);
@@ -250,7 +246,9 @@ export function Perform() {
     setMore(left && right ? 'both' : left ? 'left' : right ? 'right' : '');
   };
   useEffect(() => {
-    if (onSet >= 0) (setStrip.current?.children[onSet] as HTMLElement | undefined)?.scrollIntoView({ block: 'nearest', inline: 'center' });
+    // Sideways only: scrollIntoView would also scroll the column the row sits in (on a phone held sideways).
+    const e = setStrip.current, b = onSet >= 0 ? e?.children[onSet] as HTMLElement | undefined : undefined;
+    if (e && b) e.scrollLeft = b.offsetLeft - e.offsetLeft - (e.clientWidth - b.offsetWidth) / 2;
     checkMore();
   }, [onSet, show]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { addEventListener('resize', checkMore); return () => removeEventListener('resize', checkMore); }, []);
@@ -291,7 +289,13 @@ export function Perform() {
     if (onSet >= 0) drawMarks(ctx, v, show.sets[onSet].marks ?? [], 'screen');
     if (!me) {
       const shown = !playing; // labels would jump around as dots move
-      drawPerformers(ctx, v, show.performers.filter((p) => positions[p.id]).map((p) => { const m = mark(show, p); return { id: p.id, label: shown ? m.label : '', glyph: m.glyph, at: positions[p.id], pin: onSet >= 0 ? show.sets[onSet].labels?.[p.id] : undefined, color: colorOf(show, p) }; }), new Set(), [], undefined, dpr);
+      // Zoomed out on a phone, letters at their smallest readable size are bigger than the 2 steps between neighbors and pile
+      // into a smear: draw dots (labeled P4, the labels hiding where they'd collide) until a pinch makes room for letters.
+      const crowded = 11 * dpr > v.scale * 1.6;
+      drawPerformers(ctx, v, show.performers.filter((p) => positions[p.id]).map((p) => {
+        const m = mark(show, p), lbl = crowded && m.glyph ? m.glyph + m.label : m.label;
+        return { id: p.id, label: shown ? lbl : '', glyph: crowded ? undefined : m.glyph, at: positions[p.id], pin: onSet >= 0 ? show.sets[onSet].labels?.[p.id] : undefined, color: colorOf(show, p) };
+      }), new Set(), [], undefined, dpr);
     } else {
       const s = v.scale, letters = show.symbols !== 'dots', f = Math.max(11 * dpr, s * 1.1); // letter height, as in the staff view
       const drawMark = (q: Point, id: string, size: number, color: string, badge?: string) => drawGlyph(ctx, q, mark(show, show.performers.find((x) => x.id === id)!).glyph!, size, color, badge);
@@ -353,12 +357,13 @@ export function Perform() {
   if (!show) {
     return (
       <main className="perform-empty">
-        <h1><img src={theme === 'light' ? './logo-light.svg' : './logo.svg'} alt="FreeFORM Drill" style={{ width: 'min(280px, 100%)', display: 'block' }} /></h1>
+        <h1><img src={theme === 'light' ? '../logo-light.svg' : '../logo.svg'} alt="FreeFORM Drill" style={{ width: 'min(280px, 100%)', display: 'block' }} /></h1>
         {error ? <p role="alert">{error}</p>
           : location.hash.startsWith(LOAD_PREFIX) ? <p>Downloading the show…</p>
           : canStore() ? <p>Open the show link your director sent you. It will be saved on this phone and work offline after that.</p>
           : <p>Open the show link your director sent you. This phone can't save shows right now (its storage is full or turned off, as in a private window), so you'll need the link each time, and it won't work offline.</p>}
-        <PasteLink />
+<PasteLink />
+        <p><a href="../" style={{ color: 'var(--blue)' }}>What's FreeFORM Drill?</a></p>
         {!isPhone() && <p><a href="#" style={{ color: 'var(--blue)' }} onClick={(e) => { e.preventDefault(); toEditor(); }}>← Editor</a></p>}
       </main>
     );
@@ -367,19 +372,14 @@ export function Perform() {
   const steps = me && hasNext ? moveSteps(show, next)[me.id] : null;
   const s = show.sets[cur], nx = hasNext ? show.sets[next] : null;
   const myCue = (i: number) => (me ? show.sets[i]?.cues?.[me.id] : undefined);
-  const btn: React.CSSProperties = { fontSize: 18, minWidth: 44, minHeight: 40, display: 'grid', placeItems: 'center' };
+  const btn: React.CSSProperties = { fontSize: 18, minWidth: 44, minHeight: 44, display: 'grid', placeItems: 'center' };
 
-  const toggles = (
-      <div className="perform-toggles">
-        <button aria-label={`Field orientation: ${state!.facingFront ? 'facing the front' : 'from the press box'}. Tap to turn it around.`} onClick={() => update({ facingFront: !state!.facingFront })}>{state!.facingFront ? 'Facing the front' : 'From the press box'}</button>
-        {(zoom !== 1 || center.x !== 0 || center.y !== 42) && <button onClick={() => { setZoom(1); setCenter({ x: 0, y: 42 }); }}>Reset zoom</button>}
-        {me && <button aria-pressed={state!.follow} onClick={() => { update({ follow: !state!.follow }); setZoom(1); setCenter({ x: 0, y: 42 }); }}>Follow my dot</button>}
-        <ThemeButton />
-      </div>
-  );
 
   return (
-    <div className="perform">
+    <main className="perform">
+      {/* The header, readout, and controls: one scrolling column beside the field on a phone held sideways; on an upright
+          phone this wrapper drops out of the layout (display: contents) and CSS order puts the field under the header. */}
+      <div className="perform-side">
       <header className="perform-bar">
         <div className="perform-titlebar">
           <span className="perform-title">{error ? <span role="alert" title={error} style={{ color: 'var(--danger)' }}>{error} Showing your saved copy. </span>
@@ -398,48 +398,17 @@ export function Perform() {
               </select>
             )}</span>
           {!isPhone() && <button onClick={toEditor} title="Back to the drill editor" style={{ fontSize: 14 }}>← Editor</button>}
+          {/* The view buttons sit up here, beside the title, so nothing covers the field (they used to float over it). */}
+          <button className="perform-view" aria-label={`Field orientation: ${state!.facingFront ? 'facing the front' : 'from the press box'}. Tap to turn it around.`} onClick={() => update({ facingFront: !state!.facingFront })}>{state!.facingFront ? 'Facing the front' : 'From the press box'}</button>
+          <ThemeButton />
         </div>
         {adding && <div className="perform-add" role="dialog" aria-label="Add a show"><span>Open another show's link, or paste it or scan its QR code here. It's added to this phone's list.</span><PasteLink /><button onClick={() => setAdding(false)}>Cancel</button></div>}
-        <WhoPicker show={show} value={state!.me} staff={STAFF} onPick={(v) => { update({ me: v }); setZoom(1); setCenter({ x: 0, y: 42 }); }} />
+        <div className="perform-who">
+          <WhoPicker show={show} value={state!.me} staff={STAFF} onPick={(v) => { update({ me: v }); setZoom(1); setCenter({ x: 0, y: 42 }); }} />
+          {me && <button className="perform-view" aria-pressed={state!.follow} onClick={() => { update({ follow: !state!.follow }); setZoom(1); setCenter({ x: 0, y: 42 }); }}>Follow my dot</button>}
+        </div>
       </header>
-      <div className="perform-field">
-        <canvas ref={canvasRef} aria-label="Field" style={{ width: '100%', height: '100%', display: 'block', touchAction: 'none' }}
-          onPointerDown={(e) => {
-            e.currentTarget.setPointerCapture(e.pointerId);
-            touches.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-            if (touches.current.size === 2) {
-              const [a, b] = [...touches.current.values()];
-              pinch.current = { dist: Math.hypot(a.x - b.x, a.y - b.y), zoom };
-            }
-          }}
-          onPointerMove={(e) => {
-            const prev = touches.current.get(e.pointerId);
-            if (!prev) return;
-            touches.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-            if (touches.current.size === 2 && pinch.current) {
-              const [a, b] = [...touches.current.values()];
-              setZoom(pinchZoom(pinch.current.zoom, pinch.current.dist, Math.hypot(a.x - b.x, a.y - b.y), maxZoom));
-            }
-            // With Follow my dot on, the camera stays on my dot; elsewhere, dragging (one finger or two) moves around the field.
-            if (!(me && state!.follow) && viewRef.current) {
-              const share = touches.current.size; // two fingers each move half the drag
-              setCenter((c) => panCenter(c, ((e.clientX - prev.x) * dpr) / share, ((e.clientY - prev.y) * dpr) / share, viewRef.current!.scale, state!.facingFront));
-            }
-          }}
-          onPointerUp={(e) => { touches.current.delete(e.pointerId); if (touches.current.size < 2) pinch.current = null; }}
-          onPointerCancel={(e) => { touches.current.delete(e.pointerId); pinch.current = null; }} />
-        {!land && toggles}
-        {counting > 0 && <div className="perform-countin" role="status">{counting}</div>}
-        {(unsaved === 'yes' || musicUnsaved) && !preview && (
-          <div role="alert" className="backup-note" style={{ top: 'auto', bottom: 30 }}>
-            <span>{unsaved === 'yes' ? "This show isn't saved on this phone (its storage is full or turned off). It will be gone when you close it, and it won't work offline."
-              : "This phone couldn't keep the show's music (its storage is full or turned off), so it plays with a tempo instead."}</span>
-            <button onClick={() => { if (unsaved === 'yes') setUnsaved('seen'); setMusicUnsaved(false); }}>OK</button>
-          </div>
-        )}
-      </div>
       <section className="perform-info" aria-live="off">
-        {land && toggles}
         <div className="perform-set">
           <strong>Set {s.name}</strong>
           {cur > 0 && <span> · {s.counts} cts</span>}
@@ -456,6 +425,7 @@ export function Perform() {
                 <span className="perform-k">Next: set {nx.name} in {nx.counts} cts{nx.measures ? ` (m. ${nx.measures})` : ''}</span>{' '}
                 {readout(nx.pos[me.id], fieldOf(show))}
                 {steps && <span style={{ color: STEP_TEXT[steps.tier] }}> · {fmtStep(steps.per5)}</span>}
+                {steps && <span className="perform-plain">{[stepWords(steps.per5), steps.per5 === Infinity ? '' : moveWords(show.sets[next - 1].pos[me.id], nx.pos[me.id])].filter(Boolean).join(', ')}</span>}
                 {(() => { const tm = timingOf(nx, me.id); return tm.move < nx.counts ? <span> · hold {tm.wait}, move {tm.move}{nx.counts - tm.wait - tm.move ? `, hold ${nx.counts - tm.wait - tm.move}` : ''}</span> : null; })()}
               </p>
             )}
@@ -498,15 +468,52 @@ export function Perform() {
           <button style={btn} aria-label="Previous count" onClick={() => { setPlaying(false); setT(Math.max(0, Math.ceil(t) - 1)); }}><IconPrev /></button>
           <button style={btn} aria-label={playing || counting ? 'Pause' : 'Play'} disabled={!total || (!playing && !counting && t >= total && !loop)} title={t >= total && !loop ? 'End of the show: tap set 1 (or another set) to play from there' : undefined} onClick={togglePlay}>{playing || counting ? <IconPause /> : <IconPlay />}</button>
           <button style={btn} aria-label="Next count" onClick={() => { setPlaying(false); setT(Math.min(total, Math.floor(t) + 1)); }}><IconNext /></button>
-          {audio && <button aria-pressed={useMusic} title={useMusic ? 'Playing with the music. Tap to use a tempo instead.' : 'Play with the music'} onClick={() => { setPlaying(false); setUseMusic(!useMusic); }} style={{ fontSize: 14, minHeight: 40 }}>♪ Music</button>}
-          {!music && <label style={{ fontSize: 14 }}><NumberField aria-label="Tempo" min={20} max={300} integer value={bpm} onValue={setBpm} style={{ width: 52, fontSize: 16 }} /> bpm</label>}
+          {audio && <button aria-pressed={useMusic} title={useMusic ? 'Playing with the music. Tap to use a tempo instead.' : 'Play with the music'} onClick={() => { setPlaying(false); setUseMusic(!useMusic); }} style={{ fontSize: 14, minHeight: 44 }}>♪ Music</button>}
+          {!music && <label style={{ fontSize: 14, whiteSpace: 'nowrap' }}><NumberField aria-label="Tempo" min={20} max={300} integer value={bpm} onValue={setBpm} style={{ width: 52, fontSize: 16 }} /><span className="perform-bpm"> bpm</span></label>}
           {show.sets.length > 1 && <button aria-pressed={!!loop} onClick={() => setPicking(loop ?? [Math.max(0, cur - 1), Math.min(show.sets.length - 1, Math.max(1, cur))])}
-            title={loop ? `Looping sets ${show.sets[loop[0]].name} to ${show.sets[loop[1]].name}. Tap to change or stop.` : 'Practice a few sets over and over'} style={{ fontSize: 14, minHeight: 40 }}>
+            title={loop ? `Looping sets ${show.sets[loop[0]].name} to ${show.sets[loop[1]].name}. Tap to change or stop.` : 'Practice a few sets over and over'} style={{ fontSize: 14, minHeight: 44 }}>
             {loop ? `Loop ${show.sets[loop[0]].name}–${show.sets[loop[1]].name}` : 'Loop'}</button>}
-          {!music && <button aria-pressed={clickOn} title={clickOn ? 'A click on every count. Tap to turn it off.' : 'A click on every count while it plays'} onClick={() => { setClickOn(!clickOn); setClickWanted(!clickOn); if (!clickOn) wakeClick(); }} style={{ fontSize: 14, minHeight: 40 }}>Click</button>}
+          {!music && <button aria-pressed={clickOn} title={clickOn ? 'A click on every count. Tap to turn it off.' : 'A click on every count while it plays'} onClick={() => { setClickOn(!clickOn); setClickWanted(!clickOn); if (!clickOn) wakeClick(); }} style={{ fontSize: 14, minHeight: 44 }}>Click</button>}
         </div>
       </footer>
-    </div>
+      </div>
+      <div className="perform-field">
+        <canvas ref={canvasRef} aria-label="Field" style={{ width: '100%', height: '100%', display: 'block', touchAction: 'none' }}
+          onPointerDown={(e) => {
+            e.currentTarget.setPointerCapture(e.pointerId);
+            touches.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+            if (touches.current.size === 2) {
+              const [a, b] = [...touches.current.values()];
+              pinch.current = { dist: Math.hypot(a.x - b.x, a.y - b.y), zoom };
+            }
+          }}
+          onPointerMove={(e) => {
+            const prev = touches.current.get(e.pointerId);
+            if (!prev) return;
+            touches.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+            if (touches.current.size === 2 && pinch.current) {
+              const [a, b] = [...touches.current.values()];
+              setZoom(pinchZoom(pinch.current.zoom, pinch.current.dist, Math.hypot(a.x - b.x, a.y - b.y), maxZoom));
+            }
+            // With Follow my dot on, the camera stays on my dot; elsewhere, dragging (one finger or two) moves around the field.
+            if (!(me && state!.follow) && viewRef.current) {
+              const share = touches.current.size; // two fingers each move half the drag
+              setCenter((c) => panCenter(c, ((e.clientX - prev.x) * dpr) / share, ((e.clientY - prev.y) * dpr) / share, viewRef.current!.scale, state!.facingFront));
+            }
+          }}
+          onPointerUp={(e) => { touches.current.delete(e.pointerId); if (touches.current.size < 2) pinch.current = null; }}
+          onPointerCancel={(e) => { touches.current.delete(e.pointerId); pinch.current = null; }} />
+        {(zoom !== 1 || center.x !== 0 || center.y !== 42) && <button className="perform-reset" onClick={() => { setZoom(1); setCenter({ x: 0, y: 42 }); }}>Reset zoom</button>}
+        {counting > 0 && <div className="perform-countin" role="status">{counting}</div>}
+        {(unsaved === 'yes' || musicUnsaved) && !preview && (
+          <div role="alert" className="backup-note" style={{ top: 'auto', bottom: 30 }}>
+            <span>{unsaved === 'yes' ? "This show isn't saved on this phone (its storage is full or turned off). It will be gone when you close it, and it won't work offline."
+              : "This phone couldn't keep the show's music (its storage is full or turned off), so it plays with a tempo instead."}</span>
+            <button onClick={() => { if (unsaved === 'yes') setUnsaved('seen'); setMusicUnsaved(false); }}>OK</button>
+          </div>
+        )}
+      </div>
+    </main>
   );
 }
 
@@ -528,7 +535,7 @@ function PasteLink() {
         style={{ flex: 1, minWidth: 180, fontSize: 16 }} />
       <button onClick={open} disabled={!text.trim()} style={{ fontSize: 16 }}>Open</button>
       {'mediaDevices' in navigator && <button onClick={() => setScan(true)} style={{ fontSize: 16 }}>Scan QR code</button>}
-      {scan && <Scanner onClose={() => setScan(false)} />}
+      {scan && <Suspense fallback={null}><Scanner onClose={() => setScan(false)} /></Suspense>}
       {bad && <span role="alert" style={{ width: '100%', color: 'var(--danger)' }}>That doesn't look like a FreeFORM share link.</span>}
     </div>
   );

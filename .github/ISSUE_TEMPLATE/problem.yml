@@ -1,0 +1,33 @@
+name: Something doesn't work
+description: A bug, a crash, or something that doesn't work the way a drill writer would expect.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what FreeFORM did instead.
+    validations:
+      required: true
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where?
+      options:
+        - The editor, on a computer
+        - The editor, on an iPad
+        - A phone (the performer view)
+        - Printing (dot sheets or charts)
+        - Something else
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and device
+      placeholder: e.g. Chrome on a Windows laptop, Safari on an iPad
+  - type: textarea
+    id: file
+    attributes:
+      label: A show file, if it helps
+      description: Drag in a .freeform file (Save) that shows the problem. Leave out students' names if the show is public.

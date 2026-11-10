@@ -41,7 +41,7 @@ export function guidePage(md: string): string {
 </style>
 </head>
 <body>
-<header><a href="../">← Back to FreeFORM</a></header>
+<header><a href="../">FreeFORM Drill</a> · <a href="../app/">Open the editor</a></header>
 <main>
 ${body}
 </main>

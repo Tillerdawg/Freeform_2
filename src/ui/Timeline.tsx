@@ -11,7 +11,7 @@ import { coarse } from '../perform/device';
 import { NumberField } from './NumberField';
 
 const TOUCH = coarse();
-const ROW = TOUCH ? 46 : 22; // set-button rows: 44 px buttons on a touch screen
+const ROW = TOUCH ? 46 : 26; // set-button rows: 44 px buttons on a touch screen
 // Short touch screens (an open iPhone Duo on its side, 585 px tall): one row of set buttons, a one-line move track and a
 // snug controls row, so the field gets about 70 px more. Buttons stay 44 px; close sets' buttons overlap (zoom spreads them).
 const SHORT = '(pointer: coarse) and (max-height: 650px)';
@@ -75,6 +75,17 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
     : `Set ${show.sets[to - 1].name} → ${show.sets[to].name} · count ${Math.floor(count)} of ${show.sets[to].counts}`);
 
   const strip = useRef<HTMLDivElement>(null);
+  // Which edges of the control row have controls scrolled past them (for the fade).
+  const ctlRow = useRef<HTMLDivElement>(null);
+  const [more, setMore] = useState('');
+  const checkMore = () => {
+    const e = ctlRow.current;
+    if (!e) return;
+    const left = e.scrollLeft > 1, right = e.scrollLeft + e.clientWidth < e.scrollWidth - 1;
+    setMore(left && right ? 'both' : left ? 'left' : right ? 'right' : '');
+  };
+  useEffect(() => { const e = ctlRow.current; if (!e) return; const ro = new ResizeObserver(checkMore); ro.observe(e); return () => ro.disconnect(); }, []);
+  useEffect(checkMore, [show.sets.length]); // the play-range controls come and go with the second set
   const [short, setShort] = useState(() => matchMedia(SHORT).matches);
   useEffect(() => { const m = matchMedia(SHORT), f = () => setShort(m.matches); m.addEventListener('change', f); return () => m.removeEventListener('change', f); }, []);
   // Set buttons in two fixed rows (the panel never changes height): each starts at its set's line and takes the top
@@ -139,11 +150,13 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
   const setDrag = useRef<{ i: number; x0: number; from: number; perCount: number; moved: boolean; touch?: { left: number; armed: boolean; scrolled: boolean; timer: number } } | null>(null);
   const [held, setHeld] = useState<number | null>(null); // the set button a finger has picked up
   const dropSet = () => { const d = setDrag.current; if (d?.touch) clearTimeout(d.touch.timer); setDrag.current = null; setHeld(null); return d; };
-  const fixedRow: React.CSSProperties = { display: 'flex', gap: 8, alignItems: 'center', height: TOUCH ? (short ? 44 : 48) : 30, whiteSpace: 'nowrap', overflowX: 'auto', overflowY: 'hidden', scrollbarWidth: 'none' };
+  const fixedRow: React.CSSProperties = { display: 'flex', gap: 8, alignItems: 'center', height: TOUCH ? (short ? 44 : 48) : 30, whiteSpace: 'nowrap', overflow: 'hidden' };
   return (
     <div style={{ padding: `${short ? 4 : 8}px 12px 12px` }}>
       {/* Every row has a fixed height: a panel that grows or shrinks would resize (and flash) the field. */}
       <div style={{ ...fixedRow, marginBottom: 4 }}>
+        {/* The controls scroll sideways in a narrow window, with the edge faded where more are hidden; the status stays put. */}
+        <div ref={ctlRow} className="fade-x" data-more={more} onScroll={checkMore} style={{ ...fixedRow, flex: '1 1 auto', minWidth: 0, overflowX: 'auto', scrollbarWidth: 'none' }}>
         <button aria-label="Back to start" onClick={() => setT(0)}><IconStart /></button>
         <button aria-label="Previous count" onClick={() => setT(Math.max(0, Math.ceil(t) - 1))}><IconPrev /></button>
         <button aria-label={playing ? 'Pause' : 'Play'} onClick={() => { if (click.on) wakeClick(); setPlaying(!playing); }} disabled={!total || (!playing && !playPlan(t, span, total, range.loop))}
@@ -176,7 +189,8 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
             <label><input type="checkbox" checked={range.loop} onChange={(e) => setRange({ ...range, loop: e.target.checked })} /> Loop</label>
           </>
         )}
-        <span title={`${status} · ${Math.floor(t)} / ${total} counts`} style={{ marginLeft: 'auto', fontVariantNumeric: 'tabular-nums', overflow: 'hidden', textOverflow: 'ellipsis' }}>{status} · {Math.floor(t)} / {total} counts</span>
+        </div>
+        <span title={`${status} · ${Math.floor(t)} / ${total} counts`} style={{ flex: '0 1 auto', minWidth: '8em', maxWidth: '45%', fontVariantNumeric: 'tabular-nums', overflow: 'hidden', textOverflow: 'ellipsis' }}>{status} · {Math.floor(t)} / {total} counts</span>
       </div>
       {/* Set buttons sit above the line where each set lands. */}
       {/* Click a set to go to it; drag it (not set 1) to land it on a different count. Its neighbors stay put. */}
@@ -237,8 +251,10 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
       {total === 0 ? (
         <div style={{ opacity: 0.7, fontSize: 14, height: short ? 40 : 56, display: 'flex', alignItems: 'center' }}>Only one set so far. Add a set to create a move, or set the show's length in Movements.</div>
       ) : (
+        <>
+        {/* For the keyboard and screen readers: the strip below has buttons inside it (a slider can't), so the count is this. */}
+        <input type="range" className="sr-only" aria-label="Count in the show" min={0} max={total} step={1} value={Math.round(t)} onChange={(e) => setT(Number(e.target.value))} />
         <div
-          role="slider" aria-label="Show timeline in counts" aria-valuemin={0} aria-valuemax={total} aria-valuenow={Math.floor(t)} tabIndex={0}
           onPointerDown={(e) => { if (e.button !== 0) return; e.currentTarget.setPointerCapture(e.pointerId); scrub(e); }}
           onPointerMove={(e) => e.buttons === 1 && scrub(e)}
           style={{ position: 'relative', height: short ? 40 : 56, cursor: 'pointer', userSelect: 'none', marginRight: pad }}
@@ -293,6 +309,7 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
           {span[1] < total && <div style={{ position: 'absolute', top: 0, bottom: 0, right: 0, width: `${((total - span[1]) / total) * 100}%`, background: 'rgba(0,0,0,0.45)', pointerEvents: 'none' }} />}
           <div style={{ position: 'absolute', top: -4, bottom: -4, width: 2, background: 'var(--text)', left: `${(t / total) * 100}%`, pointerEvents: 'none' }} />
         </div>
+        </>
       )}
       </div>
       </div>

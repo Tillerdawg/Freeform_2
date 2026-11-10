@@ -4,6 +4,9 @@ import { parseShow, type Show } from '../engine/show';
 import { versionDue, versionsToDrop } from '../engine/versions';
 import { deleteAudio, run } from './audioStore';
 
+/** The open show, in localStorage. Here, not in App, so the phone's performer view can read it without loading the editor. */
+export const AUTOSAVE = 'freeform:autosave';
+
 /** A kept show or version: the show as text, and enough to list it without reading it. */
 export interface Entry { json: string; title: string; at: number; performers: number; sets: number }
 export type Listed = Omit<Entry, 'json'> & { id: string };

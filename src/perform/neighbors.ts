@@ -22,3 +22,21 @@ export function yardLabel(x: number): string {
   if (yd === 0) return 'G';
   return `S${x < 0 ? 1 : 2} ${yd}`;
 }
+
+/** A step size in words a student knows: 8-to-5 is a normal step, fewer steps per 5 yards is a bigger step. */
+export function stepWords(per5: number): string {
+  if (per5 === Infinity) return 'stand still';
+  if (per5 > 9) return 'smaller steps than normal';
+  if (per5 >= 7) return 'normal steps';
+  if (per5 >= 6) return 'bigger steps than normal';
+  return 'very big steps';
+}
+
+/** Which way a move ends up, for a performer facing the front: +y is toward the back sideline, +x toward Side 2 (their left). */
+export function moveWords(from: Point, to: Point): string {
+  const dx = to.x - from.x, dy = to.y - from.y;
+  const counts = (a: number, b: number) => Math.abs(a) >= 0.5 && Math.abs(a) >= 0.3 * Math.abs(b); // a small sideways drift isn't worth saying
+  const fb = counts(dy, dx) ? (dy > 0 ? 'back' : 'forward') : '', side = counts(dx, dy) ? (dx > 0 ? 'to your left' : 'to your right') : '';
+  if (!fb && !side) return '';
+  return `moving ${[fb, side].filter(Boolean).join(' and ')} (facing the front)`;
+}

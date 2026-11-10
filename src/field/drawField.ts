@@ -274,11 +274,13 @@ export function drawPerformers(
   const w = ctx.lineWidth;
   for (const p of paths) {
     const a = toScreen(v, p.from), b = toScreen(v, p.to);
+    // Over the limit is solid and wider, not only red: with red-green color blindness a red line looks like a plain dark one.
+    const lw = p.tier === 'red' ? w * 1.6 : w;
     if (p.tier !== 'ok') { // dark casing under a warning color
-      ctx.setLineDash([]); ctx.strokeStyle = PALETTE['bg-deep']; ctx.lineWidth = w + Math.max(2, s * 0.1);
+      ctx.setLineDash([]); ctx.strokeStyle = PALETTE['bg-deep']; ctx.lineWidth = lw + Math.max(2, s * 0.1);
       ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
-      ctx.setLineDash([s * 0.4, s * 0.3]); ctx.lineWidth = w;
     }
+    ctx.setLineDash(p.tier === 'red' ? [] : [s * 0.4, s * 0.3]); ctx.lineWidth = lw;
     ctx.strokeStyle = TIER_COLOR[p.tier];
     ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
   }

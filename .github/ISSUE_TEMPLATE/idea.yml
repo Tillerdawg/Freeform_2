@@ -1,0 +1,16 @@
+name: An idea or a missing feature
+description: Something FreeFORM should do, or do differently. Band directors and drill writers especially welcome.
+labels: [idea]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like FreeFORM to do?
+      description: If Pyware or UDB does it, say how it works there. Describe it in your own words; please don't paste their code or files.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: When would you use it?
+      description: The rehearsal or writing situation it helps with.

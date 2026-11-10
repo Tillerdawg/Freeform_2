@@ -88,8 +88,11 @@ export function Sidebar(p: Props) {
         <button onClick={p.onSave} title="Save this show as a .freeform file (⌘S): the first time you choose where, then it saves to that same file">Save</button>
         <button onClick={p.onSaveAs} title="Save a copy as a new .freeform file, choosing the folder and name">Save As…</button>
         <button onClick={p.onFullBackup} disabled={!show.music && !show.trace} title="Save a .freeform file that also holds the recording and tracing picture, to move the show to another computer complete (a much bigger file)">Full backup…</button>
-        <button onClick={p.onPrint} disabled={!show.performers.length} title="Dot sheets and drill charts (print or save as PDF)">Print…</button>
-        <button onClick={p.onShare} disabled={!show.performers.length} title="A link that opens this show on performers' and staff phones">Share…</button>
+      </div>
+      {/* Getting the drill to the band is the payoff, so it gets its own row, apart from the file buttons. */}
+      <div role="group" aria-label="Get it to the band" style={{ ...row, flexWrap: 'nowrap' }}>
+        <button className="primary" onClick={p.onPrint} disabled={!show.performers.length} title="Dot sheets and drill charts (print or save as PDF)" style={{ flex: 1 }}>Print…</button>
+        <button className="primary" onClick={p.onShare} disabled={!show.performers.length} title="A link that opens this show on performers' and staff phones" style={{ flex: 1 }}>Share…</button>
       </div>
       {p.fileError && <div role="alert" style={{ color: 'var(--danger)', marginTop: 6 }}>{p.fileError}</div>}
       <div style={{ ...row, marginBottom: 10 }}>

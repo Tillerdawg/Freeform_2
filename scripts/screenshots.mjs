@@ -10,12 +10,12 @@ const OUT = new URL('../docs/img/', import.meta.url).pathname;
 const only = process.argv.slice(2);
 const server = await createServer({ server: { port: 5199, strictPort: true }, logLevel: 'error' });
 await server.listen();
-const URL_ = 'http://localhost:5199/';
+const URL_ = 'http://localhost:5199/app/'; // the editor; the front page is at /
 const browser = await chromium.launch(process.env.CHROME ? { executablePath: process.env.CHROME } : {}); // CHROME: use an installed Chrome instead
 
 /** A fresh editor (1440 × 900, at 2× for sharp images) with the sample show loaded. */
 async function editor(opts = {}) {
-  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2, ...opts });
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2, colorScheme: 'dark', ...opts }); // dark: the app follows the device's setting
   const page = await ctx.newPage();
   await page.goto(URL_);
   await page.evaluate(async () => {
@@ -328,7 +328,7 @@ shot('phone', async () => {
     const { encodeShow, SHARE_PREFIX } = await import('/src/engine/share.ts');
     return SHARE_PREFIX + await encodeShow(JSON.parse(localStorage.getItem('freeform:autosave')));
   });
-  const ctx = await browser.newContext({ ...devices['iPhone 15'] });
+  const ctx = await browser.newContext({ ...devices['iPhone 15'], colorScheme: 'dark' });
   const page = await ctx.newPage();
   await page.goto(URL_ + link);
   await page.waitForTimeout(1500);
@@ -352,7 +352,8 @@ async function printed(kind, name, opts = {}) {
   await page.evaluate(() => { window.print = () => {}; });
   await page.getByRole('button', { name: 'Print…' }).click();
   if (kind === 'charts') await page.getByLabel(/Drill charts/).check();
-  if (opts.single) await page.getByLabel(/1 per page/).check();
+  if (opts.single) await page.getByLabel(/1 per page, bigger/).check();
+  if (opts.pics) await page.getByLabel(/small field picture/).check();
   if (opts.section) await page.getByRole('combobox', { name: 'Section to print' }).selectOption({ label: opts.section });
   if (opts.paths) await page.getByLabel(/Show the paths/).check();
   await page.getByRole('dialog').getByRole('button', { name: /^Print/ }).click();
@@ -360,7 +361,7 @@ async function printed(kind, name, opts = {}) {
   await page.emulateMedia({ media: 'print' });
   await page.waitForTimeout(800);
   // The first dot-sheet page; set 2's chart (it has markup and a note).
-  if (opts.single) { // just the top of the page: the rest is blank for a short show
+  if (opts.single || opts.pics) { // just the top of the page: the rest is blank for a short show
     const card = await page.locator('.dot-card').first().boundingBox(), table = await page.locator('.dot-card table').first().boundingBox();
     await page.screenshot({ path: `${OUT}${name}.png`, clip: { x: card.x, y: card.y, width: card.width, height: table.y + table.height - card.y + 8 } });
     return;
@@ -370,6 +371,7 @@ async function printed(kind, name, opts = {}) {
 shot('dot-sheet', () => printed('dots', 'dot-sheet'));
 shot('drill-chart', () => printed('charts', 'drill-chart'));
 shot('dot-sheet-page', () => printed('dots', 'dot-sheet-page', { single: true, section: 'Color Guard' }));
+shot('dot-sheet-pictures', () => printed('dots', 'dot-sheet-pictures', { pics: true, section: 'Color Guard' }));
 shot('drill-chart-paths', () => printed('charts', 'drill-chart-paths', { paths: true, set: 2 })); // set 3: the guard's FTL and the platform's move
 
 for (const [name, f] of Object.entries(shots)) {

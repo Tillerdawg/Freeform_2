@@ -1,17 +1,15 @@
 // Offline support: serve from cache, refresh the cache in the background.
-// The page itself (navigation) prefers the network so a new version shows up as soon as you're online.
+// The pages themselves (navigation) prefer the network so a new version shows up as soon as you're online.
+// What to keep is listed in precache.json, written by the build (vite.config.ts): both pages, every built file (the
+// editor and the performer view are separate downloads), and the icons and logos.
 // Bump when a file without a hash in its name changes (icons, manifest): cached copies are otherwise kept forever.
-const CACHE = 'freeform-v8'; // v8: even spacing in logo-small.svg
+const CACHE = 'freeform-v9'; // v9: the front page at /, the app at /app/, precache.json
+
+const wanted = async () => (await fetch('./precache.json', { cache: 'no-cache' })).json();
 
 self.addEventListener('install', (e) => {
-  // Cache the page plus every file it links (the built JS has a hashed name we can't list ahead of time),
-  // so the app works offline after a single visit.
-  e.waitUntil((async () => {
-    const c = await caches.open(CACHE);
-    const html = await (await fetch('./', { cache: 'reload' })).text();
-    const linked = [...html.matchAll(/(?:src|href)="(\.\/[^"]+)"/g)].map((m) => m[1]);
-    await c.addAll(['./', ...new Set(linked)]);
-  })());
+  // Everything, so the app works offline after a single visit, whichever view that visit opened.
+  e.waitUntil(wanted().then(async (list) => (await caches.open(CACHE)).addAll(list)));
   self.skipWaiting();
 });
 
@@ -21,24 +19,28 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
-  const req = e.request;
-  if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return;
+  const req = e.request, url = new URL(req.url);
+  if (req.method !== 'GET' || url.origin !== location.origin) return;
   const save = (res) => { if (res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(req, copy)); } return res; };
   if (req.mode === 'navigate') {
     // no-cache: ask the server whether the page changed (GitHub Pages lets browsers reuse it for 10 minutes otherwise,
-    // so a new version could take that long to appear).
-    e.respondWith(fetch(new Request(req, { cache: 'no-cache' })).then((res) => { save(res); prune(res.clone()); return res; })
-      .catch(() => caches.match(req).then((r) => r || caches.match('./'))));
+    // so a new version could take that long to appear). Offline, the cached page; /app/?sample and the like count as /app/.
+    const page = url.pathname.includes('/app/') ? './app/' : './';
+    e.respondWith(fetch(new Request(req, { cache: 'no-cache' })).then((res) => { save(res); refresh(); return res; })
+      .catch(() => caches.match(req, { ignoreSearch: true }).then((r) => r || caches.match(page))));
     return;
   }
   // Built files have content hashes in their names, so a cached copy is always the right one.
   e.respondWith(caches.match(req).then((hit) => hit || fetch(req).then(save)));
 });
 
-// After an update, drop built files the new page no longer uses, so the cache doesn't grow with every release.
-async function prune(res) {
-  const html = await res.text();
-  const keep = new Set([...html.matchAll(/(?:src|href)="\.\/([^"]+)"/g)].map((m) => new URL(m[1], res.url || self.registration.scope).href));
-  const c = await caches.open(CACHE);
-  for (const r of await c.keys()) if (r.url.includes('/assets/') && !keep.has(r.url)) await c.delete(r);
+// After an update: fetch what the new version needs (the view not opened yet included) and drop built files it no longer
+// uses, so the cache neither misses a file offline nor grows with every release.
+async function refresh() {
+  try {
+    const list = await wanted(), c = await caches.open(CACHE);
+    const keep = new Set(list.map((f) => new URL(f, self.registration.scope).href));
+    for (const r of await c.keys()) if (r.url.includes('/assets/') && !keep.has(r.url)) await c.delete(r);
+    for (const href of keep) if (href.includes('/assets/') && !(await c.match(href))) await c.add(href).catch(() => {});
+  } catch { /* offline or mid-deploy: try again next time */ }
 }

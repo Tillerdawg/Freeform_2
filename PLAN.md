@@ -67,51 +67,53 @@
 - ✅ New web address: **freeformdrill.org** (Jason registered it at Cloudflare; live with HTTPS on 2026-11-04, and the old address forwards to it). How it was done: verify the domain in GitHub (account Settings → Pages, a TXT record); DNS records in Cloudflare, DNS only (gray cloud) so GitHub can issue the HTTPS certificate; Jason exports his shows; custom domain in the repository's Settings → Pages; Enforce HTTPS once it's offered. The repository keeps its name; GitHub should forward the old `tillerdawg.github.io/Freeform_2/` address (check on the day; browsers keep the `#show=`/`#load=` part). **Data doesn't move by itself:** a browser keeps saved data per web address, so on the new address autosaved shows, starting section lists, recordings, the GitHub publishing token, hosted-link keys, and phones' saved shows start empty. Jason is the only user so far, so no in-app export notice: he exports and re-imports, then republishes hosted shows. The docs, `index.html`, and the screenshot script use the new address. App links for the store apps need this domain (see the store-apps item).
 
 ## From the 2026-11-10 review
-Claude went through the docs, ran the tests, and clicked through the editor and the phone view (desktop, iPhone upright, iPhone on its side, all emulated). Jason approved the list. Nothing here is built yet. Rough order: the phone layout, the front door, an upload service, then a pilot with a real band.
+Claude went through the docs, ran the tests, and clicked through the editor and the phone view (desktop, iPhone upright, iPhone on its side, all emulated). Jason approved the list, and the in-repo items were built the same day (✅ below). Still to do: the upload service, video export, current Pyware files, Spanish, and getting the word out.
 
-### Phone view (first: it's the only screen students see)
-- A phone on its side cuts off the play controls: **Loop** is clipped and **Click** is off the screen (iPhone 13).
-- More room for the field. Upright with **Follow my dot** on, the field is about a fifth of the screen, and **From the press box** and **Follow my dot** sit on top of it and cover the neighbors' labels. Move the buttons off the field.
-- **Staff (whole band)** in a tight block: the labels pile up and can't be read, while the bottom half of the screen is empty before a performer is picked. Use the labels' auto-hide, or give the field the empty space.
-- Bigger touch targets: the play buttons are 40 tall and the count slider 32, against our own 44.
-- A plainer step-size readout ("8.3-to-5" means nothing to a sophomore): the number plus plain words (smaller than normal, normal, big) and a direction ("back and to your left"). This is the "simpler phone readout" follow-up above. Test with students first.
-- Load only the performer view on a phone. The whole app is one 646 KB file (216 KB zipped), editor included, so a student on slow school Wi-Fi downloads all of it to see one dot.
+### Phone view (it's the only screen students see)
+- ✅ A phone on its side: the field takes the left side at full height, and the title, readout, and controls scroll in one column on the right (the button row wraps there instead of running off the edge).
+- ✅ Nothing covers the field: **From the press box** and the sun/moon button sit beside the show's title, and **Follow my dot** beside the who button. The readout's height is a share of the screen now (130 to 230 px), so the field went from about a fifth of an iPhone 13's screen to about a quarter, with nothing on top of it. Follow-up: check on Jason's phone and an iPhone SE, where the field is still small (about 100 px tall in Safari).
+- ✅ **Staff (whole band)** zoomed out: performers are dots labeled P4 (labels hiding where they'd collide) until a pinch makes room for letters.
+- ✅ 44 px touch targets: the play buttons, the count slider, set buttons, and the show menu. On an iPhone SE the button row tightens up (and drops the word "bpm") so it all fits.
+- ✅ A plainer step-size readout: under "8.3-to-5", "normal steps, moving back and to your left (facing the front)". Smaller than normal is past 9-to-5, normal 7 to 9, bigger 6 to 7, very big under 6. Follow-up: try it with students and adjust the words.
+- ✅ A phone loads only the performer view: the editor, the performer view, and the QR scanner are separate downloads (a phone fetches about 107 KB zipped, down from 216). The offline cache keeps all of them, from a list the build writes (`precache.json`).
 
 ### Editor
-- The timeline's top row clips: the status text at 1440 wide ("Opener · Set…"), and **Play set** at 1024 ("Pla"). The row can't wrap (house rule), so it needs to scroll or shorten.
-- Bigger click targets (WCAG 2.2 asks for 24 by 24): the play buttons (35 by 21), set buttons (24 by 20), checkboxes (13 by 13), and **Add**'s **▾** (19 wide).
-- **Print…** and **Share…** are buttons seven and eight in a three-row cluster with **New**, **Import…**, and **Save As…**. Separate "the file" from "get it to the band," and make the second group easier to find.
-- Follow the device's light or dark setting (already under Light mode, "later, if wanted").
-- Check the yellow and red step warnings on the green field in a colorblind simulator (red on green is the usual problem). Not measured yet.
+- ✅ The timeline's top row: the controls scroll sideways in a narrow window, with a faded edge where more are hidden; the status text stays put at the right.
+- ✅ At least 24 by 24 px for every button with a mouse (WCAG 2.2): the play buttons, set buttons (their rows are a little taller), **Add**'s **▾**, and the Roster's names.
+- ✅ **Print…** and **Share…** on their own row under the file buttons, in the green primary style.
+- ✅ Light or dark follows the device's setting until you click the sun/moon button (Claude's call to make it the default; *Jason can veto*).
+- ✅ Checked the step warnings for red-green color blindness (simulated): yellow stays clear, but a red path looked like a plain dark one. Red paths are now solid and wider (the others are dashed), and the red rings and the underlined red "max" already don't depend on color.
 
 ### Accessibility
-- The timeline is a slider with the set buttons inside it, which screen readers handle badly. Take the buttons out of the slider.
-- The QR codes have a label but no `role="img"`, so the label is ignored.
-- Page landmarks: main, navigation, and the sidebar.
-- A label on the editor's field canvas (the phone's has one).
-- A shorter Tab order: with **Sections** open, about 56 section-row buttons come before the **Roster**.
+- ✅ The timeline strip is no longer a slider with buttons inside it: a hidden count slider stands for it (Tab to it, then the arrow keys, Home, and End), and the strip shows its focus.
+- ✅ The QR codes are images with their labels read.
+- ✅ Landmarks: the top bar and toolbar are the header, the field and timeline the main part, the sidebar an aside; the phone view is a main part too.
+- ✅ The editor's field canvas has a label.
+- ✅ Tab order: checked. Closed panels (**Sections**, **Roster**) aren't in the Tab order at all; an open Sections list has four controls per section, which is normal for a list you edit, so it stays.
+- Automated check (axe, WCAG 2.2 AA): no problems on the front page, the editor, the Share dialog, or the phone view.
 
 ### Dot sheets and sharing
-- A small field picture per set on dot sheets, like a UDB dot book.
-- A FreeFORM-run upload service, so **Keep phones up to date** doesn't need a GitHub token (already a follow-up under Protected hosting and Music on phones). This is the biggest barrier for other directors. The files are already locked in the browser, so the service only ever holds ciphertext. Cloudflare (a Worker and R2) is the likely home, since the domain is there. Do this before cloud sync.
+- ✅ Dot sheets with a small field picture for each set (**1 per page, with a small field picture for each set**): the whole field, everyone faint, the performer as a big black dot; 12 sets a page.
+- A FreeFORM-run upload service, so **Keep phones up to date** doesn't need a GitHub token (also a follow-up under Protected hosting and Music on phones). The biggest barrier for other directors. The files are already locked in the browser, so the service only ever holds ciphertext. Cloudflare (a Worker and R2) is the likely home, since the domain is there. Needs Jason's Cloudflare setup. Before cloud sync.
 - Video export of the animation, for the band's group chat, staff, and boosters.
-- Pyware import for current files. It's tested on 2008 to 2010 files only, and "can I bring my shows?" is the first question a switcher asks.
-- Spanish. Every string is written into the components now, so this costs more each week. Decide soon, even if the answer is "later."
+- Pyware import for current files. Tested on 2008 to 2010 files only; needs newer sample files from Jason.
+- Spanish. Every string is written into the components, so this costs more each week. Decide soon, even if the answer is "later."
 
 ### Guide and site
-- A front door at freeformdrill.org: what FreeFORM Drill is, a 60-second video, **Open the editor**, and a QR code for the sample show. Today the address opens the editor, and on a phone it says only "Open the show link your director sent you," with no word on what FreeFORM is and no link to the guide.
-- "FreeFORM Drill" in the page title and the link-preview title (both say "FreeFORM," which collides with Apple's Freeform and the TV channel in a search).
-- An honest "FreeFORM Drill and Pyware" comparison page.
-- A short privacy page: nothing leaves your browser, no accounts, and names stay out of plain share links. District IT will ask.
-- A school Chromebook warning in the guide's Before you start: managed Chromebooks often clear browser storage at sign-out, which would lose the autosave. Save to a file every time.
-- **Send feedback** under **Help**, for people who don't use GitHub.
+- ✅ A front page at freeformdrill.org: what FreeFORM Drill is, the editor's screenshot, **Open the editor**, **Try the sample show** (`app/?sample`), the how-to guide, and a QR code that opens the sample show on a phone (a short hosted link to `sample.freeform`, which the build writes). On a phone it says the editor needs a computer or an iPad and offers the sample instead. The editor moved to **freeformdrill.org/app/**; old links (`/#show=…`, `/#load=…`, `/#perform`) and home-screen apps go straight there. Follow-up: a 60-second video for the front page (Jason's voice).
+- ✅ "FreeFORM Drill" in the page titles and link previews.
+- ✅ "Coming from Pyware or UDB" on the front page: what's the same, the `.3dj` import and its limits, what FreeFORM doesn't do yet, and that it isn't affiliated with either.
+- ✅ Privacy on the front page: no server, no accounts, no trackers or analytics, names out of plain share links, locked files, the GitHub token, and GitHub Pages' logs.
+- ✅ A school Chromebook warning in the guide's Before you start.
+- ✅ **Send feedback** under **Help** and on the front page. For now it opens GitHub's issue forms, which need a GitHub account. Follow-up: Jason to pick a channel for people without one (an email address or a form), then change `FEEDBACK` in `src/App.tsx` and the front page.
+- ✅ **About FreeFORM Drill** under **Help** (the front page), and "What's FreeFORM Drill?" on the phone's start screen.
 
 ### Repository
-- Run `scripts/screenshots.mjs` in the deploy workflow as a smoke test. Unit tests can't catch layout problems like the phone on its side.
-- Issue templates, a CONTRIBUTING file, releases with a real version number (it's 0.0.0), and maybe a better repository name than `Freeform_2`.
+- ✅ The deploy workflow runs `scripts/screenshots.mjs` after the build, as a smoke test: it clicks through every screen in the guide, and a failure stops the deploy.
+- ✅ Issue forms (a problem, an idea), CONTRIBUTING.md, and version 0.1.0. Follow-ups (Jason): a GitHub release for 0.1.0, and whether to rename the repository from `Freeform_2` (GitHub forwards the old address).
 
-### Getting the word out
-- A pilot season with a real band (Blake's, at Oconee County, is the obvious one): a testimonial, and the student testing the phone readout is waiting on.
-- The sample show's QR code on everything: "scan this and see what your students would get."
+### Getting the word out (Jason)
+- A pilot season with a real band (Blake's, at Oconee County, is the obvious one): a testimonial, and the student testing the phone readout needs.
+- The sample show's QR code on everything: it's on the front page now.
 - GMEA's in-service conference in Athens each January, and UGA's music education program (marching methods students can't afford Pyware and are directors in a couple of years).
 - Online: band director Facebook groups, r/marchingband and r/drumcorps, the MuseScore forum (the score sync is the hook there), and AlternativeTo. Check each group's rules on self-promotion first.

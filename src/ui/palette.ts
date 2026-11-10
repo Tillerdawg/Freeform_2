@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react';
 
-// FreeFORM's colors, one set for the whole app. The page styles use the same names as CSS variables (index.html,
+// FreeFORM's colors, one set for the whole app. The page styles use the same names as CSS variables (app/index.html and the front page,
 // :root); canvas drawing (the field, the phone view) uses these values. palette.test.ts keeps the two in step and checks
 // contrast: legible beats pretty (text 4.5:1, lines and shapes 3:1).
 export const PALETTE = {
@@ -33,7 +33,7 @@ export type PaletteName = keyof typeof PALETTE;
 export const css = (name: PaletteName) => `var(--${name})`;
 
 /**
- * Light mode: the same names for the panels, buttons and text (index.html, :root[data-theme=light]). The field itself
+ * Light mode: the same names for the panels, buttons and text (app/index.html and index.html, :root[data-theme=light]). The field itself
  * doesn't change: turf, yard lines, dots and paths keep PALETTE, so a show looks the same in both modes.
  */
 export const LIGHT: Record<PaletteName, string> = {
@@ -63,7 +63,11 @@ export const LIGHT: Record<PaletteName, string> = {
 
 export type ThemeName = 'dark' | 'light';
 export const THEME_KEY = 'freeform:theme';
-let theme: ThemeName = (() => { try { return localStorage.getItem(THEME_KEY) === 'light' ? 'light' : 'dark'; } catch { return 'dark'; } })();
+// A choice made with the sun/moon button wins; until then, follow the device's own light or dark setting.
+const stored = (): ThemeName | null => { try { const v = localStorage.getItem(THEME_KEY); return v === 'light' || v === 'dark' ? v : null; } catch { return null; } };
+const LIGHT_Q = '(prefers-color-scheme: light)';
+const device = (): ThemeName => (typeof matchMedia !== 'undefined' && matchMedia(LIGHT_Q).matches ? 'light' : 'dark');
+let theme: ThemeName = stored() ?? device();
 const listeners = new Set<() => void>();
 /** A panel color for canvas drawing (the space around the field, the waveform), in the current mode. */
 export const chrome = (name: PaletteName) => (theme === 'light' ? LIGHT : PALETTE)[name];
@@ -73,6 +77,7 @@ function apply() {
   document.querySelector('meta[name=theme-color]')?.setAttribute('content', chrome('bg'));
 }
 apply();
+if (typeof matchMedia !== 'undefined') matchMedia(LIGHT_Q).addEventListener('change', () => { if (!stored()) { theme = device(); apply(); listeners.forEach((f) => f()); } });
 export function setTheme(t: ThemeName) {
   theme = t; apply();
   try { localStorage.setItem(THEME_KEY, t); } catch { /* private mode: this visit only */ }

@@ -3,212 +3,168 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>FreeFORM</title>
-    <meta name="description" content="FreeFORM is a free and open-source drill design and learning tool for all marching arts organizations." />
+    <!-- Links made before the app moved to /app/ (freeformdrill.org/#show=…), and the home-screen app (which may still
+         start here), go straight to the app. Before anything draws, so the front page never flashes. -->
+    <script>
+      (function () {
+        var standalone = window.navigator.standalone || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
+        if (/^#(show=|load=|perform)/.test(location.hash) || standalone) location.replace('app/' + location.hash);
+        try { var t = localStorage.getItem('freeform:theme'); } catch (e) {}
+        document.documentElement.dataset.theme = t === 'light' || t === 'dark' ? t : window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+      })();
+    </script>
+    <title>FreeFORM Drill: free drill design for marching band</title>
+    <meta name="description" content="FreeFORM Drill is a free, open-source drill design tool for marching band, drum corps, and indoor. Write drill in your browser, print dot sheets and charts, and send the show to your students' phones." />
     <meta name="theme-color" content="#1d2a1f" />
     <link rel="manifest" href="./manifest.webmanifest" />
-    <link rel="icon" href="./favicon-32.png" sizes="32x32" /><!-- browsers without SVG favicons -->
-    <link rel="icon" href="./favicon.svg" type="image/svg+xml" /><!-- the curve; light dots on dark tabs -->
+    <link rel="icon" href="./favicon-32.png" sizes="32x32" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-title" content="FreeFORM" />
-    <!-- Link previews (iMessage, Slack, email). shortcut: the image URL is the GitHub Pages address; change it if the site moves. -->
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="FreeFORM" />
-    <meta property="og:description" content="Drill, without the bill. FreeFORM is a free and open-source drill design and learning tool for all marching arts organizations." />
+    <meta property="og:url" content="https://freeformdrill.org/" />
+    <meta property="og:title" content="FreeFORM Drill" />
+    <meta property="og:description" content="Drill, without the bill. A free, open-source drill design tool for marching band, drum corps, and indoor." />
     <meta property="og:image" content="https://freeformdrill.org/og-image.png" />
     <meta name="twitter:card" content="summary_large_image" />
     <style>
       :root { --bg: #1d2a1f; --bg-deep: #182419; --surface: #22302a; --surface-2: #2b3b2f; --line: #33443a; --line-strong: #44594a; --muted: #6b8270; --green: #3d6b4a; --green-line: #7cc08b; --text: #e9f0ea; --gold: #ffd166; --gold-fill: #ffd166; --on-gold: #182419; --warn: #f5c518; --warn-line: #5a4a1a; --danger: #ff8080; --step-red: #ff4d4d; --danger-bg: #5a2b2b; --danger-line: #a04848; --blue: #5ad1ff; --turf: #357842; --floor: #8a6a45; } /* = src/ui/palette.ts */
       :root[data-theme=light] { --bg: #eef3ef; --bg-deep: #ffffff; --surface: #e3ebe5; --surface-2: #d5e0d8; --line: #bfcdc3; --line-strong: #8ea596; --muted: #5f7564; --green: #c4e3cc; --green-line: #2a6e3b; --text: #14201a; --gold: #1d2a1f; --gold-fill: #ffd166; --on-gold: #14201a; --warn: #7a5200; --warn-line: #c9a447; --danger: #b3261e; --step-red: #c41e1e; --danger-bg: #f6d5d3; --danger-line: #c96a64; --blue: #075f85; --turf: #357842; --floor: #8a6a45; } /* = LIGHT in src/ui/palette.ts */
-      html { touch-action: manipulation; } /* no double-tap page zoom on buttons; the field has its own pinch */
-      html, body, #root { margin: 0; height: 100%; background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; }
-      /* viewport-fit=cover makes iOS report its status bar, home indicator and notch as safe-area insets (without it they
-         read 0 while the page still runs behind the home indicator); everything stays inside them. 0 on computers. */
-      #root { box-sizing: border-box; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
-      /* With no status bar on top (an iPhone Duo on its side puts the clock at the right), the top bar would sit flush with
-         the edge while the home-bar margin stays below: keep a little room up top on touch screens. */
-      @media (pointer: coarse) { #root { padding-top: max(env(safe-area-inset-top), 12px); } }
-      /* In the editor, the top margin matches the bottom one (Jason: visual balance on an iPhone Duo on its side, whose clock
-         sits at the right): the home-bar margin plus the timeline's 12 px padding. The performer view keeps its height. */
-      @media (pointer: coarse) { body:not(.performer) #root { padding-top: max(env(safe-area-inset-top), calc(env(safe-area-inset-bottom) + 12px)); } }
-      /* Buttons and fields: one calm style everywhere. Heights stay within the fixed rows (top bar 40, toolbar 44, timeline 30). */
-      button { font: inherit; font-size: 13px; line-height: 18px; color: var(--text); background: var(--surface-2); border: 1px solid var(--line-strong); border-radius: 6px;
-        padding: 3px 10px; cursor: pointer; transition: background .12s, border-color .12s, box-shadow .12s; }
-      @media (hover: hover) { button:hover:not(:disabled) { background: var(--line); border-color: var(--muted); } } /* a tapped button on a touch screen would keep its hover look */
-      button:active:not(:disabled) { background: var(--surface); }
-      button:disabled { opacity: .45; cursor: default; }
-      button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
-      button[aria-pressed=true], button[aria-checked=true] { background: var(--gold-fill); border-color: var(--gold); box-shadow: inset 0 0 0 1px var(--gold); color: var(--on-gold); font-weight: 600; } /* inset: a 2 px edge without resizing the button */
-      button.icon { padding: 4px 7px; }
-      button > svg:only-child { margin: 0 auto; } /* icons are blocks: center them when the button is wider (44 px on touch) */
-      button.primary { background: var(--green); border-color: var(--green-line); }
-      @media (hover: hover) { button.danger:hover:not(:disabled) { background: var(--danger-bg); border-color: var(--danger-line); } }
-      select, input:not([type=radio]):not([type=checkbox]):not([type=range]), textarea { font: inherit; font-size: 13px; color: var(--text); background: var(--bg-deep);
-        border: 1px solid var(--line-strong); border-radius: 6px; padding: 3px 6px; }
-      select { padding-right: 4px; }
-      /* Drill toolbar under the top bar: fixed height, never wraps (see CLAUDE.md). */
-      .toolbar button { padding-left: 8px; padding-right: 8px; }
-      .toolbar { display: flex; align-items: center; gap: 4px; height: 44px; box-sizing: border-box; flex-shrink: 0; padding: 0 0 0 12px; white-space: nowrap; overflow-x: auto; scrollbar-width: none;
-        border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--bg-deep); position: relative; z-index: 5; }
-      .toolbar + .toolbar { border-top: none; padding-right: 12px; } /* the second toolbar row */
-      @media (pointer: coarse) and (max-width: 820px) { .tb-long { display: none; } } /* "Snap to grid" → "Snap": the row fits an upright iPad mini */
-      /* Narrower still (an open iPhone Duo, 669 px): Select / Add / Delete, "Reset", no "FreeFORM" title, snugger padding.
-         Buttons stay 44 px tall, and screen readers still hear the full names. */
-      @media (pointer: coarse) and (max-width: 700px) { .tb-long-sm { display: none !important; } .toolbar button { padding-left: 6px; padding-right: 6px; } }
-      .toolbar > * { flex: none; }
-      .tb-field { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; opacity: .9; }
-      .tb-field select { max-width: 130px; }
-      .tb-sep { width: 1px; height: 22px; background: var(--line); margin: 0 2px; }
-      .tb-note { font-size: 12px; color: var(--warn); overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
-      /* Touch screens (iPad): Apple's 44 px minimum for anything you tap, 16 px text in fields (smaller makes iOS zoom in on
-         focus), and taller fixed rows to hold them (top bar 56, toolbar 56, timeline row 48). Set once per device. */
-      @media (pointer: coarse) {
-        button, select, input:not([type=radio]):not([type=checkbox]):not([type=range]) { min-height: 44px; box-sizing: border-box; font-size: 15px; }
-        button, input[type=color] { min-width: 44px; }
-        summary { min-height: 44px; display: flex; align-items: center; gap: 6px; }
-        select, input, textarea { font-size: 16px !important; }
-        input[type=checkbox], input[type=radio] { width: 22px; height: 22px; }
-        button { padding-left: 12px; padding-right: 12px; }
-        .toolbar { height: 56px; }
-        .tb-field, .tb-note { font-size: 14px; }
-        .tb-sep { height: 32px; }
-      }
-      .tb-pinned { position: sticky; right: 0; margin-left: auto; display: inline-flex; gap: 4px; padding: 0 12px 0 8px; background: var(--bg-deep); box-shadow: -10px 0 8px var(--bg-deep); }
-      .tb-menu { position: relative; display: inline-block; }
-      .tb-menu .caret { font-size: 10px; opacity: .7; }
-      /* A split button (Add): the left part repeats the last choice, the caret part opens the menu. */
-      .tb-split { display: inline-flex; }
-      .tb-split > button:first-child { border-top-right-radius: 0; border-bottom-right-radius: 0; }
-      .tb-split > button.tb-caret { border-top-left-radius: 0; border-bottom-left-radius: 0; margin-left: -1px; padding-left: 6px; padding-right: 6px; }
-      .tb-menu-panel { position: fixed; min-width: 180px; max-width: 340px; padding: 8px; display: flex; flex-direction: column;
-        gap: 4px; align-items: stretch; background: var(--surface); border: 1px solid var(--line-strong); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.45);
-        white-space: normal; font-size: 13px; z-index: 20; max-height: 70vh; overflow-y: auto; }
-      .tb-menu-panel > button { text-align: left; }
-      @media screen { #print-root { display: none; } }
-      /* The page itself never scrolls (panels scroll inside themselves): pinned, so iOS can't leave it scrolled after
-         rotating or after lifting a text box above the keyboard, which pushed the phone view up under the status bar. */
-      @media screen { html { overflow: hidden; } body { position: fixed; inset: 0; overflow: hidden; } }
-      /* Performer view: portrait-first phone layout; side by side in landscape. */
-      .perform { display: flex; flex-direction: column; height: 100%; }
-      /* Phone header: the show's title on its own line (full contrast, up to two lines), then the big "who are you" button. */
-      /* Room at the top: newer iOS blurs a band just below the status bar (over the page), which blurred the title. */
-      .perform-bar { display: flex; flex-direction: column; gap: 6px; padding: 24px 12px 8px; flex-shrink: 0; }
-      .perform-titlebar { display: flex; align-items: center; gap: 8px; }
-      .backup-note { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); z-index: 5; width: min(560px, calc(100% - 32px)); display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px 12px; background: var(--bg); border: 1px solid var(--warn); border-radius: 8px; box-shadow: 0 6px 16px rgba(0,0,0,0.45); font-size: 14px; } /* floats over the field, so the field never resizes */
-      .backup-note > span { flex: 1 1 260px; }
-      .perform-shows { font: inherit; font-weight: 600; max-width: 100%; min-height: 36px; } /* the show picker: big enough to tap */
-      .perform-add { position: fixed; top: 0; left: 0; right: 0; z-index: 20; display: grid; gap: 8px; padding: 16px; font-size: 15px; background: var(--bg); border-bottom: 1px solid var(--line-strong); box-shadow: 0 6px 16px rgba(0,0,0,0.45); } /* over the field: opening it doesn't resize the field */
-      .perform-add > button { justify-self: start; }
-      .perform-title { flex: 1; min-width: 0; font-size: 15px; font-weight: 600; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
-      .who-button { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-height: 44px; font-size: 17px; text-align: left; }
-      .who-current { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-      /* The "who are you" sheet: whole screen on a phone, a centered panel on anything wider. */
-      .who-sheet { position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column; padding: calc(8px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) 0 calc(12px + env(safe-area-inset-left)); background: var(--bg); }
-      @media (min-width: 600px) and (min-height: 600px) { .who-sheet { inset: 5vh auto auto 50%; transform: translateX(-50%); width: min(440px, 92vw); height: 90vh; box-sizing: border-box;
-        border: 1px solid var(--line-strong); border-radius: 12px; box-shadow: 0 12px 40px rgba(0,0,0,0.5); } }
-      .who-head { display: flex; align-items: center; justify-content: space-between; min-height: 44px; font-size: 17px; }
-      .who-sheet input[type=search] { width: 100%; box-sizing: border-box; min-height: 44px; margin: 6px 0 8px; font-size: 17px; }
-      .who-list { flex: 1; min-height: 0; overflow-y: auto; padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
-      .who-list h3 { margin: 14px 0 6px; font-size: 14px; }
-      .who-list button { display: block; width: 100%; min-height: 44px; margin: 0 0 6px; font-size: 17px; text-align: left; }
-      .who-list p { font-size: 16px; }
-      /* Short screens (a phone on its side, where the keyboard takes most of the height): title, search and Cancel share one
-         row, and names run in columns, so more of the band shows above the keyboard. */
-      @media (max-height: 500px) {
-        .who-sheet { display: grid; grid-template-columns: auto 1fr auto; grid-template-rows: auto 1fr; column-gap: 12px; align-items: center; }
-        .who-head { display: contents; }
-        .who-head strong { grid-area: 1 / 1; }
-        .who-head button { grid-area: 1 / 3; }
-        .who-sheet input[type=search] { grid-area: 1 / 2; margin: 6px 0; }
-        .who-list { grid-area: 2 / 1 / 3 / 4; align-self: stretch; }
-        .who-list section { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); column-gap: 8px; }
-        .who-list h3 { grid-column: 1 / -1; }
-      }
-      .perform-field { position: relative; flex: 1; min-height: 0; }
-      .perform-toggles { position: absolute; top: 8px; right: 8px; display: flex; gap: 6px; }
-      .perform-toggles button { font-size: 14px; padding: 6px 10px; }
-      .perform-countin { position: absolute; inset: 0; display: grid; place-items: center; font-size: 140px; font-weight: 800; color: var(--gold-fill); text-shadow: 0 0 6px #000, 0 2px 12px #000; pointer-events: none; } /* the count-in's 4-3-2-1, over the field */
-      /* Fixed height: content changes count by count, and a resizing field would flash. Scrolls if needed. */
-      .perform-info { padding: 8px 12px; flex-shrink: 0; font-size: 15px; height: 230px; box-sizing: border-box; overflow-y: auto; }
-      .perform-info p { margin: 4px 0; }
-      .perform-k { display: block; font-size: 12px; opacity: 0.7; }
-      .perform-set { font-size: 16px; }
-      .perform-controls { padding: 6px 12px 10px; flex-shrink: 0; border-top: 1px solid var(--line); }
-      .perform-controls input[type=range] { width: 100%; height: 32px; }
-      .perform-sets { display: flex; gap: 6px; overflow-x: auto; white-space: nowrap; height: 44px; align-items: center; scrollbar-width: none; }
-      .perform-sets[data-more=right] { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 48px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 48px), transparent); }
-      .perform-sets[data-more=left] { -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 48px), transparent); mask-image: linear-gradient(to left, #000 calc(100% - 48px), transparent); }
-      .perform-sets[data-more=both] { -webkit-mask-image: linear-gradient(to right, transparent, #000 48px, #000 calc(100% - 48px), transparent); mask-image: linear-gradient(to right, transparent, #000 48px, #000 calc(100% - 48px), transparent); }
-      .perform-sets button { flex: none; min-width: 40px; height: 36px; font-size: 16px; border: 2px solid transparent; }
-      .perform-sets button[aria-pressed=true] { border-color: var(--gold); font-weight: bold; }
-      .perform-buttons { display: flex; gap: 8px; align-items: center; justify-content: space-between; }
-      .perform-empty { padding: 24px; max-width: 32em; margin: auto; }
-      @media screen and (orientation: landscape) {
-        .perform { display: grid; grid-template-columns: 1fr minmax(260px, 34%); grid-template-rows: auto 1fr auto auto; }
-        .perform-bar { grid-column: 1 / -1; }
-        .perform-field { grid-row: 2 / 5; }
-        .perform-info, .perform-controls { grid-column: 2; overflow-y: auto; }
-        .perform-info { height: auto; }
-        .perform-toggles { position: static; flex-wrap: wrap; margin: 0 0 8px; }
-      }
-      @media print {
-        html, body { height: auto; background: #fff; color: #000; }
-        #root { display: none !important; }
-        .dot-page { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; height: 10.15in; break-after: page; }
-        .dot-card { border: 1px dashed #999; padding: 0.15in; overflow: hidden; font-size: 8pt; }
-        .dot-card header { display: flex; gap: 6px; align-items: baseline; margin-bottom: 4px; }
-        .dot-card header strong { font-size: 14pt; }
-        .dot-card .dot-name { font-size: 11pt; font-weight: 600; }
-        .dot-card .dot-show { margin-left: auto; color: #555; font-size: 7.5pt; }
-        .dot-card table { width: 100%; border-collapse: collapse; }
-        .dot-card th { text-align: left; border-bottom: 1px solid #000; font-size: 7.5pt; padding-right: 5px; }
-        .dot-card td { padding: 1px 5px 1px 0; border-bottom: 1px solid #ddd; vertical-align: top; }
-        .dot-card td:nth-child(-n+2), .dot-card th:nth-child(-n+2) { width: 1.6em; white-space: nowrap; }
-        .dot-card td:nth-child(3) { width: 52%; }
-        .dot-card table.with-meas td:nth-child(3) { width: auto; white-space: nowrap; }
-        .dot-card table.with-meas td:nth-child(4) { width: 46%; }
-        .chart-page { break-after: page; }
-        .chart-page header { display: flex; justify-content: space-between; font-size: 13pt; margin-bottom: 6px; }
-        .chart-page img { width: 100%; display: block; }
-        .chart-note { font-size: 12pt; margin: 10px 0 0; white-space: pre-wrap; }
-        .dot-card tr.has-cue td { border-bottom: none; }
-        .dot-card tr.cue td { font-style: italic; padding-top: 0; }
-        .dot-page.single { grid-template-columns: 1fr; grid-template-rows: 1fr; }
-        .dot-page.single .dot-card { border: none; padding: 0; font-size: 10.5pt; }
-        .dot-page.single .dot-card header strong { font-size: 20pt; }
-        .dot-page.single .dot-card .dot-name { font-size: 15pt; }
-        .dot-page.single .dot-card .dot-show { font-size: 10pt; }
-        .dot-page.single .dot-card th { font-size: 10pt; }
-        .dot-page.single .dot-card td { padding: 3px 8px 3px 0; }
-        .dot-page.single .dot-card td:nth-child(3), .dot-page.single .dot-card table.with-meas td:nth-child(4) { width: auto; }
-        .dot-page.single .dot-card td.notes { width: 30%; font-style: italic; }
-      }
+      * { box-sizing: border-box; }
+      html { background: var(--bg); color: var(--text); }
+      body { margin: 0; font: 18px/1.55 system-ui, -apple-system, sans-serif; }
+      a { color: var(--blue); }
+      a:focus-visible, .button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+      .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+      header.top { border-bottom: 1px solid var(--line); background: var(--bg-deep); }
+      header.top .wrap { display: flex; align-items: center; gap: 16px; min-height: 60px; flex-wrap: wrap; padding-top: 8px; padding-bottom: 8px; }
+      header.top img { height: 28px; display: block; }
+      :root[data-theme=light] .dark-only, :root:not([data-theme=light]) .light-only { display: none !important; }
+      header.top nav { margin-left: auto; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; font-size: 16px; }
+      .button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 8px 18px; border-radius: 8px; border: 1px solid var(--line-strong);
+        background: var(--surface-2); color: var(--text); text-decoration: none; font-weight: 600; }
+      .button.primary { background: var(--gold-fill); border-color: var(--gold-fill); color: var(--on-gold); }
+      .hero { padding-top: 56px; padding-bottom: 32px; display: grid; gap: 12px; }
+      .hero h1 { font-size: clamp(30px, 5vw, 48px); line-height: 1.15; margin: 0; max-width: 18em; }
+      .tagline { font-style: italic; font-size: 20px; margin: 0; color: var(--green-line); }
+      .lede { max-width: 38em; margin: 4px 0 8px; }
+      .actions { display: flex; gap: 12px; flex-wrap: wrap; }
+      .shot { width: 100%; height: auto; display: block; border: 1px solid var(--line); border-radius: 10px; }
+      section { padding: 40px 0; border-top: 1px solid var(--line); }
+      section h2 { font-size: 28px; margin: 0 0 12px; }
+      .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 32px; align-items: start; }
+      ul { padding-left: 1.2em; margin: 8px 0; }
+      li { margin: 4px 0; }
+      .phone { max-width: 300px; width: 100%; height: auto; display: block; border: 1px solid var(--line); border-radius: 18px; }
+      .qr { background: #fff; width: 200px; padding: 6px; border-radius: 8px; }
+      .qr svg { display: block; width: 100%; height: auto; }
+      .note { color: var(--text); opacity: .85; font-size: 16px; }
+      /* Phones get only the performer view (the editor needs a computer or an iPad), so their buttons point there. */
+      .phone-only { display: none; }
+      @media (pointer: coarse) and (max-width: 499px), (pointer: coarse) and (max-height: 499px) { .editor-only { display: none !important; } .phone-only { display: inline-flex; } p.phone-only { display: block; } .hero { padding-top: 32px; } } /* = isPhone() in src/perform/device.ts */
+      footer { border-top: 1px solid var(--line); padding: 28px 0 48px; font-size: 16px; }
+      footer .wrap { display: flex; gap: 20px; flex-wrap: wrap; }
     </style>
   </head>
   <body>
-    <div id="root"></div>
-    <div id="print-root"></div>
-    <!-- Too old to run FreeFORM (an iPad mini 2 on iOS 12 showed a blank page): say so. Old-style JavaScript on purpose,
-         so the browsers it's for can run it. Pointer events (iOS 13) drive every tap and drag; regex lookbehind arrived with
-         Safari 16.4, the version the app is built for (Vite's default target), so it stands in for "can read the code". -->
-    <script>
-      (function () {
-        var ok = !!window.PointerEvent;
-        try { new RegExp('(?<=a)b'); } catch (e) { ok = false; }
-        if (ok) return;
-        var d = document.createElement('div');
-        d.setAttribute('role', 'alert');
-        d.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:1000;padding:32px 24px;overflow:auto;' +
-          'background:var(--bg);color:var(--text);font:17px/1.5 system-ui,-apple-system,sans-serif;';
-        d.innerHTML = '<img src="./logo.svg" alt="" width="240" style="display:block;margin:0 0 20px">' +
-          '<h1 style="font-size:24px;margin:0 0 12px">FreeFORM needs a newer browser</h1>' +
-          '<p style="margin:0 0 12px;max-width:34em">This browser is too old to run FreeFORM. It needs iPadOS or iOS 16.4 or later ' +
-          '(any iPad from 2017 on), or a current version of Chrome, Edge, Firefox, or Safari on a computer.</p>' +
-          '<p style="margin:0;max-width:34em;opacity:.8">Shows and links you open on a newer device work the same there.</p>';
-        document.body.appendChild(d);
-      })();
-    </script>
-    <script type="module" src="/src/main.tsx"></script>
+    <header class="top">
+      <div class="wrap">
+        <a href="./"><img class="dark-only" src="./logo-small.svg" alt="FreeFORM Drill" /><img class="light-only" src="./logo-small-light.svg" alt="FreeFORM Drill" /></a>
+        <nav aria-label="Site">
+          <a href="./guide/">How-to guide</a>
+          <a href="https://github.com/Tillerdawg/Freeform_2">Source code</a>
+          <a class="button primary editor-only" href="./app/">Open the editor</a>
+        </nav>
+      </div>
+    </header>
+    <main>
+      <div class="wrap hero">
+        <h1>Free drill design for marching band, drum corps, and indoor</h1>
+        <p class="tagline">Drill, without the bill.</p>
+        <p class="lede">FreeFORM Drill runs in your web browser. Write the show on a computer or an iPad, watch every move count by count with your music, print dot sheets and drill charts, and send the drill to your students' phones. There's nothing to install, no account to make, and no license fee, for a band of any size.</p>
+        <p class="note phone-only">On a phone, FreeFORM shows the drill the way your performers see it. To write drill, open this page on a computer or an iPad.</p>
+        <div class="actions">
+          <a class="button primary editor-only" href="./app/">Open the editor</a>
+          <a class="button editor-only" href="./app/?sample">Try the sample show</a>
+          <a class="button primary phone-only" href="%SAMPLE_PHONE_LINK%">See the sample show</a>
+          <a class="button" href="./guide/">Read the how-to guide</a>
+        </div>
+      </div>
+      <div class="wrap"><img class="shot" src="./docs/img/editor.png" width="1440" height="900" alt="The FreeFORM editor: a football field with a 47-performer show, the timeline below, and the sidebar on the right" /></div>
+
+      <section aria-labelledby="directors">
+        <div class="wrap">
+          <h2 id="directors">For directors and drill writers</h2>
+          <ul>
+            <li>High school, college, or NFL hashes, a basketball court, or a custom floor, with coordinates in standard drill language ("2 steps outside the Side 2 45, 2 steps in front of Front Hash").</li>
+            <li>Lines, arcs, curves, circles, blocks, stars, spirals, and letters, with spots assigned by least total travel so paths don't cross.</li>
+            <li>Follow the leader, counter-marches, custom paths, delayed step-offs, and turning moves, all at one even step size.</li>
+            <li>Step-size and too-close warnings, and one Review list of every problem in the show.</li>
+            <li>Play it back with your MuseScore score and recording, or tap the counts along with any mp3.</li>
+            <li>Dot sheets and drill charts for the whole show or a few sets, printed or saved as PDF.</li>
+            <li>Every tool from the start. No tiers and no performer limits.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section aria-labelledby="students">
+        <div class="wrap cols">
+          <div>
+            <h2 id="students">For students and staff</h2>
+            <p>Students scan a QR code (or open a link you text them), pick who they are, and see their dot: where they stand now, where they go next, how many counts it takes, and how big the steps are. They can watch any move from the press box or facing the front, loop a few sets with a count-in, and it all works offline once it's opened.</p>
+            <p><strong>Students:</strong> open the link your director sent you.</p>
+            <p>To see what your students get, scan this with your phone, or <a href="%SAMPLE_PHONE_LINK%">open the sample show here</a>.</p>
+            <div class="qr" role="img" aria-label="QR code that opens the sample show on a phone">%SAMPLE_QR%</div>
+          </div>
+          <img class="phone" src="./docs/img/phone.png" alt="A performer's view on a phone: their spot, their next spot, and the field around them" loading="lazy" />
+        </div>
+      </section>
+
+      <section aria-labelledby="pyware">
+        <div class="wrap">
+          <h2 id="pyware">Coming from Pyware or UDB</h2>
+          <p>FreeFORM works the way you're used to: sets and counts, an 8-to-5 grid seen from the press box, Side 1 and Side 2, and coordinates read from the nearest yard line and hash. Most of it will feel familiar.</p>
+          <ul>
+            <li><strong>Bring your shows.</strong> FreeFORM opens Pyware 3D files (<code>.3dj</code>): sets, counts, notes, measures, sections, and roster names. It's been tested with files from 2008 to 2010, so newer files may not come in cleanly yet. If one doesn't, please tell me.</li>
+            <li><strong>What FreeFORM doesn't do yet:</strong> a 3D view, cloud sync between computers, app-store apps, and exporting a video of the show. Your shows are kept in your browser and in files you save.</li>
+            <li>FreeFORM isn't affiliated with Pyware or Ultimate Drill Book. It was written from scratch, from how those programs behave and what their documentation says, with none of their code.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section aria-labelledby="privacy">
+        <div class="wrap">
+          <h2 id="privacy">Privacy</h2>
+          <p>There's no FreeFORM server and no account, so there's nothing for FreeFORM to collect.</p>
+          <ul>
+            <li>Your shows are saved in your own browser, and in the files you save. They aren't sent anywhere.</li>
+            <li>There are no ads, no trackers, and no analytics on this site.</li>
+            <li>Students' names are left out of plain share links, since anyone with the link can open it.</li>
+            <li>A locked show file (for keeping phones up to date) is encrypted in your browser before you put it online. The key is only in the link, so whoever hosts the file can't read it.</li>
+            <li>If you publish to GitHub from FreeFORM, your token stays in your browser.</li>
+            <li>The site itself is served by GitHub Pages, which keeps the usual web server logs, like any website.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section aria-labelledby="about">
+        <div class="wrap">
+          <h2 id="about">Free and open source</h2>
+          <p>I'm Jason Tiller, a former band director. I wrote shows in Pyware for years, and the yearly license, the performer limits, and the tools locked behind higher tiers wore on me. FreeFORM is my answer: every tool from the start, for any size band, free. It's open source under the MIT license, so anyone can use it, share it, and change it.</p>
+          <p class="note">FreeFORM is new, and I'm working on it actively. If something doesn't work the way a drill writer would expect, I'd like to hear about it.</p>
+          <div class="actions">
+            <a class="button" href="https://github.com/Tillerdawg/Freeform_2/issues/new/choose">Send feedback</a>
+            <a class="button" href="https://github.com/Tillerdawg/Freeform_2">See the code on GitHub</a>
+          </div>
+        </div>
+      </section>
+    </main>
+    <footer>
+      <div class="wrap">
+        <span>© Jason Tiller and FreeFORM contributors · MIT license</span>
+        <a href="./app/">Open the editor</a>
+        <a href="./guide/">How-to guide</a>
+        <a href="#privacy">Privacy</a>
+      </div>
+    </footer>
   </body>
 </html>

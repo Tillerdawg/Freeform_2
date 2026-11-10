@@ -4,9 +4,10 @@ import { fieldOf, timingOf, label, movementOfSet, setStarts, type Performer, typ
 
 export const ROWS_PER_CARD = 24; // what fits a quarter-letter card at a readable size
 export const ROWS_PER_PAGE = 34; // one sheet per page, at a bigger size, with a notes column
+export const ROWS_WITH_PICTURES = 12; // one sheet per page with a small field picture on every set's row
 
-export interface CardRow { set: string; counts: string; measures: string; side: string; front: string; cue: string }
-export interface Card { label: string; name: string; section: string; part: number; parts: number; rows: CardRow[] }
+export interface CardRow { index: number; set: string; counts: string; measures: string; side: string; front: string; cue: string }
+export interface Card { id: string; label: string; name: string; section: string; part: number; parts: number; rows: CardRow[] }
 
 /** Performers in section order, then by number. */
 export function sortedPerformers(show: Show, ids?: Set<string>): Performer[] {
@@ -28,6 +29,7 @@ export function dotCards(show: Show, performers: Performer[], perCard = ROWS_PER
   const cards: Card[] = [];
   for (const p of performers) {
     const rows: CardRow[] = show.sets.map((s, i) => ({
+      index: i,
       set: s.name,
       counts: i === 0 ? '—' : String(s.counts),
       measures: s.measures ?? '',
@@ -38,7 +40,7 @@ export function dotCards(show: Show, performers: Performer[], perCard = ROWS_PER
     const parts = Math.max(1, Math.ceil(rows.length / perCard));
     const section = show.sections.find((s) => s.id === p.section)?.name ?? '';
     for (let k = 0; k < parts; k++) {
-      cards.push({ label: label(show, p), name: p.name ?? '', section, part: k + 1, parts, rows: rows.slice(k * perCard, (k + 1) * perCard) });
+      cards.push({ id: p.id, label: label(show, p), name: p.name ?? '', section, part: k + 1, parts, rows: rows.slice(k * perCard, (k + 1) * perCard) });
     }
   }
   return cards;

@@ -116,7 +116,7 @@ export function ShareDialog({ show, onClose, setRevision }: { show: Show; onClos
             {url && `${kb} KB link. `}Anyone with the link can view the show.
             {url && !qr && ' Too big for a QR code: use Keep phones up to date instead.'}
           </p>
-          {qr && <div aria-label="QR code for the share link" style={{ background: '#fff', width: 200, margin: '0 auto 10px' }} dangerouslySetInnerHTML={{ __html: qr }} />}
+          {qr && <div role="img" aria-label="QR code for the share link" style={{ background: '#fff', width: 200, margin: '0 auto 10px' }} dangerouslySetInnerHTML={{ __html: qr }} />}
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end', margin: '0 0 10px' }}>
             <button disabled={!url} onClick={() => { location.hash = url.slice(url.indexOf('#')); }}
               title="Switch this app to the performer view of this show (← Editor comes back)">Open performer view here</button>
@@ -140,7 +140,7 @@ export function ShareDialog({ show, onClose, setRevision }: { show: Show; onClos
           </div> : !hosted && <p style={small}>Publishing needs a one-time setup first: open <strong>Setup</strong> below.</p>}
           {busy && <p role="status" style={{ fontSize: 12, margin: '6px 0 0' }}>{busy}</p>}
           {hosted && <>
-            {hostedQr && <div aria-label="QR code for the hosted link" style={{ background: '#fff', width: 200, margin: '8px auto' }} dangerouslySetInnerHTML={{ __html: hostedQr }} />}
+            {hostedQr && <div role="img" aria-label="QR code for the hosted link" style={{ background: '#fff', width: 200, margin: '8px auto' }} dangerouslySetInnerHTML={{ __html: hostedQr }} />}
             <p role="status" style={{ fontSize: 12, margin: '4px 0' }}>{check}</p>
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}><button onClick={() => copy(hosted)}>Copy hosted link</button></div>
             <p style={{ fontSize: 12, opacity: 0.75, margin: '6px 0 0' }}>

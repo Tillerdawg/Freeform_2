@@ -11,3 +11,16 @@ it('finds the closest performers, nearest first, within range', () => {
 it('labels yard lines for the ruler', () => {
   expect([0, -8, 16, -72, 80].map(yardLabel)).toEqual(['50', 'S1 45', 'S2 40', 'S1 5', 'G']);
 });
+
+it('says a step size in plain words', async () => {
+  const { stepWords } = await import('./neighbors');
+  expect([Infinity, 16, 8, 7, 6.5, 5.3].map(stepWords)).toEqual(['stand still', 'smaller steps than normal', 'normal steps', 'normal steps', 'bigger steps than normal', 'very big steps']);
+});
+
+it('says which way a move ends up, facing the front', async () => {
+  const { moveWords } = await import('./neighbors');
+  expect(moveWords({ x: 0, y: 20 }, { x: 0, y: 36 })).toBe('moving back (facing the front)');
+  expect(moveWords({ x: 0, y: 20 }, { x: -8, y: 12 })).toBe('moving forward and to your right (facing the front)');
+  expect(moveWords({ x: 0, y: 20 }, { x: 16, y: 21 })).toBe('moving to your left (facing the front)'); // a 1-step drift on a 16-step slide
+  expect(moveWords({ x: 0, y: 20 }, { x: 0.25, y: 20 })).toBe('');
+});
