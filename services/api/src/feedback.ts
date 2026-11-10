@@ -35,3 +35,20 @@ export function feedbackEmail(f: Feedback): { subject: string; text: string } {
     ].join('\n'),
   };
 }
+
+const b64 = (t: string) => { let bin = ''; for (const byte of new TextEncoder().encode(t)) bin += String.fromCharCode(byte); return btoa(bin); };
+/** A header value in UTF-8 that any mail program reads (RFC 2047), only when it isn't plain ASCII already. */
+const word = (t: string) => (/^[\x20-\x7e]*$/.test(t) ? t : `=?UTF-8?B?${b64(t)}?=`);
+
+/**
+ * The raw email (MIME), as Cloudflare's free Email Routing send wants it: plain text, base64 so any character and any
+ * line length is safe. `replyTo`: the sender's address, so Reply goes to them.
+ */
+export function mimeMessage(m: { from: string; fromName: string; to: string; replyTo?: string; subject: string; text: string; id: string; date: Date }): string {
+  const body = b64(m.text).replace(/.{1,76}/g, '$&\r\n');
+  return [
+    `From: ${word(m.fromName)} <${m.from}>`, `To: <${m.to}>`, ...(m.replyTo ? [`Reply-To: <${m.replyTo}>`] : []),
+    `Subject: ${word(m.subject)}`, `Date: ${m.date.toUTCString()}`, `Message-ID: <${m.id}@freeformdrill.org>`,
+    'MIME-Version: 1.0', 'Content-Type: text/plain; charset=UTF-8', 'Content-Transfer-Encoding: base64', '', body,
+  ].join('\r\n');
+}

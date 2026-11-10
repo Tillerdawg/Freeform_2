@@ -1,11 +1,12 @@
 // FreeFORM's small web service (api.freeformdrill.org), on Cloudflare Workers. For now it takes the feedback form and
-// emails it to Jason; the address is a Cloudflare secret (FEEDBACK_TO), never in this code or on the site.
+// emails it to Jason through Email Routing; the address is a Cloudflare secret (FEEDBACK_TO), never in this code or on the site.
 // Guardrails: only the site may post (CORS and Origin), a hidden field catches bots, sizes are capped, and each
 // visitor may send a few messages a minute. Nothing is stored: the email is the only copy.
-import { checkFeedback, feedbackEmail, ORIGINS } from './feedback';
+import { EmailMessage } from 'cloudflare:email';
+import { checkFeedback, feedbackEmail, mimeMessage, ORIGINS } from './feedback';
 
 interface Env {
-  EMAIL: { send(m: { to: string; from: { email: string; name: string }; replyTo?: string; subject: string; text: string }): Promise<unknown> };
+  EMAIL: { send(m: EmailMessage): Promise<void> };
   LIMITER: { limit(o: { key: string }): Promise<{ success: boolean }> };
   FEEDBACK_TO: string;
 }
@@ -31,7 +32,10 @@ export default {
     if (!r.ok) return r.quiet ? json({ ok: true }, 200, origin) : json({ error: r.error }, 400, origin);
     const { subject, text } = feedbackEmail(r.feedback);
     try {
-      await env.EMAIL.send({ to: env.FEEDBACK_TO, from: { email: 'feedback@freeformdrill.org', name: 'FreeFORM feedback' }, ...(r.feedback.email ? { replyTo: r.feedback.email } : {}), subject, text });
+      // Email Routing's free sending (to a verified address in this account), not Email Sending, which needs Workers Paid.
+      const from = 'feedback@freeformdrill.org';
+      const raw = mimeMessage({ from, fromName: 'FreeFORM feedback', to: env.FEEDBACK_TO, replyTo: r.feedback.email || undefined, subject, text, id: crypto.randomUUID(), date: new Date() });
+      await env.EMAIL.send(new EmailMessage(from, env.FEEDBACK_TO, raw));
     } catch (e) {
       console.error('send failed', (e as { code?: string }).code, (e as Error).message);
       return json({ error: "The message couldn't be sent right now. Please try again later." }, 502, origin);

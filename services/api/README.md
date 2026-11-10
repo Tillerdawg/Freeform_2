@@ -8,8 +8,9 @@ The address the email goes to is a Cloudflare secret, `FEEDBACK_TO`. It isn't in
 
 ## Setting it up (once, in the Cloudflare dashboard)
 
-1. **Email Routing:** open freeformdrill.org → **Email** → **Email Routing**, and enable it (Cloudflare adds the records it needs). Under **Destination addresses**, add the address feedback should go to, then click the link Cloudflare emails there to verify it.
-2. **Email Sending:** **Compute** → **Email Service** → **Email Sending** → **Onboard Domain** → freeformdrill.org. DNS changes usually take a few minutes.
+1. **Email Routing:** open freeformdrill.org → **Email** → **Email Routing** (or **Compute** → **Email Service** → **Email Routing**), and enable it (Cloudflare adds the records it needs). Under **Destination addresses**, add the address feedback should go to, then click the link Cloudflare emails there to verify it.
+
+That's all: the service sends through Email Routing, which is free for verified addresses in your own account. (**Email Sending**, the newer product, needs the Workers Paid plan; it isn't used.)
 
 ## Deploying (from this folder, on a computer logged in with `npx wrangler login`)
 
