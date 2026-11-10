@@ -4,7 +4,7 @@ Thanks for helping. FreeFORM is a free drill design tool for marching bands, dru
 
 ## Reporting a problem or an idea
 
-Open an [issue](https://github.com/Tillerdawg/Freeform_2/issues/new/choose). There's a form for problems and one for ideas. A `.freeform` file that shows the problem helps a lot (leave out students' names if the show is public).
+Open an [issue](https://github.com/Tillerdawg/freeform-drill/issues/new/choose). There's a form for problems and one for ideas. A `.freeform` file that shows the problem helps a lot (leave out students' names if the show is public).
 
 ## Changing the code
 

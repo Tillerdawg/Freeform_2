@@ -1433,3 +1433,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Context:** Hosting (the coming upload service) may cost something someday, and FreeFORM must stay free.
 - **Other options:** GitHub Sponsors (donors need a GitHub account), Open Collective (a host fee, a public ledger), Buy Me a Coffee (a 5% fee).
 - **Decision:** **Support FreeFORM** on the front page (English and Spanish, with "free, and it always will be"), in the editor's **Help** menu, in the README, and as GitHub's Sponsor button (`.github/FUNDING.yml`). Not on the phone view: that's students, and it stays about the drill.
+
+## 2026-11-10 12:55 EST — The repository is freeform-drill
+- **Who:** Jason.
+- **Context:** The repository was `Freeform_2`, left over from an earlier prototype (`Freeform`, last changed 2026-10-05, superseded).
+- **Other options:** keep the name.
+- **Decision:** Renamed **freeform-drill**, matching freeformdrill.org. Links in the app, the front pages, the guide, the README, and CONTRIBUTING.md use the new address (GitHub forwards the old one); the site's address doesn't change. The old `Freeform` repository is to be deleted (Claude's access can't delete repositories; Jason does it in GitHub's settings). Claude made a full backup first (a git bundle of all 69 commits), and Jason has it. `freeform-shows` stays until Jason checks whether Publish to phones uses it.

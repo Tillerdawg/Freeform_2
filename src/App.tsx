@@ -38,7 +38,7 @@ import { sampleShow } from './engine/sample';
 import { AUTOSAVE } from './ui/showStore';
 export { AUTOSAVE };
 const GUIDE = '../guide/'; // made from docs/HOW-TO.md when the site is built
-const FEEDBACK = 'https://github.com/Tillerdawg/Freeform_2/issues/new/choose'; // shortcut: needs a GitHub account; swap in a form or email address for people without one
+const FEEDBACK = 'https://github.com/Tillerdawg/freeform-drill/issues/new/choose'; // shortcut: needs a GitHub account; swap in a form or email address for people without one
 const UNEXPORTED = 'freeform:unexported-since', unexportedKey = (id?: string) => `${UNEXPORTED}:${id}`, SNOOZE = 'freeform:backup-later', DAY = 86_400_000, BACKUP_DAYS = 7;
 const readTime = (k: string) => { try { const n = Number(localStorage.getItem(k)); return n > 0 ? n : null; } catch { return null; } };
 const writeTime = (k: string, n: number | null) => { try { if (n) localStorage.setItem(k, String(n)); else localStorage.removeItem(k); } catch { /* storage blocked */ } };

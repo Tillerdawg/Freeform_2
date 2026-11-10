@@ -548,4 +548,4 @@ Arrows move the selection the way it looks on screen: ↑ is toward the back sid
 
 **The browser says it's too old.** Update your browser, or on an iPad, update iPadOS to 16.4 or later.
 
-**FreeFORM hit an error.** The error page has **Download autosaved show**, so you can save your work before you reload. If it keeps happening, please [tell me about it](https://github.com/Tillerdawg/Freeform_2/issues/new/choose) and say what you were doing.
+**FreeFORM hit an error.** The error page has **Download autosaved show**, so you can save your work before you reload. If it keeps happening, please [tell me about it](https://github.com/Tillerdawg/freeform-drill/issues/new/choose) and say what you were doing.

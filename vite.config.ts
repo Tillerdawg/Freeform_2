@@ -42,7 +42,7 @@ const precache: Plugin = {
   },
 };
 
-// Relative base: the same build works at a domain root, under /Freeform_2/ on GitHub Pages, or opened locally.
+// Relative base: the same build works at a domain root, under a GitHub Pages project address, or opened locally.
 // The front page (index.html, and es/index.html in Spanish) and the app (app/index.html), which old links (/#show=…) are forwarded to.
 export default defineConfig({
   base: './',
