@@ -912,7 +912,7 @@ const B64_RE = /^[A-Za-z0-9+/]*={0,2}$/;
  * A show file, and the recording and tracing picture a full backup carries ("attached": base64, see Attached).
  * The attachments are checked (type, size, base64) and taken off the show, so they never reach the autosave.
  */
-export function parseShowFile(text: string): { show: Show; audio?: Attached; picture?: Attached } {
+export function parseShowFile(text: string): { show: Show; audio?: Attached; picture?: Attached; publishing?: unknown } {
   const s = JSON.parse(text);
   const att = s?.attached;
   if (s && typeof s === 'object') delete s.attached;
@@ -923,9 +923,11 @@ export function parseShowFile(text: string): { show: Show; audio?: Attached; pic
     return typeof x?.type === 'string' && ATTACHED_TYPE[kind].test(x.type) && typeof x.data === 'string' && x.data.length % 4 === 0
       && x.data.length <= Math.ceil(max / 3) * 4 && B64_RE.test(x.data);
   };
+  // Publishing (Full backup): the hosted link and edit token, checked where it's used (readPublishing); here only kept small.
+  const publishing = att && typeof att === 'object' && att.publishing && typeof att.publishing === 'object' && JSON.stringify(att.publishing).length < 4000 ? att.publishing : undefined;
   if (typeof att !== 'object' || !att || (att.audio !== undefined && !(show.music && ok(att.audio, 'audio', MAX_ATTACHED_AUDIO)))
     || (att.picture !== undefined && !(show.trace && ok(att.picture, 'picture', MAX_ATTACHED_PICTURE)))) throw new Error('Not a valid FreeFORM show: attached recording or picture');
-  return { show, ...(att.audio ? { audio: att.audio } : {}), ...(att.picture ? { picture: att.picture } : {}) };
+  return { show, ...(att.audio ? { audio: att.audio } : {}), ...(att.picture ? { picture: att.picture } : {}), ...(publishing ? { publishing } : {}) };
 }
 
 function checkShow(s: any): Show { // eslint-disable-line @typescript-eslint/no-explicit-any

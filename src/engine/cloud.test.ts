@@ -47,3 +47,22 @@ describe('publishing through FreeFORM’s service', () => {
     await expect(publishCloud('v', null, offline)).rejects.toThrow("Couldn't reach FreeFORM's service");
   });
 });
+
+describe('moving publishing to another device', async () => {
+  const { publishingCode, readPublishingCode, readPublishing } = await import('./cloud');
+  const id = 'KFyp3kS7Vc6xYFo0dDPrGw', token = 'ju86AYRqJQaALlfmnqkRCIjpvXiY6wRRvO8ui9dzGiQ', key = 'a9JS5tRnpADy2UmXXXXXXXXXXXXXXXXXXXXXXXXXXXX';
+  const link = `https://freeformdrill.org/app/#load=${encodeURIComponent(cloudUrl(id))}&key=${key}`;
+  it('round-trips a publishing code, even wrapped by an email program', () => {
+    const p = { link, cloud: { id, token }, show: { id: 'abc', title: 'Ballad' } };
+    const code = publishingCode(p);
+    expect(code.startsWith('FREEFORM-PUBLISHING-1.')).toBe(true);
+    expect(readPublishingCode(`Here it is:\n${code.slice(0, 40)}\n${code.slice(40)}  `)).toEqual(p);
+  });
+  it('turns away anything that isn’t one, or a token for a different show', () => {
+    expect(readPublishingCode('hello')).toBeNull();
+    expect(readPublishingCode('FREEFORM-PUBLISHING-1.not-json')).toBeNull();
+    expect(readPublishing({ link: 'https://evil.example/', cloud: { id, token } })).toBeNull();
+    expect(readPublishing({ link, cloud: { id: 'BBBBBBBBBBBBBBBBBBBBBB', token } })).toBeNull(); // the token is for another show
+    expect(readPublishing({ link })).toEqual({ link }); // a link on GitHub or self-hosted: no token to carry
+  });
+});

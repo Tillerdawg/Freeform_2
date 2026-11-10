@@ -6,25 +6,14 @@ import { synced } from '../engine/music';
 import { getAudio } from '../ui/audioStore';
 import { useDialog } from '../ui/useDialog';
 import { checkRepo, fileNameFor, publishFile, REPO_RE, type GitHubTarget } from '../engine/github';
-import { cloudUrl, publishCloud, unpublishCloud, type CloudShow } from '../engine/cloud';
+import { cloudUrl, publishCloud, publishingCode, readPublishingCode, unpublishCloud, type CloudShow } from '../engine/cloud';
+import { getPublishing, loadCloud, loadLinks, saveCloud, saveLink, setPublishing } from '../ui/publishing';
 
 // The director's GitHub repository and token for one-click publishing, kept only in this browser.
 const GH = 'freeform:github';
 const loadGh = (): GitHubTarget | null => { try { const g = JSON.parse(localStorage.getItem(GH) ?? 'null'); return g && typeof g.token === 'string' && REPO_RE.test(g.repo) ? g : null; } catch { return null; } };
 const saveGh = (g: GitHubTarget | null) => { try { if (g) localStorage.setItem(GH, JSON.stringify(g)); else localStorage.removeItem(GH); } catch { /* not remembered */ } };
 
-// Shows published through FreeFORM's service, per show in this browser: the service's id and the edit token that lets
-// this browser update or remove it (the key is in the link, as for any hosted show).
-const CLOUD = 'freeform:cloud';
-const loadCloud = (): Record<string, CloudShow> => { try { return JSON.parse(localStorage.getItem(CLOUD) ?? '{}') ?? {}; } catch { return {}; } };
-const saveCloud = (id: string, c: CloudShow | null) => {
-  try { const all = loadCloud(); if (c) all[id] = { id: c.id, token: c.token }; else delete all[id]; localStorage.setItem(CLOUD, JSON.stringify(all)); } catch { /* not remembered */ }
-};
-
-// Hosted links are remembered per show in this browser: by its id, or by title for a show from before ids (and links saved before ids).
-const LINKS = 'freeform:hosted-links';
-const loadLinks = (): Record<string, string> => { try { return JSON.parse(localStorage.getItem(LINKS) ?? '{}') ?? {}; } catch { return {}; } };
-const saveLink = (id: string, link: string) => { try { localStorage.setItem(LINKS, JSON.stringify({ ...loadLinks(), [id]: link })); } catch { /* not remembered */ } };
 // The key of a locked file downloaded but not yet linked: kept from the moment it's made, so closing the dialog to upload
 // the file doesn't lose it (a lost key leaves the uploaded file unopenable).
 const KEYS = 'freeform:pending-keys';
@@ -115,12 +104,21 @@ export function ShareDialog({ show, onClose, setRevision }: { show: Show; onClos
         : `Published revision ${s.revision}, ${at}. Phones that already have the show get this version the next time they open it (within a minute or so).`);
     } catch (e) { setBusy(`✗ ${e instanceof Error ? e.message : String(e)}`); }
   };
+  // Moving to another device: the publishing code carries the link and the edit token (Full backup carries them too).
+  const [code, setCode] = useState('');
+  const takeCode = () => {
+    const p = readPublishingCode(code);
+    if (!p) { setBusy("✗ That isn't a FreeFORM publishing code. Copy the whole code from the other device."); return; }
+    if (p.show?.id && p.show.id !== show.id && !confirm(`This code is for "${p.show.title || 'another show'}", and the show open here is "${show.title}". Publishing here would replace that show on phones with this one. Use it anyway?`)) return;
+    setPublishing(sid, p); setCloud(p.cloud ?? null); setField(p.link); setMadeKey(null); saveKey(null); setCode('');
+    setBusy(p.cloud ? 'Done: this browser can now update that link. Click Publish update after your edits.' : 'Done: this browser has the link. To update it, publish the file where it was hosted before.');
+  };
   const stopSharing = async () => {
     if (!cloud || !confirm('Take this show off FreeFORM’s service? The link stops working. Phones that already have the show keep the copy they have, but get no more updates.')) return;
     setBusy('Taking it offline…');
     try {
       await unpublishCloud(cloud);
-      saveCloud(sid, null); setCloud(null); setField(''); setMadeKey(null); saveKey(null);
+      saveCloud(sid, null); saveLink(sid, null); setCloud(null); setField(''); setMadeKey(null); saveKey(null);
       setBusy('Taken offline. Publish again for a new link.');
     } catch (e) { setBusy(`✗ ${e instanceof Error ? e.message : String(e)}`); }
   };
@@ -198,6 +196,30 @@ export function ShareDialog({ show, onClose, setRevision }: { show: Show; onClos
               link</strong> (say, a student leaves the program), click <strong>Stop sharing</strong>, then publish again for a new link.
             </p>
           </>}
+          {onService && cloud && hosted && (
+            <details style={{ margin: '10px 0 0' }}>
+              <summary>Use on another device</summary>
+              <p style={small}>
+                Got a new computer or iPad? This code lets it keep updating this same link, so students don't need a new one. Copy it
+                (email it to yourself, say), then on the new device open this show from a Full backup or with <strong>Shows… → Open from a link</strong>, and
+                paste the code there. <strong>Keep it private:</strong> like the link, it's a password, and it can also change the show.
+                A <strong>Full backup</strong> file carries it too.
+              </p>
+              <textarea aria-label="Publishing code" readOnly rows={3} value={publishingCode(getPublishing(sid, show.title) ?? { link: hosted, cloud })} onFocus={(e) => e.currentTarget.select()}
+                style={{ width: '100%', boxSizing: 'border-box', font: 'inherit', fontSize: 11 }} />
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}><button onClick={() => copy(publishingCode(getPublishing(sid, show.title) ?? { link: hosted, cloud }))}>Copy publishing code</button></div>
+            </details>
+          )}
+          {!onService && (
+            <details style={{ margin: '10px 0 0' }}>
+              <summary>Published this show from another device?</summary>
+              <p style={small}>Paste the publishing code from that device (under <strong>Use on another device</strong> there), and this browser can update the same link.</p>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <input aria-label="Paste a publishing code" placeholder="FREEFORM-PUBLISHING-1.…" value={code} onChange={(e) => setCode(e.target.value)} style={{ flex: 1, font: 'inherit', fontSize: 12 }} />
+                <button disabled={!code.trim()} onClick={takeCode}>Use code</button>
+              </div>
+            </details>
+          )}
           <details style={{ margin: '10px 0' }}>
             <summary>Other ways to host it</summary>
             <p style={small}>The same locked file, kept somewhere of your own instead of FreeFORM's service.</p>

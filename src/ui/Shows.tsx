@@ -7,6 +7,7 @@ import { listShows, listVersions, type Entry, type Listed } from './showStore';
 /** What the dialog asks the editor to do; each returns once it's done, so the list can be read again. */
 export interface ShowActions {
   open: (id: string) => Promise<void>;
+  openLink: (text: string) => Promise<void>; // a phone link or a publishing code
   fresh: () => Promise<void>;
   rename: (id: string, title: string) => Promise<void>;
   duplicate: (id: string) => Promise<void>;
@@ -24,6 +25,7 @@ export function ShowsDialog({ show, act, onClose }: { show: Show; act: ShowActio
   const [shows, setShows] = useState<Listed[] | null>(null);
   const [versions, setVersions] = useState<Entry[] | null>(null); // the versions view, when open
   const [error, setError] = useState('');
+  const [link, setLink] = useState<string | null>(null); // Open from a link: the box's text, while it's open
   const list = () => listShows().then(setShows, () => { setShows([]); setError("This browser wouldn't read its saved shows (its storage may be turned off)."); });
   // The open show goes into the library first, so the list is current. Only here: right after an action the editor may not have caught up.
   useEffect(() => { act.flush().then(list); }, [show.id]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -54,8 +56,20 @@ export function ShowsDialog({ show, act, onClose }: { show: Show; act: ShowActio
               </div>
             );
           })}
+          {link !== null && (
+            <div style={{ ...rowStyle, flexWrap: 'wrap' }}>
+              <p style={{ margin: 0, fontSize: 13, width: '100%' }}>
+                Paste a link students open (a share link or a <strong>Keep phones up to date</strong> link), or a publishing code from another device.
+                The show opens here as a show of its own. With a publishing code, this browser can keep updating the same link.
+              </p>
+              <input aria-label="Link or publishing code" autoFocus value={link} onChange={(e) => setLink(e.target.value)} placeholder="https://freeformdrill.org/app/#load=… or FREEFORM-PUBLISHING-1.…" style={{ flex: 1, minWidth: 200 }} />
+              <button className="primary" disabled={!link.trim()} onClick={() => { setError(''); act.openLink(link).catch((e) => setError(e instanceof Error ? e.message : String(e))); }}>Open</button>
+              <button onClick={() => setLink(null)}>Cancel</button>
+            </div>
+          )}
           <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
             <button onClick={doing(act.fresh)}>New show</button>
+            <button onClick={() => setLink('')} title="Open a show from a link students use, or from a publishing code (a new computer)">Open from a link…</button>
             <button onClick={showVersions} title="Earlier copies of the open show, kept as you work">Versions of "{show.title || 'Untitled show'}"…</button>
             <span style={{ flex: 1 }} />
             <button className="primary" onClick={onClose}>Close</button>

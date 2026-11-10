@@ -28,6 +28,9 @@ import { usePlayback } from './ui/usePlayback';
 import { clickWanted, setClickWanted, wakeClick } from './ui/click';
 import { VideoDialog } from './ui/VideoExport';
 import { FeedbackDialog } from './ui/Feedback';
+import { readPublishing, readPublishingCode, type Publishing } from './engine/cloud';
+import { getPublishing, setPublishing } from './ui/publishing';
+import { decodeShow, fetchHosted, linkHash, SHARE_PREFIX } from './engine/share';
 import { PrintDialog } from './print/Print';
 import { ShareDialog } from './perform/ShareDialog';
 import { PALETTE, useTheme } from './ui/palette';
@@ -740,14 +743,15 @@ export function App() {
    */
   const saveTo = async (inPlace: boolean, full = false): Promise<boolean> => {
     const name = `${show.title.replace(/[^\w\- ]+/g, '').trim() || 'show'}${full ? ' full backup' : ''}.freeform`;
-    let attached: { audio?: Attached; picture?: Attached } | undefined;
+    let attached: { audio?: Attached; picture?: Attached; publishing?: Publishing } | undefined;
     if (full) {
       const pack = async (id: string | undefined, kind: 'audio' | 'image', fallback: string) => {
         const b = id ? await getAudio(id) : undefined;
         return b ? { type: new RegExp(`^${kind}/[\\w.+-]{1,40}$`).test(b.type) ? b.type : fallback, data: await toBase64(b) } : undefined;
       };
       const audio = await pack(show.music?.audioId, 'audio', 'audio/mpeg'), picture = await pack(show.trace?.id, 'image', 'image/png');
-      attached = { ...(audio ? { audio } : {}), ...(picture ? { picture } : {}) };
+      const publishing = getPublishing(show.id ?? show.title, show.title); // so a new computer keeps updating the same link
+      attached = { ...(audio ? { audio } : {}), ...(picture ? { picture } : {}), ...(publishing ? { publishing } : {}) };
     }
     const blob = new Blob([JSON.stringify(attached ? { ...show, attached } : show, null, 2)], { type: 'application/octet-stream' }); // not JSON's type: Safari would add ".json"
     const file = new File([blob], name, { type: blob.type });
@@ -791,6 +795,8 @@ export function App() {
       const taken = !s.id || (await listShows()).some((x) => x.id === s.id);
       if (taken) s = { ...s, id: newShowId() };
       if ('audio' in r || 'picture' in r || taken) s = await ownFiles(s, r.audio && fromAttached(r.audio), r.picture && fromAttached(r.picture));
+      const pub = 'publishing' in r ? readPublishing(r.publishing) : null;
+      if (pub && s.id && !getPublishing(s.id)) setPublishing(s.id, pub); // a Full backup from another computer: keep publishing to the same link
       openShow(s, true); setFileError(''); // what's open is the file itself
     } catch (err) {
       setFileError(err instanceof Error ? err.message : String(err));
@@ -814,6 +820,23 @@ export function App() {
     flush,
     fresh: () => fresh().then(() => setLibrary(false)),
     open: async (id) => { const s = await loadShow(id); await flush(); openShow(s); setLibrary(false); },
+    // Open a show from a phone link or a publishing code: recovers the drill (the link holds the key that unlocks it), and
+    // with a publishing code, keeps updating the same link from here.
+    openLink: async (text) => {
+      const code = readPublishingCode(text), hash = code ? code.link.slice(code.link.indexOf('#')) : linkHash(text);
+      if (!hash) throw new Error("That isn't a FreeFORM link or publishing code. Paste the whole link students open, or the publishing code.");
+      const got = hash.startsWith(SHARE_PREFIX) ? { show: await decodeShow(hash.slice(SHARE_PREFIX.length)), audio: undefined } : await fetchHosted(hash);
+      let s = got.show;
+      await flush();
+      if (!s.id || (await listShows()).some((x) => x.id === s.id)) s = { ...s, id: newShowId() }; // already here: a copy beside it
+      s = await ownFiles(s, got.audio);
+      if (code) setPublishing(s.id!, code);
+      else if (!hash.startsWith(SHARE_PREFIX)) setPublishing(s.id!, { link: location.origin + location.pathname + hash }); // the link, without the token to update it
+      openShow(s); setLibrary(false);
+      setNotice({ t: 0, text: code ? `Opened "${s.title}". This browser can keep updating the same link: Share…, then Publish update.`
+        : hash.startsWith(SHARE_PREFIX) ? `Opened "${s.title}" from a share link. Performers' names aren't in share links, so add them again in Roster.`
+        : `Opened "${s.title}". To keep updating the same link from here, paste the publishing code from the device that published it (Share…, Keep phones up to date). Publishing without it makes a new link.` }); // over the field, where the show just opened
+    },
     rename: async (id, title) => {
       if (id === show.id) { setShow((s) => ({ ...s, title })); await keepShow({ ...show, title }); }
       else await keepShow({ ...(await loadShow(id)), title });

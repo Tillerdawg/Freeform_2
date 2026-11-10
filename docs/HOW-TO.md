@@ -431,6 +431,13 @@ Click **Share…** in the sidebar. The dialog has two choices at the top, and ea
 
 FreeFORM's service keeps published shows for free. A show nobody has opened or updated for a year is deleted automatically. **Stop sharing** takes a show off right away.
 
+**A new computer or iPad mid-season.** Only the browser that published a show can update it: the link alone can't, or any student could change the drill. To keep updating the same link from a new device, bring the show's publishing with you, either way:
+
+- **Full backup…** carries it (along with the recording and tracing picture). **Import…** the file on the new device, and **Publish update** keeps the same link.
+- **Use on another device**, under the link in the Share dialog, shows a **publishing code**. Copy it (email it to yourself), then on the new device open the show with **Shows… → Open from a link…** and paste the code, or paste it under **Published this show from another device?** in the Share dialog. **Keep the code private:** like the link, it's a password, and it can also change the show.
+
+If the old device is gone and you have no file, the drill isn't lost: paste the link students use into **Shows… → Open from a link…**, and the whole show comes back, names and music included. (The link holds the key that unlocks it.) Without the publishing code, though, publishing from there makes a new link.
+
 **Other ways to host it**, at the bottom of the dialog, are for directors who'd rather keep the file themselves. It's the same locked file either way:
 
 - **Publish to your own GitHub repository** in one click, once you connect FreeFORM to a public repository of your own. (Public is fine, since the file is encrypted.) You'll need the repository's name and a fine-grained GitHub token that can write only to that repository (*Contents: Read and write*). Both stay in your browser.
@@ -493,7 +500,7 @@ With a keyboard attached, the [keyboard shortcuts](#keyboard-shortcuts) work too
 ## Saving, backing up, and opening files
 
 - **Autosave**: every change is saved in your browser right away.
-- **Several shows: Opener, Ballad, Closer.** Every show you start, import, or open from the sample is kept in this browser. **Shows…** (first of the sidebar's file buttons) lists them, newest change first. **Open** switches to one (the show you had open is saved first). **Rename…** changes a show's title, **Duplicate** makes a copy to try something new (with its own copy of the recording and tracing picture), and **Delete** removes a show from this browser after asking. Delete can't be undone, so save a file first if you might want the show again. **New show** starts a blank one. Each show keeps its own recording and tracing picture. Undo works within one show: opening another starts its Undo fresh.
+- **Several shows: Opener, Ballad, Closer.** Every show you start, import, or open from the sample is kept in this browser. **Shows…** (first of the sidebar's file buttons) lists them, newest change first. **Open** switches to one (the show you had open is saved first). **Open from a link…** brings in a show from a link students use, or from a publishing code (see [Send the show to your performers](#send-the-show-to-your-performers)). **Rename…** changes a show's title, **Duplicate** makes a copy to try something new (with its own copy of the recording and tracing picture), and **Delete** removes a show from this browser after asking. Delete can't be undone, so save a file first if you might want the show again. **New show** starts a blank one. Each show keeps its own recording and tracing picture. Undo works within one show: opening another starts its Undo fresh.
 
   ![The Shows list with three shows](img/shows.png)
 - **Earlier versions.** While you work, FreeFORM keeps a copy of each show at most every 10 minutes: the last 20, plus the last one of each day for 60 days. In **Shows…**, click **Versions of "…"** to see the open show's versions, with when each was kept and how many performers and sets it had. **Restore** puts one in the editor. Undo takes it back, and the show as it was is kept as a version too, so nothing is lost.
@@ -508,7 +515,7 @@ With a keyboard attached, the [keyboard shortcuts](#keyboard-shortcuts) work too
   **⌘S** (Ctrl+S on Windows) is the same as **Save**, even while you're typing in a box. FreeFORM forgets the file when you open or start another show, or close the page; the next Save asks again.
 
   If a show has changes you haven't saved to a file for a week, a note over the field reminds you, with a **Save** button (and **Full backup…** if the show has a recording or a tracing picture). **Later** asks again tomorrow.
-- **Full backup…** (next to **Save As…**) saves a `.freeform` file that also holds the show's recording and tracing picture, so the show moves to another computer complete. It's much bigger than an ordinary save (a 4-minute mp3 adds about 8 MB), so keep using **Save** for everyday backups. It always asks where to save, and ⌘S never writes over it. **Import…** on the other computer brings the show in with its recording and picture. Share links never carry the recording.
+- **Full backup…** (next to **Save As…**) saves a `.freeform` file that also holds the show's recording and tracing picture, and its publishing if you published it to phones from here, so the show moves to another computer complete and keeps updating the same phone link. Keep a full backup private, since it can change the published show. It's much bigger than an ordinary save (a 4-minute mp3 adds about 8 MB), so keep using **Save** for everyday backups. It always asks where to save, and ⌘S never writes over it. **Import…** on the other computer brings the show in with its recording and picture. Share links never carry the recording.
 - **If the autosave fails.** If the browser refuses to save (its storage is full, or it's a private window), a note over the field says so, with **Save now**. Until it's fixed, your work is only in that open tab and any file you save.
 - **Import…** opens a `.freeform` file (older `.freeform.json` files too) as a new show; the one you had open stays under **Shows…**. A file of a show that's already in this browser comes in as a copy beside it, never over it. A file from before November 7, 2026 with facings or guard equipment set opens with them as performer notes on the same set ("Face Side 2," "Flag").
 - **Pyware 3D files (`.3dj`)**: Import… also opens these. You get the sets with their counts and names, measures and notes, sections from Pyware's symbols, label positions, and the roster names. Moves that aren't straight in Pyware (follow-the-leader, rotations, delayed step-offs) come in count by count, with even steps. If a follow-the-leader was only described in the set's note, Pyware saved it as straight lines that run through each other; FreeFORM rebuilds it as a follow-the-leader group when the two sets fit one exactly, and you can change its leader or turns with **FTL ▾**. Check which end leads: when the file could have turned at either end, FreeFORM picks the leader nearest the front. Drawn markup and the 3D figures don't come over.
@@ -544,7 +551,7 @@ Arrows move the selection the way it looks on screen: ↑ is toward the back sid
 
 ## If something goes wrong
 
-**My show is gone.** First look in **Shows…**: another show may be open. Make sure you're in the same browser on the same computer you used before. The autosave doesn't follow you to other browsers or devices. If you saved the show to a file, use **Import…** to open it.
+**My show is gone.** First look in **Shows…**: another show may be open. Make sure you're in the same browser on the same computer you used before. The autosave doesn't follow you to other browsers or devices. If you saved the show to a file, use **Import…** to open it. If you published it to phones, **Shows… → Open from a link…** brings it back from the link students use.
 
 **I made a mistake.** Undo (⌘Z or Ctrl+Z) works for every edit, including deleting performers. For something older than Undo reaches, try **Shows…**, then **Versions of "…"**.
 

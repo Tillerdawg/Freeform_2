@@ -2,6 +2,7 @@ import { clearStartingSections, hasOwnStartingSections, saveStartingSections } f
 import { coarse } from '../perform/device';
 import { PREVIEW } from '../perform/Perform';
 import { Fragment, useEffect, useRef, useState } from 'react';
+import { getPublishing } from './publishing';
 import { RosterImport } from './RosterImport';
 import { deleteAudio, putAudio } from './audioStore';
 import { IconGrip } from './icons';
@@ -88,7 +89,7 @@ export function Sidebar(p: Props) {
         <button onClick={p.onOpen} title="Open a .freeform show file (or an older .freeform.json) or a Pyware 3D .3dj drill as a new show (this one stays under Shows…)">Import…</button>
         <button onClick={p.onSave} title="Save this show as a .freeform file (⌘S): the first time you choose where, then it saves to that same file">Save</button>
         <button onClick={p.onSaveAs} title="Save a copy as a new .freeform file, choosing the folder and name">Save As…</button>
-        <button onClick={p.onFullBackup} disabled={!show.music && !show.trace} title="Save a .freeform file that also holds the recording and tracing picture, to move the show to another computer complete (a much bigger file)">Full backup…</button>
+        <button onClick={p.onFullBackup} disabled={!show.music && !show.trace && !getPublishing(show.id ?? show.title, show.title)} title="Save a .freeform file that also holds the recording, the tracing picture, and the show's publishing (so a new computer keeps updating the same phone link), to move the show to another computer complete">Full backup…</button>
       </div>
       {/* Getting the drill to the band is the payoff, so it gets its own row, apart from the file buttons. */}
       <div role="group" aria-label="Get it to the band" style={{ ...row, flexWrap: 'nowrap' }}>
