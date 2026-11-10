@@ -33,7 +33,7 @@ export function ReviewPanel({ show, setShow, issues, all, dismissed, onGo, onClo
   };
   const where = (x: Issue) => x.kind === 'unwritten' ? `After set ${show.sets[x.set].name}`
     : x.set && x.kind !== 'missing' ? `${show.sets[x.set - 1].name} → ${show.sets[x.set].name}` : `Set ${show.sets[x.set].name}`;
-  const tab = (on: boolean) => ({ flex: 1, border: 'none', borderBottom: `2px solid ${on ? 'var(--gold)' : 'transparent'}`, background: 'none', fontWeight: on ? 700 : 400, padding: '6px 4px' });
+  const tab = (on: boolean) => ({ flex: 1, border: 'none', borderBottom: `2px solid ${on ? 'var(--gold)' : 'transparent'}`, background: 'none', color: 'var(--text)', borderRadius: 0, fontWeight: on ? 700 : 400, padding: '6px 4px' }); // a tab, not a toggle: not the gold pressed style, which made it dark on dark
   return (
     <section aria-label="Review" style={{ position: 'absolute', top: 8, right: 8, width: 360, maxWidth: 'calc(100% - 16px)', maxHeight: 'calc(100% - 16px)', zIndex: 5,
       display: 'flex', flexDirection: 'column', background: 'var(--bg)', border: '1px solid var(--line-strong)', boxShadow: '0 6px 16px rgba(0,0,0,0.45)', fontSize: 14 }}>
@@ -48,9 +48,9 @@ export function ReviewPanel({ show, setShow, issues, all, dismissed, onGo, onClo
         <span style={{ whiteSpace: 'nowrap' }}>-to-5</span>
       </label>
       {dismissed.length > 0 && (
-        <div role="group" aria-label="Which warnings" style={{ display: 'flex', borderBottom: '1px solid var(--line)' }}>
-          <button aria-pressed={!showingDismissed} onClick={() => view(false)} style={tab(!showingDismissed)}>To check ({issues.length})</button>
-          <button aria-pressed={showingDismissed} onClick={() => view(true)} style={tab(showingDismissed)}>Dismissed ({dismissed.length})</button>
+        <div role="tablist" aria-label="Which warnings" style={{ display: 'flex', borderBottom: '1px solid var(--line)' }}>
+          <button role="tab" aria-selected={!showingDismissed} onClick={() => view(false)} style={tab(!showingDismissed)}>To check ({issues.length})</button>
+          <button role="tab" aria-selected={showingDismissed} onClick={() => view(true)} style={tab(showingDismissed)}>Dismissed ({dismissed.length})</button>
         </div>
       )}
       {list.length > 0 && (
