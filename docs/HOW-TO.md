@@ -146,7 +146,7 @@ The Selection area also has **Select all** (⌘A, or Ctrl+A on Windows) and **Se
 
 **Copying spots from one set to another.** Select performers, click **Copy spots** (⌘C, or Ctrl+C), go to another set, and click **Paste spots** (⌘V, or Ctrl+V). The same performers go back to the same spots. This is handy for a picture that comes back later in the show.
 
-**Snap to grid** (in the toolbar) sets how dragging and adding land: on whole steps, half steps, or anywhere (free). If performers are already off the grid (after a rotate, a shape, or an import), select them and click **Apply** to round them onto it. FreeFORM warns you if two performers would land on the same spot.
+**Snap to grid** (in the toolbar) sets how dragging and adding land: on a **Whole step**, **Half step**, or **Quarter step** grid, or anywhere (**Free**). If performers are already off the grid (after a rotate, a shape, or an import), select them and click **Apply**, next to it, to round them onto the grid (with **Free** chosen, onto whole steps). FreeFORM warns you if two performers would land on the same spot.
 
 **Dimming or hiding sections.** When the field is crowded, open **Sections** in the sidebar and click the first button on a section's row. It cycles **On**, **Dim** (drawn faint, with no labels), and **Off** (hidden). Dimmed and hidden performers can't be clicked, boxed, or picked by **Select all**, and their paths aren't drawn, so you can write the guard without grabbing the horns. **Show all** brings everyone back. This only changes your view in the editor, in this browser: printed charts and phones always show everyone.
 
@@ -241,7 +241,7 @@ Two menus do the same jobs with exact numbers.
 
 Mirror and Rotate & Scale keep the form you have and move or resize it. To change the form itself, like a block into an arc, use **Shape**.
 
-Rotating or stretching usually leaves performers between grid steps. Use **Snap to grid → Apply** if you want them back on whole or half steps.
+Rotating or stretching usually leaves performers between grid steps. Use **Snap to grid → Apply** if you want them back on whole, half, or quarter steps.
 
 ## Paths: straight, follow the leader, and custom
 
@@ -535,19 +535,19 @@ With a keyboard attached, the [keyboard shortcuts](#keyboard-shortcuts) work too
 
 ## Saving, backing up, and opening files
 
-**Get a show back.** Lost something? **Help**, then **Get a show back**, asks what happened and has the button for each case: **Undo** for a mistake you just made, **See earlier versions** (below), **Open Shows…** for another show missing from the screen, **Import a file…** when it's gone from this browser (a new computer, or cleared history) and you saved a file, and **Open from a link or recovery code…** for a show you published to phones. It also says when you last saved the open show to a file.
+**Get a show back.** Lost something? **Help**, then **Get a show back**, asks what happened and has the button for each case: **Undo** for a mistake you just made, **See earlier versions** (below), **Open Shows…** for another show missing from the screen, **Import a file…** when it's gone from this browser (a new computer, or cleared history) and you saved a file, and **Open from a link or recovery code…** for anything else (if you published the show to phones, its link brings the whole show back). It also says when you last saved the open show to a file.
 
 ![Get a show back](img/recover.png)
 
-**Is my work saved?** The chip in the top bar answers that in one line, like "Browser ✓ · File: 2:14 PM · Phones: rev 6":
+**Is my work saved?** The box pinned to the bottom of the sidebar answers that, a line for each place your show can be, like "Browser ✓ / File: 2:14 PM / Phones: rev 6":
 
 - **Browser**: every change is saved in this browser as you go. If the browser can't save (its storage is full), it says **Browser: not saved**.
 - **File**: when you last saved a .freeform file, or **unsaved changes** if you've changed the show since.
 - **Phones**: the revision your performers have, **rev 6 + changes** if you've changed the drill since you published, or **not published**.
 
-When something isn't saved somewhere it could be, the chip also gets a dashed outline. Click it for a sentence about each part, with **Save**, **Save As…**, **Full backup…** (when the show has music, a tracing picture, or a phone link), and **Share…** or **Publish update…** right there.
+When something isn't saved somewhere it could be, the box also gets a dashed outline. Click it for a sentence about each part, with **Save**, **Save As…**, **Full backup…** (when the show has music, a tracing picture, or a phone link), and **Share…** or **Publish update…** right there.
 
-![The save status chip, opened](img/save-status.png)
+![The save status at the bottom of the sidebar, opened](img/save-status.png)
 
 - **Autosave**: every change is saved in your browser right away.
 - **Several shows: Opener, Ballad, Closer.** Every show you start, import, or open from the sample is kept in this browser. **Shows…** (first of the sidebar's file buttons) lists them, newest change first. **Open** switches to one (the show you had open is saved first). **Open from a link or recovery code…** brings in a show from a link students use, or from a recovery code (see [Send the show to your performers](#send-the-show-to-your-performers)). **Rename…** changes a show's title, **Duplicate** makes a copy to try something new (with its own copy of the recording and tracing picture), and **Delete** removes a show from this browser after asking. Delete can't be undone, so save a file first if you might want the show again. **New show** starts a blank one. Each show keeps its own recording and tracing picture. Undo works within one show: opening another starts its Undo fresh.

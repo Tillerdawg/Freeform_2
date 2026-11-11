@@ -17,7 +17,7 @@ import { NumberField } from './NumberField';
 import { useDialog } from './useDialog';
 
 export type Tool = 'select' | 'add' | 'text' | 'arrow' | 'draw' | 'turn'; // turn: click to add an FTL leader's turning points
-export type Snap = 1 | 0.5 | 0;
+export type Snap = 1 | 0.5 | 0.25 | 0;
 
 interface Props {
   adding: boolean; // taps add to the selection (Add to selection, for touch screens)
@@ -67,6 +67,7 @@ interface Props {
   traceAsk?: number; // bumped by the Shape menu's link: open Picture to trace and scroll to it
   look: Record<string, 'dim' | 'hide'>; // sections dimmed or hidden in the editor
   setLook: (l: Record<string, 'dim' | 'hide'>) => void;
+  status?: React.ReactNode; // the save status, pinned to the bottom
 }
 
 const PRESETS: [HashPreset, string][] = [['highSchool', 'High school'], ['college', 'College / DCI'], ['nfl', 'NFL']];
@@ -278,6 +279,7 @@ export function Sidebar(p: Props) {
       <PropsEditor show={show} setShow={setShow} onSet={onSet} selected={p.selectedProp} setSelected={p.setSelectedProp} />
       <TraceEditor show={show} setShow={setShow} onTrace={p.onTrace} ask={p.traceAsk} />
       <Roster show={show} setShow={setShow} selected={selected} setSelected={p.setSelected} />
+      {p.status && <div className="side-status">{p.status}</div>}
     </aside>
   );
 }

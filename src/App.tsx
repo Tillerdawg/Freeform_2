@@ -1012,25 +1012,6 @@ export function App() {
         </span>
         <span style={{ flex: '1 1 0', fontSize: 12, opacity: tool === 'turn' ? 1 : 0.7, color: tool === 'turn' ? 'var(--gold)' : undefined, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'right', paddingLeft: 8, whiteSpace: 'nowrap' }}>{tool === 'turn' ? (coarse() ? "Tap the field for each of the leader's turns, in marching order · then tap Select" : "Click the field for each of the leader's turns, in marching order · Esc when done")
           : coarse() ? 'Two fingers: drag to move around, pinch to zoom' : 'Scroll to pan · pinch or ⌘/Ctrl+scroll to zoom · right-drag pans'}</span>
-        {/* Is my work safe: this browser, a file, and the phones, in one line. Fixed to one line (no wrapping), so the top bar's height never changes. */}
-        <span className={saved.attention ? 'save-chip attention' : 'save-chip'} style={{ flex: '0 1 auto', minWidth: 0 }}>
-          <Menu label={<span className="save-chip-text">{saved.label}</span>} name="Save status" title={`${saved.label}. Click for what each part means, and to save or publish.`}>{(close) => (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'stretch', maxWidth: 320, fontSize: 13 }}>
-              <strong style={{ fontSize: 14 }}>This browser</strong>
-              <span>{saved.browser}</span>
-              <strong style={{ fontSize: 14 }}>File</strong>
-              <span>{saved.file}</span>
-              <span style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                <button onClick={() => { close(); save(); }} title="Save to a .freeform file (⌘S)">Save</button>
-                <button onClick={() => { close(); saveAs(); }} title="Save to a new file">Save As…</button>
-                {(show.music || show.trace || getPublishing(show.id ?? show.title, show.title)) && <button onClick={() => { close(); saveTo(false, true); }} title="A file that also holds the recording, the tracing picture, and the show's publishing, to move the show to another computer complete">Full backup…</button>}
-              </span>
-              <strong style={{ fontSize: 14 }}>Phones</strong>
-              <span>{saved.phones}</span>
-              <span><button onClick={() => { close(); setSharing(true); }} title="Send the show to performers' phones, or publish an update">{show.revision ? 'Publish update…' : 'Share…'}</button></span>
-            </div>
-          )}</Menu>
-        </span>
         <span style={{ flex: 'none' }}>
           <button aria-pressed={reviewing} onClick={() => setReviewing(!reviewing)} title="Every problem in the show: steps over the limit, performers too close, imported paths gone straight, missing spots, and counts not written">
             Review{issues.length ? ` (${issues.length})` : ''}</button>
@@ -1136,7 +1117,7 @@ export function App() {
         </div>}
         {!reviewing && (sbSteps
           ? <GettingStarted steps={sbSteps} onHide={() => writeSb(null)} title="Send it to your band"
-            doneText={<>Your band has the show. Each time you change the drill, publish again: the chip in the top bar says when phones are behind. <strong>Close</strong> puts this list away.</>} />
+            doneText={<>Your band has the show. Each time you change the drill, publish again: the save status at the bottom of the sidebar says when phones are behind. <strong>Close</strong> puts this list away.</>} />
           : gsSteps && show.performers.length > 0 && <GettingStarted steps={gsSteps} onHide={hideGs}
             doneText={<>All five done: you've written your first move and checked it. When you're ready for your band to learn it: <button onClick={() => { hideGs(); startSb(); }}>Send it to your band</button></>} />)}
         {reviewing && <ReviewPanel show={show} setShow={setShow} issues={issues} all={allIssues} dismissed={dismissed} onGo={goToIssue} onClose={() => setReviewing(false)} />}
@@ -1166,6 +1147,27 @@ export function App() {
         clip={clip ? Object.keys(clip).length : 0} onCopy={copySpots} onPaste={pasteSpots} selectedProp={selectedProp} setSelectedProp={setSelectedProp} onTrace={() => setTraceTick((n) => n + 1)} traceAsk={traceAsk}
         onUndo={() => step('undo')} onRedo={() => step('redo')} canUndo={!!hist.past.length} canRedo={!!hist.future.length}
         onFit={fit} shape={shapeEdit?.shape ?? null} startShape={startShape} updateShape={updateShape} endShape={() => setShapeEdit(null)}
+        status={<>
+        {/* Is my work safe: this browser, a file, and the phones, a line each, pinned to the bottom of the sidebar (Jason). */}
+        <span className={saved.attention ? 'save-chip attention' : 'save-chip'}>
+          <Menu label={<span className="save-chip-text">{saved.label.split(' · ').map((l) => <span key={l}>{l}</span>)}</span>} name="Save status" title={`${saved.label}. Click for what each part means, and to save or publish.`}>{(close) => (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'stretch', maxWidth: 320, fontSize: 13 }}>
+              <strong style={{ fontSize: 14 }}>This browser</strong>
+              <span>{saved.browser}</span>
+              <strong style={{ fontSize: 14 }}>File</strong>
+              <span>{saved.file}</span>
+              <span style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                <button onClick={() => { close(); save(); }} title="Save to a .freeform file (⌘S)">Save</button>
+                <button onClick={() => { close(); saveAs(); }} title="Save to a new file">Save As…</button>
+                {(show.music || show.trace || getPublishing(show.id ?? show.title, show.title)) && <button onClick={() => { close(); saveTo(false, true); }} title="A file that also holds the recording, the tracing picture, and the show's publishing, to move the show to another computer complete">Full backup…</button>}
+              </span>
+              <strong style={{ fontSize: 14 }}>Phones</strong>
+              <span>{saved.phones}</span>
+              <span><button onClick={() => { close(); setSharing(true); }} title="Send the show to performers' phones, or publish an update">{show.revision ? 'Publish update…' : 'Share…'}</button></span>
+            </div>
+          )}</Menu>
+        </span>
+        </>}
       />
       </div>
       </div>
