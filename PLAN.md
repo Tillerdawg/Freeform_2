@@ -84,7 +84,8 @@
 - ✅ Shape handles by keyboard (Jason chose Tab through every handle): Tab and Shift+Tab step through the open shape's handles with a gold ring and a spoken name and spot, arrows move 1, 4, or half a step, Enter keeps, Esc puts back.
 - ✅ One palette for everything (2026-11-11): shadows (two sizes), dialog backdrops, see-through overlays, and the field's own ink are named in `palette.ts`, with softer light-mode shadows; a test fails on any loose color.
 - ✅ The same for follow-the-leader turns and custom path points (Tab through them with the group selected), and props (arrow keys move the picked prop; Tab reaches each prop's box in the sidebar to pick it; **Turned** takes a typed angle).
-- Still to do (accessibility): a check with VoiceOver, large text, and in sunlight on real phones.
+- ✅ A first accessibility pass (2026-11-11): an automated check (axe) of the phone view and the editor, both modes, now clean; the phone at 200% and 300% text (Safari's aA) no longer pushes buttons off screen or hides the student's name; My dots cards read with pauses and "16 counts, measures 1 to 4" for VoiceOver.
+- Still to do (accessibility): Jason's check on a real phone: VoiceOver, Safari's aA at 200% and 300%, and in sunlight.
 
 ## From the 2026-11-10 review
 Claude went through the docs, ran the tests, and clicked through the editor and the phone view (desktop, iPhone upright, iPhone on its side, all emulated). Jason approved the list, and the in-repo items were built the same day (✅ below). Still to do: the upload service, video export, current Pyware files, Spanish, and getting the word out.

@@ -31,6 +31,7 @@ export function WhoPicker({ show, value, staff, onPick }: { show: Show; value: s
   return (
     <>
       <button className="who-button" aria-haspopup="dialog" onClick={() => setOpen(true)}>
+        {(mine || value === staff) && <span className="sr-only">{tr('Who are you?')} </span>}{/* VoiceOver: "Who are you? G6", not just "G6" */}
         <span className="who-current">{current}</span><span aria-hidden="true">▾</span>
       </button>
       {open && (

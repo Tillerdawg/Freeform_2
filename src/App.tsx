@@ -1176,7 +1176,7 @@ export function App() {
         status={<>
         {/* Is my work safe: this browser, a file, and the phones, a line each, pinned to the bottom of the sidebar (Jason). */}
         <span className={saved.attention ? 'save-chip attention' : 'save-chip'}>
-          <Menu label={<span className="save-chip-text">{saved.label.split(' · ').map((l) => <span key={l}>{l}</span>)}</span>} name="Save status" title={`${saved.label}. Click for what each part means, and to save or publish.`}>{(close) => (
+          <Menu label={<span className="save-chip-text">{saved.label.split(' · ').map((l) => <span key={l}>{l}</span>)}</span>} panelName="Save status" title={`${saved.label}. Click for what each part means, and to save or publish.`}>{(close) => (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'stretch', maxWidth: 320, fontSize: 13 }}>
               <strong style={{ fontSize: 14 }}>This browser</strong>
               <span>{saved.browser}</span>
