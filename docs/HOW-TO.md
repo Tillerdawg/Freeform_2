@@ -67,6 +67,10 @@ When the field has no performers, a note over it offers four ways to begin: **Pl
 
 ![The note on a blank field](img/start.png)
 
+**Getting started.** A new show also gets a short checklist in the field's bottom-right corner: put performers on the field, add the next set, move performers to their new spots, watch the move, check for problems in **Review**, and send it to your band. Each step ticks itself off when you do it, and the next one says how. Nothing is locked: do things in any order. **Fold** shrinks it to one line, and **Hide** puts it away for good (it won't come back on later shows). It only appears on shows you start blank, not the sample or a show you open from a file.
+
+![The getting-started checklist](img/getting-started.png)
+
 1. **Name it.** Type the title in the box under the file buttons. It prints on every dot sheet and chart.
 2. **Pick your field.** The menu under the title has **High school**, **College / DCI**, and **NFL** for a football field, plus **Basketball court** and **Custom floor** for indoor shows (more on those just below). For a football field FreeFORM draws the field the way drill software does, with whole-step hashes:
 
@@ -192,6 +196,8 @@ The timeline then runs the full length, with the part you haven't written yet st
 2. Open **Shape** and pick **Line**, **Arc**, **Curve**, **Bézier**, **Circle**, **Polygon**, **Star**, **Spiral**, **Block**, or **Letters**. Or press its letter (see [Keyboard shortcuts](#keyboard-shortcuts)).
 3. Drag the blue handles on the field to adjust the shape. Choose **Even** spacing, or **Every** so many steps.
 4. Click **Done** (or press Esc) when it looks right.
+
+**Moving handles with the keyboard.** With a shape open, press Tab (click the field first if a button has focus) to step to its first handle: a gold ring goes around it, and a note at the bottom of the field names it and says where it is, like "Arc, middle: 2 steps inside the Side 1 45, 3 steps in front of Back Hash." Tab goes to the next handle and Shift+Tab to the one before. The arrow keys move the handle 1 step (Shift for 4 steps, Option or Alt for half a step), Enter keeps it where it is, and Esc puts it back where it was when you picked it. Tab past the last handle goes on to the rest of the page as usual.
 
 FreeFORM decides who goes to which spot by keeping total travel from the previous set as short as it can, so the paths don't cross. Curves can take extra points (**+ Curve point**) and Béziers extra segments (**+ Segment**). Bézier joints stay smooth unless you hold Option (Alt on Windows) while you drag a handle. Blocks also take a number of **Columns**.
 
@@ -525,6 +531,16 @@ With a keyboard attached, the [keyboard shortcuts](#keyboard-shortcuts) work too
 
 ## Saving, backing up, and opening files
 
+**Is my work saved?** The chip in the top bar answers that in one line, like "Browser ✓ · File: 2:14 PM · Phones: rev 6":
+
+- **Browser**: every change is saved in this browser as you go. If the browser can't save (its storage is full), it says **Browser: not saved**.
+- **File**: when you last saved a .freeform file, or **unsaved changes** if you've changed the show since.
+- **Phones**: the revision your performers have, **rev 6 + changes** if you've changed the drill since you published, or **not published**.
+
+When something isn't saved somewhere it could be, the chip also gets a dashed outline. Click it for a sentence about each part, with **Save**, **Save As…**, **Full backup…** (when the show has music, a tracing picture, or a phone link), and **Share…** or **Publish update…** right there.
+
+![The save status chip, opened](img/save-status.png)
+
 - **Autosave**: every change is saved in your browser right away.
 - **Several shows: Opener, Ballad, Closer.** Every show you start, import, or open from the sample is kept in this browser. **Shows…** (first of the sidebar's file buttons) lists them, newest change first. **Open** switches to one (the show you had open is saved first). **Open from a link or recovery code…** brings in a show from a link students use, or from a recovery code (see [Send the show to your performers](#send-the-show-to-your-performers)). **Rename…** changes a show's title, **Duplicate** makes a copy to try something new (with its own copy of the recording and tracing picture), and **Delete** removes a show from this browser after asking. Delete can't be undone, so save a file first if you might want the show again. **New show** starts a blank one. Each show keeps its own recording and tracing picture. Undo works within one show: opening another starts its Undo fresh.
 
@@ -559,6 +575,9 @@ With a keyboard attached, the [keyboard shortcuts](#keyboard-shortcuts) work too
 | Move the selection 1 step | ← → ↑ ↓ |
 | Move the selection 4 steps | Shift + arrow |
 | Move the selection half a step | Option (Alt) + arrow |
+| With a shape open: step through its handles | Tab, or Shift+Tab to go back |
+| Move the handle you're on 1, 4, or half a step | Arrow, Shift + arrow, Option (Alt) + arrow |
+| Keep the handle where it is, or put it back | Enter, or Esc |
 | Zoom the field in or out | ⌘+ or ⌘− (Ctrl on Windows), with the mouse over the field |
 | Fit the whole field | F, or ⌘0 (Ctrl+0) with the mouse over the field |
 | Select everyone | ⌘A (Ctrl+A on Windows) |

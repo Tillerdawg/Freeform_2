@@ -396,3 +396,22 @@ export function moveHandle(s: Shape, k: number, p: Point, free = false): Shape {
   }
   return { ...s, handles: h };
 }
+
+/**
+ * What a shape's handle is, in words, for the keyboard (Tab steps through the handles) and screen readers:
+ * "start", "middle", "inside corner", and so on.
+ */
+export function handleName(s: Shape, k: number): string {
+  switch (s.kind) {
+    case 'line': return ['start', 'end'][k];
+    case 'arc': return ['start', 'middle', 'end'][k];
+    case 'curve': return ['start', 'first bend', 'second bend', 'end'][k];
+    case 'bezier': { const n = Math.floor((k + 1) / 3) + 1; return k % 3 === 0 ? `point ${n}` : `control for point ${n}`; }
+    case 'circle': return ['center', 'edge'][k];
+    case 'polygon': return ['center', 'corner'][k];
+    case 'star': return ['center', 'point', 'inside corner'][k];
+    case 'spiral': return ['center', 'outside end'][k];
+    case 'block': case 'text': return ['corner', 'opposite corner'][k];
+  }
+}
+
