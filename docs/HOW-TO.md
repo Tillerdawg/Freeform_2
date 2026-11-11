@@ -260,13 +260,13 @@ Rotating or stretching usually leaves performers between grid steps. Select them
 3. Drag the leader to their end spot. Everyone else follows the trail.
 4. For a route with corners, click **Add turns**, then click each turn on the field in marching order. Press Esc when you're done.
 
-With the group selected, each turn has a blue handle you can drag. **Remove last turn** and **Straight route** take turns back out, and **Straight** at the top of **Path** turns follow the leader off for that group. Turns move with the group when you drag, flip, rotate, or stretch it, and **Copy Side 1 → 2** copies an FTL group to the other side.
+With the group selected, each turn has a blue handle you can drag. To move one by keyboard, click the field (so no button has focus) and press Tab: a gold ring goes around the first turn, and the note at the bottom of the field names it and says where it is, like "Follow the leader (G6 leads), turn 1: On the Side 2 30, 14 steps behind Front Sideline." Tab and Shift+Tab step through the turns, the arrow keys move the one you're on (Shift for 4 steps, Option or Alt for half a step), Enter keeps it, and Esc puts it back. **Remove last turn** and **Straight route** take turns back out, and **Straight** at the top of **Path** turns follow the leader off for that group. Turns move with the group when you drag, flip, rotate, or stretch it, and **Copy Side 1 → 2** copies an FTL group to the other side.
 
 Everyone in an FTL move covers the leader's whole route at one steady step size, so a turn never makes anybody take a giant step.
 
 **Smooth.** Once a route has turns, check **Smooth** to round the corners into a curve that passes through every turn. Everyone still marches it at one steady step size.
 
-**Custom.** A soloist or drum major who loops around a form can have a path of their own. Select just that performer, open **Path**, and click **Custom**. Then click the field at each point they march through, in order, and press Esc. **Smooth** makes it a curve, you can drag the points to move them, and **Straight** goes back to a straight line.
+**Custom.** A soloist or drum major who loops around a form can have a path of their own. Select just that performer, open **Path**, and click **Custom**. Then click the field at each point they march through, in order, and press Esc. **Smooth** makes it a curve, you can drag the points to move them (or press Tab to step through them and move one with the arrow keys, as with follow-the-leader turns), and **Straight** goes back to a straight line.
 
 ![One trumpet's custom, smooth path into set 2](img/route.png)
 
@@ -292,6 +292,7 @@ Props are things on the field that aren't performers: a platform, a backdrop, a 
 
 - Type its name, and set how **Wide** (side to side) and **Deep** (front to back) it is, in steps. Check **Round** for an oval or circle.
 - **Drag it on the field** to move it in the set you're on. While you drag, the readout in the corner of the field shows where its center is, and **Center** in its box in the sidebar shows the same. Like a performer, it moves into later sets where it was still standing on its old spot, and it rolls from spot to spot between sets.
+- **By keyboard**: with a prop picked, the arrow keys move it 1 step (Shift for 4 steps, Option or Alt for half a step), and the note at the bottom of the field says where its center is. To pick one without the mouse, Tab to its box under **Props** in the sidebar. Type its turn in **Turned**.
 - **Turned** turns it in this set, in degrees counterclockwise. Between sets it turns the short way.
 - Click it on the field to pick it (performers standing on it get picked first), and press Delete (the key or the button) or click **×** to remove it from the whole show.
 
@@ -583,9 +584,10 @@ When something isn't saved somewhere it could be, the box also gets a dashed out
 | Move the selection 1 step | ← → ↑ ↓ |
 | Move the selection 4 steps | Shift + arrow |
 | Move the selection half a step | Option (Alt) + arrow |
-| With a shape open: step through its handles | Tab, or Shift+Tab to go back |
+| With a shape open, or a follow-the-leader group or custom path selected: step through its handles, turns, or points | Tab, or Shift+Tab to go back |
 | Move the handle you're on 1, 4, or half a step | Arrow, Shift + arrow, Option (Alt) + arrow |
 | Keep the handle where it is, or put it back | Enter, or Esc |
+| Move the picked prop 1, 4, or half a step | Arrow, Shift + arrow, Option (Alt) + arrow |
 | Zoom the field in or out | ⌘+ or ⌘− (Ctrl on Windows), with the mouse over the field |
 | Fit the whole field | F, or ⌘0 (Ctrl+0) with the mouse over the field |
 | Select everyone | ⌘A (Ctrl+A on Windows) |
