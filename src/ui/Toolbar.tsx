@@ -122,12 +122,10 @@ export function Toolbar(p: ToolbarProps) {
       <span className="tb-pinned">
       <button onClick={p.onUndo} disabled={!p.canUndo} title="Undo (⌘Z / Ctrl+Z)" aria-label="Undo" className="icon"><IconUndo /></button>
       <button onClick={p.onRedo} disabled={!p.canRedo} title="Redo (⇧⌘Z / Ctrl+Y)" aria-label="Redo" className="icon"><IconRedo /></button>
-      {p.timeline && <button onClick={p.timeline.toggle} aria-pressed={p.timeline.open} aria-label="Timeline" title={p.timeline.open ? 'Hide the timeline (more room for the field)' : 'Show the timeline (play, tempo, music, sets)'} className="icon">{p.timeline.top ? <IconTimelineTop /> : <IconTimeline />}</button>}
-      {p.sidebar && <button onClick={p.sidebar.toggle} aria-pressed={p.sidebar.open} aria-label="Sidebar" title={p.sidebar.open ? 'Hide the sidebar' : 'Show the sidebar (show, set notes, selection, sections, roster)'} className="icon">{p.sidebar.left ? <IconSidebarLeft /> : <IconSidebar />}</button>}
       </span>
     </div>
     <div className="toolbar" role="toolbar" aria-label="Placement and movement">
-      <label className="tb-field" title="Snap to grid: the grid performers stick to as you drag or add them">Snap<span className="tb-long"> to grid</span>
+      <label className="tb-field" title="Snap to grid: the grid performers stick to as you drag or add them">Snap<span className="tb-long-md"> to grid</span>
         <select value={p.snap} onChange={(e) => p.setSnap(Number(e.target.value) as Snap)}>
           <option value={1}>Whole</option>
           <option value={0.5}>Half</option>
@@ -162,7 +160,7 @@ export function Toolbar(p: ToolbarProps) {
         </>}
       </Menu>
       {/* On a narrow iPad the label shortens to "Rotate"; the name stays "Rotate & Scale" for screen readers. */}
-      <Menu label={<>Rotate<span className="tb-long"> &amp; Scale</span></>} name="Rotate & Scale" disabled={needs(many, ids.length === 1 ? 'Select 2 or more performers' : pick)}
+      <Menu label={<>Rotate<span className="tb-long-md"> &amp; Scale</span></>} name="Rotate & Scale" disabled={needs(many, ids.length === 1 ? 'Select 2 or more performers' : pick)}
         title="Rotate the selection by a number of degrees, or expand or contract it">
         {() => <>
           <label style={{ fontSize: 12 }}>Around{' '}
@@ -214,6 +212,11 @@ export function Toolbar(p: ToolbarProps) {
         title={onSet > 0 ? `Put the selected performers back where they were in set ${show.sets[onSet - 1].name} (Undo reverses it)` : onSet === 0 ? 'Set 1 has no set before it' : pick} aria-label={`Reset to set ${onSet > 0 ? show.sets[onSet - 1].name : '…'}`}>
         Reset<span className="tb-long-sm"> to set {onSet > 0 ? show.sets[onSet - 1].name : '…'}</span>
       </button>
+      {/* Show and hide the panels: pinned to the right end of this row, like Undo above. */}
+      {(p.timeline || p.sidebar) && <span className="tb-pinned">
+      {p.timeline && <button onClick={p.timeline.toggle} aria-pressed={p.timeline.open} aria-label="Timeline" title={p.timeline.open ? 'Hide the timeline (more room for the field)' : 'Show the timeline (play, tempo, music, sets)'} className="icon">{p.timeline.top ? <IconTimelineTop /> : <IconTimeline />}</button>}
+      {p.sidebar && <button onClick={p.sidebar.toggle} aria-pressed={p.sidebar.open} aria-label="Sidebar" title={p.sidebar.open ? 'Hide the sidebar' : 'Show the sidebar (show, set notes, selection, sections, roster)'} className="icon">{p.sidebar.left ? <IconSidebarLeft /> : <IconSidebar />}</button>}
+      </span>}
     </div>
     </>
   );
