@@ -499,11 +499,11 @@ function PropsEditor({ show, setShow, onSet, selected, setSelected }: { show: Sh
   return (
     <details open={open} onToggle={(e) => setOpen(e.currentTarget.open)} style={{ borderTop: '1px solid var(--line)', padding: '10px 0' }}>
       <summary><strong>Props</strong> <span style={{ fontSize: 12, opacity: 0.7 }}>({props.length})</span></summary>
-      <p style={{ fontSize: 12, opacity: 0.75, margin: '6px 0' }}>Platforms, backdrops, and other things on the field. Drag one on the field to move it in this set; it moves between sets like a performer.</p>
+      <p style={{ fontSize: 12, opacity: 0.75, margin: '6px 0' }}>Platforms, backdrops, and other things on the field. Drag one on the field to move it in this set (or pick it and use the arrow keys); it moves between sets like a performer.</p>
       {props.map((pr) => {
         const spot = onSet >= 0 ? show.sets[onSet].props?.[pr.id] : undefined, sel = pr.id === selected;
         return (
-          <div key={pr.id} onClick={() => setSelected(pr.id)} style={{ border: `1px solid ${sel ? 'var(--gold)' : 'var(--line)'}`, borderRadius: 4, padding: 6, marginTop: 6 }}>
+          <div key={pr.id} tabIndex={0} aria-label={`Prop ${pr.name}${sel ? ', picked: arrow keys move it' : ''}`} onClick={() => setSelected(pr.id)} onFocus={(e) => { if (e.target === e.currentTarget) setSelected(pr.id); }} style={{ border: `1px solid ${sel ? 'var(--gold)' : 'var(--line)'}`, borderRadius: 4, padding: 6, marginTop: 6 }}>
             <div style={row}>
               <input aria-label="Prop name" value={pr.name} maxLength={MAX_NAME} style={{ flex: 1, minWidth: 80 }} onChange={(e) => setShow((s) => updateProp(s, pr.id, { name: e.target.value }))} />
               <button aria-label={`Delete prop ${pr.name}`} title="Delete this prop from the whole show" className="icon danger"

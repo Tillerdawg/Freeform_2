@@ -121,10 +121,10 @@ export function App() {
   const [selectedMark, setSelectedMark] = useState<string | null>(null);
   const [selectedProp, setSelectedProp] = useState<string | null>(null); // a prop picked on the field or in the sidebar
   const [shapeEdit, setShapeEdit] = useState<{ shape: Shape; order: string[]; set: number; base: Show } | null>(null); // base: the show before this shape began
-  // The handle the keyboard is on (Tab steps through the open shape's handles), and the shape as it was when it was picked, for Esc.
+  // The handle the keyboard is on (Tab steps through the open shape's handles, or the selected follow-the-leader group's
+  // turns and a custom path's points), and what it was when it was picked, for Esc.
   const [keyHandle, setKeyHandle] = useState<number | null>(null);
-  const keyHandleStart = useRef<Shape | null>(null);
-  useEffect(() => { setKeyHandle(null); keyHandleStart.current = null; }, [!!shapeEdit, shapeEdit?.shape.kind]); // eslint-disable-line react-hooks/exhaustive-deps
+  const keyHandleStart = useRef<unknown>(null);
   const [fileError, setFileError] = useState('');
   const [printing, setPrinting] = useState(false);
   const [sharing, setSharing] = useState(false);
@@ -436,6 +436,7 @@ export function App() {
     if (onSet >= 0) drawMarks(ctx, view, show.sets[onSet].marks ?? [], fieldLook, selectedMark);
     drawPerformers(ctx, view, dots, selected, paths, box, dpr, { warn, lasso, look: fieldLook });
     if (ftlGroup?.turns) drawShape(ctx, view, [], false, ftlGroup.turns, [], [], fieldLook); // the selected FTL group's turns: drag to move
+    if (!shapeEdit && keyHandle !== null && ftlGroup?.turns?.[keyHandle]) drawHandleFocus(ctx, view, ftlGroup.turns[keyHandle]); // the one the keyboard is on
     const fr = frameNow();
     if (fr) drawShape(ctx, view, fr.corners, true, [...fr.corners, fr.knob], [false, false, false, false, true], [[fr.stem, fr.knob]], fieldLook);
     if (shapeEdit) {
@@ -536,37 +537,54 @@ export function App() {
 
   const fieldBox = useRef<HTMLDivElement>(null);
   const onField = () => !!fieldBox.current && (fieldBox.current.matches(':hover') || fieldBox.current.contains(document.activeElement));
-  // An open shape's handles by keyboard: Tab and Shift+Tab step through them (past the last one, Tab goes on to the page as
-  // usual), arrows move the one you're on (Shift 4 steps, Option/Alt half a step), Enter keeps it, Esc puts it back.
-  // Tab only picks a handle when nothing else has focus (after clicking the field, or a shape's shortcut key).
-  const shapeKeys = (e: KeyboardEvent, el: HTMLElement): boolean => {
-    if (!shapeEdit || e.metaKey || e.ctrlKey) return false;
-    const sh = shapeEdit.shape, n = sh.handles.length, name = SHAPES.find((x) => x[0] === sh.kind)?.[1] ?? 'Shape';
-    const say = (k: number, p: Point, more = '') => setNotice({ t, text: `${name}, ${handleName(sh, k)}: ${readout(p, fieldOf(show))}${more}` });
+  // Handles by keyboard, for an open shape and for the selected follow-the-leader group's turns (a custom path's points):
+  // Tab and Shift+Tab step through them (past the last one, Tab goes on to the page as usual), arrows move the one you're on
+  // (Shift 4 steps, Option/Alt half a step), Enter keeps it, Esc puts it back. Tab only picks a handle when nothing else
+  // has focus (after clicking the field, or a shape's shortcut key).
+  type KeyTarget = { pts: Point[]; noun: string; name: (k: number) => string; move: (k: number, p: Point) => void; snapshot: unknown; restore: (snap: unknown) => void };
+  const keyTarget = (): KeyTarget | null => {
+    if (shapeEdit) {
+      const sh = shapeEdit.shape, title = SHAPES.find((x) => x[0] === sh.kind)?.[1] ?? 'Shape';
+      return { pts: sh.handles, noun: 'Handle', name: (k) => `${title}, ${handleName(sh, k)}`, move: (k, p) => updateShape(moveHandle(sh, k, p)), snapshot: sh, restore: (x) => updateShape(x as Shape) };
+    }
+    const g = ftlGroup;
+    if (g?.turns?.length && onSet > 0 && (tool === 'select' || tool === 'turn')) {
+      const leader = g.order[0], who = label(show, show.performers.find((x) => x.id === leader)!), custom = g.order.length === 1, turns = g.turns;
+      return {
+        pts: turns, noun: custom ? 'Point' : 'Turn',
+        name: (k) => (custom ? `Custom path for ${who}, point ${k + 1}` : `Follow the leader (${who} leads), turn ${k + 1}`),
+        move: (k, p) => setShow((s) => setFtlTurns(s, onSet, leader, turns.map((x, j) => (j === k ? p : x)))),
+        snapshot: turns, restore: (x) => setShow((s) => setFtlTurns(s, onSet, leader, x as Point[])),
+      };
+    }
+    return null;
+  };
+  useEffect(() => { setKeyHandle(null); keyHandleStart.current = null; }, [!!shapeEdit, shapeEdit?.shape.kind, selected, onSet]); // eslint-disable-line react-hooks/exhaustive-deps
+  const handleKeys = (e: KeyboardEvent, el: HTMLElement): boolean => {
+    const kt = keyTarget();
+    if (!kt || e.metaKey || e.ctrlKey) return false;
+    const n = kt.pts.length;
+    const say = (k: number, p: Point, more = '') => setNotice({ t, text: `${kt.name(k)}: ${readout(p, fieldOf(show))}${more}` });
+    const done = () => { setKeyHandle(null); keyHandleStart.current = null; setNotice(null); };
     if (e.key === 'Tab' && !e.altKey && (keyHandle !== null || el === document.body || !!fieldBox.current?.contains(el))) {
       const next = keyHandle === null ? (e.shiftKey ? n - 1 : 0) : keyHandle + (e.shiftKey ? -1 : 1);
-      if (next < 0 || next >= n) { setKeyHandle(null); keyHandleStart.current = null; setNotice(null); return false; }
+      if (next < 0 || next >= n) { done(); return false; }
       e.preventDefault();
-      setKeyHandle(next); keyHandleStart.current = sh;
-      say(next, sh.handles[next], `. Handle ${next + 1} of ${n}: arrows move it, Enter keeps it, Esc puts it back.`);
+      setKeyHandle(next); keyHandleStart.current = kt.snapshot;
+      say(next, kt.pts[next], `. ${kt.noun} ${next + 1} of ${n}: arrows move it, Enter keeps it, Esc puts it back.`);
       return true;
     }
-    if (keyHandle === null || !sh.handles[keyHandle]) return false;
+    if (keyHandle === null || !kt.pts[keyHandle]) return false;
     if (e.key.startsWith('Arrow')) {
       e.preventDefault();
-      const by = e.shiftKey ? 4 : e.altKey ? 0.5 : 1, h = sh.handles[keyHandle];
+      const by = e.shiftKey ? 4 : e.altKey ? 0.5 : 1, h = kt.pts[keyHandle];
       const p = { x: h.x + (e.key === 'ArrowRight' ? by : e.key === 'ArrowLeft' ? -by : 0), y: h.y + (e.key === 'ArrowUp' ? by : e.key === 'ArrowDown' ? -by : 0) };
-      updateShape(moveHandle(sh, keyHandle, p));
+      kt.move(keyHandle, p);
       say(keyHandle, p);
       return true;
     }
-    if (e.key === 'Enter') { e.preventDefault(); setKeyHandle(null); keyHandleStart.current = null; setNotice(null); return true; }
-    if (e.key === 'Escape') {
-      e.preventDefault();
-      if (keyHandleStart.current) updateShape(keyHandleStart.current);
-      setKeyHandle(null); keyHandleStart.current = null; setNotice(null);
-      return true;
-    }
+    if (e.key === 'Enter') { e.preventDefault(); done(); return true; }
+    if (e.key === 'Escape') { e.preventDefault(); if (keyHandleStart.current) kt.restore(keyHandleStart.current); done(); return true; }
     return false;
   };
 
@@ -578,7 +596,7 @@ export function App() {
       if ((e.metaKey || e.ctrlKey) && (e.key === 's' || e.key === 'S')) { e.preventDefault(); saveRef.current(true); return; }
       if (printing || document.querySelector('[role=dialog]') || el.closest('input, select, textarea')) return; // text fields keep the browser's own undo
       if (e.defaultPrevented) return; // a control used the key itself (arrows reordering sections)
-      if (shapeKeys(e, el)) return; // an open shape's handles: Tab, arrows, Enter, Esc
+      if (handleKeys(e, el)) return; // an open shape's handles, or a group's turns: Tab, arrows, Enter, Esc
       boundary.current = true;
       const mod = e.metaKey || e.ctrlKey;
       if (mod && (e.key === 'z' || e.key === 'Z')) { e.preventDefault(); step(e.shiftKey ? 'redo' : 'undo'); }
@@ -592,6 +610,14 @@ export function App() {
       else if (mod && (e.key === 'v' || e.key === 'V') && clip && onSet >= 0) { e.preventDefault(); pasteSpots(); }
       else if (mod) return; // leave other shortcuts to the browser
       else if (e.key === ' ') { e.preventDefault(); if (clickOn) wakeClick(); setPlaying((p) => !p); } // sound starts only inside a key press or tap
+      else if (e.key.startsWith('Arrow') && selectedProp && !selected.size && onSet >= 0 && !playing && show.sets[onSet].props?.[selectedProp]) {
+        // Nudge the picked prop, like performers: 1 step, Shift 4 steps, Option/Alt half a step. Up is up on the screen.
+        e.preventDefault();
+        const n = e.shiftKey ? 4 : e.altKey ? 0.5 : 1, spot = show.sets[onSet].props![selectedProp];
+        const q = { ...spot, x: spot.x + (e.key === 'ArrowRight' ? n : e.key === 'ArrowLeft' ? -n : 0), y: spot.y + (e.key === 'ArrowUp' ? n : e.key === 'ArrowDown' ? -n : 0) };
+        setShow((s) => placeProp(s, onSet, selectedProp, q));
+        setNotice({ t, text: `${show.props?.find((x) => x.id === selectedProp)?.name ?? 'Prop'} center: ${readout(q, fieldOf(show))}` });
+      }
       else if (e.key.startsWith('Arrow') && selected.size && onSet >= 0 && !playing) {
         // Nudge the selection: 1 step, Shift 4 steps, Option/Alt half a step. Up is up on the screen.
         e.preventDefault();
