@@ -34,7 +34,7 @@ export function ShowsDialog({ show, act, onClose, linkFirst = false, versionsFir
   const showVersions = () => act.flush().then(() => listVersions(show.id!)).then(setVersions, () => setVersions([]));
   useEffect(() => { if (versionsFirst) showVersions(); }, []); // eslint-disable-line react-hooks/exhaustive-deps -- Get a show back, then See earlier versions
   return (
-    <div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-label={versions ? 'Earlier versions' : 'Shows in this browser'} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'grid', placeItems: 'center', zIndex: 30 }}>
+    <div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-label={versions ? 'Earlier versions' : 'Shows in this browser'} style={{ position: 'fixed', inset: 0, background: 'var(--backdrop)', display: 'grid', placeItems: 'center', zIndex: 30 }}>
       <div style={{ background: 'var(--bg)', border: '1px solid var(--line)', padding: 20, width: 640, maxWidth: 'calc(100vw - 32px)', maxHeight: 'calc(100vh - 32px)', overflow: 'auto' }}>
         {!versions ? <>
           <h2 style={{ margin: '0 0 6px', fontSize: 18 }}>Shows in this browser</h2>

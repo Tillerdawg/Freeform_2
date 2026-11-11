@@ -26,7 +26,7 @@ export function RosterImport({ show, setShow, onClose }: { show: Show; setShow: 
     setRoles(null); setChoices({}); setText(await f.text());
   };
   return (
-    <div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Import a roster" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'grid', placeItems: 'center', zIndex: 30 }}>
+    <div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Import a roster" style={{ position: 'fixed', inset: 0, background: 'var(--backdrop)', display: 'grid', placeItems: 'center', zIndex: 30 }}>
       <div style={{ background: 'var(--bg)', border: '1px solid var(--line)', padding: 20, width: 720, maxWidth: 'calc(100vw - 32px)', maxHeight: 'calc(100vh - 32px)', overflow: 'auto' }}>
         <h2 style={{ margin: '0 0 6px', fontSize: 18 }}>Import a roster</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13 }}>

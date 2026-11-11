@@ -1,4 +1,4 @@
-import { PALETTE, useTheme } from '../ui/palette';
+import { FIELD, PALETTE, useTheme } from '../ui/palette';
 import { ThemeButton } from '../ui/ThemeButton';
 // Performer / staff view: read-only playback of a shared show, centered on "my" dot. Built for phones: upright, a performer
 // sees their dots as a list (My dots); sideways, the field and playback. A switch overrides the phone's orientation.
@@ -359,13 +359,13 @@ export function Perform() {
     } else {
       const s = v.scale, letters = show.symbols !== 'dots', f = Math.max(11 * dpr, s * 1.1); // letter height, as in the staff view
       const drawMark = (q: Point, id: string, size: number, color: string, badge?: string) => drawGlyph(ctx, q, mark(show, show.performers.find((x) => x.id === id)!).glyph!, size, color, badge, I.outline, badge ? I.badgeRing : undefined);
-      const quiet = whiteField ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.6)', bright = whiteField ? I.letter : PALETTE.text; // the rest of the band; my neighbors
+      const quiet = whiteField ? FIELD['quiet-white'] : FIELD.quiet, bright = whiteField ? I.letter : PALETTE.text; // the rest of the band; my neighbors
       const near = new Set(around.map((n) => n.id));
       for (const p of show.performers) {
         if (p.id === me.id || !positions[p.id]) continue;
         const q = toScreen(v, positions[p.id]);
         if (letters) { if (!near.has(p.id)) drawMark(q, p.id, f, quiet); continue; } // the rest of the band, quieter
-        ctx.fillStyle = whiteField ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.45)';
+        ctx.fillStyle = whiteField ? FIELD['faint-white'] : FIELD.faint;
         ctx.beginPath(); ctx.arc(q.x, q.y, Math.max(3, s * 0.3), 0, Math.PI * 2); ctx.fill();
       }
       if (myPath.length) {
@@ -378,7 +378,7 @@ export function Perform() {
         ctx.beginPath(); ctx.arc(end.x, end.y, Math.max(6, s * 0.55), 0, Math.PI * 2); ctx.stroke();
       }
       const q = toScreen(v, positions[me.id]);
-      if (letters) drawMark(q, me.id, Math.max(16 * dpr, s * 1.3), '#111', PALETTE.gold); // me: my letter on a gold badge
+      if (letters) drawMark(q, me.id, Math.max(16 * dpr, s * 1.3), FIELD.ink, PALETTE.gold); // me: my letter on a gold badge
       else {
         ctx.fillStyle = PALETTE.gold; ctx.strokeStyle = I.selRing; ctx.lineWidth = Math.max(2, s * 0.15);
         ctx.beginPath(); ctx.arc(q.x, q.y, Math.max(7, s * 0.6), 0, Math.PI * 2); ctx.fill(); ctx.stroke();
@@ -401,15 +401,15 @@ export function Perform() {
     if (follow || zoom > 1) {
       // Zoomed in, the painted yard numbers are usually off screen: pin a yard-line ruler to the bottom edge.
       const band = 22 * dpr;
-      ctx.fillStyle = 'rgba(24,36,25,0.85)';
+      ctx.fillStyle = FIELD.readout;
       ctx.fillRect(0, H - band, W, band);
       ctx.font = `700 ${12 * dpr}px system-ui, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       for (let x = -80; x <= 80; x += 8) {
         const sx = toScreen(v, { x, y: 0 }).x, at = state!.facingFront ? W - sx : sx;
         if (at < -40 * dpr || at > W + 40 * dpr) continue;
-        ctx.fillStyle = 'rgba(255,255,255,0.35)';
+        ctx.fillStyle = FIELD['readout-track'];
         ctx.fillRect(at - dpr, H - band, 2 * dpr, 5 * dpr); // tick where the line meets the ruler
-        ctx.fillStyle = '#fff';
+        ctx.fillStyle = FIELD.white;
         ctx.fillText(yardLabel(x, lang), at, H - band / 2 + 2 * dpr);
       }
     }

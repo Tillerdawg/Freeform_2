@@ -1124,7 +1124,7 @@ export function App() {
         {/* Floats over the field so its changing length can't move the layout. */}
         {(notice?.t === t || hover) && (
           <div role={notice?.t === t ? 'status' : undefined} style={{ position: 'absolute', left: 8, bottom: 8, maxWidth: 'calc(100% - 16px)', padding: '4px 8px', borderRadius: 4,
-            background: 'rgba(24,36,25,0.85)', color: PALETTE.text, fontSize: 14, fontVariantNumeric: 'tabular-nums', pointerEvents: 'none' }}>{notice?.t === t ? notice.text : hover}</div>
+            background: 'var(--overlay)', color: 'var(--text)', boxShadow: 'var(--raise)', fontSize: 14, fontVariantNumeric: 'tabular-nums', pointerEvents: 'none' }}>{notice?.t === t ? notice.text : hover}</div>
         )}
         </div>
         {/* Hidden, not unmounted, like the sidebar: its zoom and menus survive. */}
@@ -1136,7 +1136,7 @@ export function App() {
       </main>
       {/* Hidden, not unmounted: open panels and drafts survive closing it. */}
       <div style={!sideOpen ? { display: 'none' } : { display: 'flex', [sideLeft ? 'borderRight' : 'borderLeft']: '1px solid var(--line)', ...(narrow ? { position: 'absolute', top: 0, bottom: 0, [sideLeft ? 'left' : 'right']: 0, maxWidth: '100%', zIndex: 10,
-        background: 'var(--bg)', boxShadow: `${sideLeft ? 6 : -6}px 0 16px rgba(0,0,0,0.45)` } : {}) }}>
+        background: 'var(--bg)', boxShadow: `${sideLeft ? 6 : -6}px 0 16px var(--shadow)` } : {}) }}>
       <Sidebar
         show={show} setShow={setShow} t={t} setT={(x) => { setPlaying(false); setT(x); }} onSet={onSet}
         selected={selected} setSelected={setSelected} tool={tool} setTool={setTool}

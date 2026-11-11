@@ -127,7 +127,7 @@ function TapDialog({ audio, total, kept, onDone }: { audio: HTMLAudioElement; to
   const dialog = useDialog(() => { audio.pause(); onDone(null); });
   const n = all.length;
   return (
-    <div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Tap counts" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'grid', placeItems: 'center', zIndex: 30, whiteSpace: 'normal' }}>
+    <div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Tap counts" style={{ position: 'fixed', inset: 0, background: 'var(--backdrop)', display: 'grid', placeItems: 'center', zIndex: 30, whiteSpace: 'normal' }}>
       <div style={{ background: 'var(--bg)', border: '1px solid var(--line-strong)', borderRadius: 10, padding: 20, width: 440, maxWidth: 'calc(100vw - 32px)' }}>
         <h2 style={{ margin: '0 0 6px', fontSize: 18 }}>Tap the counts</h2>
         <p style={{ margin: '0 0 12px', fontSize: 13, opacity: 0.85 }}>

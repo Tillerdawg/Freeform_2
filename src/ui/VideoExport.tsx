@@ -90,7 +90,7 @@ export function VideoDialog({ show, bpm, onClose }: { show: Show; bpm: number; o
   };
 
   return (
-    <div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Make a video" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'grid', placeItems: 'center', zIndex: 10 }}>
+    <div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Make a video" style={{ position: 'fixed', inset: 0, background: 'var(--backdrop)', display: 'grid', placeItems: 'center', zIndex: 10 }}>
       <div style={{ background: 'var(--bg)', border: '1px solid var(--line)', padding: 20, width: 380, maxWidth: 'calc(100vw - 32px)', fontSize: 14 }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 18 }}>Make a video</h2>
         <p style={{ margin: '0 0 12px' }}>An MP4 of the whole field from the press box, with the show's title, the piece, the set, and the count in the corner. Good for the band's group chat, your staff, or the boosters.</p>

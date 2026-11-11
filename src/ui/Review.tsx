@@ -36,7 +36,7 @@ export function ReviewPanel({ show, setShow, issues, all, dismissed, onGo, onClo
   const tab = (on: boolean) => ({ flex: 1, border: 'none', borderBottom: `2px solid ${on ? 'var(--gold)' : 'transparent'}`, background: 'none', color: 'var(--text)', borderRadius: 0, fontWeight: on ? 700 : 400, padding: '6px 4px' }); // a tab, not a toggle: not the gold pressed style, which made it dark on dark
   return (
     <section aria-label="Review" style={{ position: 'absolute', top: 8, right: 8, width: 360, maxWidth: 'calc(100% - 16px)', maxHeight: 'calc(100% - 16px)', zIndex: 5,
-      display: 'flex', flexDirection: 'column', background: 'var(--bg)', border: '1px solid var(--line-strong)', boxShadow: '0 6px 16px rgba(0,0,0,0.45)', fontSize: 14 }}>
+      display: 'flex', flexDirection: 'column', background: 'var(--bg)', border: '1px solid var(--line-strong)', boxShadow: 'var(--raise)', fontSize: 14 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderBottom: '1px solid var(--line)' }}>
         <strong style={{ flex: 1 }}>Review · {issues.length ? `${issues.length} to check` : 'all clear'}</strong>
         <button onClick={onClose} aria-label="Close Review">Close</button>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { encodeShow, fetchHosted, hostedLink, linkHash, lockShow, newKey, parseHosted, SHARE_PREFIX } from '../engine/share';
 import { qrSvg } from '../engine/qr';
 import { nextRevision, revisionLabel, type Show } from '../engine/show';
+import { FIELD } from '../ui/palette'; // the QR code's white: scanners need it
 import { synced } from '../engine/music';
 import { getAudio } from '../ui/audioStore';
 import { useDialog } from '../ui/useDialog';
@@ -128,7 +129,7 @@ export function ShareDialog({ show, onClose, published }: { show: Show; onClose:
   };
   const small: React.CSSProperties = { fontSize: 12, margin: '6px 0' };
   return (
-    <div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Share with performers" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'grid', placeItems: 'center', zIndex: 10 }}>
+    <div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Share with performers" style={{ position: 'fixed', inset: 0, background: 'var(--backdrop)', display: 'grid', placeItems: 'center', zIndex: 10 }}>
       <div style={{ background: 'var(--bg)', border: '1px solid var(--line)', padding: 20, width: 460, maxWidth: 'calc(100vw - 32px)', maxHeight: 'calc(100vh - 32px)', overflowY: 'auto', fontSize: 14 }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 18 }}>Share with performers</h2>
         <p style={{ margin: '0 0 8px' }}>Two ways to get <strong>{show.title}</strong> onto performers' and staff members' phones, where they pick who they are:</p>
@@ -155,7 +156,7 @@ export function ShareDialog({ show, onClose, published }: { show: Show; onClose:
             {url && `${kb} KB link. `}Anyone with the link can view the show.
             {url && !qr && ' Too big for a QR code: use Keep phones up to date instead.'}
           </p>
-          {qr && <div role="img" aria-label="QR code for the share link" style={{ background: '#fff', width: 200, margin: '0 auto 10px' }} dangerouslySetInnerHTML={{ __html: qr }} />}
+          {qr && <div role="img" aria-label="QR code for the share link" style={{ background: FIELD.white, width: 200, margin: '0 auto 10px' }} dangerouslySetInnerHTML={{ __html: qr }} />}
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end', margin: '0 0 10px' }}>
             <button disabled={!url} onClick={() => { location.hash = url.slice(url.indexOf('#')); }}
               title="Switch this app to the performer view of this show (← Editor comes back)">Open performer view here</button>
@@ -191,7 +192,7 @@ export function ShareDialog({ show, onClose, published }: { show: Show; onClose:
           </div>
           {busy && <p role="status" style={{ fontSize: 12, margin: '6px 0 0' }}>{busy}</p>}
           {hosted && <>
-            {hostedQr && <div role="img" aria-label="QR code for the hosted link" style={{ background: '#fff', width: 200, margin: '8px auto' }} dangerouslySetInnerHTML={{ __html: hostedQr }} />}
+            {hostedQr && <div role="img" aria-label="QR code for the hosted link" style={{ background: FIELD.white, width: 200, margin: '8px auto' }} dangerouslySetInnerHTML={{ __html: hostedQr }} />}
             <p role="status" style={{ fontSize: 12, margin: '4px 0' }}>{check}</p>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap' }}>
               {onService && <button onClick={stopSharing} title="Take the show off FreeFORM's service: the link stops working">Stop sharing</button>}

@@ -110,7 +110,7 @@ export function PrintDialog({ show, selected, onClose }: Props) {
   const dialog = useDialog(onClose);
 
   return (
-    <div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Print" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'grid', placeItems: 'center', zIndex: 10 }}>
+    <div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Print" style={{ position: 'fixed', inset: 0, background: 'var(--backdrop)', display: 'grid', placeItems: 'center', zIndex: 10 }}>
       <div style={{ background: 'var(--bg)', border: '1px solid var(--line)', padding: 20, width: 360, maxWidth: 'calc(100vw - 32px)', fontSize: 14 }}>
         <h2 style={{ margin: '0 0 12px', fontSize: 18 }}>Print</h2>
         <fieldset style={{ border: 'none', padding: 0, margin: '0 0 12px' }}>
