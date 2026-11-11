@@ -24,7 +24,7 @@ export function RecoverDialog({ title, fileSaved, act, onClose }: { title: strin
     ['Something happened and I need to recover my show', "If you published it to phones, the link your students use holds the whole show. Paste it (or a recovery code from your other computer), and FreeFORM brings the show back, still publishing to the same link.", 'Open from a link or recovery code…', act.fromLink],
   ];
   return (
-    <div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Get a show back" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'grid', placeItems: 'center', zIndex: 20 }}>
+    <div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Get a show back" style={{ position: 'fixed', inset: 0, background: 'var(--backdrop)', display: 'grid', placeItems: 'center', zIndex: 20 }}>
       <div style={{ background: 'var(--bg)', border: '1px solid var(--line)', padding: 20, width: 560, maxWidth: 'calc(100vw - 32px)', maxHeight: 'calc(100vh - 32px)', overflowY: 'auto', fontSize: 14 }}>
         <h2 style={{ margin: '0 0 4px', fontSize: 18 }}>Get a show back</h2>
         <p style={{ margin: '0 0 12px' }}>What happened?</p>

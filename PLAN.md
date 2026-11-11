@@ -82,6 +82,7 @@
 - ✅ The phone's **Loop** panel takes focus when it opens (Tab stays inside, Esc closes it, focus goes back to **Loop**).
 - ✅ A **▶ Watch the move into set N** button on My dots cards whose route isn't a straight line: plays just that move, once, on the field. Follow-up: offer it on every moving card if students want it.
 - ✅ Shape handles by keyboard (Jason chose Tab through every handle): Tab and Shift+Tab step through the open shape's handles with a gold ring and a spoken name and spot, arrows move 1, 4, or half a step, Enter keeps, Esc puts back.
+- ✅ One palette for everything (2026-11-11): shadows (two sizes), dialog backdrops, see-through overlays, and the field's own ink are named in `palette.ts`, with softer light-mode shadows; a test fails on any loose color.
 - Still to do (accessibility): the same for custom path points, follow-the-leader turns, and props (props could use an X / Y / angle box in the sidebar); a check with VoiceOver, large text, and in sunlight on real phones.
 
 ## From the 2026-11-10 review

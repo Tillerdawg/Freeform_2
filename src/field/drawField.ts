@@ -1,4 +1,4 @@
-import { chrome, LIGHT, PALETTE } from '../ui/palette';
+import { chrome, FIELD as F, LIGHT, PALETTE } from '../ui/palette';
 import { placeLabels, turned } from './labels';
 import type { LabelSide } from '../engine/show';
 import { FEET, FIELD_WIDTH, GOAL_LINE_X, HASHES, STEP_IN, type FieldSpec, type Floor, type Point } from '../engine/coords';
@@ -28,9 +28,9 @@ export function fitView(w: number, h: number, f: FieldSpec = 'highSchool'): View
 
 /** Colors for the screen (green turf), a white field on screen (for writers who prefer paper), and paper itself (black on white, easy on toner and copiers). */
 export const THEMES = {
-  screen: { get bg() { return chrome('bg'); }, turf: PALETTE.turf, floor: PALETTE.floor, gridMinor: 'rgba(255,255,255,0.15)', gridMajor: 'rgba(255,255,255,0.32)', line: '#fff', get number() { return chrome('text'); } }, // bg and number sit off the turf, so they follow light/dark mode
-  white: { get bg() { return chrome('bg'); }, turf: '#fff', floor: '#fff', gridMinor: 'rgba(0,0,0,0.12)', gridMajor: 'rgba(0,0,0,0.28)', line: '#000', get number() { return chrome('text'); } },
-  print: { bg: '#fff', turf: '#fff', floor: '#fff', gridMinor: 'rgba(0,0,0,0.07)', gridMajor: 'rgba(0,0,0,0.2)', line: '#000', number: '#555' },
+  screen: { get bg() { return chrome('bg'); }, turf: PALETTE.turf, floor: PALETTE.floor, gridMinor: F['grid-minor'], gridMajor: F['grid-major'], line: F.white, get number() { return chrome('text'); } }, // bg and number sit off the turf, so they follow light/dark mode
+  white: { get bg() { return chrome('bg'); }, turf: F.white, floor: F.white, gridMinor: F['grid-minor-white'], gridMajor: F['grid-major-white'], line: F.black, get number() { return chrome('text'); } },
+  print: { bg: F.white, turf: F.white, floor: F.white, gridMinor: F['grid-minor-paper'], gridMajor: F['grid-major-paper'], line: F.black, number: F['paper-number'] },
 };
 export type Theme = keyof typeof THEMES;
 /** A look on screen: the green turf or the white field. */
@@ -43,12 +43,12 @@ export type Look = 'screen' | 'white';
  * in both: their dark casing reads on turf and on white.
  */
 export const INK = {
-  screen: { letter: '#fff', outline: 'rgba(0,0,0,0.85)', label: '#fff', halo: 'rgba(0,0,0,0.85)', dotRing: PALETTE.gold, selRing: '#fff', selLine: PALETTE.gold, badgeRing: undefined,
-    guide: PALETTE.blue, guideEdge: '#0b2a36', guideArm: 'rgba(90,209,255,0.7)', mark: '#fff', markHalo: 'rgba(0,0,0,0.55)', markEmpty: 'rgba(255,255,255,0.5)',
-    propFill: PALETTE['bg-deep'], propLine: '#fff', propName: '#fff', propHalo: 'rgba(0,0,0,0.85)' },
-  white: { letter: '#111', outline: 'rgba(255,255,255,0.9)', label: '#111', halo: 'rgba(255,255,255,0.9)', dotRing: '#111', selRing: LIGHT.gold, selLine: LIGHT.gold, badgeRing: LIGHT.gold,
-    guide: LIGHT.blue, guideEdge: LIGHT.blue, guideArm: 'rgba(7,95,133,0.7)', mark: '#000', markHalo: 'rgba(255,255,255,0.8)', markEmpty: 'rgba(0,0,0,0.45)',
-    propFill: '#fff', propLine: '#000', propName: '#000', propHalo: '#fff' },
+  screen: { letter: F.white, outline: F.halo, label: F.white, halo: F.halo, dotRing: PALETTE.gold, selRing: F.white, selLine: PALETTE.gold, badgeRing: undefined,
+    guide: PALETTE.blue, guideEdge: F['guide-edge'], guideArm: F['guide-arm'], mark: F.white, markHalo: F['mark-halo'], markEmpty: F['mark-empty'],
+    propFill: PALETTE['bg-deep'], propLine: F.white, propName: F.white, propHalo: F.halo },
+  white: { letter: F.ink, outline: F['halo-white'], label: F.ink, halo: F['halo-white'], dotRing: F.ink, selRing: LIGHT.gold, selLine: LIGHT.gold, badgeRing: LIGHT.gold,
+    guide: LIGHT.blue, guideEdge: LIGHT.blue, guideArm: F['guide-arm-white'], mark: F.black, markHalo: F['mark-halo-white'], markEmpty: F['mark-empty-white'],
+    propFill: F.white, propLine: F.black, propName: F.black, propHalo: F.white },
 } as const;
 
 /** An indoor floor: its grid and edge, and for a court the center line, circles, lanes, three-point lines, and hoops. */
@@ -228,7 +228,7 @@ export function drawLabels(
  * A section letter centered on its spot, always upright (drawn in device space, so a field turned around for Facing
  * front doesn't flip it). `badge`: a filled circle behind it (selected). Dark outline so any color reads on turf or paper.
  */
-export function drawGlyph(ctx: CanvasRenderingContext2D, at: Point, glyph: string, size: number, color: string, badge?: string, outline = 'rgba(0,0,0,0.85)', ring?: string) {
+export function drawGlyph(ctx: CanvasRenderingContext2D, at: Point, glyph: string, size: number, color: string, badge?: string, outline: string = F.halo, ring?: string) {
   const c = ctx.getTransform().transformPoint(at), k = Math.hypot(ctx.getTransform().a, ctx.getTransform().b);
   ctx.save();
   ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -262,7 +262,7 @@ export function drawProps(
     ctx.fill();
     ctx.globalAlpha = 1;
     ctx.lineWidth = Math.max(2, v.scale * 0.15) * (sel ? 1.6 : 1);
-    ctx.strokeStyle = mode === 'print' ? '#000' : sel ? I.selLine : I.propLine;
+    ctx.strokeStyle = mode === 'print' ? F.black : sel ? I.selLine : I.propLine;
     ctx.setLineDash(mode === 'print' ? [] : [v.scale * 0.6, v.scale * 0.3]);
     ctx.stroke();
     ctx.restore();
@@ -273,7 +273,7 @@ export function drawProps(
     const maxW = Math.max(w, h) * Math.hypot(m.a, m.b);
     ctx.lineWidth = px * 0.3; ctx.lineJoin = 'round'; ctx.strokeStyle = I.propHalo;
     ctx.strokeText(pr.name, at.x, at.y, maxW); // an edge, so lines on the field don't run through the name
-    ctx.fillStyle = mode === 'print' ? '#000' : sel ? I.selLine : I.propName;
+    ctx.fillStyle = mode === 'print' ? F.black : sel ? I.selLine : I.propName;
     ctx.fillText(pr.name, at.x, at.y, maxW);
     ctx.restore();
   }
@@ -313,14 +313,14 @@ export function drawPerformers(
     ctx.globalAlpha = d.dim ? 0.3 : 1;
     if (d.glyph) {
       // On white, a section's own color keeps the dark outline (a light color needs it); plain letters are black on a white edge.
-      drawGlyph(ctx, c, d.glyph, f, sel ? '#111' : d.color ?? I.letter, sel ? PALETTE.gold : undefined, d.color ? INK.screen.outline : I.outline, sel ? I.badgeRing : undefined);
+      drawGlyph(ctx, c, d.glyph, f, sel ? F.ink : d.color ?? I.letter, sel ? PALETTE.gold : undefined, d.color ? INK.screen.outline : I.outline, sel ? I.badgeRing : undefined);
       continue;
     }
     ctx.beginPath(); ctx.arc(c.x, c.y, r, 0, Math.PI * 2);
-    ctx.fillStyle = sel ? PALETTE.gold : d.color ?? '#111';
+    ctx.fillStyle = sel ? PALETTE.gold : d.color ?? F.ink;
     ctx.fill();
     ctx.lineWidth = Math.max(1.5, r * 0.25);
-    ctx.strokeStyle = sel ? I.selRing : d.color ? '#111' : I.dotRing; // a colored dot gets a dark ring so light colors show on the turf
+    ctx.strokeStyle = sel ? I.selRing : d.color ? F.ink : I.dotRing; // a colored dot gets a dark ring so light colors show on the turf
     ctx.stroke();
   }
   ctx.globalAlpha = 1;
@@ -335,7 +335,7 @@ export function drawPerformers(
 
   if (box) {
     const a = toScreen(v, box[0]), b = toScreen(v, box[1]);
-    ctx.fillStyle = 'rgba(255,209,102,0.12)';
+    ctx.fillStyle = F['box-fill'];
     ctx.strokeStyle = I.selLine;
     ctx.lineWidth = 1;
     ctx.fillRect(a.x, a.y, b.x - a.x, b.y - a.y);
@@ -345,7 +345,7 @@ export function drawPerformers(
     ctx.beginPath();
     lasso.forEach((p, k) => { const q = toScreen(v, p); if (k) ctx.lineTo(q.x, q.y); else ctx.moveTo(q.x, q.y); });
     ctx.closePath();
-    ctx.fillStyle = 'rgba(255,209,102,0.12)'; ctx.fill(); // the box's fill: gold, faint
+    ctx.fillStyle = F['box-fill']; ctx.fill(); // the box's fill: gold, faint
     ctx.strokeStyle = I.selLine; ctx.lineWidth = Math.max(1, dpr); ctx.setLineDash([4 * dpr, 3 * dpr]); ctx.stroke(); ctx.setLineDash([]);
   }
 }
@@ -405,8 +405,8 @@ export function drawHandleFocus(ctx: CanvasRenderingContext2D, v: View, h: Point
 export function drawMarks(ctx: CanvasRenderingContext2D, v: View, marks: Mark[], theme: Theme = 'screen', selected?: string | null) {
   const s = v.scale;
   const I = INK[theme === 'print' ? 'white' : theme];
-  const ink = theme === 'print' ? '#000' : I.mark;
-  const halo = theme === 'print' ? '#fff' : I.markHalo;
+  const ink = theme === 'print' ? F.black : I.mark;
+  const halo = theme === 'print' ? F.white : I.markHalo;
   ctx.save();
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';

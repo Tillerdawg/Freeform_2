@@ -28,7 +28,7 @@ export function FeedbackDialog({ onClose }: { onClose: () => void }) {
   };
   const field: React.CSSProperties = { width: '100%', boxSizing: 'border-box', marginTop: 4 };
   return (
-    <div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Send feedback" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'grid', placeItems: 'center', zIndex: 10 }}>
+    <div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Send feedback" style={{ position: 'fixed', inset: 0, background: 'var(--backdrop)', display: 'grid', placeItems: 'center', zIndex: 10 }}>
       <div style={{ background: 'var(--bg)', border: '1px solid var(--line)', padding: 20, width: 420, maxWidth: 'calc(100vw - 32px)', fontSize: 14 }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 18 }}>Send feedback</h2>
         {state === 'sent' ? (

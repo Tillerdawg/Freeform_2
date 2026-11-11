@@ -61,6 +61,52 @@ export const LIGHT: Record<PaletteName, string> = {
   floor: '#8a6a45',
 };
 
+/**
+ * Shadows, the dimming behind dialogs, and see-through overlays: colors with transparency, kept apart from the hex palette
+ * above. The page styles use them as CSS variables of the same names (the second :root blocks in app/index.html), with
+ * two shadow sizes built on them: --raise (menus, notes, cards, a sidebar over the field) and --lift (dialogs, the phone's
+ * sheet). Light mode's are softer: a black shadow at full strength looks like a smudge on a pale page.
+ */
+export const EFFECTS = {
+  shadow: 'rgba(0,0,0,0.45)', // under menus, notes, cards, and a sidebar laid over the field
+  'shadow-strong': 'rgba(0,0,0,0.55)', // under dialogs
+  backdrop: 'rgba(0,0,0,0.55)', // dims the page behind a dialog
+  dim: 'rgba(0,0,0,0.45)', // the timeline outside the play range
+  overlay: 'rgba(24,36,25,0.88)', // a readout floating over the field (bg-deep, see-through)
+} as const;
+export type EffectName = keyof typeof EFFECTS;
+export const EFFECTS_LIGHT: Record<EffectName, string> = {
+  shadow: 'rgba(20,32,26,0.2)',
+  'shadow-strong': 'rgba(20,32,26,0.3)',
+  backdrop: 'rgba(20,32,26,0.4)',
+  dim: 'rgba(20,32,26,0.2)',
+  overlay: 'rgba(255,255,255,0.92)',
+};
+
+/**
+ * The field's own ink, the same in both modes (drawField.ts's THEMES and INK, and the phone's field): pure white and
+ * near-black for the most contrast on turf and on the white field, and see-through tints for the grid, the halos around
+ * letters, and the phone's quieter dots. Paper (black on white) uses some of them too.
+ */
+export const FIELD = {
+  white: '#ffffff',
+  black: '#000000',
+  ink: '#111111', // letters on the white field, and on a gold badge
+  'paper-number': '#555555', // yard numbers on paper
+  'guide-edge': '#0b2a36', // the dark edge of a blue shape handle on turf
+  'grid-minor': 'rgba(255,255,255,0.15)', 'grid-major': 'rgba(255,255,255,0.32)', // on turf
+  'grid-minor-white': 'rgba(0,0,0,0.12)', 'grid-major-white': 'rgba(0,0,0,0.28)', // on the white field
+  'grid-minor-paper': 'rgba(0,0,0,0.07)', 'grid-major-paper': 'rgba(0,0,0,0.2)', // on paper
+  halo: 'rgba(0,0,0,0.85)', 'halo-white': 'rgba(255,255,255,0.9)', // the edge around letters and labels
+  'mark-halo': 'rgba(0,0,0,0.55)', 'mark-halo-white': 'rgba(255,255,255,0.8)', // around markup
+  'mark-empty': 'rgba(255,255,255,0.5)', 'mark-empty-white': 'rgba(0,0,0,0.45)', // an empty text note's outline
+  'guide-arm': 'rgba(90,209,255,0.7)', 'guide-arm-white': 'rgba(7,95,133,0.7)', // Bézier control arms (blue, see-through)
+  quiet: 'rgba(255,255,255,0.6)', 'quiet-white': 'rgba(0,0,0,0.45)', // the phone: the rest of the band
+  faint: 'rgba(255,255,255,0.45)', 'faint-white': 'rgba(0,0,0,0.35)', // the phone: dots too small for letters
+  readout: 'rgba(24,36,25,0.85)', 'readout-track': 'rgba(255,255,255,0.35)', // the phone: the box behind a readout on the field, and its track
+  'box-fill': 'rgba(255,209,102,0.12)', // a selection box or lasso being dragged (gold, faint)
+} as const;
+
 export type ThemeName = 'dark' | 'light';
 export const THEME_KEY = 'freeform:theme';
 // A choice made with the sun/moon button wins; until then, follow the device's own light or dark setting.

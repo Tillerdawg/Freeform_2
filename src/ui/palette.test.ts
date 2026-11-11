@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import app from '../../app/index.html?raw';
 import front from '../../index.html?raw';
 import frontEs from '../../es/index.html?raw';
-import { LIGHT, PALETTE } from './palette';
+import { EFFECTS, EFFECTS_LIGHT, LIGHT, PALETTE } from './palette';
 
 describe.each([['app/index.html', app], ['index.html (the front page)', front], ['es/index.html (the Spanish front page)', frontEs]])('one palette: %s', (_, html) => {
   it("the page's CSS variables are exactly the palette the canvas uses", () => {
@@ -35,6 +35,33 @@ describe.each([['app/index.html', app], ['index.html (the front page)', front], 
     expect(ratio(P['bg-deep'], P.floor)).toBeGreaterThanOrEqual(3); // normal paths on a floor
     expect(ratio(P.warn, P['bg-deep'])).toBeGreaterThanOrEqual(3); // warning paths against their casing
     expect(ratio(P['step-red'], P['bg-deep'])).toBeGreaterThanOrEqual(3); // (as text on panels, steps use warn/danger: STEP_TEXT)
+  });
+});
+
+describe('one set of shadows and see-through colors', () => {
+  const block = (sel: string) => {
+    const m = [...app.matchAll(new RegExp(`${sel} \\{([^}]*)\\}`, 'g'))].map((x) => x[1]).find((b) => b.includes('--shadow:'))!;
+    return Object.fromEntries([...m.matchAll(/--([\w-]+):\s*(rgba\([^)]*\))/g)].map((x) => [x[1], x[2]]));
+  };
+  it("the editor's CSS variables are exactly EFFECTS, in both modes", () => {
+    expect(block(':root')).toEqual(EFFECTS);
+    expect(block(':root\\[data-theme=light\\]')).toEqual(EFFECTS_LIGHT);
+  });
+  it('the page styles use them: no loose see-through colors or shadow values outside the :root blocks (print excepted)', () => {
+    const end = app.indexOf('@media print');
+    const screen = app.slice(0, end).replace(/:root(\[data-theme=light\])? \{[^}]*\}/g, '');
+    expect(screen.match(/rgba?\([^)]*\)/g) ?? []).toEqual([]);
+  });
+});
+
+describe('no loose colors in the code', () => {
+  // Every color in the app comes from palette.ts (PALETTE, LIGHT, EFFECTS, FIELD) or its CSS variables. Printing (black on
+  // white) is the exception, as are tests. A new color goes in the palette, with a name and a reason.
+  const files = import.meta.glob(['../**/*.{ts,tsx}', '!../**/*.test.{ts,tsx}', '!./palette.ts', '!../print/**', '!../i18n/**'], { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
+  it('has no hex or rgba colors outside the palette', () => {
+    expect(Object.keys(files).length).toBeGreaterThan(30);
+    const loose = Object.entries(files).flatMap(([f, text]) => (text.replace(/\/\/.*$/gm, '').match(/#[0-9a-fA-F]{3,8}\b|rgba?\([^)]*\)/g) ?? []).map((c) => `${f}: ${c}`));
+    expect(loose).toEqual([]);
   });
 });
 

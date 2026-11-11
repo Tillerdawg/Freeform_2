@@ -305,8 +305,8 @@ export function Timeline({ show, setShow, t, setT, playing, setPlaying, bpm, set
             );
           })}
           {/* Dim what's outside the play range. */}
-          {span[0] > 0 && <div style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: `${(span[0] / total) * 100}%`, background: 'rgba(0,0,0,0.45)', pointerEvents: 'none' }} />}
-          {span[1] < total && <div style={{ position: 'absolute', top: 0, bottom: 0, right: 0, width: `${((total - span[1]) / total) * 100}%`, background: 'rgba(0,0,0,0.45)', pointerEvents: 'none' }} />}
+          {span[0] > 0 && <div style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: `${(span[0] / total) * 100}%`, background: 'var(--dim)', pointerEvents: 'none' }} />}
+          {span[1] < total && <div style={{ position: 'absolute', top: 0, bottom: 0, right: 0, width: `${((total - span[1]) / total) * 100}%`, background: 'var(--dim)', pointerEvents: 'none' }} />}
           <div style={{ position: 'absolute', top: -4, bottom: -4, width: 2, background: 'var(--text)', left: `${(t / total) * 100}%`, pointerEvents: 'none' }} />
         </div>
         </>

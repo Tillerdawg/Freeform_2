@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { FIELD } from '../ui/palette';
 import jsQR from 'jsqr';
 import { linkHash } from '../engine/share';
 import { useDialog } from '../ui/useDialog';
@@ -52,9 +53,9 @@ export function Scanner({ onClose }: { onClose: () => void }) {
   const dialog = useDialog(onClose);
   return (
     <div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-label={tr('Scan QR code')}
-      style={{ position: 'fixed', inset: 0, background: '#000', zIndex: 20, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, padding: 16 }}>
-      <video ref={video} playsInline muted style={{ maxWidth: '100%', maxHeight: '70vh', background: '#111' }} />
-      <p role="status" style={{ margin: 0, textAlign: 'center', color: '#fff' }}>{msg}</p>
+      style={{ position: 'fixed', inset: 0, background: FIELD.black, zIndex: 20, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, padding: 16 }}>
+      <video ref={video} playsInline muted style={{ maxWidth: '100%', maxHeight: '70vh', background: FIELD.ink }} />
+      <p role="status" style={{ margin: 0, textAlign: 'center', color: FIELD.white }}>{msg}</p>
       <button onClick={onClose} style={{ fontSize: 16 }}>{tr('Cancel')}</button>
     </div>
   );

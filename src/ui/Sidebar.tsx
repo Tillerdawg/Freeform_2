@@ -2,6 +2,7 @@ import { clearStartingSections, hasOwnStartingSections, saveStartingSections } f
 import { coarse } from '../perform/device';
 import { PREVIEW } from '../perform/Perform';
 import { Fragment, useEffect, useRef, useState } from 'react';
+import { FIELD } from './palette';
 import { getPublishing } from './publishing';
 import { RosterImport } from './RosterImport';
 import { deleteAudio, putAudio } from './audioStore';
@@ -133,7 +134,7 @@ export function Sidebar(p: Props) {
         <p role="status" style={{ color: 'var(--warn)', fontSize: 12, margin: '-4px 0 10px' }}>Some performers are off the floor in some sets. They kept their spots in steps from the center and the front.</p>
       )}
       {pendingHash && (
-        <div ref={hashDialog} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Change hash marks" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'grid', placeItems: 'center', zIndex: 10 }}>
+        <div ref={hashDialog} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Change hash marks" style={{ position: 'fixed', inset: 0, background: 'var(--backdrop)', display: 'grid', placeItems: 'center', zIndex: 10 }}>
           <div style={{ background: 'var(--bg)', border: '1px solid var(--line)', padding: 20, width: 420, maxWidth: 'calc(100vw - 32px)' }}>
             <h2 style={{ margin: '0 0 8px', fontSize: 18 }}>Change to {PRESETS.find(([k]) => k === pendingHash)![1]} hashes</h2>
             <p style={{ margin: '0 0 12px' }}>What should happen to the drill?</p>
@@ -422,7 +423,7 @@ function SectionsEditor({ show, setShow, cur, look, setLook }: { show: Show; set
                 <IconGrip />
               </button>
               <input type="color" aria-label={`Color for ${s.name}`} title={s.color ? `Dot color for ${s.name}` : `Pick a dot color for ${s.name} (none yet)`}
-                value={s.color ?? '#111111'} onChange={(e) => edit(i, { color: e.target.value })}
+                value={s.color ?? FIELD.ink} onChange={(e) => edit(i, { color: e.target.value })}
                 style={{ width: 24, height: 24, padding: 0, border: s.color ? '1px solid var(--line-strong)' : '1px dashed var(--muted)', borderRadius: 6, background: 'none', cursor: 'pointer', opacity: s.color ? 1 : 0.6 }} />
               <button aria-label={`${s.name}: ${look[s.id] === 'hide' ? 'hidden' : look[s.id] === 'dim' ? 'dimmed' : 'shown'} in the editor`} aria-pressed={!!look[s.id]} onClick={() => cycle(s.id)}
                 title="How this section is drawn in the editor: On, Dim, or Off (hidden). Click to change." style={{ width: 40, padding: '4px 0', fontSize: 12 }}>
