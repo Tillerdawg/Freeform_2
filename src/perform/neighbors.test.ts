@@ -14,7 +14,7 @@ it('labels yard lines for the ruler', () => {
 
 it('says a step size in plain words', async () => {
   const { stepWords } = await import('./neighbors');
-  expect([Infinity, 16, 8, 7, 6.5, 5.3].map((x) => stepWords(x, "en"))).toEqual(['stand still', 'smaller steps than normal', 'normal steps', 'normal steps', 'bigger steps than normal', 'very big steps']);
+  expect([Infinity, 16, 8, 7, 6.5, 5.3].map((x) => stepWords(x, "en"))).toEqual(['stand still', 'smaller step size than normal', 'normal steps', 'normal steps', 'bigger step size than normal', 'very big steps']);
 });
 
 it('says which way a move ends up, facing the front', async () => {
