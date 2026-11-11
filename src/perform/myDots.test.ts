@@ -1,11 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import { sampleShow } from '../engine/sample';
 import { frontToBack, sideToSide } from '../engine/coords';
-import { fieldOf } from '../engine/show';
+import { fieldOf, label, routeBends } from '../engine/show';
 import { myDots, paneFor } from './myDots';
 
 describe('myDots', () => {
   const show = sampleShow(), me = show.performers[0].id;
+
+  it("says when a route isn't a straight line, instead of a straight-line direction", () => {
+    const g6 = show.performers.find((p) => label(show, p) === 'G6')!.id; // a drawn path into set 3: sideways, then upfield
+    expect(routeBends(show, 2, g6)).toBe(true);
+    expect(myDots(show, g6)[2].way).toBe('not a straight line (watch the move), ending up back and to your left (facing the front)');
+    expect(myDots(show, g6, 'es')[2].way).toMatch(/^no es en línea recta/);
+    expect(myDots(show, g6)[1].way).toBe('moving forward (facing the front)'); // straight moves read as before
+  });
 
   it('has one row per set, with the same coordinates as the printed dot sheet', () => {
     const rows = myDots(show, me);

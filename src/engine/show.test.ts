@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { HASHES, readout } from './coords';
 import {
+  nextRevision, revisionLabel,
   addPerformer, addSetAfter, advance, biggestStep, chainOrder, clearFtl, ftlTrail, moveSteps, normalizeFtl, flip, mirrorSides, moveSetTo, remapHash, rotateScale, setFtl, newShowId, parseShowFile, snapSelection, playRange, playPlan, label, locate, newShow, parseShow, placeInSet, positionsAt,
   removePerformers, renumberSets, scoreOrder, DEFAULT_SECTIONS, removeSet, setAt, setCounts, setStarts, totalCounts, xFrom, yFrom, insertSetAt, showLength, movementAt, movementOfSet, setFtlTurns,
   addSetHere, setCue, newPropSpot, setFtlSmooth, routeTurns, leaderDistance, setTiming, timingOf, fitTurn, setTurning, turnRoute, counterMarch, closeCalls, addProp, placeProp, propsAt, hitProp, removeProp, fieldOf, moveSegments, withShowId,
@@ -654,6 +655,18 @@ describe('delayed step-offs, turning moves, counter-march, close calls', () => {
     expect(setTurning(show, 1, ids, false).sets[1].turning).toBeUndefined();
   });
 
+  it('catches a close call in the middle of a turn, between the counts it samples', () => {
+    // A gate turn: the end marches a quarter circle (radius 10) in 2 counts. A performer standing just outside the arc,
+    // 0.9 steps from it halfway between two half-count samples, is more than a step from the straight line between them.
+    const ang = Math.PI / 16, r = 10.9;
+    let { show, ids } = line(3, (k) => [{ x: 0, y: 30 }, { x: 10, y: 30 }, { x: r * Math.cos(ang), y: 30 + r * Math.sin(ang) }][k]);
+    show = setCounts(placeInSet(show, 1, { [ids[1]]: { x: 0, y: 40 } }), 1, 2);
+    show = setTurning(show, 1, [ids[0], ids[1]], true);
+    const hit = closeCalls(show, 1).find((c) => [c.a, c.b].sort().join() === [ids[1], ids[2]].sort().join());
+    expect(hit?.d).toBeLessThan(1);
+    expect(hit?.d).toBeCloseTo(0.9, 1);
+  });
+
   it('counter-marches a file into the next lane, reversed', () => {
     let { show, ids } = line(4, (k) => ({ x: 0, y: 40 - k * 2 })); // a file facing the back sideline, leader at the back
     show = counterMarch(show, 1, ids, 'right', 1);
@@ -695,6 +708,40 @@ describe('delayed step-offs, turning moves, counter-march, close calls', () => {
     expect(parseShow(JSON.stringify({ ...show, revision: 6 })).revision).toBe(6);
     expect(() => parseShow(JSON.stringify({ ...show, revision: 0 }))).toThrow(/revision/);
     expect(() => parseShow(JSON.stringify({ ...show, revision: '6' }))).toThrow(/revision/);
+  });
+
+  it('turns away files whose ids or counts don\'t add up, instead of breaking later', () => {
+    const { show, id } = twoSetShow();
+    const j = () => JSON.parse(JSON.stringify(show));
+    const orphan = j(); orphan.sets[1].pos.ghost = { x: 0, y: 30 };
+    expect(() => parseShow(JSON.stringify(orphan))).toThrow(/isn't in the show/);
+    const neg = j(); neg.sets[1].counts = -8;
+    expect(() => parseShow(JSON.stringify(neg))).toThrow(/counts in set 2/);
+    const zero = j(); zero.sets[1].counts = 0;
+    expect(() => parseShow(JSON.stringify(zero))).toThrow(/counts in set 2/);
+    const half = j(); half.sets[1].counts = 7.5;
+    expect(() => parseShow(JSON.stringify(half))).toThrow(/counts/);
+    const twins = j(); twins.performers.push({ ...twins.performers.find((p: { id: string }) => p.id === id) });
+    expect(() => parseShow(JSON.stringify(twins))).toThrow(/same id/);
+    const lost = j(); lost.performers[0].section = 'nowhere';
+    expect(() => parseShow(JSON.stringify(lost))).toThrow(/section/);
+    expect(parseShow(JSON.stringify(show)).sets).toHaveLength(show.sets.length);
+  });
+
+  it('says "+ changes" on paper when the drill changed after a revision went out', () => {
+    const { show, id } = twoSetShow();
+    expect(revisionLabel(show)).toBe('');
+    const out = nextRevision(nextRevision(show));
+    expect(out.revision).toBe(2);
+    expect(revisionLabel(out)).toBe('rev 2');
+    expect(revisionLabel({ ...out, dismissed: ['x'], stepLimit: 6 })).toBe('rev 2'); // not drill changes
+    const edited = placeInSet(out, 1, { [id]: { x: 3, y: 30 } });
+    expect(revisionLabel(edited)).toBe('rev 2 + changes');
+    expect(revisionLabel(nextRevision(edited))).toBe('rev 3');
+    const { revisionSig: _, ...older } = edited; // published before fingerprints
+    expect(revisionLabel(older)).toBe('rev 2');
+    expect(parseShow(JSON.stringify(out)).revisionSig).toBe(out.revisionSig);
+    expect(() => parseShow(JSON.stringify({ ...out, revisionSig: '<script>' }))).toThrow(/fingerprint/);
   });
 
   it('reads and checks timing and turning from files, and forgets removed performers', () => {

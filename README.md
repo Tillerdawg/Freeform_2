@@ -41,7 +41,7 @@ A note on where the ideas came from: FreeFORM is modeled on Pyware and the Ultim
 - Dim or hide sections while you write the others.
 - Lasso selection (Option-drag, or the **Lasso** button on a touch screen). Select everyone or a whole section, copy spots from one set and paste them into another, and see how far apart two performers are.
 - Step-size warnings (yellow past a 6-to-5, red past the show's step limit, a 4-to-5 unless you change it), with a red ring on everyone over the limit, and a warning when two performers come within a step of each other at any point in a move. Click a warning to jump to who it's about.
-- **Review**: one list of every problem in the show (steps over the limit, performers too close, imported Pyware paths that went straight after an edit, missing spots, and counts not written yet). Click one to go there with its performers selected.
+- **Review**: one list of the problems it checks for across the show (steps over the limit, performers too close, imported Pyware paths that went straight after an edit, missing spots, and counts not written yet). Click one to go there with its performers selected.
 - Text, arrows, and freehand markup on each set, plus ensemble notes and per-performer notes.
 - Undo for every edit.
 - Sidebar on the left or right, and the timeline on the top or bottom (**Layout**, in the top bar).
