@@ -172,7 +172,10 @@
       .getting-started button { font-size: 12px; }
       .getting-started.center { right: auto; bottom: auto; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 5; width: min(520px, calc(100% - 32px));
         max-height: calc(100% - 16px); overflow-y: auto; padding: 14px 16px; border: 2px solid var(--warn); font-size: 14px; box-shadow: 0 6px 16px rgba(0,0,0,0.45); } /* a blank field: where you start */
-      .getting-started.center .gs-start button { font-size: 14px; }
+      .getting-started.top { right: auto; bottom: auto; top: 8px; left: 50%; transform: translateX(-50%); z-index: 5; width: min(560px, calc(100% - 32px));
+        max-height: calc(100% - 16px); overflow-y: auto; padding: 12px 14px; border: 2px solid var(--warn); font-size: 14px; box-shadow: 0 6px 16px rgba(0,0,0,0.45); } /* a blank field with a prop on it: out of the prop's way */
+      .getting-started.center .gs-start button, .getting-started.top .gs-start button { font-size: 14px; }
+      .start-logo { display: block; height: clamp(44px, 13vh, 120px); max-width: 70%; object-fit: contain; margin: 4px auto 12px; } /* the welcome screen's logo, centered; smaller in a short window */
       .getting-started ol { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
       .getting-started li { display: flex; gap: 8px; align-items: flex-start; }
       .getting-started li.done { opacity: 0.7; }
