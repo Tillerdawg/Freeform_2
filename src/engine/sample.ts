@@ -1,17 +1,27 @@
-// The demo show the docs' screenshots are taken from (scripts/screenshots.mjs). Original drill, invented names.
+// The sample show (finished, nothing for Review to flag) and the practice show (the same drill with problems left in on
+// purpose, each explained in its set's notes). The docs' screenshots are taken from them (scripts/screenshots.mjs).
+// Original drill, invented names.
 import type { Point } from './coords';
 import { assign } from './shapes';
 import {
-  addProp, placeProp, addPerformer, addSetAfter, newShow, normalizeFtl, placeInSet, setCue, setFtl, setFtlTurns, setMarks, setMeasures, setNames, setNote,
+  addProp, placeProp, addPerformer, addSetAfter, closeCalls, label, newShow, normalizeFtl, placeInSet, setCue, setFtl, setFtlTurns, setMarks, setMeasures, setNames, setNote,
   type Show,
 } from './show';
 
 const FIRST = ['Ava', 'Ben', 'Cara', 'Dev', 'Ella', 'Finn', 'Gia', 'Hugo', 'Iris', 'Jude', 'Kai', 'Lena', 'Max', 'Nia', 'Owen', 'Pia'];
 const LAST = ['Adams', 'Brooks', 'Chen', 'Diaz', 'Evans', 'Foster', 'Garcia', 'Hayes', 'Ito', 'Jones', 'Kim', 'Lopez', 'Moore', 'Nash', 'Ortiz', 'Patel', 'Reed'];
 
-/** 47 performers, 4 sets: a block, an arc, a company front (guard follow-the-leader with a turn), and a too-fast move. */
-export function sampleShow(): Show {
-  let show: Show = { ...newShow(), title: 'Sample Show', movements: [{ id: 'mv-opener', name: 'Opener', counts: 64 }] };
+/** 47 performers, 4 sets: a block, an arc, a company front (guard follow-the-leader with a turn), and back to the block. Finished: Review finds nothing. */
+export const sampleShow = (): Show => build(false);
+
+/**
+ * The same drill with three problems left in for a new director to find and fix, each explained in its set's notes: two
+ * trumpets who pass too close, a move too fast for its counts, and counts in the Opener with no sets yet.
+ */
+export const practiceShow = (): Show => build(true);
+
+function build(practice: boolean): Show {
+  let show: Show = { ...newShow(), title: practice ? 'Practice Show' : 'Sample Show', movements: [{ id: 'mv-opener', name: 'Opener', counts: practice ? 64 : 48 }] };
   const sec = (letter: string) => show.sections.find((s) => s.letter === letter)!.id;
   const add = (letter: string, n: number) => Array.from({ length: n }, () => {
     const r = addPerformer(show, sec(letter), { x: 0, y: 0 });
@@ -23,7 +33,7 @@ export function sampleShow(): Show {
   const guard = add('G', 6);
   const all = [...winds, ...battery, ...guard];
   show = setNames(show, Object.fromEntries(all.map((id, k) => [id, `${FIRST[k % FIRST.length]} ${LAST[(k * 7) % LAST.length]}`])));
-  for (let i = 0; i < 3; i++) show = addSetAfter(show, i, i === 2 ? 8 : 16);
+  for (let i = 0; i < 3; i++) show = addSetAfter(show, i, practice && i === 2 ? 8 : 16); // practice: set 4 in only 8 counts
 
   const at = (ids: string[], f: (k: number) => Point) => Object.fromEntries(ids.map((id, k) => [id, f(k)]));
   // Who goes to which spot: least total travel from where they are, as the Shape tools do (no crossing paths).
@@ -49,11 +59,20 @@ export function sampleShow(): Show {
   show = placeInSet(show, 2, { ...near(2, winds, Array.from({ length: 30 }, (_, k) => ({ x: -29 + 2 * k, y: 28 }))), ...at(battery, (k) => ({ x: -10 + 2 * k, y: 36 })), [lead]: { x: 32, y: 24 } });
   show = normalizeFtl(setFtlTurns(normalizeFtl(setFtl(show, 2, [lead, ...guard.slice(0, 5).reverse()])), 2, lead, [{ x: 32, y: 14 }]));
   show = setMeasures(show, 2, '5–8');
-  // Set 4: back into the block in only 8 counts, too fast on purpose so the step-size warnings show.
+  // Set 4: back into the block (in 16 counts; the practice show gives it only 8, so the step-size warnings show).
   show = placeInSet(show, 3, { ...near(3, winds, block), ...at(battery, (k) => ({ x: -10 + 2 * k, y: 54 })) }); // battery back behind the block
-  show = setMeasures(show, 3, '9–10');
+  show = setMeasures(show, 3, practice ? '9–10' : '9–12');
   // A platform behind the battery that rolls toward Side 2 and turns for set 3.
   const stage = addProp(show, 'Platform', 12, 4, false, { x: 0, y: 66 });
   show = placeProp(stage.show, 2, stage.id, { x: 24, y: 66, angle: 90 });
+  if (!practice) return show;
+
+  // The practice show's problems, each told in its set's notes (the set where Review points).
+  const [a, b] = winds.filter((id) => show.sections.find((x) => x.id === show.performers.find((p) => p.id === id)!.section)!.letter === 'P');
+  const name = (id: string) => label(show, show.performers.find((p) => p.id === id)!);
+  show = placeInSet(show, 2, { [a]: show.sets[2].pos[b], [b]: show.sets[2].pos[a] }); // neighbors in the arc swap spots, so they pass each other
+  const passed = [...new Set(closeCalls(show, 2).flatMap((c) => [c.a, c.b]))].filter((id) => id !== a && id !== b).map(name); // who they cut past (F1)
+  show = setNote(show, 2, `Practice: ${name(a)} and ${name(b)} trade places in this move, so they cut through the line and pass too close to ${passed.join(' and ')}. Open Review and click a too-close warning, then swap ${name(a)} and ${name(b)} back in this set.`);
+  show = setNote(show, 3, 'Practice: this move is too fast: 8 counts for a long move. Open Review to see who is over the step limit, then give the move 16 counts. The Opener is also 64 counts, and the sets stop short of that: Review lists the counts with no sets, so add sets (Add Set) to fill them.');
   return show;
 }
