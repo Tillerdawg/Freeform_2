@@ -462,7 +462,7 @@ When a student opens your link on their phone, they pick who they are.
 
 They can search by name, by dot (P4), or by section, and **Staff (whole band)** at the top shows everyone. FreeFORM remembers their choice, and the show keeps working offline once it's opened. (If the phone can't save it, say in a private window or with its storage full, a warning says so: the show will be gone when they close it and won't work offline, so they should open it in a regular window.)
 
-**Upright, the phone shows their dots.** Holding the phone upright, a performer sees **My dots**: a card for every set, like their printed dot sheet. Each card has the set, its counts and measures, the side-to-side and front-to-back spot, and the step size into it. It also says the move in plain words, like "normal steps, moving back and to your left (facing the front)," plus any hold before stepping off, their own notes, and the ensemble notes. The set they're on is outlined in gold. Tap a card to go to that set.
+**Upright, the phone shows their dots.** Holding the phone upright, a performer sees **My dots**: a card for every set, like their printed dot sheet. Each card has the set, its counts and measures, and the side-to-side and front-to-back spot. It also says the move into it in plain words, with the step size in parentheses, like "normal steps (8-to-5), moving back and to your left (facing the front)," plus any hold before stepping off, their own notes, and the ensemble notes. The set they're on is outlined in gold. Tap a card to go to that set.
 
 ![A performer's dots, set by set, on an upright phone](img/phone.png)
 

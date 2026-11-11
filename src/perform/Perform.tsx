@@ -459,12 +459,12 @@ export function Perform() {
                   <span>{[r.counts != null ? tr('{n} cts', { n: r.counts }) : '', r.measures ? tr('m. {m}', { m: r.measures }) : ''].filter(Boolean).join(' · ')}</span></span>
                 <span className="dot-coord">{r.side}</span>
                 <span className="dot-coord">{r.front}</span>
-                {(r.steps || r.hold) && <span className="dot-small">
-                  {r.steps && <span style={{ color: STEP_TEXT[r.steps.tier] }}>{fmtStep(r.steps.per5, lang)}</span>}
-                  {r.steps && r.hold && ' · '}
-                  {r.hold && <>{tr('hold {w}, move {m}', { w: r.hold.wait, m: r.hold.move })}{r.hold.after ? `, ${tr('hold {w}', { w: r.hold.after })}` : ''}</>}
-                </span>}
-                {r.steps && me && <span className="dot-small">{[stepWords(r.steps.per5), moveWords(show.sets[r.index - 1].pos[me.id], show.sets[r.index].pos[me.id])].filter(Boolean).join(', ')}</span>}
+                {/* The move in plain words, with the step size in parentheses: "smaller steps than normal (10.4-to-5), moving forward". */}
+                {r.steps && me && (() => {
+                  const way = moveWords(show.sets[r.index - 1].pos[me.id], show.sets[r.index].pos[me.id]);
+                  return <span className="dot-small">{stepWords(r.steps.per5)} (<span style={{ color: STEP_TEXT[r.steps.tier] }}>{fmtStep(r.steps.per5, lang)}</span>){way ? `, ${way}` : ''}</span>;
+                })()}
+                {r.hold && <span className="dot-small">{tr('hold {w}, move {m}', { w: r.hold.wait, m: r.hold.move })}{r.hold.after ? `, ${tr('hold {w}', { w: r.hold.after })}` : ''}</span>}
                 {r.cue && <span className="dot-small"><span className="perform-k">{tr('My notes')}</span>{r.cue}</span>}
                 {r.note && <span className="dot-small"><span className="perform-k">{tr('Ensemble')}</span>{r.note}</span>}
               </button>
