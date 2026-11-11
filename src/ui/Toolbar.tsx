@@ -331,7 +331,7 @@ function ShapePanel({ shape, startShape, updateShape, endShape, openTrace }: Too
             <button className="primary" onClick={endShape}>Done (Esc)</button>
           </div>
           <p style={help}>
-            Drag the blue handles on the field. Performers keep their order along the shape.
+            Drag the blue handles on the field, or press Tab to step through them and move one with the arrow keys. Performers keep their order along the shape.
             {(shape.kind === 'polygon' || shape.kind === 'star') && ` ${shape.kind === 'star' ? 'The middle handle is the center. Drag the point handle to size and turn the star, and the inside-corner handle to make the points longer or shorter.' : 'The first handle is the center; drag the corner handle to size and turn it.'} Performers go evenly around the outline, starting at the ${shape.kind === 'star' ? 'point' : 'corner'} handle.`}
             {shape.kind === 'spiral' && ' The first handle is the center; the second is the outer end. Intervals are measured performer to performer.'}
             {shape.kind === 'text' && ` The letters fill the box between the two handles. Capitals, numbers, and hyphens. Each letter reads best with about 8 to 12 performers${cleanText(shape.text ?? '').replace(/ /g, '').length ? ` (about ${8 * cleanText(shape.text ?? '').replace(/ /g, '').length} or more for this)` : ''}.`}

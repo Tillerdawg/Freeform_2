@@ -390,6 +390,17 @@ export function drawShape(
 
 export const HANDLE_PX = 6; // half-size of a shape handle, in CSS pixels
 
+/** The handle the keyboard is on: a ring around it, dark under gold, so it shows on the green field and the white one. */
+export function drawHandleFocus(ctx: CanvasRenderingContext2D, v: View, h: Point) {
+  const d = window.devicePixelRatio || 1, s = toScreen(v, h), r = (HANDLE_PX + 6) * d;
+  ctx.save();
+  ctx.lineWidth = 5 * d; ctx.strokeStyle = PALETTE.bg;
+  ctx.beginPath(); ctx.arc(s.x, s.y, r, 0, Math.PI * 2); ctx.stroke();
+  ctx.lineWidth = 2.5 * d; ctx.strokeStyle = PALETTE.gold;
+  ctx.beginPath(); ctx.arc(s.x, s.y, r, 0, Math.PI * 2); ctx.stroke();
+  ctx.restore();
+}
+
 /** Page markup: text notes, arrows, freehand ink. `selected` gets a blue outline. */
 export function drawMarks(ctx: CanvasRenderingContext2D, v: View, marks: Mark[], theme: Theme = 'screen', selected?: string | null) {
   const s = v.scale;

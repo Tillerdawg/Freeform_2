@@ -119,6 +119,38 @@ shot('start', async () => {
   await page.waitForTimeout(500);
   await save(page, 'start', await around(page.locator('.backup-note')));
 });
+shot('getting-started', async () => {
+  // A blank show with four performers placed and a second set added: the checklist two steps in.
+  const page = await editor();
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await page.waitForTimeout(500);
+  await page.getByRole('button', { name: 'Place performers' }).click();
+  for (const x of [-6, -2, 2, 6]) { const q = await spot(page, { x, y: 30 }); await page.mouse.click(q.x, q.y); await page.waitForTimeout(80); }
+  await page.keyboard.press('Escape');
+  await page.getByRole('button', { name: /: choose$/ }).first().click(); await page.waitForTimeout(200);
+  await page.getByRole('button', { name: 'Set', exact: true }).click();
+  await page.waitForTimeout(400);
+  await save(page, 'getting-started', await around(page.locator('.getting-started'), 12));
+});
+shot('save-status', async () => {
+  // Published as revision 6, then edited: the chip says what isn't saved, opened.
+  const page = await editor();
+  await page.evaluate(async () => {
+    const { sampleShow } = await import('/src/engine/sample.ts');
+    const { nextRevision, placeInSet } = await import('/src/engine/show.ts');
+    let s = sampleShow(); for (let k = 0; k < 6; k++) s = nextRevision(s);
+    const id = s.performers[0].id, q = s.sets[1].pos[id];
+    localStorage.setItem('freeform:autosave', JSON.stringify(placeInSet(s, 1, { [id]: { x: q.x + 1, y: q.y } })));
+  });
+  await page.reload();
+  await page.waitForTimeout(500);
+  await page.locator('.save-chip button').first().click();
+  await page.waitForTimeout(300);
+  const chip = await page.locator('.save-chip').boundingBox(), panel = await page.locator('.tb-menu-panel').boundingBox();
+  const x = Math.min(chip.x, panel.x) - 12, r = Math.max(chip.x + chip.width, panel.x + panel.width) + 12;
+  await save(page, 'save-status', { x, y: chip.y - 8, width: r - x, height: panel.y + panel.height - chip.y + 20 });
+});
 shot('shows', async () => {
   // The show library with three shows, as a director might keep them.
   const page = await editor();

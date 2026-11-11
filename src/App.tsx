@@ -4,15 +4,16 @@ import { newlyStraight, reviewShow, splitDismissed, type Issue } from './engine/
 import { ReviewPanel } from './ui/Review';
 import { emptyHistory, record, redo, undo } from './engine/history';
 import { addInk, hitMark, moveMark, type Mark } from './engine/marks';
-import { assign, fitShape, fitText, isControl, moveHandle, samplePath, slots, type Shape, type ShapeKind } from './engine/shapes';
+import { assign, fitShape, fitText, handleName, isControl, moveHandle, samplePath, slots, type Shape, type ShapeKind } from './engine/shapes';
 import { colorOf,
   addPerformer, closeCalls, setFtlTurns, locate, label, mark, newId, setMarks, moveSegments, fieldOf,  hitProp, placeProp, propsAt, removeProp, normalizeFtl, overLimit, snapPoint, playRange, newShow, parseShow, placeInSet, positionsAt, removePerformers,
   rotateScale, setAt, setStarts, withShowId, type Show, newShowId, parseShowFile, type Attached,
   showLength,
+  revisionLabel,
 } from './engine/show';
 import { pinchView } from './perform/gestures';
 import { coarse } from './perform/device';
-import { HANDLE_PX, drawField, drawMarks, drawPerformers, drawProps, drawShape, fitView, toScreen, toWorld, type Path, type View } from './field/drawField';
+import { HANDLE_PX, drawField, drawHandleFocus, drawMarks, drawPerformers, drawProps, drawShape, fitView, toScreen, toWorld, type Path, type View } from './field/drawField';
 import { frameDrag, selectionFrame } from './field/frame';
 import { Sidebar, type Snap, type Tool } from './ui/Sidebar';
 import { Timeline } from './ui/Timeline';
@@ -30,6 +31,9 @@ import { VideoDialog } from './ui/VideoExport';
 import { FeedbackDialog } from './ui/Feedback';
 import { readPublishing, readPublishingCode, type Publishing } from './engine/cloud';
 import { getPublishing, setPublishing } from './ui/publishing';
+import { saveStatus } from './ui/saveStatus';
+import { gettingStarted, type Done } from './ui/gettingStarted';
+import { GettingStarted } from './ui/GettingStarted';
 import { decodeShow, fetchHosted, linkHash, SHARE_PREFIX } from './engine/share';
 import { PrintDialog } from './print/Print';
 import { ShareDialog } from './perform/ShareDialog';
@@ -43,7 +47,7 @@ import { AUTOSAVE } from './ui/showStore';
 import { IconFit, IconZoomIn, IconZoomOut } from './ui/icons';
 export { AUTOSAVE };
 const GUIDE = '../guide/'; // made from docs/HOW-TO.md when the site is built
-const UNEXPORTED = 'freeform:unexported-since', unexportedKey = (id?: string) => `${UNEXPORTED}:${id}`, SNOOZE = 'freeform:backup-later', DAY = 86_400_000, BACKUP_DAYS = 7;
+const UNEXPORTED = 'freeform:unexported-since', unexportedKey = (id?: string) => `${UNEXPORTED}:${id}`, fileSavedKey = (id?: string) => `freeform:file-saved:${id}`, SNOOZE = 'freeform:backup-later', DAY = 86_400_000, BACKUP_DAYS = 7;
 const readTime = (k: string) => { try { const n = Number(localStorage.getItem(k)); return n > 0 ? n : null; } catch { return null; } };
 const writeTime = (k: string, n: number | null) => { try { if (n) localStorage.setItem(k, String(n)); else localStorage.removeItem(k); } catch { /* storage blocked */ } };
 const LOOK = 'freeform:section-view'; // which sections are dimmed or hidden in the editor
@@ -116,6 +120,10 @@ export function App() {
   const [selectedMark, setSelectedMark] = useState<string | null>(null);
   const [selectedProp, setSelectedProp] = useState<string | null>(null); // a prop picked on the field or in the sidebar
   const [shapeEdit, setShapeEdit] = useState<{ shape: Shape; order: string[]; set: number; base: Show } | null>(null); // base: the show before this shape began
+  // The handle the keyboard is on (Tab steps through the open shape's handles), and the shape as it was when it was picked, for Esc.
+  const [keyHandle, setKeyHandle] = useState<number | null>(null);
+  const keyHandleStart = useRef<Shape | null>(null);
+  useEffect(() => { setKeyHandle(null); keyHandleStart.current = null; }, [!!shapeEdit, shapeEdit?.shape.kind]); // eslint-disable-line react-hooks/exhaustive-deps
   const [fileError, setFileError] = useState('');
   const [printing, setPrinting] = useState(false);
   const [sharing, setSharing] = useState(false);
@@ -198,7 +206,8 @@ export function App() {
   const [unexported, setUnexported] = useState(() => readTime(unexportedKey(show.id)));
   const [snooze, setSnooze] = useState(() => readTime(SNOOZE));
   useEffect(() => { if (show !== firstShow.current && !unexported) { const now = Date.now(); writeTime(unexportedKey(show.id), now); setUnexported(now); } }, [show]); // eslint-disable-line react-hooks/exhaustive-deps
-  const backedUp = () => { writeTime(unexportedKey(show.id), null); setUnexported(null); };
+  const [fileSavedAt, setFileSavedAt] = useState(() => readTime(fileSavedKey(show.id))); // when Save last wrote this show to a file, for the status chip
+  const backedUp = () => { const now = Date.now(); writeTime(unexportedKey(show.id), null); setUnexported(null); writeTime(fileSavedKey(show.id), now); setFileSavedAt(now); };
   const remindBackup = !!unexported && show.performers.length > 0 && Date.now() - unexported > BACKUP_DAYS * DAY && Date.now() > (snooze ?? 0);
   /**
    * Open a show in the editor (from the library, a file, a blank show, the sample). The one that was open stays in the
@@ -210,7 +219,7 @@ export function App() {
     lastShow.current = s; setHist(emptyHistory<Show>());
     setShowRaw(s); setT(0); setSelected(new Set()); setSection(s.sections[0]?.id ?? '');
     if (fromFile) writeTime(unexportedKey(s.id), null);
-    firstShow.current = s; setUnexported(readTime(unexportedKey(s.id))); fileHandle.current = null; // a different show: ⌘S mustn't write over the last one's file
+    firstShow.current = s; setUnexported(readTime(unexportedKey(s.id))); setFileSavedAt(readTime(fileSavedKey(s.id))); fileHandle.current = null; // a different show: ⌘S mustn't write over the last one's file
   };
   const fileHandle = useRef<FileSystemFileHandle | null>(null); // where Save last put this show (Chrome, Edge), for ⌘S
 
@@ -329,6 +338,29 @@ export function App() {
   const warn = useMemo(() => new Set(pathSet < 1 ? [] : overLimit(show, pathSet)), [show, pathSet]); // ringed: over the step limit in this move
   const allIssues = useMemo(() => reviewShow(show), [show]);
   const { open: issues, dismissed } = useMemo(() => splitDismissed(show, allIssues), [show, allIssues]);
+  // The getting-started checklist: for shows started blank in this browser, until hidden (for good) or done. Per show,
+  // what the show can't tell by itself (pressed Play, opened Review, opened Share) is kept in this browser.
+  const gsKey = `freeform:getting-started:${show.id}`, GS_HIDDEN = 'freeform:getting-started-hidden';
+  const readGs = (): Done | null => { try { const v = localStorage.getItem(gsKey); return v ? JSON.parse(v) : null; } catch { return null; } };
+  const [gs, setGs] = useState<{ id?: string; did: Done | null; hidden: boolean }>(() => ({ id: show.id, did: null, hidden: (() => { try { return localStorage.getItem(GS_HIDDEN) === '1'; } catch { return false; } })() }));
+  const gsDid = gs.id === show.id ? gs.did : readGs();
+  const noteGs = (patch: Done) => {
+    const did = gsDid ?? (show.performers.length ? null : {}); // a blank show starts the checklist; one with performers that never had it doesn't
+    if (!did || !show.id) return;
+    const next = { ...did, ...patch };
+    try { localStorage.setItem(gsKey, JSON.stringify(next)); } catch { /* this visit only */ }
+    setGs((g) => ({ ...g, id: show.id, did: next }));
+  };
+  useEffect(() => { if (!gs.hidden && !show.performers.length && !gsDid && show.id) noteGs({}); }, [show.id, show.performers.length]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (playing && gsDid && !gsDid.played) noteGs({ played: true }); }, [playing]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (reviewing && gsDid && !gsDid.reviewed) noteGs({ reviewed: true }); }, [reviewing]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (sharing && gsDid && !gsDid.shared) noteGs({ shared: true }); }, [sharing]); // eslint-disable-line react-hooks/exhaustive-deps
+  const gsSteps = gsDid && !gs.hidden ? gettingStarted(show, gsDid, issues.length) : null;
+  const hideGs = () => { try { localStorage.setItem(GS_HIDDEN, '1'); } catch { /* this visit only */ } setGs((g) => ({ ...g, hidden: true })); };
+  const saved = saveStatus({
+    browserOk: saveFailed === 'no', unexported, fileSavedAt, revision: show.revision, changedSincePublish: revisionLabel(show).endsWith('+ changes'),
+    when: (ms) => (new Date(ms).toDateString() === new Date().toDateString() ? new Date(ms).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : new Date(ms).toLocaleDateString([], { month: 'short', day: 'numeric' })),
+  });
   // The FTL group the selection is, exactly, in the move into this set (where Add turns puts the leader's turning points).
   const ftlGroup = onSet > 0 ? show.sets[onSet].ftl?.find((g) => g.order.length === selected.size && g.order.every((id) => selected.has(id))) : undefined;
   useEffect(() => { if (tool === 'turn' && !ftlGroup) setTool('select'); }, [tool, ftlGroup]);
@@ -373,8 +405,9 @@ export function App() {
         ? h.flatMap((p, k) => (k % 3 === 1 ? [[h[k - 1], p] as [Point, Point]] : k % 3 === 2 ? [[h[k + 1], p] as [Point, Point]] : []))
         : [];
       drawShape(ctx, view, guide.pts, guide.closed, h, h.map((_, k) => isControl(sh, k)), arms, fieldLook);
+      if (keyHandle !== null && h[keyHandle]) drawHandleFocus(ctx, view, h[keyHandle]);
     }
-  }, [view, show, positions, selected, paths, box, lasso, warn, shapeEdit, onSet, selectedMark, selectedProp, playing, t, theme, tool, trace, faded, fieldLook]);
+  }, [view, show, positions, selected, paths, box, lasso, warn, shapeEdit, keyHandle, onSet, selectedMark, selectedProp, playing, t, theme, tool, trace, faded, fieldLook]);
 
   // Empty text notes are removed as soon as they're not the one being edited (no timing to get wrong).
   useEffect(() => {
@@ -459,6 +492,40 @@ export function App() {
 
   const fieldBox = useRef<HTMLDivElement>(null);
   const onField = () => !!fieldBox.current && (fieldBox.current.matches(':hover') || fieldBox.current.contains(document.activeElement));
+  // An open shape's handles by keyboard: Tab and Shift+Tab step through them (past the last one, Tab goes on to the page as
+  // usual), arrows move the one you're on (Shift 4 steps, Option/Alt half a step), Enter keeps it, Esc puts it back.
+  // Tab only picks a handle when nothing else has focus (after clicking the field, or a shape's shortcut key).
+  const shapeKeys = (e: KeyboardEvent, el: HTMLElement): boolean => {
+    if (!shapeEdit || e.metaKey || e.ctrlKey) return false;
+    const sh = shapeEdit.shape, n = sh.handles.length, name = SHAPES.find((x) => x[0] === sh.kind)?.[1] ?? 'Shape';
+    const say = (k: number, p: Point, more = '') => setNotice({ t, text: `${name}, ${handleName(sh, k)}: ${readout(p, fieldOf(show))}${more}` });
+    if (e.key === 'Tab' && !e.altKey && (keyHandle !== null || el === document.body || !!fieldBox.current?.contains(el))) {
+      const next = keyHandle === null ? (e.shiftKey ? n - 1 : 0) : keyHandle + (e.shiftKey ? -1 : 1);
+      if (next < 0 || next >= n) { setKeyHandle(null); keyHandleStart.current = null; setNotice(null); return false; }
+      e.preventDefault();
+      setKeyHandle(next); keyHandleStart.current = sh;
+      say(next, sh.handles[next], `. Handle ${next + 1} of ${n}: arrows move it, Enter keeps it, Esc puts it back.`);
+      return true;
+    }
+    if (keyHandle === null || !sh.handles[keyHandle]) return false;
+    if (e.key.startsWith('Arrow')) {
+      e.preventDefault();
+      const by = e.shiftKey ? 4 : e.altKey ? 0.5 : 1, h = sh.handles[keyHandle];
+      const p = { x: h.x + (e.key === 'ArrowRight' ? by : e.key === 'ArrowLeft' ? -by : 0), y: h.y + (e.key === 'ArrowUp' ? by : e.key === 'ArrowDown' ? -by : 0) };
+      updateShape(moveHandle(sh, keyHandle, p));
+      say(keyHandle, p);
+      return true;
+    }
+    if (e.key === 'Enter') { e.preventDefault(); setKeyHandle(null); keyHandleStart.current = null; setNotice(null); return true; }
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      if (keyHandleStart.current) updateShape(keyHandleStart.current);
+      setKeyHandle(null); keyHandleStart.current = null; setNotice(null);
+      return true;
+    }
+    return false;
+  };
+
   // Keyboard shortcuts (ignored while typing in a field).
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -467,6 +534,7 @@ export function App() {
       if ((e.metaKey || e.ctrlKey) && (e.key === 's' || e.key === 'S')) { e.preventDefault(); saveRef.current(true); return; }
       if (printing || document.querySelector('[role=dialog]') || el.closest('input, select, textarea')) return; // text fields keep the browser's own undo
       if (e.defaultPrevented) return; // a control used the key itself (arrows reordering sections)
+      if (shapeKeys(e, el)) return; // an open shape's handles: Tab, arrows, Enter, Esc
       boundary.current = true;
       const mod = e.metaKey || e.ctrlKey;
       if (mod && (e.key === 'z' || e.key === 'Z')) { e.preventDefault(); step(e.shiftKey ? 'redo' : 'undo'); }
@@ -511,7 +579,7 @@ export function App() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [selected, total, hist, show, shapeEdit, printing, selectedMark, selectedProp, onSet, tool, playing, view, clip, faded, clickOn]);
+  }, [selected, total, hist, show, shapeEdit, keyHandle, t, printing, selectedMark, selectedProp, onSet, tool, playing, view, clip, faded, clickOn]);
 
   const world = (e: React.PointerEvent) => toWorld(view!, e.nativeEvent.offsetX * dpr, e.nativeEvent.offsetY * dpr);
 
@@ -897,8 +965,27 @@ export function App() {
           <picture><source media="(max-width: 1000px)" srcSet={theme === 'light' ? '../mark-light.svg' : '../mark.svg'} />
             <img src={theme === 'light' ? '../logo-small-light.svg' : '../logo-small.svg'} alt="FreeFORM Drill" style={{ height: coarse() ? 30 : 24, display: 'block' }} /></picture>
         </span>
-        <span style={{ flex: '1 1 0', fontSize: 12, opacity: tool === 'turn' ? 1 : 0.7, color: tool === 'turn' ? 'var(--gold)' : undefined, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'right' }}>{tool === 'turn' ? (coarse() ? "Tap the field for each of the leader's turns, in marching order · then tap Select" : "Click the field for each of the leader's turns, in marching order · Esc when done")
+        <span style={{ flex: '1 1 0', fontSize: 12, opacity: tool === 'turn' ? 1 : 0.7, color: tool === 'turn' ? 'var(--gold)' : undefined, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'right', paddingLeft: 8, whiteSpace: 'nowrap' }}>{tool === 'turn' ? (coarse() ? "Tap the field for each of the leader's turns, in marching order · then tap Select" : "Click the field for each of the leader's turns, in marching order · Esc when done")
           : coarse() ? 'Two fingers: drag to move around, pinch to zoom' : 'Scroll to pan · pinch or ⌘/Ctrl+scroll to zoom · right-drag pans'}</span>
+        {/* Is my work safe: this browser, a file, and the phones, in one line. Fixed to one line (no wrapping), so the top bar's height never changes. */}
+        <span className={saved.attention ? 'save-chip attention' : 'save-chip'} style={{ flex: '0 1 auto', minWidth: 0 }}>
+          <Menu label={<span className="save-chip-text">{saved.label}</span>} name="Save status" title={`${saved.label}. Click for what each part means, and to save or publish.`}>{(close) => (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'stretch', maxWidth: 320, fontSize: 13 }}>
+              <strong style={{ fontSize: 14 }}>This browser</strong>
+              <span>{saved.browser}</span>
+              <strong style={{ fontSize: 14 }}>File</strong>
+              <span>{saved.file}</span>
+              <span style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                <button onClick={() => { close(); save(); }} title="Save to a .freeform file (⌘S)">Save</button>
+                <button onClick={() => { close(); saveAs(); }} title="Save to a new file">Save As…</button>
+                {(show.music || show.trace || getPublishing(show.id ?? show.title, show.title)) && <button onClick={() => { close(); saveTo(false, true); }} title="A file that also holds the recording, the tracing picture, and the show's publishing, to move the show to another computer complete">Full backup…</button>}
+              </span>
+              <strong style={{ fontSize: 14 }}>Phones</strong>
+              <span>{saved.phones}</span>
+              <span><button onClick={() => { close(); setSharing(true); }} title="Send the show to performers' phones, or publish an update">{show.revision ? 'Publish update…' : 'Share…'}</button></span>
+            </div>
+          )}</Menu>
+        </span>
         <span style={{ flex: 'none' }}>
           <button aria-pressed={reviewing} onClick={() => setReviewing(!reviewing)} title="Every problem in the show: steps over the limit, performers too close, imported paths gone straight, missing spots, and counts not written">
             Review{issues.length ? ` (${issues.length})` : ''}</button>
@@ -992,6 +1079,7 @@ export function App() {
           <button className="icon" onClick={() => zoomBy(1.25)} title="Zoom in (⌘+ / Ctrl+= with the mouse over the field)" aria-label="Zoom in"><IconZoomIn /></button>
           <button onClick={fit} title="Fit: zoom out to the whole field (F)" aria-label="Fit field"><IconFit /> Fit</button>
         </div>}
+        {gsSteps && !reviewing && <GettingStarted steps={gsSteps} onHide={hideGs} />}
         {reviewing && <ReviewPanel show={show} setShow={setShow} issues={issues} all={allIssues} dismissed={dismissed} onGo={goToIssue} onClose={() => setReviewing(false)} />}
         {/* Floats over the field so its changing length can't move the layout. */}
         {(notice?.t === t || hover) && (

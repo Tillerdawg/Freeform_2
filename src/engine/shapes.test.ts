@@ -198,3 +198,16 @@ describe('text shape', () => {
     expect(textStrokes(box('A B')).length).toBe(3); // A has 2 strokes and B has 1; the space has none
   });
 });
+
+describe('handle names, for the keyboard and screen readers', () => {
+  it('names every handle of every shape', async () => {
+    const { fitShape, handleName } = await import('./shapes');
+    const pts = [{ x: 0, y: 0 }, { x: 8, y: 0 }, { x: 8, y: 8 }, { x: 0, y: 8 }];
+    for (const kind of ['line', 'arc', 'curve', 'bezier', 'circle', 'polygon', 'star', 'spiral', 'block', 'text'] as const) {
+      const s = fitShape(kind, pts);
+      s.handles.forEach((_, k) => expect(handleName(s, k), `${kind} ${k}`).toMatch(/^[a-z]/));
+    }
+    expect(handleName(fitShape('arc', pts), 1)).toBe('middle');
+    expect(handleName(fitShape('star', pts), 2)).toBe('inside corner');
+  });
+});

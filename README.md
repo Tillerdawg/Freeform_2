@@ -62,12 +62,14 @@ A note on where the ideas came from: FreeFORM is modeled on Pyware and the Ultim
 - A two-minute guide for students, in English and Spanish, at freeformdrill.org/students/ (written in [docs/STUDENTS.md](docs/STUDENTS.md)).
 
 **Files**
-- Autosave in your browser, plus **Save** (to any folder you choose, where the browser allows it) and import of `.freeform` files. FreeFORM says so if the browser can't autosave.
+- Autosave in your browser, plus **Save** (to any folder you choose, where the browser allows it) and import of `.freeform` files. FreeFORM says so if the browser can't autosave. A chip in the top bar says in one line whether the show is saved in the browser, in a file, and on phones ("Browser ✓ · File: 2:14 PM · Phones: rev 6"), with Save and Publish a click away.
 - Several shows in one browser (Opener, Ballad, Closer) under **Shows…**: open, rename, duplicate, or delete them, each with its own recording and tracing picture.
 - Earlier versions of each show, kept as you work, to look back at and restore.
 - A warning when the same show is changed in two tabs, instead of one quietly saving over the other.
 - **Full backup…**: a show file that also holds the recording and tracing picture, to move a show to another computer complete.
 - A sample show to look around in before you write your own, and a practice show: the same drill with three problems to find and fix in Review, each explained in its notes.
+- A getting-started checklist on new shows (performers, the next set, a move, play it, Review, share) that ticks itself off as you go and hides for good with one click.
+- Shape handles you can move with the keyboard: Tab steps through them, arrows move them.
 - Import Pyware 3D (`.3dj`) shows, tested with files from 2008 to 2010.
 
 It runs on a current Chrome, Edge, Firefox, or Safari, and on iPadOS/iOS 16.4 or later. Write drill on a computer or an iPad (hide the timeline and sidebar for more field). Phones get only the performer view.
