@@ -99,11 +99,11 @@ If your program always uses the same sections, set them up once and choose **Sta
 
 ![The Add menu: a set, a section's performers, or a prop](img/add-performers.png)
 
-**Add** is two buttons in one. The **▾** part opens its menu, where you pick what to add: a set, a section's performers, or a prop. The main part repeats your last pick, and its name says what that is: **Add · P** places more trumpets, **Add Set** adds another set, and **Add Prop** adds another prop.
+**Add** is two buttons in one. The **▾** part opens its menu, where you pick what to add: a set, a section's performers, or a prop. The main part repeats your last pick, and its name says what that is: **Add Performer (P)** places more trumpets, **Add Set** adds another set, and **Add Prop** adds another prop.
 
 **New** drops you here: the field is blank, adding performers is on, and the **Add** menu is open.
 
-1. Click **Add**'s **▾** and pick a section under **Performers**. For a section that isn't there yet (a drum major, a soloist), click **Create New Section**, type its name and letter, and click **Add**: it's made and picked in one step. Later, **Add · P** (or whichever section you used last) picks up where you left off, and so does the A key.
+1. Click **Add**'s **▾** and pick a section under **Performers**. For a section that isn't there yet (a drum major, a soloist), click **Create New Section**, type its name and letter, and click **Add**: it's made and picked in one step. Later, **Add Performer (P)** (or whichever section you used last) picks up where you left off, and so does the A key.
 2. Click the field wherever you want each one. They're numbered in order: P1, P2, P3, and so on.
 3. Press **V** or Esc (or click **Select**) when you're done.
 

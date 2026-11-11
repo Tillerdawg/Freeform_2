@@ -1493,3 +1493,8 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Context:** Two deploys in a row failed before the smoke test: `npx playwright install --with-deps chromium` couldn't reach Ubuntu's package servers for fonts. Typecheck, tests, and build had passed; the site just didn't update.
 - **Options:** rerun and hope; retry the install a few times; use the Google Chrome that GitHub's Ubuntu runners already have.
 - **Decision:** use the runner's Chrome through the screenshot script's `CHROME` setting, and fall back to Playwright's install only if Chrome isn't there. No package servers, and a faster deploy.
+
+## 2026-11-11: "Add Performer (F)"
+- **Who:** Jason Tiller
+- **Context:** The Add button's main part read **Add · F**, which didn't say what F was.
+- **Decision:** It reads **Add Performer (F)**, with the section's letter in parentheses. **Add Set** and **Add Prop** are unchanged. On a narrow iPad (mini size) it shortens to **Add (F)** so the top row still fits (Claude's call; Jason can veto).

@@ -101,7 +101,7 @@ export function Toolbar(p: ToolbarProps) {
   };
   const addMain = last === 'set' ? { label: 'Add Set', title: 'Add a set after this one (or at the count you clicked). ▾ to choose something else', onClick: () => addSet(null) }
     : last === 'prop' ? { label: 'Add Prop', title: 'Add another 8 by 8 prop in the middle of the field. ▾ to choose something else', onClick: addPropNow, disabled: props.length >= MAX_PROPS }
-    : { label: `Add · ${letter}`, title: `Place ${show.sections.find((s) => s.id === p.section)?.name ?? 'performers'}: click the field for each one (A). ▾ for another section, a set, or a prop`, onClick: () => p.setTool('add') };
+    : { label: <>Add<span className="tb-long"> Performer</span> ({letter})</>, name: `Add Performer (${letter})`, title: `Place ${show.sections.find((s) => s.id === p.section)?.name ?? 'performers'}: click the field for each one (A). ▾ for another section, a set, or a prop`, onClick: () => p.setTool('add') };
 
   return (
     <>
@@ -110,7 +110,7 @@ export function Toolbar(p: ToolbarProps) {
     <div className="toolbar" role="toolbar" aria-label="Performers">
       <div role="radiogroup" aria-label="Performer tool" style={{ display: 'inline-flex', gap: 4 }}>{/* separate buttons, like Delete (Jason) */}
         <button role="radio" aria-checked={p.tool === 'select'} onClick={() => p.setTool('select')} title="Select and move performers, markup, and props (V)">Select</button>
-        <Menu label={addMain.label} name={addMain.label} openNow={p.openAdd} pressed={p.tool === 'add'} main={addMain}
+        <Menu label={addMain.label} name={'name' in addMain ? addMain.name : addMain.label} openNow={p.openAdd} pressed={p.tool === 'add'} main={addMain}
           title="Choose what Add adds: a set, a section's performers, or a prop">
           {(close) => <AddPanel {...p} close={close} addSet={addSet} addProp={addPropNow} />}
         </Menu>
