@@ -1487,3 +1487,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Options:** (1) rename Transform (Rotate & Flip, Turn & Flip); (2) one "Form" menu with a shape section and a move section; (3) leave both and cross-link them; (4) merge Shape and Transform into one long menu; (5) split Transform into two menus named for what they do.
 - **Decision:** (5). **Mirror** has Flip across the 50, Flip front ↔ back, and Copy Side 1 → 2 / 2 → 1. **Rotate & Scale** has Around, the degree turns, and Expand / Contract, and like Shape it needs 2 or more performers. Shape stays as it is. On a narrow iPad the button reads **Rotate** so the row still fits (Claude's call; Jason can veto). Picture to trace stays in the sidebar for now: it's a backdrop for every set, not an action on the selection.
 - **Update (same day, Jason asked):** the **Shape** menu gets a **Picture to trace…** button at the bottom. It opens the sidebar with Picture to trace open, so the tracing tool is in reach from where you shape performers. The panel itself stays in the sidebar.
+
+## 2026-11-11: The deploy uses the runner's own Chrome (Jason can veto)
+- **Who:** Claude
+- **Context:** Two deploys in a row failed before the smoke test: `npx playwright install --with-deps chromium` couldn't reach Ubuntu's package servers for fonts. Typecheck, tests, and build had passed; the site just didn't update.
+- **Options:** rerun and hope; retry the install a few times; use the Google Chrome that GitHub's Ubuntu runners already have.
+- **Decision:** use the runner's Chrome through the screenshot script's `CHROME` setting, and fall back to Playwright's install only if Chrome isn't there. No package servers, and a faster deploy.

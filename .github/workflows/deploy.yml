@@ -31,7 +31,12 @@ jobs:
       - run: npm run build
       # Smoke test: click through the real app in a browser (the screenshot script drives every screen in the guide).
       # It catches what unit tests can't, like a screen that crashes or a button that's gone.
-      - run: npm i --no-save playwright && npx playwright install --with-deps chromium
+      # Use the Chrome GitHub's runner already has. Downloading Playwright's own Chrome needs Ubuntu's package servers
+      # for fonts, and when those can't be reached the deploy fails for nothing to do with the code (2026-11-11).
+      - run: npm i --no-save playwright
+      - run: |
+          if command -v google-chrome >/dev/null; then echo "CHROME=$(command -v google-chrome)" >> "$GITHUB_ENV"
+          else npx playwright install --with-deps chromium; fi
       - run: node scripts/screenshots.mjs
       - uses: actions/upload-pages-artifact@v5
         with:
