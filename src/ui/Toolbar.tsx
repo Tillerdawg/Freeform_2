@@ -44,6 +44,7 @@ export interface ToolbarProps {
   selectedMark: string | null;
   setSelectedMark: (id: string | null) => void;
   showSidebar: () => void;
+  openTrace: () => void; // open the sidebar at Picture to trace
 }
 
 /** Shape, its name, and its one-letter shortcut (pressed with 2 or more performers selected). */
@@ -151,35 +152,38 @@ export function Toolbar(p: ToolbarProps) {
         title="Shape the selection into a line, arc, curve, Bézier, circle, polygon, star, spiral, block, or letters">
         {() => <ShapePanel {...p} />}
       </Menu>
-      <Menu label="Transform" disabled={needs(any, pick)} title="Flip, mirror, rotate, or scale the selection">
+      <Menu label="Mirror" disabled={needs(any, pick)} title="Flip the selection across the 50 or front to back, or copy one side onto the other">
         {() => <>
-          <strong style={{ fontSize: 12, opacity: 0.8 }}>Mirror</strong>
           <button onClick={() => { setShow((s) => flip(s, onSet, ids, 'x')); setNote(''); }} title="Swap sides: Side 1 ↔ Side 2">Flip across the 50</button>
           <button onClick={() => { setShow((s) => flip(s, onSet, ids, 'y')); setNote(''); }} title="Swap front and back">Flip front ↔ back</button>
           {ids.length > 1 && <>
             <button onClick={() => mirror(1)} title="Side 2 performers take the mirror image of Side 1">Copy Side 1 → 2</button>
             <button onClick={() => mirror(2)} title="Side 1 performers take the mirror image of Side 2">Copy Side 2 → 1</button>
           </>}
-          {ids.length > 1 && <>
-            <strong style={{ fontSize: 12, opacity: 0.8, marginTop: 6 }}>Rotate &amp; scale</strong>
-            <label style={{ fontSize: 12 }}>Around{' '}
-              <select aria-label="Rotate around" value={ids.includes(pivot) ? pivot : ''} onChange={(e) => setPivot(e.target.value)}
-                title="The point the group turns around: its center, or one performer's spot (a gate turn on the end of a line)">
-                <option value="">The center</option>
-                {byName.map((id) => <option key={id} value={id}>{label(show, show.performers.find((x) => x.id === id)!)}</option>)}
-              </select>
-            </label>
-            <div style={{ ...row, marginTop: 0 }}>
-              <NumberField aria-label="Rotation in degrees" min={1} max={180} integer value={deg} style={{ width: 52 }} onValue={setDeg} />°
-              <button onClick={() => turn(deg, 1)} title="Rotate counterclockwise">↺</button>
-              <button onClick={() => turn(-deg, 1)} title="Rotate clockwise">↻</button>
-            </div>
-            <div style={{ ...row, marginTop: 0 }}>
-              <NumberField aria-label="Scale percent" min={101} max={400} integer value={pct} style={{ width: 52 }} onValue={setPct} />%
-              <button onClick={() => turn(0, pct / 100)}>Expand</button>
-              <button onClick={() => turn(0, 100 / pct)}>Contract</button>
-            </div>
-          </>}
+          {note && <p role="alert" style={{ ...help, color: 'var(--danger)', opacity: 1 }}>{note}</p>}
+        </>}
+      </Menu>
+      {/* On a narrow iPad the label shortens to "Rotate"; the name stays "Rotate & Scale" for screen readers. */}
+      <Menu label={<>Rotate<span className="tb-long"> &amp; Scale</span></>} name="Rotate & Scale" disabled={needs(many, ids.length === 1 ? 'Select 2 or more performers' : pick)}
+        title="Rotate the selection by a number of degrees, or expand or contract it">
+        {() => <>
+          <label style={{ fontSize: 12 }}>Around{' '}
+            <select aria-label="Rotate around" value={ids.includes(pivot) ? pivot : ''} onChange={(e) => setPivot(e.target.value)}
+              title="The point the group turns around: its center, or one performer's spot (a gate turn on the end of a line)">
+              <option value="">The center</option>
+              {byName.map((id) => <option key={id} value={id}>{label(show, show.performers.find((x) => x.id === id)!)}</option>)}
+            </select>
+          </label>
+          <div style={{ ...row, marginTop: 0 }}>
+            <NumberField aria-label="Rotation in degrees" min={1} max={180} integer value={deg} style={{ width: 52 }} onValue={setDeg} />°
+            <button onClick={() => turn(deg, 1)} title="Rotate counterclockwise">↺</button>
+            <button onClick={() => turn(-deg, 1)} title="Rotate clockwise">↻</button>
+          </div>
+          <div style={{ ...row, marginTop: 0 }}>
+            <NumberField aria-label="Scale percent" min={101} max={400} integer value={pct} style={{ width: 52 }} onValue={setPct} />%
+            <button onClick={() => turn(0, pct / 100)}>Expand</button>
+            <button onClick={() => turn(0, 100 / pct)}>Contract</button>
+          </div>
           {note && <p role="alert" style={{ ...help, color: 'var(--danger)', opacity: 1 }}>{note}</p>}
         </>}
       </Menu>
@@ -268,7 +272,7 @@ export function Menu({ label, name, title, disabled, keepOpen, pressed, openNow,
   );
 }
 
-function ShapePanel({ shape, startShape, updateShape, endShape }: ToolbarProps) {
+function ShapePanel({ shape, startShape, updateShape, endShape, openTrace }: ToolbarProps) {
   return (
     <>
       <div style={{ ...row, marginTop: 0 }} role="radiogroup" aria-label="Shape">
@@ -334,6 +338,9 @@ function ShapePanel({ shape, startShape, updateShape, endShape }: ToolbarProps) 
           </p>
         </>
       )}
+      <div style={row}>
+        <button onClick={openTrace} title="Open the sidebar's Picture to trace: a see-through logo or sketch under the field to place performers on">Picture to trace…</button>
+      </div>
     </>
   );
 }
@@ -461,7 +468,7 @@ function MovePanel({ show, setShow, onSet, ids, setSelected }: ToolbarProps & { 
               <button onClick={() => setShow((s) => setTurning(s, onSet, ids, false))}>Straight instead</button>
             </div>
             : <div style={{ ...row, marginTop: 0 }}>
-              <button onClick={() => { if (!fit) { setTurnNote(`They don't turn between set ${show.sets[onSet - 1].name} and set ${set.name}. Rotate them first (Transform, or the knob).`); return; } setTurnNote(''); setShow((s) => setTurning(s, onSet, ids, true)); }}
+              <button onClick={() => { if (!fit) { setTurnNote(`They don't turn between set ${show.sets[onSet - 1].name} and set ${set.name}. Rotate them first (Rotate & Scale, or the knob).`); return; } setTurnNote(''); setShow((s) => setTurning(s, onSet, ids, true)); }}
                 title="March arcs around the turn that takes them from their old spots to their new ones, instead of straight lines">Turn as a group</button>
               {fit && <span style={{ fontSize: 12, opacity: 0.75 }}>{Math.round(Math.abs(fit.angle) * 180 / Math.PI)}° {fit.angle > 0 ? 'counterclockwise' : 'clockwise'}</span>}
             </div>}

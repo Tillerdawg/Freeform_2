@@ -175,7 +175,7 @@ shot('move', async () => {
   const page = await editor();
   await goSet(page, 2);
   await box(page, { x: -17, y: 50 }, { x: 19, y: 54 });
-  await menu(page, 'Transform');
+  await menu(page, 'Rotate');
   await page.getByRole('combobox', { name: 'Rotate around' }).selectOption({ label: 'S1' });
   await page.getByRole('spinbutton', { name: 'Rotation in degrees' }).fill('90');
   await page.getByRole('spinbutton', { name: 'Rotation in degrees' }).press('Enter');

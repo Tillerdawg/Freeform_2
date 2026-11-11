@@ -276,6 +276,7 @@ export function App() {
   // The picture to trace under the field, from this browser's store.
   const [trace, setTrace] = useState<ImageBitmap | null>(null);
   const [traceTick, setTraceTick] = useState(0); // bumped when a picture is added
+  const [traceAsk, setTraceAsk] = useState(0); // bumped by the Shape menu's Picture to trace link
   const traceId = show.trace?.id;
   useEffect(() => {
     let gone = false;
@@ -915,7 +916,7 @@ export function App() {
         <span style={{ flex: 'none' }}><ThemeButton /></span>
       </div>
       <Toolbar openAdd={openAdd} t={t} setT={(x) => { setPlaying(false); setT(x); }} selectedProp={selectedProp} setSelectedProp={setSelectedProp}
-        selectedMark={selectedMark} setSelectedMark={setSelectedMark} showSidebar={() => setSideChoice(true)} show={show} setShow={setShow} onSet={onSet} selected={selected} setSelected={setSelected} tool={tool} setTool={setTool}
+        selectedMark={selectedMark} setSelectedMark={setSelectedMark} showSidebar={() => setSideChoice(true)} openTrace={() => { setSideChoice(true); setTraceAsk((n) => n + 1); }} show={show} setShow={setShow} onSet={onSet} selected={selected} setSelected={setSelected} tool={tool} setTool={setTool}
         section={section} setSection={setSection} snap={snap} setSnap={setSnap}
         onUndo={() => step('undo')} onRedo={() => step('redo')} canUndo={!!hist.past.length} canRedo={!!hist.future.length}
         onFit={fit} sidebar={{ open: sideOpen, toggle: () => setSideChoice(!sideOpen), left: sideLeft }}
@@ -996,7 +997,7 @@ export function App() {
         onNew={fresh} onOpen={() => fileRef.current?.click()} onSave={save} onSaveAs={saveAs} onShows={() => setLibrary(true)} onFullBackup={() => saveTo(false, true)} onPrint={() => setPrinting(true)} onShare={() => setSharing(true)} onVideo={() => setVideo(true)} fileError={fileError}
         selectedMark={selectedMark} setSelectedMark={setSelectedMark} adding={adding} setAdding={setAdding} lassoOn={lassoOn} setLassoOn={setLassoOn}
         look={look} setLook={setLook}
-        clip={clip ? Object.keys(clip).length : 0} onCopy={copySpots} onPaste={pasteSpots} selectedProp={selectedProp} setSelectedProp={setSelectedProp} onTrace={() => setTraceTick((n) => n + 1)}
+        clip={clip ? Object.keys(clip).length : 0} onCopy={copySpots} onPaste={pasteSpots} selectedProp={selectedProp} setSelectedProp={setSelectedProp} onTrace={() => setTraceTick((n) => n + 1)} traceAsk={traceAsk}
         onUndo={() => step('undo')} onRedo={() => step('redo')} canUndo={!!hist.past.length} canRedo={!!hist.future.length}
         onFit={fit} shape={shapeEdit?.shape ?? null} startShape={startShape} updateShape={updateShape} endShape={() => setShapeEdit(null)}
       />

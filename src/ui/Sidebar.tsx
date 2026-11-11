@@ -64,6 +64,7 @@ interface Props {
   selectedProp: string | null;
   setSelectedProp: (id: string | null) => void;
   onTrace: () => void; // a tracing picture was added
+  traceAsk?: number; // bumped by the Shape menu's link: open Picture to trace and scroll to it
   look: Record<string, 'dim' | 'hide'>; // sections dimmed or hidden in the editor
   setLook: (l: Record<string, 'dim' | 'hide'>) => void;
 }
@@ -275,7 +276,7 @@ export function Sidebar(p: Props) {
 
       <SectionsEditor show={show} setShow={setShow} cur={cur} look={p.look} setLook={p.setLook} />
       <PropsEditor show={show} setShow={setShow} onSet={onSet} selected={p.selectedProp} setSelected={p.setSelectedProp} />
-      <TraceEditor show={show} setShow={setShow} onTrace={p.onTrace} />
+      <TraceEditor show={show} setShow={setShow} onTrace={p.onTrace} ask={p.traceAsk} />
       <Roster show={show} setShow={setShow} selected={selected} setSelected={p.setSelected} />
     </aside>
   );
@@ -528,8 +529,10 @@ function PropsEditor({ show, setShow, onSet, selected, setSelected }: { show: Sh
 }
 
 /** A picture under the field to trace (kept in this browser, never in the show file or links). */
-function TraceEditor({ show, setShow, onTrace }: { show: Show; setShow: Props['setShow']; onTrace: () => void }) {
-  const tr = show.trace, file = useRef<HTMLInputElement>(null);
+function TraceEditor({ show, setShow, onTrace, ask }: { show: Show; setShow: Props['setShow']; onTrace: () => void; ask?: number }) {
+  const tr = show.trace, file = useRef<HTMLInputElement>(null), box = useRef<HTMLDetailsElement>(null);
+  const [open, setOpen] = useState(false);
+  useEffect(() => { if (ask) { setOpen(true); requestAnimationFrame(() => box.current?.scrollIntoView({ block: 'nearest' })); } }, [ask]); // the Shape menu's link
   const [err, setErr] = useState('');
   const pick = async (f: File) => {
     const id = tr?.id ?? newId('trace');
@@ -540,7 +543,7 @@ function TraceEditor({ show, setShow, onTrace }: { show: Show; setShow: Props['s
   };
   const set = (patch: Partial<NonNullable<Show['trace']>>) => setShow((s) => (s.trace ? { ...s, trace: { ...s.trace, ...patch } } : s));
   return (
-    <details style={{ borderTop: '1px solid var(--line)', padding: '10px 0' }}>
+    <details ref={box} open={open} onToggle={(e) => setOpen(e.currentTarget.open)} style={{ borderTop: '1px solid var(--line)', padding: '10px 0' }}>
       <summary><strong>Picture to trace</strong></summary>
       <p style={{ fontSize: 12, opacity: 0.75, margin: '6px 0' }}>A logo or a sketch under the field, to place performers on. It stays in this browser: it isn't saved in the show file, printed, or sent to phones.</p>
       <div style={row}>
