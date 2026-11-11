@@ -1599,3 +1599,8 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Who:** Jason Tiller
 - **Decision:** **Send feedback**, **Support FreeFORM**, and **About FreeFORM Drill** in **Help** use the same green button style as **Print…**, **Share…**, and **Video…** (the `primary` class, so they follow the palette in light and dark mode).
 
+## 2026-11-11: The checklist card stands out
+- **Who:** Jason Tiller (the colors by Claude; Jason can veto)
+- **Context:** In the corner, the Getting started (and Send it to your band) card had the page's own background and a faint border, so it blended into the panels around it.
+- **Decision:** It gets the same 2 px warning-yellow edge as the **Start your show** note (dark brown in light mode), the panel color one step lighter than the page (not the buttons' color, so its buttons still stand out), and a deeper shadow. The yellow edge is a shape cue as well as a color one.
+
