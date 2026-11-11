@@ -32,7 +32,7 @@ import { FeedbackDialog } from './ui/Feedback';
 import { readPublishing, readPublishingCode, type Publishing } from './engine/cloud';
 import { getPublishing, setPublishing } from './ui/publishing';
 import { saveStatus } from './ui/saveStatus';
-import { gettingStarted, type Done } from './ui/gettingStarted';
+import { bandMessage, gettingStarted, sendSteps, type Done, type SendDone } from './ui/gettingStarted';
 import { GettingStarted } from './ui/GettingStarted';
 import { decodeShow, fetchHosted, linkHash, SHARE_PREFIX } from './engine/share';
 import { PrintDialog } from './print/Print';
@@ -352,10 +352,32 @@ export function App() {
   const noteGs = (patch: Done) => { if (gsDid) writeGs({ ...gsDid, ...patch }); };
   useEffect(() => { if (playing && gsDid && !gsDid.played) noteGs({ played: true }); }, [playing]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (reviewing && gsDid && !gsDid.reviewed) noteGs({ reviewed: true }); }, [reviewing]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { if (sharing && gsDid && !gsDid.shared) noteGs({ shared: true }); }, [sharing]); // eslint-disable-line react-hooks/exhaustive-deps
   const startGs = () => { if (!gsDid) writeGs({}); };
   const hideGs = () => writeGs(null);
   const gsSteps = gsDid ? gettingStarted(show, gsDid, issues.length) : null;
+  // Send it to your band (Help): the same kind of checklist, from a finished move to performers' phones (Jason).
+  const sbKey = `freeform:send-band:${show.id}`;
+  const readSb = (): SendDone | null => { try { const v = localStorage.getItem(sbKey); return v ? JSON.parse(v) : null; } catch { return null; } };
+  const [sb, setSb] = useState<{ id?: string; did: SendDone | null }>(() => ({ id: show.id, did: null }));
+  const sbDid = sb.id === show.id ? sb.did : readSb();
+  const writeSb = (did: SendDone | null) => {
+    try { if (did) localStorage.setItem(sbKey, JSON.stringify(did)); else localStorage.removeItem(sbKey); } catch { /* this visit only */ }
+    setSb({ id: show.id, did });
+  };
+  const noteSb = (patch: SendDone) => { if (sbDid) writeSb({ ...sbDid, ...patch }); };
+  useEffect(() => { if (sharing && sbDid && !sbDid.shared) noteSb({ shared: true }); }, [sharing]); // eslint-disable-line react-hooks/exhaustive-deps
+  const startSb = () => { if (!sbDid) writeSb({}); };
+  const message = bandMessage(show.title, getPublishing(show.id ?? show.title, show.title)?.link ?? null);
+  const sbSteps = sbDid ? sendSteps(show, sbDid, issues.length).map((x) => ({ ...x, action: {
+    review: <button onClick={() => setReviewing(true)}>Open Review</button>,
+    share: <button onClick={() => setSharing(true)}>Open Share…</button>,
+    message: <>
+      <textarea readOnly aria-label="Message for your band" value={message} rows={5} onFocus={(e) => e.currentTarget.select()} style={{ width: '100%', boxSizing: 'border-box', font: 'inherit', fontSize: 12, margin: '4px 0' }} />
+      <button onClick={() => { navigator.clipboard?.writeText(message).then(() => noteSb({ copied: true }), () => noteSb({ copied: true })); }}
+        title="Copy it, then paste it into your text, email, or team app">Copy the message</button>
+    </>,
+    rehearsal: <button onClick={() => noteSb({ rehearsal: true })}>Got it</button>,
+  }[x.id] })) : null;
   // A prop before any performers (a stage, a backdrop): as Add, then Prop does.
   const placePropFirst = () => {
     const r = addProp(show, `Prop ${(show.props?.length ?? 0) + 1}`, 8, 8, false, newPropSpot(show));
@@ -1014,7 +1036,8 @@ export function App() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'stretch' }}>
               <button onClick={() => { close(); window.open(GUIDE, '_blank', 'noopener'); }} title="The step-by-step guide, with pictures (opens in a new tab)">How-to guide</button>
               <button onClick={() => { close(); trySample(); }} title="Open the 47-performer sample show as a show of its own (yours stays under Shows…)">Try the sample show</button>
-              <button onClick={() => { close(); startGs(); }} disabled={!!gsDid} title={gsDid ? 'The checklist is already on for this show' : 'A short checklist from a blank field to a show on your band\'s phones, for this show'}>Getting started checklist</button>
+              <button onClick={() => { close(); startGs(); }} disabled={!!gsDid} title={gsDid ? 'The checklist is already on for this show' : 'A short checklist from a blank field to your first move, checked in Review'}>Getting started checklist</button>
+              <button onClick={() => { close(); hideGs(); startSb(); }} disabled={!!sbDid} title={sbDid ? 'The checklist is already on for this show' : 'A short checklist for getting this show onto your performers\' phones, with a message to send them'}>Send it to your band</button>
               <button onClick={() => { close(); trySample(true); }} title="The sample with three problems to find and fix, each explained in its set's notes. Open Review to start (yours stays under Shows…)">Try the practice show</button>
               <button onClick={() => { close(); setFeedback(true); }} title="Report a problem or suggest something: it goes straight to me, with no account needed">Send feedback</button>
               <button onClick={() => { close(); window.open('https://ko-fi.com/tillerdawg', '_blank', 'noopener'); }} title="FreeFORM is free and always will be. A tip on Ko-fi helps with hosting (opens in a new tab)">Support FreeFORM</button>
@@ -1070,7 +1093,7 @@ export function App() {
               <strong style={{ display: 'block', fontSize: 16, marginBottom: 6 }}>Start your show</strong>
               {startOptions}
               <p style={{ margin: '12px 0 0', paddingTop: 10, borderTop: '1px solid var(--line)' }}>
-                New to writing drill in FreeFORM? <button onClick={startGs} title="A short checklist that walks you from a blank field to a show on your band's phones, and ticks itself off as you go">Getting started, step by step</button>
+                New to writing drill in FreeFORM? <button onClick={startGs} title="A short checklist that walks you from a blank field to your first move, and ticks itself off as you go">Getting started, step by step</button>
               </p>
             </section>))}
         {otherTab && (
@@ -1103,7 +1126,11 @@ export function App() {
           <button className="icon" onClick={() => zoomBy(1.25)} title="Zoom in (⌘+ / Ctrl+= with the mouse over the field)" aria-label="Zoom in"><IconZoomIn /></button>
           <button onClick={fit} title="Fit: zoom out to the whole field (F)" aria-label="Fit field"><IconFit /> Fit</button>
         </div>}
-        {gsSteps && show.performers.length > 0 && !reviewing && <GettingStarted steps={gsSteps} onHide={hideGs} />}
+        {!reviewing && (sbSteps
+          ? <GettingStarted steps={sbSteps} onHide={() => writeSb(null)} title="Send it to your band"
+            doneText={<>Your band has the show. Each time you change the drill, publish again: the chip in the top bar says when phones are behind. <strong>Close</strong> puts this list away.</>} />
+          : gsSteps && show.performers.length > 0 && <GettingStarted steps={gsSteps} onHide={hideGs}
+            doneText={<>All five done: you've written your first move and checked it. When you're ready for your band to learn it: <button onClick={() => { hideGs(); startSb(); }}>Send it to your band</button></>} />)}
         {reviewing && <ReviewPanel show={show} setShow={setShow} issues={issues} all={allIssues} dismissed={dismissed} onGo={goToIssue} onClose={() => setReviewing(false)} />}
         {/* Floats over the field so its changing length can't move the layout. */}
         {(notice?.t === t || hover) && (
