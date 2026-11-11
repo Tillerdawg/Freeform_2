@@ -19,7 +19,7 @@ export const PALETTE = {
   'on-gold': '#182419', // text on a pressed toggle (on gold-fill)
   warn: '#f5c518', // warnings, bigger steps
   'warn-line': '#5a4a1a', // border of a box asking for a decision
-  danger: '#ff8080', // errors
+  danger: '#ff756b', // errors (a coral red: further from warn and green-line for red-green color blindness; palette.test.ts)
   'step-red': '#ff4d4d', // too-big steps on the field (with a dark casing)
   'danger-bg': '#5a2b2b',
   'danger-line': '#a04848',
@@ -52,7 +52,7 @@ export const LIGHT: Record<PaletteName, string> = {
   'on-gold': '#14201a',
   warn: '#7a5200',
   'warn-line': '#c9a447',
-  danger: '#b3261e',
+  danger: '#bd1c3a',
   'step-red': '#c41e1e',
   'danger-bg': '#f6d5d3',
   'danger-line': '#c96a64',
