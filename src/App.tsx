@@ -338,25 +338,34 @@ export function App() {
   const warn = useMemo(() => new Set(pathSet < 1 ? [] : overLimit(show, pathSet)), [show, pathSet]); // ringed: over the step limit in this move
   const allIssues = useMemo(() => reviewShow(show), [show]);
   const { open: issues, dismissed } = useMemo(() => splitDismissed(show, allIssues), [show, allIssues]);
-  // The getting-started checklist: for shows started blank in this browser, until hidden (for good) or done. Per show,
-  // what the show can't tell by itself (pressed Play, opened Review, opened Share) is kept in this browser.
-  const gsKey = `freeform:getting-started:${show.id}`, GS_HIDDEN = 'freeform:getting-started-hidden';
+  // The getting-started checklist: turned on for a show with Getting started, step by step (on a blank field's Start note,
+  // or Help), and off with its Close (Jason: it's chosen, not pushed). Per show, what the show can't tell by itself
+  // (pressed Play, opened Review, opened Share) is kept in this browser, with the checklist being on.
+  const gsKey = `freeform:getting-started:${show.id}`;
   const readGs = (): Done | null => { try { const v = localStorage.getItem(gsKey); return v ? JSON.parse(v) : null; } catch { return null; } };
-  const [gs, setGs] = useState<{ id?: string; did: Done | null; hidden: boolean }>(() => ({ id: show.id, did: null, hidden: (() => { try { return localStorage.getItem(GS_HIDDEN) === '1'; } catch { return false; } })() }));
+  const [gs, setGs] = useState<{ id?: string; did: Done | null }>(() => ({ id: show.id, did: null }));
   const gsDid = gs.id === show.id ? gs.did : readGs();
-  const noteGs = (patch: Done) => {
-    const did = gsDid ?? (show.performers.length ? null : {}); // a blank show starts the checklist; one with performers that never had it doesn't
-    if (!did || !show.id) return;
-    const next = { ...did, ...patch };
-    try { localStorage.setItem(gsKey, JSON.stringify(next)); } catch { /* this visit only */ }
-    setGs((g) => ({ ...g, id: show.id, did: next }));
+  const writeGs = (did: Done | null) => {
+    try { if (did) localStorage.setItem(gsKey, JSON.stringify(did)); else localStorage.removeItem(gsKey); } catch { /* this visit only */ }
+    setGs({ id: show.id, did });
   };
-  useEffect(() => { if (!gs.hidden && !show.performers.length && !gsDid && show.id) noteGs({}); }, [show.id, show.performers.length]); // eslint-disable-line react-hooks/exhaustive-deps
+  const noteGs = (patch: Done) => { if (gsDid) writeGs({ ...gsDid, ...patch }); };
   useEffect(() => { if (playing && gsDid && !gsDid.played) noteGs({ played: true }); }, [playing]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (reviewing && gsDid && !gsDid.reviewed) noteGs({ reviewed: true }); }, [reviewing]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (sharing && gsDid && !gsDid.shared) noteGs({ shared: true }); }, [sharing]); // eslint-disable-line react-hooks/exhaustive-deps
-  const gsSteps = gsDid && !gs.hidden ? gettingStarted(show, gsDid, issues.length) : null;
-  const hideGs = () => { try { localStorage.setItem(GS_HIDDEN, '1'); } catch { /* this visit only */ } setGs((g) => ({ ...g, hidden: true })); };
+  const startGs = () => { if (!gsDid) writeGs({}); };
+  const hideGs = () => writeGs(null);
+  const gsSteps = gsDid ? gettingStarted(show, gsDid, issues.length) : null;
+  // The ways to begin a blank show: the Start note, and step 1 of the checklist when it's on.
+  const startOptions = <>
+    <span>Place performers on the field, bring in a roster from Excel, or look around the sample show first. On a new computer? Open your show from its phone link or recovery code.</span>
+    <span style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 6 }}>
+      <button className="primary" onClick={() => { setTool('add'); setOpenAdd((n) => n + 1); }}>Place performers</button>
+      <button onClick={() => setRoster(true)}>Import a roster…</button>
+      <button onClick={() => trySample()}>Try the sample show</button>
+      <button onClick={() => setLibrary('link')} title="Open a show from the link students use, or from a recovery code from your other computer">Open from a link or recovery code…</button>
+    </span>
+  </>;
   const saved = saveStatus({
     browserOk: saveFailed === 'no', unexported, fileSavedAt, revision: show.revision, changedSincePublish: revisionLabel(show).endsWith('+ changes'),
     when: (ms) => (new Date(ms).toDateString() === new Date().toDateString() ? new Date(ms).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : new Date(ms).toLocaleDateString([], { month: 'short', day: 'numeric' })),
@@ -885,7 +894,7 @@ export function App() {
   const fresh = async () => {
     await flush();
     openShow(newShow(startingSections())); // nothing to back up yet
-    setTool('add'); setOpenAdd((n) => n + 1); // a blank field: straight to placing performers (Jason)
+    setTool('select'); // the blank field's note leads: Place performers, Import a roster, or the sample (Jason, 2026-11-11)
   };
   const [openAdd, setOpenAdd] = useState(0);
   // The docs' demo show, to look around in before writing one (or the practice show, with problems to fix): a show of its own in the library.
@@ -995,6 +1004,7 @@ export function App() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'stretch' }}>
               <button onClick={() => { close(); window.open(GUIDE, '_blank', 'noopener'); }} title="The step-by-step guide, with pictures (opens in a new tab)">How-to guide</button>
               <button onClick={() => { close(); trySample(); }} title="Open the 47-performer sample show as a show of its own (yours stays under Shows…)">Try the sample show</button>
+              <button onClick={() => { close(); startGs(); }} disabled={!!gsDid} title={gsDid ? 'The checklist is already on for this show' : 'A short checklist from a blank field to a show on your band\'s phones, for this show'}>Getting started checklist</button>
               <button onClick={() => { close(); trySample(true); }} title="The sample with three problems to find and fix, each explained in its set's notes. Open Review to start (yours stays under Shows…)">Try the practice show</button>
               <button onClick={() => { close(); setFeedback(true); }} title="Report a problem or suggest something: it goes straight to me, with no account needed">Send feedback</button>
               <button onClick={() => { close(); window.open('https://ko-fi.com/tillerdawg', '_blank', 'noopener'); }} title="FreeFORM is free and always will be. A tip on Ko-fi helps with hosting (opens in a new tab)">Support FreeFORM</button>
@@ -1040,15 +1050,18 @@ export function App() {
           }}
           onPointerLeave={() => setHover('')}
         />
-        {show.performers.length === 0 && !otherTab && (
-          <div className="backup-note" role="group" aria-label="Start a show">
-            <span><strong>Start your show.</strong> Place performers on the field, bring in a roster from Excel, or look around the sample show first. On a new computer? Open your show from its phone link or recovery code.</span>
-            <button className="primary" onClick={() => { setTool('add'); setOpenAdd((n) => n + 1); }}>Place performers</button>
-            <button onClick={() => setRoster(true)}>Import a roster…</button>
-            <button onClick={() => trySample()}>Try the sample show</button>
-            <button onClick={() => setLibrary('link')} title="Open a show from the link students use, or from a recovery code from your other computer">Open from a link or recovery code…</button>
-          </div>
-        )}
+        {/* A blank field: the Start note in the middle of the field (Jason). With the checklist on, the note is its step 1.
+            While placing performers, both get out of the field's middle: the checklist moves to the corner, the note goes. */}
+        {show.performers.length === 0 && !otherTab && (gsSteps
+          ? <GettingStarted steps={gsSteps} onHide={hideGs} start={tool === 'select' ? startOptions : undefined} />
+          : tool === 'select' && (
+            <section className="getting-started center" aria-label="Start your show">
+              <strong style={{ display: 'block', fontSize: 16, marginBottom: 6 }}>Start your show</strong>
+              {startOptions}
+              <p style={{ margin: '12px 0 0', paddingTop: 10, borderTop: '1px solid var(--line)' }}>
+                New to writing drill in FreeFORM? <button onClick={startGs} title="A short checklist that walks you from a blank field to a show on your band's phones, and ticks itself off as you go">Getting started, step by step</button>
+              </p>
+            </section>))}
         {otherTab && (
           <div role="alert" className="backup-note">
             <span>"{show.title || 'This show'}" was changed in another tab. Changes here aren't saved until you choose which version to keep.</span>
@@ -1079,7 +1092,7 @@ export function App() {
           <button className="icon" onClick={() => zoomBy(1.25)} title="Zoom in (⌘+ / Ctrl+= with the mouse over the field)" aria-label="Zoom in"><IconZoomIn /></button>
           <button onClick={fit} title="Fit: zoom out to the whole field (F)" aria-label="Fit field"><IconFit /> Fit</button>
         </div>}
-        {gsSteps && !reviewing && <GettingStarted steps={gsSteps} onHide={hideGs} />}
+        {gsSteps && show.performers.length > 0 && !reviewing && <GettingStarted steps={gsSteps} onHide={hideGs} />}
         {reviewing && <ReviewPanel show={show} setShow={setShow} issues={issues} all={allIssues} dismissed={dismissed} onGo={goToIssue} onClose={() => setReviewing(false)} />}
         {/* Floats over the field so its changing length can't move the layout. */}
         {(notice?.t === t || hover) && (
