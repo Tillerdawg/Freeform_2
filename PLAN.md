@@ -74,7 +74,10 @@
 - ✅ Too-close checks look every eighth of a count in moves with turns or follow-the-leader, so a pair close partway around a curve is caught.
 - ✅ Guide fixes: the step-limit example had the direction backwards (a corps show uses a smaller number, like 3), now with inches; **FTL ▾** is **Path**; Review says what it checks instead of "every problem"; the sample is no longer called finished.
 - Still to do: a guided first show (roster → opening set → next set → preview → Review → share), with the expert tools still there; a clean finished sample, plus a practice show with the warnings left in on purpose; one clear place that says saved in this browser / saved to a file / published to phones; phones saying "Ready offline", "Offline: using revision 6", and a **Check for updates** button; a short student quickstart.
-- Still to do (accessibility): ⌘/Ctrl +, −, and 0 zoom the field only while it has focus, so browser zoom works elsewhere; keyboard and one-tap ways to do what shape handles, path points, and props take a drag for; focus moves into the phone's **Loop** panel when it opens; a check with VoiceOver, large text, and in sunlight on real phones.
+- ✅ ⌘/Ctrl +, −, and 0 zoom the field only with the mouse over it (or a zoom button focused); anywhere else they're the browser's page zoom.
+- ✅ The phone's **Loop** panel takes focus when it opens (Tab stays inside, Esc closes it, focus goes back to **Loop**).
+- ✅ A **▶ Watch the move into set N** button on My dots cards whose route isn't a straight line: plays just that move, once, on the field. Follow-up: offer it on every moving card if students want it.
+- Still to do (accessibility): keyboard and one-tap ways to do what shape handles, path points, and props take a drag for; a check with VoiceOver, large text, and in sunlight on real phones.
 
 ## From the 2026-11-10 review
 Claude went through the docs, ran the tests, and clicked through the editor and the phone view (desktop, iPhone upright, iPhone on its side, all emulated). Jason approved the list, and the in-repo items were built the same day (✅ below). Still to do: the upload service, video export, current Pyware files, Spanish, and getting the word out.

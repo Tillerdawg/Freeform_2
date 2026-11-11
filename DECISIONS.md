@@ -1545,3 +1545,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
   - **Too close.** Moves with turning groups or follow-the-leader are checked 8 times a count instead of 2 (a straight move is already checked exactly). Each turning group's arcs are now worked out once per move instead of on every sample, so a 150-performer turning move checks in about 50 ms (it was about 170 ms with the finer checks alone), and phone playback of turns is faster too. Each move is only checked again when it changes.
   - **Not changed:** ⌘/Ctrl +/− still zoom the field (most drawing apps do); limiting it to when the field has focus is on PLAN.
 
+## 2026-11-11: Zoom keys, Loop focus, and Watch on a card
+- **Who:** Jason Tiller asked for all three; the details are Claude's calls (Jason can veto).
+- **Zoom keys:** ⌘/Ctrl +, −, and 0 zoom the field while the mouse is over it, or while one of the field's zoom buttons has focus. Anywhere else the browser zooms the page, which people with low vision count on. Other option: only when the field itself has keyboard focus; rejected because the field can't take focus today, so the keys would almost never reach it. The zoom buttons' tooltips say "with the mouse over the field."
+- **Loop panel:** uses the same dialog behavior as the editor's dialogs (focus in on open, Tab stays inside, Esc closes, focus back to **Loop**).
+- **Watch:** a button under each My dots card whose route bends (the cards that say "watch the move"). It switches to **Field** and plays just the move into that set, once, then stops at the set; it skips the count-in, since it's for seeing the route, not rehearsing it. It's a separate button under the card, since the card itself is already a button (tap to go to that set). Only on bending routes for now, so it means something when it's there.
+

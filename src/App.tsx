@@ -457,6 +457,8 @@ export function App() {
     return { scale, ox: sx - (sx - v.ox) * r, oy: sy - (sy - v.oy) * r };
   });
 
+  const fieldBox = useRef<HTMLDivElement>(null);
+  const onField = () => !!fieldBox.current && (fieldBox.current.matches(':hover') || fieldBox.current.contains(document.activeElement));
   // Keyboard shortcuts (ignored while typing in a field).
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -469,8 +471,10 @@ export function App() {
       const mod = e.metaKey || e.ctrlKey;
       if (mod && (e.key === 'z' || e.key === 'Z')) { e.preventDefault(); step(e.shiftKey ? 'redo' : 'undo'); }
       else if (mod && (e.key === 'y' || e.key === 'Y')) { e.preventDefault(); step('redo'); }
-      else if (mod && (e.key === '=' || e.key === '+' || e.key === '-' || e.key === '_')) { e.preventDefault(); zoomBy(e.key === '-' || e.key === '_' ? 1 / 1.25 : 1.25); } // the field, not the page
-      else if (mod && e.key === '0') { e.preventDefault(); fit(); }
+      // ⌘+, ⌘−, and ⌘0 zoom the field while the mouse is over it (or a zoom button has focus); anywhere else they're the
+      // browser's own page zoom, which people with low vision rely on.
+      else if (mod && onField() && (e.key === '=' || e.key === '+' || e.key === '-' || e.key === '_')) { e.preventDefault(); zoomBy(e.key === '-' || e.key === '_' ? 1 / 1.25 : 1.25); }
+      else if (mod && onField() && e.key === '0') { e.preventDefault(); fit(); }
       else if (mod && (e.key === 'a' || e.key === 'A')) { e.preventDefault(); setSelected(new Set(show.performers.filter((p) => !faded.has(p.id)).map((p) => p.id))); }
       else if (mod && (e.key === 'c' || e.key === 'C') && selected.size && onSet >= 0) { e.preventDefault(); copySpots(); }
       else if (mod && (e.key === 'v' || e.key === 'V') && clip && onSet >= 0) { e.preventDefault(); pasteSpots(); }
@@ -932,7 +936,7 @@ export function App() {
       </header>
       <div style={{ flex: 1, display: 'flex', flexDirection: sideLeft ? 'row-reverse' : 'row', minHeight: 0, position: 'relative' }}>
       <main style={{ flex: 1, display: 'flex', flexDirection: timelineTop ? 'column-reverse' : 'column', minWidth: 0 }}>
-        <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
+        <div ref={fieldBox} style={{ flex: 1, minHeight: 0, position: 'relative' }}>
         <canvas
           ref={canvasRef} aria-label="Drill field: click a performer to select them (the sidebar's Roster lists everyone)"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', touchAction: 'none', cursor: tool === 'add' ? 'copy' : tool === 'text' ? 'text' : tool === 'select' ? 'default' : 'crosshair' }}
@@ -982,9 +986,9 @@ export function App() {
         )}
         {/* Zoom, in the field's top-right corner. 100% is the whole field (Fit). Fixed widths, so nothing shifts as the number changes. */}
         {view && <div role="group" aria-label="Zoom" className="zoom-box">
-          <button className="icon" onClick={() => zoomBy(1 / 1.25)} title="Zoom out (⌘− / Ctrl+−)" aria-label="Zoom out"><IconZoomOut /></button>
+          <button className="icon" onClick={() => zoomBy(1 / 1.25)} title="Zoom out (⌘− / Ctrl+− with the mouse over the field)" aria-label="Zoom out"><IconZoomOut /></button>
           <span className="zoom-pct" aria-live="polite" title="Zoom: 100% shows the whole field">{zoomPct}%</span>
-          <button className="icon" onClick={() => zoomBy(1.25)} title="Zoom in (⌘+ / Ctrl+=)" aria-label="Zoom in"><IconZoomIn /></button>
+          <button className="icon" onClick={() => zoomBy(1.25)} title="Zoom in (⌘+ / Ctrl+= with the mouse over the field)" aria-label="Zoom in"><IconZoomIn /></button>
           <button onClick={fit} title="Fit: zoom out to the whole field (F)" aria-label="Fit field"><IconFit /> Fit</button>
         </div>}
         {reviewing && <ReviewPanel show={show} setShow={setShow} issues={issues} all={allIssues} dismissed={dismissed} onGo={goToIssue} onClose={() => setReviewing(false)} />}

@@ -98,6 +98,7 @@ export const ES: Record<string, string> = {
   'moving {way} (facing the front)': 'moviéndote {way} (mirando al frente)',
   'not a straight line (watch the move), ending up {way} (facing the front)': 'no es en línea recta (mira el movimiento), terminando {way} (mirando al frente)',
   'not a straight line (watch the move)': 'no es en línea recta (mira el movimiento)',
+  'Watch the move into set {name}': 'Ver el movimiento al set {name}',
   'back': 'hacia atrás',
   'forward': 'hacia adelante',
   'to your left': 'a tu izquierda',

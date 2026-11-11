@@ -12,10 +12,18 @@ export interface DotRow {
   front: string;
   steps: { per5: number; tier: StepTier } | null; // step size into this set (none for set 1, or a hold)
   way: string; // which way the move goes, in words (and whether the route bends); '' when there's no move to describe
+  bends: boolean; // the route into this set isn't a straight line (a path, a follow-the-leader, a turn): the card offers Watch
   held: boolean; // no travel into this set: the same spot as the set before (mark time, visuals, and the rest are in the notes)
   hold: { wait: number; move: number; after: number } | null; // a delayed or early step-off; null when moving every count
   cue: string; // my notes for this set
   note: string; // the ensemble's notes for this set
+}
+
+function wayOf(show: Show, i: number, id: string, st: { per5: number } | undefined, lang: 'en' | 'es') {
+  const from = show.sets[i - 1]?.pos[id], to = show.sets[i].pos[id];
+  if (!st || st.per5 === Infinity || !(st.per5 > 0) || !from || !to) return { way: '', bends: false };
+  const bends = routeBends(show, i, id);
+  return { way: moveWords(from, to, lang, bends), bends };
 }
 
 /** One row per set for performer `id`, in the phone's language. */
@@ -33,7 +41,7 @@ export function myDots(show: Show, id: string, lang: 'en' | 'es' = 'en'): DotRow
       side: p ? sideToSide(p.x, f, lang) : '',
       front: p ? frontToBack(p.y, f, lang) : '',
       steps: st && st.per5 !== Infinity && st.per5 > 0 ? st : null,
-      way: st && st.per5 !== Infinity && st.per5 > 0 && p && show.sets[i - 1].pos[id] ? moveWords(show.sets[i - 1].pos[id], p, lang, routeBends(show, i, id)) : '',
+      ...wayOf(show, i, id, st, lang),
       held: !!st && st.per5 === Infinity,
       hold: st?.per5 !== Infinity && tm && tm.move < s.counts ? { wait: tm.wait, move: tm.move, after: s.counts - tm.wait - tm.move } : null,
       cue: s.cues?.[id] ?? '',

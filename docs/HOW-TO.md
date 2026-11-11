@@ -465,7 +465,7 @@ When a student opens your link on their phone, they pick who they are.
 
 They can search by name, by dot (P4), or by section, and **Staff (whole band)** at the top shows everyone. FreeFORM remembers their choice, and the show keeps working offline once it's opened. (If the phone can't save it, say in a private window or with its storage full, a warning says so: the show will be gone when they close it and won't work offline, so they should open it in a regular window.)
 
-**Upright, the phone shows their dots.** Holding the phone upright, a performer sees **My dots**: a card for every set, like their printed dot sheet. Each card has the set, its counts and measures, and the side-to-side and front-to-back spot. It also says the move into it in plain words, with the step size in parentheses, like "normal step size (8-to-5), moving back and to your left (facing the front)," plus any hold before stepping off, their own notes, and the ensemble notes. When the route isn't a straight line (a custom path, a follow-the-leader, or a turn), it says so and gives only where they end up, like "not a straight line (watch the move), ending up back and to your left (facing the front)," since the straight-line direction would point them the wrong way. A set where they don't travel says **Hold (same spot as set 3)**: it doesn't say what to do there (mark time, a visual), so put that in their notes. The set they're on is outlined in gold. Tap a card to go to that set.
+**Upright, the phone shows their dots.** Holding the phone upright, a performer sees **My dots**: a card for every set, like their printed dot sheet. Each card has the set, its counts and measures, and the side-to-side and front-to-back spot. It also says the move into it in plain words, with the step size in parentheses, like "normal step size (8-to-5), moving back and to your left (facing the front)," plus any hold before stepping off, their own notes, and the ensemble notes. When the route isn't a straight line (a custom path, a follow-the-leader, or a turn), it says so and gives only where they end up, like "not a straight line (watch the move), ending up back and to your left (facing the front)," since the straight-line direction would point them the wrong way. Those cards have a **▶ Watch the move into set 3** button (or whichever set) under them: it switches to the field and plays just that move, once, at the tempo or with the music. **My dots** goes back to the list. A set where they don't travel says **Hold (same spot as set 3)**: it doesn't say what to do there (mark time, a visual), so put that in their notes. The set they're on is outlined in gold. Tap a card to go to that set.
 
 ![A performer's dots, set by set, on an upright phone](img/phone.png)
 
@@ -549,8 +549,8 @@ With a keyboard attached, the [keyboard shortcuts](#keyboard-shortcuts) work too
 | Move the selection 1 step | ← → ↑ ↓ |
 | Move the selection 4 steps | Shift + arrow |
 | Move the selection half a step | Option (Alt) + arrow |
-| Zoom the field in or out | ⌘+ or ⌘− (Ctrl on Windows) |
-| Fit the whole field | F, or ⌘0 (Ctrl+0) |
+| Zoom the field in or out | ⌘+ or ⌘− (Ctrl on Windows), with the mouse over the field |
+| Fit the whole field | F, or ⌘0 (Ctrl+0) with the mouse over the field |
 | Select everyone | ⌘A (Ctrl+A on Windows) |
 | Lasso: select everyone inside an outline you draw | Option-drag (Alt-drag) on open field |
 | Copy or paste the selection's spots | ⌘C or ⌘V (Ctrl+C or Ctrl+V) |
@@ -563,7 +563,7 @@ With a keyboard attached, the [keyboard shortcuts](#keyboard-shortcuts) work too
 | Move around the field | Scroll, or right-drag |
 | Zoom | Pinch, or ⌘/Ctrl + scroll |
 
-Arrows move the selection the way it looks on screen: ↑ is toward the back sideline. Shortcuts don't fire while you're typing in a box, except ⌘S.
+Arrows move the selection the way it looks on screen: ↑ is toward the back sideline. Shortcuts don't fire while you're typing in a box, except ⌘S. With the mouse anywhere but the field, ⌘+, ⌘−, and ⌘0 zoom the whole page, the way they do on any website, so you can make the buttons and text bigger.
 
 ## If something goes wrong
 
