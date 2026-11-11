@@ -34,6 +34,7 @@ import { getPublishing, setPublishing } from './ui/publishing';
 import { saveStatus } from './ui/saveStatus';
 import { bandMessage, gettingStarted, sendSteps, type Done, type SendDone } from './ui/gettingStarted';
 import { GettingStarted } from './ui/GettingStarted';
+import { RecoverDialog } from './ui/Recover';
 import { decodeShow, fetchHosted, linkHash, SHARE_PREFIX } from './engine/share';
 import { PrintDialog } from './print/Print';
 import { ShareDialog } from './perform/ShareDialog';
@@ -398,9 +399,11 @@ export function App() {
       <button onClick={() => setLibrary('link')} title="Open a show from the link students use, or from a recovery code from your other computer">Open from a link or recovery code…</button>
     </span>
   </>;
+  const today = (ms: number) => new Date(ms).toDateString() === new Date().toDateString();
+  const whenLabel = (ms: number) => (today(ms) ? new Date(ms).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : new Date(ms).toLocaleDateString([], { month: 'short', day: 'numeric' }));
   const saved = saveStatus({
     browserOk: saveFailed === 'no', unexported, fileSavedAt, revision: show.revision, changedSincePublish: revisionLabel(show).endsWith('+ changes'),
-    when: (ms) => (new Date(ms).toDateString() === new Date().toDateString() ? new Date(ms).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : new Date(ms).toLocaleDateString([], { month: 'short', day: 'numeric' })),
+    when: whenLabel,
   });
   // The FTL group the selection is, exactly, in the move into this set (where Add turns puts the leader's turning points).
   const ftlGroup = onSet > 0 ? show.sets[onSet].ftl?.find((g) => g.order.length === selected.size && g.order.every((id) => selected.has(id))) : undefined;
@@ -933,7 +936,8 @@ export function App() {
   const trySample = async (practice = false) => { await flush(); openShow({ ...(practice ? practiceShow() : sampleShow()), id: newShowId() }); setTool('select'); }; // in the main bundle: the offline cache only keeps files the page links
   // The front page's "Try the sample show" opens app/?sample.
   useEffect(() => { if (new URLSearchParams(location.search).has('sample')) { history.replaceState(null, '', location.pathname + location.hash); trySample(); } }, []); // eslint-disable-line react-hooks/exhaustive-deps
-  const [library, setLibrary] = useState<boolean | 'link'>(false); // 'link': opened on Open from a link
+  const [library, setLibrary] = useState<boolean | 'link' | 'versions'>(false); // 'link': opened on Open from a link; 'versions': on the open show's earlier versions
+  const [recovering, setRecovering] = useState(false); // Help, then Get a show back
   const [video, setVideo] = useState(false); // the Make a video dialog
   const [feedback, setFeedback] = useState(false); // the Send feedback form
   const act: ShowActions = {
@@ -1032,13 +1036,17 @@ export function App() {
             Review{issues.length ? ` (${issues.length})` : ''}</button>
         </span>
         <span style={{ flex: 'none' }}>
-          <Menu label="Help" title="The how-to guide, a sample show to look around in, and a practice show">{(close) => (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'stretch' }}>
+          <Menu label="Help" title="The how-to guide, step-by-step checklists, getting a show back, and the sample and practice shows">{(close) => (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'stretch', width: 280 }}>
+              <span className="menu-head">Learn</span>
               <button onClick={() => { close(); window.open(GUIDE, '_blank', 'noopener'); }} title="The step-by-step guide, with pictures (opens in a new tab)">How-to guide</button>
-              <button onClick={() => { close(); trySample(); }} title="Open the 47-performer sample show as a show of its own (yours stays under Shows…)">Try the sample show</button>
               <button onClick={() => { close(); startGs(); }} disabled={!!gsDid} title={gsDid ? 'The checklist is already on for this show' : 'A short checklist from a blank field to your first move, checked in Review'}>Getting started checklist</button>
               <button onClick={() => { close(); hideGs(); startSb(); }} disabled={!!sbDid} title={sbDid ? 'The checklist is already on for this show' : 'A short checklist for getting this show onto your performers\' phones, with a message to send them'}>Send it to your band</button>
-              <button onClick={() => { close(); trySample(true); }} title="The sample with three problems to find and fix, each explained in its set's notes. Open Review to start (yours stays under Shows…)">Try the practice show</button>
+              <button onClick={() => { close(); setRecovering(true); }} title="Undo, earlier versions, a missing show, a new computer, or a show you published: what happened, and the button that fixes it">Get a show back</button>
+              <span className="menu-head">Examples (each opens as its own show; yours stays under Shows…)</span>
+              <button className="menu-two" onClick={() => { close(); trySample(); }}>Try the sample show<span>A finished 47-performer show to look around in</span></button>
+              <button className="menu-two" onClick={() => { close(); trySample(true); }}>Try the practice show<span>The same show with 3 problems to find and fix, explained in its notes</span></button>
+              <span className="menu-head">FreeFORM Drill</span>
               <button onClick={() => { close(); setFeedback(true); }} title="Report a problem or suggest something: it goes straight to me, with no account needed">Send feedback</button>
               <button onClick={() => { close(); window.open('https://ko-fi.com/tillerdawg', '_blank', 'noopener'); }} title="FreeFORM is free and always will be. A tip on Ko-fi helps with hosting (opens in a new tab)">Support FreeFORM</button>
               <button onClick={() => { close(); window.open('../', '_blank', 'noopener'); }} title="FreeFORM Drill's front page: what it is, privacy, and coming from Pyware (opens in a new tab)">About FreeFORM Drill</button>
@@ -1163,7 +1171,11 @@ export function App() {
       </div>
       {sharing && <ShareDialog show={show} onClose={() => setSharing(false)} published={(p) => setShow((s) => ({ ...s, revision: p.revision, revisionSig: p.revisionSig }))} />}
       {roster && <RosterImport show={show} setShow={setShow} onClose={() => setRoster(false)} />}
-      {library && <ShowsDialog show={show} act={act} linkFirst={library === 'link'} onClose={() => setLibrary(false)} />}
+      {library && <ShowsDialog show={show} act={act} linkFirst={library === 'link'} versionsFirst={library === 'versions'} onClose={() => setLibrary(false)} />}
+      {recovering && <RecoverDialog title={show.title} fileSaved={fileSavedAt ? `${today(fileSavedAt) ? 'at' : 'on'} ${whenLabel(fileSavedAt)}` : null} onClose={() => setRecovering(false)} act={{
+        canUndo: !!hist.past.length, undo: () => step('undo'), versions: () => setLibrary('versions'), shows: () => setLibrary(true),
+        importFile: () => fileRef.current?.click(), fromLink: () => setLibrary('link'), feedback: () => setFeedback(true),
+      }} />}
       {feedback && <FeedbackDialog onClose={() => setFeedback(false)} />}
       {video && <VideoDialog show={show} bpm={bpm} onClose={() => setVideo(false)} />}
       {printing && <PrintDialog show={show} selected={selected} onClose={() => setPrinting(false)} />}

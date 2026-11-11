@@ -161,6 +161,12 @@ shot('send-band', async () => {
   await page.locator('[role=dialog] button', { hasText: 'Close' }).last().click(); await page.waitForTimeout(400);
   await save(page, 'send-band', await around(page.locator('.getting-started'), 12));
 });
+shot('recover', async () => {
+  const page = await editor();
+  await page.getByRole('button', { name: /^Help/ }).click(); await page.waitForTimeout(200);
+  await page.getByRole('button', { name: 'Get a show back' }).click(); await page.waitForTimeout(300);
+  await save(page, 'recover', await around(page.locator('[role=dialog] > div').first()));
+});
 shot('shows', async () => {
   // The show library with three shows, as a director might keep them.
   const page = await editor();
