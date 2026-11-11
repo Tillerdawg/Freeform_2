@@ -152,6 +152,21 @@ shot('save-status', async () => {
   const x = Math.min(chip.x, panel.x) - 12, r = Math.max(chip.x + chip.width, panel.x + panel.width) + 12;
   await save(page, 'save-status', { x, y: chip.y - 8, width: r - x, height: panel.y + panel.height - chip.y + 20 });
 });
+shot('send-band', async () => {
+  // Help, then Send it to your band, on the sample (Review clean), after opening Share: the message step.
+  const page = await editor();
+  await page.getByRole('button', { name: /^Help/ }).click(); await page.waitForTimeout(200);
+  await page.getByRole('button', { name: 'Send it to your band' }).click(); await page.waitForTimeout(300);
+  await page.locator('.getting-started button', { hasText: 'Open Share' }).click(); await page.waitForTimeout(500);
+  await page.locator('[role=dialog] button', { hasText: 'Close' }).last().click(); await page.waitForTimeout(400);
+  await save(page, 'send-band', await around(page.locator('.getting-started'), 12));
+});
+shot('recover', async () => {
+  const page = await editor();
+  await page.getByRole('button', { name: /^Help/ }).click(); await page.waitForTimeout(200);
+  await page.getByRole('button', { name: 'Get a show back' }).click(); await page.waitForTimeout(300);
+  await save(page, 'recover', await around(page.locator('[role=dialog] > div').first()));
+});
 shot('shows', async () => {
   // The show library with three shows, as a director might keep them.
   const page = await editor();

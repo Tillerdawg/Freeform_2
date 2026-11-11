@@ -21,7 +21,7 @@ const size = (e: { performers: number; sets: number }) => `${e.performers} perfo
 const rowStyle: React.CSSProperties = { display: 'flex', gap: 8, alignItems: 'center', padding: '8px 0', borderTop: '1px solid var(--line)' };
 
 /** The shows kept in this browser (open, start, copy, rename, delete) and the open show's earlier versions. */
-export function ShowsDialog({ show, act, onClose, linkFirst = false }: { show: Show; act: ShowActions; onClose: () => void; linkFirst?: boolean }) {
+export function ShowsDialog({ show, act, onClose, linkFirst = false, versionsFirst = false }: { show: Show; act: ShowActions; onClose: () => void; linkFirst?: boolean; versionsFirst?: boolean }) {
   const [shows, setShows] = useState<Listed[] | null>(null);
   const [versions, setVersions] = useState<Entry[] | null>(null); // the versions view, when open
   const [error, setError] = useState('');
@@ -32,6 +32,7 @@ export function ShowsDialog({ show, act, onClose, linkFirst = false }: { show: S
   const dialog = useDialog(onClose);
   const doing = (f: () => Promise<void>) => () => { setError(''); f().then(list, (e) => setError(e instanceof Error ? e.message : String(e))); };
   const showVersions = () => act.flush().then(() => listVersions(show.id!)).then(setVersions, () => setVersions([]));
+  useEffect(() => { if (versionsFirst) showVersions(); }, []); // eslint-disable-line react-hooks/exhaustive-deps -- Get a show back, then See earlier versions
   return (
     <div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-label={versions ? 'Earlier versions' : 'Shows in this browser'} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'grid', placeItems: 'center', zIndex: 30 }}>
       <div style={{ background: 'var(--bg)', border: '1px solid var(--line)', padding: 20, width: 640, maxWidth: 'calc(100vw - 32px)', maxHeight: 'calc(100vh - 32px)', overflow: 'auto' }}>

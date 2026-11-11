@@ -50,7 +50,7 @@ One thing to know up front: **your shows are saved in the browser you're using.*
 
 From top to bottom:
 
-- **The top bar** has the logo, a reminder of how to move around the field, **Help** (the **How-to guide**, which opens this guide in a new tab at freeformdrill.org/guide/, **Try the sample show**, **Getting started checklist**, **Try the practice show** (the sample with three problems to find and fix), **Send feedback**, a short form to report a problem or suggest something (it goes straight to me, with no account needed), **Support FreeFORM**, a tip jar on Ko-fi (FreeFORM is free either way), and **About FreeFORM Drill**, the front page), **Layout** (**Sidebar on the left** or right, **Timeline at the top** or bottom, and **White field** or green; this browser remembers your choices), and at the far right the sun/moon button, which switches between dark mode and light mode. Until you click it, FreeFORM follows your computer's or iPad's own light or dark setting. The field looks the same either way.
+- **The top bar** has the logo, a reminder of how to move around the field, **Help** (in three groups. **Learn**: the **How-to guide**, which opens this guide in a new tab at freeformdrill.org/guide/, the **Getting started checklist**, **Send it to your band**, and **Get a show back**. **Examples**: **Try the sample show**, a finished show to look around in, and **Try the practice show**, the same show with three problems to find and fix. **FreeFORM Drill**: **Send feedback**, a short form to report a problem or suggest something (it goes straight to me, with no account needed), **Support FreeFORM**, a tip jar on Ko-fi (FreeFORM is free either way), and **About FreeFORM Drill**, the front page), **Layout** (**Sidebar on the left** or right, **Timeline at the top** or bottom, and **White field** or green; this browser remembers your choices), and at the far right the sun/moon button, which switches between dark mode and light mode. Until you click it, FreeFORM follows your computer's or iPad's own light or dark setting. The field looks the same either way.
 - **The drill toolbar** has two rows. The first row has **Select**, **Add** (performers, a set, or a prop), and **Delete**, then the set you're on with its **Counts** and **Measures**. At the right end are Undo and Redo. The second row has the tools for placing and moving performers: **Snap to grid**, **Markup**, **Shape**, **Mirror**, **Rotate & Scale**, **Path**, **Move**, **Labels**, and **Reset to set**. At its right end are the timeline button and the sidebar button.
 - **The field** is in the middle. You're looking at it from the press box: the front sideline is at the bottom and Side 1 is on the left. Scroll to move around, and pinch (or hold ⌘ or Ctrl and scroll) to zoom. The zoom buttons sit in the field's top-right corner: **−** and **+** zoom out and in, the number between them is how far you're zoomed (100% shows the whole field), and **Fit** zooms back out to the whole field.
 - **A white field.** If you'd rather write on paper colors, choose **Layout → White field**. The turf turns white with black lines, letters, and labels. Selected performers keep their gold, with a dark ring, and step warnings keep their colors on a dark edge. **Layout → Green field** switches back. It only changes what you see on this computer or iPad: printed charts are always black on white, and videos stay green. Phones have their own **White field** button.
@@ -67,7 +67,7 @@ When the field has no performers, the **Start your show** note in the middle of 
 
 ![The Start your show note on a blank field](img/start.png)
 
-**Getting started, step by step.** New to FreeFORM? Click **Getting started, step by step** at the bottom of the **Start your show** note (or **Help**, then **Getting started checklist**, on any show) for a short checklist: put performers on the field, add the next set, move performers to their new spots, watch the move, check for problems in **Review**, and send it to your band. On a blank field, the note becomes its first step, with the same five buttons. Once you're placing performers, it moves to the field's bottom-right corner. Each step ticks itself off when you do it, and the next one says how. Nothing is locked: do things in any order. **Fold** shrinks it to one line, and **Close** turns it off for that show.
+**Getting started, step by step.** New to FreeFORM? Click **Getting started, step by step** at the bottom of the **Start your show** note (or **Help**, then **Getting started checklist**, on any show) for a short checklist: put performers on the field, add the next set, move performers to their new spots, watch the move, and check for problems in **Review**. When all five are done, it offers **Send it to your band** (see [Send the show to your performers](#send-the-show-to-your-performers)). On a blank field, the note becomes its first step, with the same five buttons. Once you're placing performers, it moves to the field's bottom-right corner. Each step ticks itself off when you do it, and the next one says how. Nothing is locked: do things in any order. **Fold** shrinks it to one line, and **Close** turns it off for that show.
 
 ![The getting-started checklist](img/getting-started.png)
 
@@ -431,6 +431,10 @@ The video is 1920 by 1080 (full HD). It needs a current browser; one that can't 
 
 ## Send the show to your performers
 
+**Send it to your band, step by step.** **Help**, then **Send it to your band**, opens a short checklist in the field's corner, like Getting started: check for problems (**Open Review**), get a link (**Open Share…**), send it with the student guide, and check phones at rehearsal. The third step has a message ready to paste into a text, email, or team app: the show's link (if you've published it; otherwise a spot to paste the link from **Share**), a line about what to do, and the two-minute student guide in English and Spanish. **Copy the message** copies it. Each step ticks itself off, and **Close** turns the checklist off for that show.
+
+![The Send it to your band checklist on its third step](img/send-band.png)
+
 Click **Share…** in the sidebar. The dialog has two choices at the top, and each one says what's included before it gives you a link.
 
 ![The Share dialog with a link and QR code](img/share.png)
@@ -530,6 +534,10 @@ The editor works on an iPad the same way it does on a computer, with a few touch
 With a keyboard attached, the [keyboard shortcuts](#keyboard-shortcuts) work too.
 
 ## Saving, backing up, and opening files
+
+**Get a show back.** Lost something? **Help**, then **Get a show back**, asks what happened and has the button for each case: **Undo** for a mistake you just made, **See earlier versions** (below), **Open Shows…** for another show missing from the screen, **Import a file…** when it's gone from this browser (a new computer, or cleared history) and you saved a file, and **Open from a link or recovery code…** for a show you published to phones. It also says when you last saved the open show to a file.
+
+![Get a show back](img/recover.png)
 
 **Is my work saved?** The chip in the top bar answers that in one line, like "Browser ✓ · File: 2:14 PM · Phones: rev 6":
 
