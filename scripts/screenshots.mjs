@@ -117,14 +117,15 @@ shot('start', async () => {
   await page.evaluate(() => localStorage.clear());
   await page.reload();
   await page.waitForTimeout(500);
-  await save(page, 'start', await around(page.locator('.backup-note')));
+  await save(page, 'start', await around(page.locator('.getting-started')));
 });
 shot('getting-started', async () => {
-  // A blank show with four performers placed and a second set added: the checklist two steps in.
+  // A blank show, the checklist turned on, four performers placed, and a second set added: two steps in.
   const page = await editor();
   await page.evaluate(() => localStorage.clear());
   await page.reload();
   await page.waitForTimeout(500);
+  await page.getByRole('button', { name: 'Getting started, step by step' }).click();
   await page.getByRole('button', { name: 'Place performers' }).click();
   for (const x of [-6, -2, 2, 6]) { const q = await spot(page, { x, y: 30 }); await page.mouse.click(q.x, q.y); await page.waitForTimeout(80); }
   await page.keyboard.press('Escape');
