@@ -1,4 +1,4 @@
-// "Is my work safe?" in one place: the top bar's status chip and the panel it opens. Three layers, each said in words
+// "Is my work safe?" in one place: the save status at the bottom of the sidebar and the panel it opens. Three layers, each said in words
 // (never color alone): this browser's autosave, a .freeform file, and the phones.
 
 export interface SaveState {
@@ -17,9 +17,9 @@ export interface SaveState {
 }
 
 export interface SaveStatus {
-  /** The chip's one line, like "Browser ✓ · File: 2:14 PM · Phones: rev 6". */
+  /** Its three parts, joined with " · " (the sidebar shows a line each), like "Browser ✓ · File: 2:14 PM · Phones: rev 6". */
   label: string;
-  /** True when something isn't saved somewhere it could be (the chip gets an outline as well as its words). */
+  /** True when something isn't saved somewhere it could be (the box gets an outline as well as its words). */
   attention: boolean;
   browser: string;
   file: string;

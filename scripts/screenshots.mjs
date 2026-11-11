@@ -57,7 +57,10 @@ const sidebar = { x: 1095, y: 125, width: W - 1095, height: 600 };
 /** Clip around an element, padded. */
 const around = async (loc, pad = 16) => { const b = await loc.boundingBox(); return { x: b.x - pad, y: b.y - pad, width: b.width + 2 * pad, height: b.height + 2 * pad }; };
 /** From an element's top down to the bottom of the window, in the sidebar. */
-const fromHere = async (loc) => { const b = await loc.boundingBox(); return { ...sidebar, y: b.y - 12, height: H - b.y + 12 }; };
+const fromHere = async (loc) => { // down to the save status pinned at the sidebar's bottom (it's pictured on its own)
+  const b = await loc.boundingBox(), st = await loc.page().locator('.side-status').boundingBox();
+  return { ...sidebar, y: b.y - 12, height: (st ? st.y : H) - b.y + 12 };
+};
 const bottom = { x: 0, y: 700, width: W, height: H - 700 };
 
 shot('editor', async () => {
@@ -135,7 +138,7 @@ shot('getting-started', async () => {
   await save(page, 'getting-started', await around(page.locator('.getting-started'), 12));
 });
 shot('save-status', async () => {
-  // Published as revision 6, then edited: the chip says what isn't saved, opened.
+  // Published as revision 6, then edited: the save status at the bottom of the sidebar says what isn't saved, opened.
   const page = await editor();
   await page.evaluate(async () => {
     const { sampleShow } = await import('/src/engine/sample.ts');
@@ -150,7 +153,8 @@ shot('save-status', async () => {
   await page.waitForTimeout(300);
   const chip = await page.locator('.save-chip').boundingBox(), panel = await page.locator('.tb-menu-panel').boundingBox();
   const x = Math.min(chip.x, panel.x) - 12, r = Math.max(chip.x + chip.width, panel.x + panel.width) + 12;
-  await save(page, 'save-status', { x, y: chip.y - 8, width: r - x, height: panel.y + panel.height - chip.y + 20 });
+  const y = Math.min(chip.y, panel.y) - 12, b = Math.max(chip.y + chip.height, panel.y + panel.height) + 12;
+  await save(page, 'save-status', { x, y, width: r - x, height: b - y });
 });
 shot('send-band', async () => {
   // Help, then Send it to your band, on the sample (Review clean), after opening Share: the message step.

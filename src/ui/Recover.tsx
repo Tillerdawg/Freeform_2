@@ -21,7 +21,7 @@ export function RecoverDialog({ title, fileSaved, act, onClose }: { title: strin
     [`I want an earlier version of "${name}"`, 'FreeFORM keeps a copy as you work: the last 20, at most 10 minutes apart, plus one a day for 60 days. Pick one to see it and bring it back (Undo puts things back if it was the wrong one).', 'See earlier versions', act.versions],
     ['A different show is missing from the screen', 'Every show you start, import, or open is kept in this browser. Shows… lists them all, newest change first.', 'Open Shows…', act.shows],
     ["It's gone from this browser (new computer, cleared history)", `A browser's saved shows stay in that browser only. If you saved a .freeform file or a Full backup, open it here.${fileSaved ? ` You last saved "${name}" to a file ${fileSaved}.` : ''}`, 'Import a file…', act.importFile],
-    ['I published it to phones', "The link your students use holds the whole show. Paste it (or a recovery code from your other computer), and FreeFORM brings the show back, still publishing to the same link.", 'Open from a link or recovery code…', act.fromLink],
+    ['Something happened and I need to recover my show', "If you published it to phones, the link your students use holds the whole show. Paste it (or a recovery code from your other computer), and FreeFORM brings the show back, still publishing to the same link.", 'Open from a link or recovery code…', act.fromLink],
   ];
   return (
     <div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Get a show back" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'grid', placeItems: 'center', zIndex: 20 }}>

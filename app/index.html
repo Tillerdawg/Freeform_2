@@ -188,8 +188,10 @@
       .menu-head { font-size: 11px; font-weight: 600; opacity: 0.75; margin-top: 4px; text-transform: none; }
       .menu-two { display: flex; flex-direction: column; align-items: flex-start; text-align: left; gap: 1px; }
       .menu-two > span { font-size: 12px; opacity: 0.85; font-weight: 400; }
-      .save-chip .tb-menu { max-width: 100%; }
-      .save-chip button { max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 12px; } /* one line: the top bar never changes height */
+      .side-status { position: sticky; bottom: 0; margin: auto -14px 0; padding: 8px 14px; background: var(--bg); border-top: 1px solid var(--line); } /* pinned to the sidebar's bottom */
+      .save-chip, .save-chip .tb-menu { display: block; width: 100%; }
+      .save-chip button { display: flex; width: 100%; align-items: center; justify-content: space-between; text-align: left; font-size: 13px; padding: 6px 10px; }
+      .save-chip-text { display: inline-flex; flex-direction: column; gap: 1px; vertical-align: top; }
       .save-chip.attention button { outline: 2px dashed var(--warn); outline-offset: -2px; } /* something isn't saved somewhere: the words say what */
       .dot-watch { width: 100%; min-height: 44px; margin-top: -2px; border: 2px solid var(--line-strong); font-size: 15px; } /* joined to its card, below it */
       .dot-head { display: flex; justify-content: space-between; gap: 8px; font-size: 15px; margin-bottom: 2px; }

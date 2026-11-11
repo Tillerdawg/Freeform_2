@@ -889,3 +889,14 @@ describe('show id and full backups', () => {
     expect(bad('x')).toThrow(/attached/);
   });
 });
+
+describe('snapping to the grid', () => {
+  it('rounds to whole, half, or quarter steps, and leaves Free alone', async () => {
+    const { snapPoint } = await import('./show');
+    const p = { x: 1.13, y: 2.6 };
+    expect(snapPoint(p, 1)).toEqual({ x: 1, y: 3 });
+    expect(snapPoint(p, 0.5)).toEqual({ x: 1, y: 2.5 });
+    expect(snapPoint(p, 0.25)).toEqual({ x: 1.25, y: 2.5 });
+    expect(snapPoint(p, 0)).toEqual(p);
+  });
+});
