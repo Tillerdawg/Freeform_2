@@ -62,6 +62,7 @@ export const ES: Record<string, string> = {
   'Offline: using the copy on this phone ({last})': 'Sin internet: usando la copia de este teléfono ({last})',
   "Couldn't check for updates: using the copy on this phone ({last})": 'No se pudo buscar actualizaciones: usando la copia de este teléfono ({last})',
   'Check for updates': 'Buscar actualizaciones',
+  'The drill on the field. Your set and spot are written out in the line with it.': 'El drill en el campo. Tu set y tu lugar están escritos en la línea que lo acompaña.',
   'How it works for performers (2 minutes)': 'Cómo funciona para los integrantes (2 minutos)',
 
   // Who are you?
@@ -90,6 +91,8 @@ export const ES: Record<string, string> = {
   'Set {name}': 'Set {name}',
   '{n} cts': '{n} tiempos',
   'm. {m}': 'c. {m}',
+  '{n} counts': '{n} tiempos',
+  'measures {m}': 'compases {m}',
   'count {c} of {n}': 'tiempo {c} de {n}',
   'My spot': 'Mi lugar',
   'Now': 'Ahora',

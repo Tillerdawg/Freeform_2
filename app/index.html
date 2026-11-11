@@ -109,7 +109,7 @@
       /* Phone header: the show's title on its own line (full contrast, up to two lines), then the big "who are you" button. */
       /* Room at the top: newer iOS blurs a band just below the status bar (over the page), which blurred the title. */
       .perform-bar { display: flex; flex-direction: column; gap: 6px; padding: 24px 12px 8px; flex-shrink: 0; }
-      .perform-titlebar { display: flex; align-items: center; gap: 8px; }
+      .perform-titlebar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; } /* wraps only with big text (Safari's aA), so nothing slides off the edge */
       .backup-note { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); z-index: 5; width: min(560px, calc(100% - 32px)); display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px 12px; background: var(--bg); border: 1px solid var(--warn); border-radius: 8px; box-shadow: var(--raise); font-size: 14px; } /* floats over the field, so the field never resizes */
       .backup-note > span { flex: 1 1 260px; }
       /* Zoom controls in the field's top-right corner: on a solid panel so they read over turf or grid. */
@@ -119,7 +119,7 @@
       .perform-shows { font: inherit; font-weight: 600; max-width: 100%; min-height: 44px; } /* the show picker: big enough to tap */
       .perform-add { position: fixed; top: 0; left: 0; right: 0; z-index: 20; display: grid; gap: 8px; padding: 16px; font-size: 15px; background: var(--bg); border-bottom: 1px solid var(--line-strong); box-shadow: var(--raise); } /* over the field: opening it doesn't resize the field */
       .perform-add > button { justify-self: start; }
-      .perform-title { flex: 1; min-width: 0; font-size: 15px; font-weight: 600; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
+      .perform-title { flex: 1 1 80px; min-width: 0; font-size: 15px; font-weight: 600; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
       .who-button { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-height: 44px; font-size: 17px; text-align: left; }
       .who-current { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       /* The "who are you" sheet: whole screen on a phone, a centered panel on anything wider. */
@@ -149,9 +149,9 @@
       .perform-field { position: relative; flex: 1; min-height: 0; order: 1; }
       .perform-side { display: contents; }
       .perform-bar { order: 0; } .perform-line { order: 2; } .perform-dots { order: 2; } .perform-controls { order: 3; } .perform-meta { order: 4; }
-      .perform-view { flex: none; font-size: 14px; padding: 6px 10px; min-height: 44px; } /* Follow my dot, From the press box: beside the title and the who button, not over the field */
-      .perform-who { display: flex; gap: 6px; }
-      .perform-who .who-button { flex: 1; min-width: 0; }
+      .perform-view { flex: none; max-width: 100%; font-size: 14px; padding: 6px 10px; min-height: 44px; } /* Follow my dot, From the press box: beside the title and the who button, not over the field */
+      .perform-who { display: flex; flex-wrap: wrap; gap: 6px; }
+      .perform-who .who-button { flex: 1 1 140px; min-width: 0; } /* never squeezed so small that the name disappears; the switch wraps under it instead */
       .perform-reset { position: absolute; top: 8px; right: 8px; font-size: 14px; }
       .perform-plain { display: block; font-size: 14px; }
       .perform-countin { position: absolute; inset: 0; display: grid; place-items: center; font-size: 140px; font-weight: 800; color: var(--gold-fill); text-shadow: 0 0 6px #000, 0 2px 12px #000; pointer-events: none; } /* the count-in's 4-3-2-1, over the field */
@@ -200,7 +200,7 @@
       .dot-head > span { opacity: 0.8; }
       .dot-coord { font-size: 17px; }
       .dot-small { font-size: 14px; }
-      .perform-pane { display: flex; flex: none; }
+      .perform-pane { display: flex; flex: none; flex-wrap: wrap; max-width: 100%; }
       .perform-pane button { min-height: 44px; font-size: 14px; padding: 6px 10px; }
       .perform-pane button:first-child { border-top-right-radius: 0; border-bottom-right-radius: 0; }
       .perform-pane button:last-child { border-top-left-radius: 0; border-bottom-left-radius: 0; margin-left: -1px; }
@@ -217,7 +217,7 @@
       .perform-sets[data-more=both], .fade-x[data-more=both] { -webkit-mask-image: linear-gradient(to right, transparent, #000 48px, #000 calc(100% - 48px), transparent); mask-image: linear-gradient(to right, transparent, #000 48px, #000 calc(100% - 48px), transparent); }
       .perform-sets button { flex: none; min-width: 44px; height: 44px; font-size: 16px; border: 2px solid transparent; }
       .perform-sets button[aria-pressed=true] { border-color: var(--gold); font-weight: bold; }
-      .perform-buttons { display: flex; gap: 8px; align-items: center; justify-content: space-between; }
+      .perform-buttons { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: space-between; } /* one row on a phone; wraps with big text */
       @media (max-width: 360px) { .perform-buttons { gap: 4px; } .perform-buttons button { padding-left: 8px; padding-right: 8px; } .perform-bpm { display: none; } } /* an iPhone SE: the whole row fits */
       .perform-empty { padding: 24px; max-width: 32em; margin: auto; }
       /* On its side, the field takes the left and gets the whole height; everything else scrolls in one column on the right,

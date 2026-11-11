@@ -231,8 +231,8 @@ export function confirmDelete(show: Show, ids: string[]): boolean {
 }
 
 /** A toolbar button that opens a small panel below it. Closes on a click elsewhere or Esc (unless `keepOpen`). */
-export function Menu({ label, name, title, disabled, keepOpen, pressed, openNow, main, children }: {
-  label: ReactNode; name?: string; title: string; disabled?: string; keepOpen?: boolean; pressed?: boolean; children: (close: () => void) => ReactNode;
+export function Menu({ label, name, panelName, title, disabled, keepOpen, pressed, openNow, main, children }: {
+  label: ReactNode; name?: string; panelName?: string; title: string; disabled?: string; keepOpen?: boolean; pressed?: boolean; children: (close: () => void) => ReactNode;
   main?: { onClick: () => void; title: string; disabled?: boolean }; // a split button: the label does this, and only the caret opens the panel
   openNow?: number; // changing it (to more than 0) opens the panel, as if its button were clicked
 }) {
@@ -269,7 +269,7 @@ export function Menu({ label, name, title, disabled, keepOpen, pressed, openNow,
         title={disabled ? `${title} (${disabled})` : title} onClick={() => setOpen(!open)}>
         {label} <span aria-hidden className="caret">▾</span>
       </button>}
-      {shown && createPortal(<div ref={panel} className="tb-menu-panel" role="menu" aria-label={name ?? String(label)} style={at ?? { visibility: 'hidden' }}>{children(() => setOpen(false))}</div>, document.body)}
+      {shown && createPortal(<div ref={panel} className="tb-menu-panel" role="region" aria-label={panelName ?? name ?? (typeof label === 'string' ? label : title)} style={at ?? { visibility: 'hidden' }}>{children(() => setOpen(false))}</div>, document.body)}
     </div>
   );
 }

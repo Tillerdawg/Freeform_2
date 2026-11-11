@@ -506,16 +506,18 @@ export function Perform() {
           {rows.map((r) => (
             <li key={r.index}>
               <button className="dot-row" aria-current={r.index === cur ? 'step' : undefined} onClick={() => { setPlaying(false); setT(starts[r.index]); }}>
-                <span className="dot-head"><strong>{tr('Set {name}', { name: r.set })}</strong>
-                  <span>{[r.counts != null ? tr('{n} cts', { n: r.counts }) : '', r.measures ? tr('m. {m}', { m: r.measures }) : ''].filter(Boolean).join(' · ')}</span></span>
-                <span className="dot-coord">{r.side}</span>
-                <span className="dot-coord">{r.front}</span>
+                {/* The hidden ". " and ": " give VoiceOver pauses between the card's parts; on screen they're laid out apart instead. */}
+                <span className="dot-head"><strong>{tr('Set {name}', { name: r.set })}</strong><span className="sr-only">. </span>
+                  <span><span aria-hidden="true">{[r.counts != null ? tr('{n} cts', { n: r.counts }) : '', r.measures ? tr('m. {m}', { m: r.measures }) : ''].filter(Boolean).join(' · ')}</span>
+                    <span className="sr-only">{[r.counts != null ? tr('{n} counts', { n: r.counts }) : '', r.measures ? tr('measures {m}', { m: r.measures.replace('–', ` ${tr('to')} `) }) : ''].filter(Boolean).join(', ')}{r.counts != null && '. '}</span></span></span>
+                <span className="dot-coord">{r.side}</span><span className="sr-only">. </span>
+                <span className="dot-coord">{r.front}</span><span className="sr-only">. </span>
                 {/* The move in plain words, with the step size in parentheses: "smaller step size than normal (10.4-to-5), moving forward". */}
-                {r.steps && <span className="dot-small">{stepWords(r.steps.per5)} (<span style={{ color: STEP_TEXT[r.steps.tier] }}>{fmtStep(r.steps.per5, lang)}</span>){r.way ? `, ${r.way}` : ''}</span>}
-                {r.held && <span className="dot-small">{tr('Hold (same spot as set {name})', { name: show.sets[r.index - 1].name })}</span>}
-                {r.hold && <span className="dot-small">{tr('hold {w}, move {m}', { w: r.hold.wait, m: r.hold.move })}{r.hold.after ? `, ${tr('hold {w}', { w: r.hold.after })}` : ''}</span>}
-                {r.cue && <span className="dot-small"><span className="perform-k">{tr('My notes')}</span>{r.cue}</span>}
-                {r.note && <span className="dot-small"><span className="perform-k">{tr('Ensemble')}</span>{r.note}</span>}
+                {r.steps && <span className="dot-small">{stepWords(r.steps.per5)} (<span style={{ color: STEP_TEXT[r.steps.tier] }}>{fmtStep(r.steps.per5, lang)}</span>){r.way ? `, ${r.way}` : ''}<span className="sr-only">. </span></span>}
+                {r.held && <span className="dot-small">{tr('Hold (same spot as set {name})', { name: show.sets[r.index - 1].name })}<span className="sr-only">. </span></span>}
+                {r.hold && <span className="dot-small">{tr('hold {w}, move {m}', { w: r.hold.wait, m: r.hold.move })}{r.hold.after ? `, ${tr('hold {w}', { w: r.hold.after })}` : ''}<span className="sr-only">. </span></span>}
+                {r.cue && <span className="dot-small"><span className="perform-k">{tr('My notes')}<span className="sr-only">: </span></span>{r.cue}<span className="sr-only">. </span></span>}
+                {r.note && <span className="dot-small"><span className="perform-k">{tr('Ensemble')}<span className="sr-only">: </span></span>{r.note}</span>}
               </button>
               {r.bends && <button className="dot-watch" onClick={() => watchMove(r.index)}>▶ {tr('Watch the move into set {name}', { name: r.set })}</button>}
             </li>
@@ -567,7 +569,7 @@ export function Perform() {
       <div className="perform-meta">{meta}</div>
       </div>
       <div className="perform-field">
-        <canvas ref={canvasRef} aria-label={tr('Field')} style={{ width: '100%', height: '100%', display: 'block', touchAction: 'none' }}
+        <canvas ref={canvasRef} role="img" aria-label={tr('The drill on the field. Your set and spot are written out in the line with it.')} style={{ width: '100%', height: '100%', display: 'block', touchAction: 'none' }}
           onPointerDown={(e) => {
             e.currentTarget.setPointerCapture(e.pointerId);
             touches.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
