@@ -63,7 +63,7 @@
       .toolbar button { padding-left: 8px; padding-right: 8px; }
       .toolbar { display: flex; align-items: center; gap: 4px; height: 44px; box-sizing: border-box; flex-shrink: 0; padding: 0 0 0 12px; white-space: nowrap; overflow-x: auto; scrollbar-width: none;
         border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--bg-deep); position: relative; z-index: 5; }
-      .toolbar + .toolbar { border-top: none; padding-right: 12px; } /* the second toolbar row */
+      .toolbar + .toolbar { border-top: none; } /* the second toolbar row: its pinned panel buttons give the 12 px edge, like Undo above */
       @media (pointer: coarse) and (max-width: 820px) { .tb-long { display: none; } }
       @media (pointer: coarse) and (max-width: 1100px) { .tb-long-md { display: none; } } /* "Snap to grid" → "Snap", "Rotate & Scale" → "Rotate": the tools row fits an iPad mini on its side */ /* "Snap to grid" → "Snap": the row fits an upright iPad mini */
       /* Narrower still (an open iPhone Duo, 669 px): Select / Add / Delete, "Reset", no "FreeFORM" title, snugger padding.
