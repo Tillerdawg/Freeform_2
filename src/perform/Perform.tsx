@@ -17,7 +17,7 @@ import { COUNT_IN, countInBeat } from './countIn';
 import { synced } from '../engine/music';
 import { deleteAudio, getAudio, putAudio } from '../ui/audioStore';
 import { IconNext, IconPause, IconPlay, IconPrev } from '../ui/icons';
-import { moveWords, nearest, stepWords, yardLabel } from './neighbors';
+import { nearest, stepWords, yardLabel } from './neighbors';
 import { panCenter, pinchZoom, ZOOM_MAX } from './gestures';
 import { WhoPicker } from './WhoPicker';
 import { myDots, paneFor } from './myDots';
@@ -468,10 +468,7 @@ export function Perform() {
                 <span className="dot-coord">{r.side}</span>
                 <span className="dot-coord">{r.front}</span>
                 {/* The move in plain words, with the step size in parentheses: "smaller step size than normal (10.4-to-5), moving forward". */}
-                {r.steps && me && (() => {
-                  const way = moveWords(show.sets[r.index - 1].pos[me.id], show.sets[r.index].pos[me.id]);
-                  return <span className="dot-small">{stepWords(r.steps.per5)} (<span style={{ color: STEP_TEXT[r.steps.tier] }}>{fmtStep(r.steps.per5, lang)}</span>){way ? `, ${way}` : ''}</span>;
-                })()}
+                {r.steps && <span className="dot-small">{stepWords(r.steps.per5)} (<span style={{ color: STEP_TEXT[r.steps.tier] }}>{fmtStep(r.steps.per5, lang)}</span>){r.way ? `, ${r.way}` : ''}</span>}
                 {r.held && <span className="dot-small">{tr('Hold (same spot as set {name})', { name: show.sets[r.index - 1].name })}</span>}
                 {r.hold && <span className="dot-small">{tr('hold {w}, move {m}', { w: r.hold.wait, m: r.hold.move })}{r.hold.after ? `, ${tr('hold {w}', { w: r.hold.after })}` : ''}</span>}
                 {r.cue && <span className="dot-small"><span className="perform-k">{tr('My notes')}</span>{r.cue}</span>}

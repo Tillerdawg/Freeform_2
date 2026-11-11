@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { encodeShow, fetchHosted, hostedLink, linkHash, lockShow, newKey, parseHosted, SHARE_PREFIX } from '../engine/share';
 import { qrSvg } from '../engine/qr';
-import type { Show } from '../engine/show';
+import { nextRevision, revisionLabel, type Show } from '../engine/show';
 import { synced } from '../engine/music';
 import { getAudio } from '../ui/audioStore';
 import { useDialog } from '../ui/useDialog';
@@ -23,9 +23,9 @@ const saveKeyFor = (id: string, key: string | null) => {
 };
 
 /** Make a link that opens this show in the performer view. The show travels inside the link. */
-export function ShareDialog({ show, onClose, setRevision }: { show: Show; onClose: () => void; setRevision: (n: number) => void }) {
+export function ShareDialog({ show, onClose, published }: { show: Show; onClose: () => void; published: (s: Show) => void }) {
   // A file headed for phones gets the next revision number, kept in the show once it's out (charts print it too).
-  const next = (): Show => ({ ...show, revision: (show.revision ?? 0) + 1 });
+  const next = (): Show => nextRevision(show);
   const [url, setUrl] = useState('');
   const [note, setNote] = useState('');
   useEffect(() => { encodeShow(show).then((code) => setUrl(location.origin + location.pathname + SHARE_PREFIX + code)); }, [show]);
@@ -68,7 +68,7 @@ export function ShareDialog({ show, onClose, setRevision }: { show: Show; onClos
     if (!pasted) { setMadeKey(k); saveKey(k); }
     const s = next();
     const blob = new Blob([await lockShow(s, k, withMusic && audio ? audio : undefined)], { type: 'application/octet-stream' });
-    setRevision(s.revision!);
+    published(s);
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = `${show.title.replace(/[^\w\- ]+/g, '').trim() || 'show'}.freeform-locked`;
@@ -84,7 +84,7 @@ export function ShareDialog({ show, onClose, setRevision }: { show: Show; onClos
       const k = key ?? newKey();
       const s = next();
       const fileAt = await publishFile(gh, fileNameFor(show.title), await lockShow(s, k, withMusic && audio ? audio : undefined));
-      setField(hostedLink(base, fileAt, k)); saveKey(null); setRevision(s.revision!);
+      setField(hostedLink(base, fileAt, k)); saveKey(null); published(s);
       setBusy(`Published revision ${s.revision}, ${new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}. Phones that already have the show get this version the next time they open it (GitHub can take a few minutes to serve it).`);
     } catch (e) { setBusy(`✗ ${e instanceof Error ? e.message : String(e)}`); }
   };
@@ -97,7 +97,7 @@ export function ShareDialog({ show, onClose, setRevision }: { show: Show; onClos
       const s = next();
       const r = await publishCloud(await lockShow(s, k, withMusic && audio ? audio : undefined), cloud);
       const replaced = r.fresh && !!hosted; // a new address: the link they had stops updating
-      saveCloud(sid, r); setCloud(r); setField(hostedLink(base, cloudUrl(r.id), k)); saveKey(null); setRevision(s.revision!);
+      saveCloud(sid, r); setCloud(r); setField(hostedLink(base, cloudUrl(r.id), k)); saveKey(null); published(s);
       const at = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
       setBusy(r.fresh
         ? `Published revision ${s.revision}, ${at}. Send this link to your band.${replaced ? ' It’s a new link: phones with the old one keep their copy but won’t get updates.' : ''}`
@@ -136,6 +136,11 @@ export function ShareDialog({ show, onClose, setRevision }: { show: Show; onClos
           <button aria-pressed={mode === 'send'} onClick={() => setMode('send')} style={{ flex: 1 }}>Send this version</button>
           <button aria-pressed={mode === 'live'} onClick={() => setMode('live')} style={{ flex: 1 }}>Keep phones up to date</button>
         </div>
+        {revisionLabel(show).endsWith('+ changes') && (
+          <p role="status" style={{ margin: '0 0 10px' }}>
+            <strong>Changed since revision {show.revision}.</strong> Published phones still have revision {show.revision}, and paper you print now says "rev {show.revision} + changes." Publish again (under <strong>Keep phones up to date</strong>) to send the changes.
+          </p>
+        )}
         {mode === 'send' ? <>
           <p style={{ margin: '0 0 6px' }}>
             A link (and QR code) with this version of the show inside it. Send it by text, email, or a team app. Phones save it, and it works offline.

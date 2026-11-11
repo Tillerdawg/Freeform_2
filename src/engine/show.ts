@@ -97,6 +97,8 @@ export interface Show {
   music?: Music;
   /** Goes up by one each time the show is published to phones (or a locked file is downloaded), so paper and phones can be compared. */
   revision?: number;
+  /** A fingerprint of the drill (drillSig) when `revision` went out, so paper printed after later edits can say so. */
+  revisionSig?: string;
   /** How performers are drawn: their section letter with the number as the label (default), or 'dots' with the full label. */
   symbols?: 'dots';
   /** Count-first layout: the show's music in named stretches (one per tune, or one for a one-tune file), typed up front.
@@ -412,6 +414,17 @@ export function setAt(show: Show, t: number): number {
 }
 
 /** Every performer's position at time t (float / straight-line moves). */
+/** Each turning group's arcs, worked out once per move (playback and the too-close check ask for them many times a move). */
+const turnCache = new WeakMap<string[], { a: Record<string, Point>; b: Record<string, Point>; routes: Record<string, Point[]> | null }>();
+function turnRoutes(show: Show, to: number, ids: string[]): Record<string, Point[]> | null {
+  const a = show.sets[to - 1].pos, b = show.sets[to].pos, hit = turnCache.get(ids);
+  if (hit && hit.a === a && hit.b === b) return hit.routes;
+  const fit = groupTurn(show, to, ids);
+  const routes = fit ? Object.fromEntries(ids.map((id) => [id, turnRoute(a[id] ?? b[id], b[id], fit.center, fit.angle)])) : null;
+  turnCache.set(ids, { a, b, routes });
+  return routes;
+}
+
 export function positionsAt(show: Show, t: number): Record<string, Point> {
   const { to, f } = locate(show, t);
   const set = show.sets[to], b = set.pos;
@@ -424,8 +437,8 @@ export function positionsAt(show: Show, t: number): Record<string, Point> {
     out[id] = { x: p.x + (q.x - p.x) * g, y: p.y + (q.y - p.y) * g };
   }
   for (const ids of set.turning ?? []) {
-    const fit = groupTurn(show, to, ids);
-    if (fit) for (const id of ids) out[id] = along(turnRoute(a[id] ?? b[id], b[id], fit.center, fit.angle), frac(id));
+    const routes = turnRoutes(show, to, ids);
+    if (routes) for (const id of ids) out[id] = along(routes[id], frac(id));
   }
   for (const g of set.ftl ?? []) {
     const starts = g.order.map((id) => a[id] ?? b[id]);
@@ -441,6 +454,23 @@ export function positionsAt(show: Show, t: number): Record<string, Point> {
     out[id] = { x: path[k].x + (path[k + 1].x - path[k].x) * g, y: path[k].y + (path[k + 1].y - path[k].y) * g };
   }
   return out;
+}
+
+/**
+ * Whether performer `id`'s route into set `i` bends away from a straight line (a drawn path, a follow-the-leader, a
+ * turning group) by more than half a step, so the phone doesn't describe it as if they walk straight to the new spot.
+ */
+export function routeBends(show: Show, i: number, id: string): boolean {
+  const set = show.sets[i], a = show.sets[i - 1]?.pos[id], b = set?.pos[id];
+  if (!i || !a || !b) return false;
+  if (!set.paths?.[id] && !set.ftl?.some((g) => g.order.includes(id)) && !set.turning?.some((g) => g.includes(id))) return false;
+  const from = setStarts(show)[i - 1], dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy);
+  for (let h = 1; h < 2 * set.counts; h++) {
+    const p = positionsAt(show, from + h / 2)[id];
+    const off = len < 1e-9 ? Math.hypot(p.x - a.x, p.y - a.y) : Math.abs((p.x - a.x) * dy - (p.y - a.y) * dx) / len;
+    if (off > 0.5) return true;
+  }
+  return false;
 }
 
 /**
@@ -629,6 +659,8 @@ export const TOO_CLOSE = 1;
  * each pair once, at its closest, nearest first. `count` is the count of the move it happens on, to the nearest
  * quarter (0 for set 1). Positions are sampled every half count; between samples each performer moves in a straight
  * line, so the closest approach inside each half count is worked out exactly (a fast crossing between samples counts).
+ * Moves with arcs or corners between counts (turning groups, follow-the-leader) are sampled every eighth of a count instead,
+ * so a performer cutting across the inside of a curve can't hide between samples.
  */
 export function closeCalls(show: Show, i: number): { a: string; b: string; count: number; d: number }[] {
   const best = new Map<string, { a: string; b: string; count: number; d: number }>();
@@ -637,9 +669,10 @@ export function closeCalls(show: Show, i: number): { a: string; b: string; count
     if (d < TOO_CLOSE && (!best.has(k) || d < best.get(k)!.d)) best.set(k, { a: x, b: y, count: Math.round(count * 4) / 4, d });
   };
   const n = i > 0 ? show.sets[i].counts : 0, from = i > 0 ? setStarts(show)[i - 1] : 0;
+  const per = i > 0 && (show.sets[i].turning?.length || show.sets[i].ftl?.length) ? 8 : 2; // samples per count
   let prev = i > 0 ? positionsAt(show, from) : show.sets[0].pos;
-  for (let h = i > 0 ? 1 : 0; h <= 2 * n; h++) {
-    const pos = i > 0 ? positionsAt(show, from + h / 2) : prev;
+  for (let h = i > 0 ? 1 : 0; h <= per * n; h++) {
+    const pos = i > 0 ? positionsAt(show, from + h / per) : prev;
     // Bucket each performer's straight stretch (padded half a step) into 1-step cells; pairs sharing a cell are checked.
     const cells = new Map<string, string[]>(), seen = new Set<string>(), r = TOO_CLOSE / 2;
     for (const [id, q] of Object.entries(pos)) {
@@ -656,7 +689,7 @@ export function closeCalls(show: Show, i: number): { a: string; b: string; count
           // Relative position goes from r0 to r1 in a straight line; its closest point to zero is at t (0..1).
           const r0x = op.x - p.x, r0y = op.y - p.y, dx = oq.x - q.x - r0x, dy = oq.y - q.y - r0y, vv = dx * dx + dy * dy;
           const t = vv > 0 ? Math.min(1, Math.max(0, -(r0x * dx + r0y * dy) / vv)) : 1;
-          note(id, o, Math.hypot(r0x + dx * t, r0y + dy * t), i > 0 ? (h - 1 + t) / 2 : 0);
+          note(id, o, Math.hypot(r0x + dx * t, r0y + dy * t), i > 0 ? (h - 1 + t) / per : 0);
         }
         here.push(id);
         cells.set(k, here);
@@ -900,6 +933,30 @@ export function yFrom(ref: FrontRef, steps: number, dir: FrontDir, hash: HashPre
 
 // ---- File format. Shows from disk are untrusted: check shape before use.
 
+/**
+ * A short fingerprint of what performers see: everything in the show except the revision itself, warnings the director
+ * dismissed, the step limit (it only changes warnings), and the tracing picture. Two shows with the same drill match.
+ */
+export function drillSig(show: Show): string {
+  const { revision: _r, revisionSig: _s, dismissed: _d, stepLimit: _l, trace: _t, ...drill } = show;
+  const text = JSON.stringify(drill);
+  let h = 0x811c9dc5; // FNV-1a, 32 bits: not for security, just "did it change"
+  for (let i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 0x01000193);
+  return (h >>> 0).toString(16);
+}
+
+/** The show with the next revision number and the drill's fingerprint, for a copy headed to phones. */
+export const nextRevision = (show: Show): Show => ({ ...show, revision: (show.revision ?? 0) + 1, revisionSig: drillSig(show) });
+
+/**
+ * The revision for paper: "rev 6", or "rev 6 + changes" when the drill was edited after revision 6 went out, so a chart
+ * printed later can't pass for what's on the phones. Shows published before fingerprints just say "rev 6". '' if never published.
+ */
+export function revisionLabel(show: Show): string {
+  if (!show.revision) return '';
+  return show.revisionSig && show.revisionSig !== drillSig(show) ? `rev ${show.revision} + changes` : `rev ${show.revision}`;
+}
+
 export function parseShow(text: string): Show {
   return parseShowFile(text).show;
 }
@@ -944,6 +1001,7 @@ function checkShow(s: any): Show { // eslint-disable-line @typescript-eslint/no-
   if (s.id !== undefined && !(str(s.id) && SHOW_ID_RE.test(s.id))) bad('id');
   if (s.music !== undefined && !validMusic(s.music)) bad('music');
   if (s.revision !== undefined && !(Number.isInteger(s.revision) && s.revision >= 1 && s.revision <= 1e6)) bad('revision');
+  if (s.revisionSig !== undefined && !(typeof s.revisionSig === 'string' && /^[0-9a-f]{1,16}$/.test(s.revisionSig))) bad('revision fingerprint');
   if (s.symbols === 'icons') delete s.symbols; // equipment icons were a choice for a day (2026-11-05): such a show opens with letters
   if (s.symbols !== undefined && s.symbols !== 'dots') bad('symbols');
   if (s.movements !== undefined && (!Array.isArray(s.movements) || s.movements.length > 100 || !s.movements.every((m: Movement) =>
@@ -959,8 +1017,18 @@ function checkShow(s: any): Show { // eslint-disable-line @typescript-eslint/no-
   if (s.dismissed !== undefined && !(Array.isArray(s.dismissed) && s.dismissed.length <= 5000 && s.dismissed.every((k: unknown) => typeof k === 'string' && k.length <= 20_000))) bad('dismissed warnings');
   if (s.stepLimit !== undefined && !(Number.isFinite(s.stepLimit) && s.stepLimit >= MIN_STEP_LIMIT && s.stepLimit <= MAX_STEP_LIMIT)) bad('step limit');
   const propIds = new Set((s.props ?? []).map((p: Prop) => p.id));
+  // Ids are how everything points at everything else, so each must be unique, and every reference must land on something.
+  const unique = (list: { id: string }[], what: string) => { if (new Set(list.map((x) => x.id)).size !== list.length) bad(`two ${what} with the same id`); };
+  unique(s.sections, 'sections'); unique(s.performers, 'performers'); unique(s.sets, 'sets'); unique(s.props ?? [], 'props');
+  const sectionIds = new Set(s.sections.map((x: Section) => x.id)), performerIds = new Set(s.performers.map((x: Performer) => x.id));
+  for (const x of s.performers) if (!sectionIds.has(x.section)) bad(`performer in a section that isn't in the show`);
+  s.sets.forEach((set: DrillSet, i: number) => {
+    // The opening set has no move into it (0 counts); every other set is a move of at least one count.
+    if (!(Number.isInteger(set?.counts) && set.counts >= (i ? 1 : 0) && set.counts <= MAX_MOVEMENT)) bad(`counts in set ${i + 1}`);
+  });
   for (const set of s.sets) {
     if (!str(set?.id) || !str(set.name) || !Number.isFinite(set.counts) || typeof set.pos !== 'object' || !set.pos) bad('set');
+    if (Object.keys(set.pos).some((id) => !performerIds.has(id))) bad(`a spot in set ${set.name} for a performer who isn't in the show`);
     if (set.measures !== undefined && !str(set.measures)) bad('set measures');
     if (set.ftl !== undefined && (!Array.isArray(set.ftl) || !set.ftl.every((g: { order?: unknown; turns?: unknown; smooth?: unknown }) =>
       Array.isArray(g?.order) && g.order.every((id) => str(id) && id in set.pos) && (g.smooth === undefined || typeof g.smooth === 'boolean') && (g.turns === undefined

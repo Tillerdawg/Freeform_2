@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useDialog } from '../ui/useDialog';
-import { colorOf, fieldOf, mark, moveSegments, type Show } from '../engine/show';
+import { colorOf, fieldOf, mark, moveSegments, revisionLabel, type Show } from '../engine/show';
 import { drawProps, drawField, drawGlyph, drawLabels, drawMarks, fitView, toScreen } from '../field/drawField';
 import { ROWS_PER_PAGE, ROWS_WITH_PICTURES, chartTitle, chunk, dotCards, hasMeasures, sortedPerformers, type Card } from './docs';
 
@@ -168,7 +168,7 @@ export function PrintDialog({ show, selected, onClose }: Props) {
 function Pages({ show, job }: { show: Show; job: Job }) {
   const nums = show.sets.map((_, i) => i).slice(job.sets[0], job.sets[1] + 1);
   const charts = useMemo(() => (job.kind === 'charts' ? nums.map((i) => chartImage(show, i, job.paths)) : []), [show, job]); // eslint-disable-line react-hooks/exhaustive-deps
-  const rev = show.revision ? ` · rev ${show.revision}` : ''; // so "who has revision 6?" works on paper too
+  const rev = show.revision ? ` · ${revisionLabel(show)}` : ''; // so "who has revision 6?" works on paper too
   const meas = hasMeasures(show);
   const cards = useMemo(() => (job.kind === 'dots' ? dotCards(show, sortedPerformers(show, job.ids), job.pics ? ROWS_WITH_PICTURES : job.single ? ROWS_PER_PAGE : undefined, job.sets) : []), [show, job]);
   const pictures = useMemo(() => (job.pics ? dotPictures(show, cards) : null), [show, job, cards]);

@@ -950,7 +950,7 @@ export function App() {
         />
         {show.performers.length === 0 && !otherTab && (
           <div className="backup-note" role="group" aria-label="Start a show">
-            <span><strong>Start your show.</strong> Place performers on the field, bring in a roster from Excel, or look around a finished sample first. On a new computer? Open your show from its phone link or recovery code.</span>
+            <span><strong>Start your show.</strong> Place performers on the field, bring in a roster from Excel, or look around the sample show first. On a new computer? Open your show from its phone link or recovery code.</span>
             <button className="primary" onClick={() => { setTool('add'); setOpenAdd((n) => n + 1); }}>Place performers</button>
             <button onClick={() => setRoster(true)}>Import a roster…</button>
             <button onClick={trySample}>Try the sample show</button>
@@ -1017,7 +1017,7 @@ export function App() {
       />
       </div>
       </div>
-      {sharing && <ShareDialog show={show} onClose={() => setSharing(false)} setRevision={(n) => setShow((s) => ({ ...s, revision: n }))} />}
+      {sharing && <ShareDialog show={show} onClose={() => setSharing(false)} published={(p) => setShow((s) => ({ ...s, revision: p.revision, revisionSig: p.revisionSig }))} />}
       {roster && <RosterImport show={show} setShow={setShow} onClose={() => setRoster(false)} />}
       {library && <ShowsDialog show={show} act={act} linkFirst={library === 'link'} onClose={() => setLibrary(false)} />}
       {feedback && <FeedbackDialog onClose={() => setFeedback(false)} />}

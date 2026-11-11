@@ -96,6 +96,8 @@ export const ES: Record<string, string> = {
   'bigger step size than normal': 'tamaño de paso más grande de lo normal',
   'very big step size': 'tamaño de paso muy grande',
   'moving {way} (facing the front)': 'moviéndote {way} (mirando al frente)',
+  'not a straight line (watch the move), ending up {way} (facing the front)': 'no es en línea recta (mira el movimiento), terminando {way} (mirando al frente)',
+  'not a straight line (watch the move)': 'no es en línea recta (mira el movimiento)',
   'back': 'hacia atrás',
   'forward': 'hacia adelante',
   'to your left': 'a tu izquierda',

@@ -102,6 +102,32 @@ describe('dismissing a warning', () => {
   });
 });
 
+describe('a dismissed warning that gets worse', () => {
+  it('comes back when the move gets harder, and stays dismissed when it gets easier', () => {
+    const { show: s0 } = show2();
+    const over = setCounts(s0, 1, 4); // a 2-to-5
+    const x = reviewShow(over).find((i) => i.kind === 'steps')!;
+    expect(x.m).toBe(2);
+    const show = { ...over, dismissed: [issueKey(over, x)] };
+    const worse = setCounts(show, 1, 2); // a 1-to-5
+    expect(splitDismissed(worse, reviewShow(worse)).open.some((i) => i.kind === 'steps')).toBe(true);
+    const easier = setCounts(show, 1, 6); // a 3-to-5, still over the limit
+    expect(splitDismissed(easier, reviewShow(easier)).open.some((i) => i.kind === 'steps')).toBe(false);
+    // dismissing it again at the worse size replaces the old key, and bringing it back clears it
+    const wx = reviewShow(worse).find((i) => i.kind === 'steps')!, again = dismissIssues(worse, reviewShow(worse), [issueKey(worse, wx)]);
+    expect(again.dismissed).toEqual([issueKey(worse, wx)]);
+    expect(restoreIssues(easier, [issueKey(easier, reviewShow(easier).find((i) => i.kind === 'steps')!)]).dismissed).toBeUndefined();
+  });
+
+  it('keeps dismissals saved before severity was part of the key', () => {
+    const { show: s0 } = show2();
+    const over = setCounts(s0, 1, 2);
+    const x = reviewShow(over).find((i) => i.kind === 'steps')!;
+    const old = { ...over, dismissed: [issueKey(over, x).split('@')[0]] };
+    expect(splitDismissed(old, reviewShow(old)).open.some((i) => i.kind === 'steps')).toBe(false);
+  });
+});
+
 describe('dismissing and bringing back several at once', () => {
   it('dismisses the chosen ones, drops keys for problems that are gone, and brings back some or all', () => {
     const { show: s0 } = show2();

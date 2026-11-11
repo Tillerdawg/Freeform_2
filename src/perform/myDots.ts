@@ -1,6 +1,7 @@
 // A performer's own dot sheet, for the phone's My dots list: one row per set, like the printed card.
 import { frontToBack, sideToSide, type StepTier } from '../engine/coords';
-import { fieldOf, moveSteps, timingOf, type Show } from '../engine/show';
+import { fieldOf, moveSteps, routeBends, timingOf, type Show } from '../engine/show';
+import { moveWords } from './neighbors';
 
 export interface DotRow {
   index: number;
@@ -10,6 +11,7 @@ export interface DotRow {
   side: string;
   front: string;
   steps: { per5: number; tier: StepTier } | null; // step size into this set (none for set 1, or a hold)
+  way: string; // which way the move goes, in words (and whether the route bends); '' when there's no move to describe
   held: boolean; // no travel into this set: the same spot as the set before (mark time, visuals, and the rest are in the notes)
   hold: { wait: number; move: number; after: number } | null; // a delayed or early step-off; null when moving every count
   cue: string; // my notes for this set
@@ -31,6 +33,7 @@ export function myDots(show: Show, id: string, lang: 'en' | 'es' = 'en'): DotRow
       side: p ? sideToSide(p.x, f, lang) : '',
       front: p ? frontToBack(p.y, f, lang) : '',
       steps: st && st.per5 !== Infinity && st.per5 > 0 ? st : null,
+      way: st && st.per5 !== Infinity && st.per5 > 0 && p && show.sets[i - 1].pos[id] ? moveWords(show.sets[i - 1].pos[id], p, lang, routeBends(show, i, id)) : '',
       held: !!st && st.per5 === Infinity,
       hold: st?.per5 !== Infinity && tm && tm.move < s.counts ? { wait: tm.wait, move: tm.move, after: s.counts - tm.wait - tm.move } : null,
       cue: s.cues?.[id] ?? '',

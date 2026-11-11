@@ -31,11 +31,17 @@ export function stepWords(per5: number, l: Lang = current): string {
 }
 
 /** Which way a move ends up, for a performer facing the front: +y is toward the back sideline, +x toward Side 2 (their left). */
-export function moveWords(from: Point, to: Point, l: Lang = current): string {
+/**
+ * When the route bends (a drawn path, a follow-the-leader, a turn), the words say so and give only where it ends up,
+ * since the straight-line direction would send them the wrong way.
+ */
+export function moveWords(from: Point, to: Point, l: Lang = current, bends = false): string {
   const dx = to.x - from.x, dy = to.y - from.y;
   const counts = (a: number, b: number) => Math.abs(a) >= 0.5 && Math.abs(a) >= 0.3 * Math.abs(b); // a small sideways drift isn't worth saying
   const fb = counts(dy, dx) ? (dy > 0 ? 'back' : 'forward') : '', side = counts(dx, dy) ? (dx > 0 ? 'to your left' : 'to your right') : '';
-  if (!fb && !side) return '';
+  if (!fb && !side) return bends ? tr('not a straight line (watch the move)', undefined, l) : '';
   const way = fb && side ? `${fb} and ${side}` : fb || side; // one of eight phrases, so each has its own translation
-  return tr('moving {way} (facing the front)', { way: tr(way, undefined, l) }, l);
+  return bends
+    ? tr('not a straight line (watch the move), ending up {way} (facing the front)', { way: tr(way, undefined, l) }, l)
+    : tr('moving {way} (facing the front)', { way: tr(way, undefined, l) }, l);
 }
