@@ -1526,3 +1526,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Context:** The timeline and sidebar show/hide buttons sat at the right end of the top toolbar row, next to Undo and Redo.
 - **Decision:** They move to the right end of the second row (Snap to grid, Markup, Shape, and the rest), pinned there like Undo is on the first row, so they stay in reach if the row ever scrolls sideways. Undo and Redo stay on the first row.
 - **Claude's call (Jason can veto):** with the two buttons added, the tools row no longer fit an iPad mini on its side (1090 px of buttons in 1024). On touch screens up to 1100 px wide, **Snap to grid** reads **Snap** and **Rotate & Scale** reads **Rotate** (they already did on an upright iPad mini), so the row fits again. **Add Performer** keeps its full name there.
+
+## 2026-11-11: A white field in the editor
+- **Who:** Jason Tiller (asked for it); details by Claude (Jason can veto)
+- **Context:** Some drill writers would rather work on a white field with black lines and dots, like paper.
+- **Options:** a white field for the editor only; for the editor and phones; tie it to light mode.
+- **Decision:** **Layout → White field** (and **Green field** to switch back), remembered per browser, separate from light mode (any panel color with either field). Editor only for now: phones and the video stay green, and printing is already black on white. On white: black field lines, letters, and labels on a white edge; the selection keeps its gold fill with a field-dark ring and box (thin gold can't be read on white, as in light mode); shape guides and note highlights in the light-mode blue; props like paper. Step paths are unchanged: their dark casing reads on white as well as turf. A section's own color keeps its dark outline. `palette.test.ts` checks the white field's colors (text 4.5:1, lines 3:1).

@@ -1,4 +1,4 @@
-import { chrome, PALETTE } from '../ui/palette';
+import { chrome, LIGHT, PALETTE } from '../ui/palette';
 import { placeLabels, turned } from './labels';
 import type { LabelSide } from '../engine/show';
 import { FEET, FIELD_WIDTH, GOAL_LINE_X, HASHES, STEP_IN, type FieldSpec, type Floor, type Point } from '../engine/coords';
@@ -26,12 +26,30 @@ export function fitView(w: number, h: number, f: FieldSpec = 'highSchool'): View
   return { scale, ox: w / 2, oy: h / 2 + (FIELD_WIDTH / 2) * scale };
 }
 
-/** Colors for the screen (green turf) and for paper (black on white, easy on toner and copiers). */
+/** Colors for the screen (green turf), a white field on screen (for writers who prefer paper), and paper itself (black on white, easy on toner and copiers). */
 export const THEMES = {
   screen: { get bg() { return chrome('bg'); }, turf: PALETTE.turf, floor: PALETTE.floor, gridMinor: 'rgba(255,255,255,0.15)', gridMajor: 'rgba(255,255,255,0.32)', line: '#fff', get number() { return chrome('text'); } }, // bg and number sit off the turf, so they follow light/dark mode
+  white: { get bg() { return chrome('bg'); }, turf: '#fff', floor: '#fff', gridMinor: 'rgba(0,0,0,0.12)', gridMajor: 'rgba(0,0,0,0.28)', line: '#000', get number() { return chrome('text'); } },
   print: { bg: '#fff', turf: '#fff', floor: '#fff', gridMinor: 'rgba(0,0,0,0.07)', gridMajor: 'rgba(0,0,0,0.2)', line: '#000', number: '#555' },
 };
 export type Theme = keyof typeof THEMES;
+/** A look on screen: the green turf or the white field. */
+export type Look = 'screen' | 'white';
+
+/**
+ * What's drawn on the field, for each look. Green turf: white letters and labels on a dark edge, gold selection, light blue guides.
+ * White field: black letters and labels on a white edge; the selection keeps its gold fill but its lines and rings are field
+ * dark (thin gold can't be read on white: the same rule as light mode); guides are the light-mode blue. Step paths are the same
+ * in both: their dark casing reads on turf and on white.
+ */
+export const INK = {
+  screen: { letter: '#fff', outline: 'rgba(0,0,0,0.85)', label: '#fff', halo: 'rgba(0,0,0,0.85)', dotRing: PALETTE.gold, selRing: '#fff', selLine: PALETTE.gold, badgeRing: undefined,
+    guide: PALETTE.blue, guideEdge: '#0b2a36', guideArm: 'rgba(90,209,255,0.7)', mark: '#fff', markHalo: 'rgba(0,0,0,0.55)', markEmpty: 'rgba(255,255,255,0.5)',
+    propFill: PALETTE['bg-deep'], propLine: '#fff', propName: '#fff', propHalo: 'rgba(0,0,0,0.85)' },
+  white: { letter: '#111', outline: 'rgba(255,255,255,0.9)', label: '#111', halo: 'rgba(255,255,255,0.9)', dotRing: '#111', selRing: LIGHT.gold, selLine: LIGHT.gold, badgeRing: LIGHT.gold,
+    guide: LIGHT.blue, guideEdge: LIGHT.blue, guideArm: 'rgba(7,95,133,0.7)', mark: '#000', markHalo: 'rgba(255,255,255,0.8)', markEmpty: 'rgba(0,0,0,0.45)',
+    propFill: '#fff', propLine: '#000', propName: '#000', propHalo: '#fff' },
+} as const;
 
 /** An indoor floor: its grid and edge, and for a court the center line, circles, lanes, three-point lines, and hoops. */
 function drawFloor(ctx: CanvasRenderingContext2D, v: View, f: Floor, theme: Theme) {
@@ -210,12 +228,12 @@ export function drawLabels(
  * A section letter centered on its spot, always upright (drawn in device space, so a field turned around for Facing
  * front doesn't flip it). `badge`: a filled circle behind it (selected). Dark outline so any color reads on turf or paper.
  */
-export function drawGlyph(ctx: CanvasRenderingContext2D, at: Point, glyph: string, size: number, color: string, badge?: string, outline = 'rgba(0,0,0,0.85)') {
+export function drawGlyph(ctx: CanvasRenderingContext2D, at: Point, glyph: string, size: number, color: string, badge?: string, outline = 'rgba(0,0,0,0.85)', ring?: string) {
   const c = ctx.getTransform().transformPoint(at), k = Math.hypot(ctx.getTransform().a, ctx.getTransform().b);
   ctx.save();
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   const px = size * k;
-  if (badge) { ctx.fillStyle = badge; ctx.beginPath(); ctx.arc(c.x, c.y, px * 0.62, 0, Math.PI * 2); ctx.fill(); }
+  if (badge) { ctx.fillStyle = badge; ctx.beginPath(); ctx.arc(c.x, c.y, px * 0.62, 0, Math.PI * 2); ctx.fill(); if (ring) { ctx.lineWidth = Math.max(1.5, px * 0.1); ctx.strokeStyle = ring; ctx.stroke(); } } // ring: the badge's edge, on a white field
   ctx.font = `800 ${px}px system-ui, sans-serif`;
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   const y = c.y + px * 0.04; // optical center: capitals sit a touch high on the middle baseline
@@ -227,8 +245,9 @@ export function drawGlyph(ctx: CanvasRenderingContext2D, at: Point, glyph: strin
 /** Props under the performers: a shape with its name in the middle; `print` is black on white. */
 export function drawProps(
   ctx: CanvasRenderingContext2D, v: View, props: { id: string; name: string; w: number; h: number; round?: boolean }[],
-  spots: Record<string, { x: number; y: number; angle: number }>, selected: string | null, mode: 'screen' | 'print', px: number,
+  spots: Record<string, { x: number; y: number; angle: number }>, selected: string | null, mode: Theme, px: number,
 ) {
+  const I = INK[mode === 'print' ? 'white' : mode];
   for (const pr of props) {
     const s = spots[pr.id];
     if (!s) continue;
@@ -239,11 +258,11 @@ export function drawProps(
     ctx.beginPath();
     if (pr.round) ctx.ellipse(0, 0, w / 2, h / 2, 0, 0, Math.PI * 2); else ctx.rect(-w / 2, -h / 2, w, h);
     ctx.globalAlpha = mode === 'print' ? 0.85 : 0.7;
-    ctx.fillStyle = mode === 'print' ? '#fff' : PALETTE['bg-deep'];
+    ctx.fillStyle = I.propFill;
     ctx.fill();
     ctx.globalAlpha = 1;
     ctx.lineWidth = Math.max(2, v.scale * 0.15) * (sel ? 1.6 : 1);
-    ctx.strokeStyle = mode === 'print' ? '#000' : sel ? PALETTE.gold : '#fff';
+    ctx.strokeStyle = mode === 'print' ? '#000' : sel ? I.selLine : I.propLine;
     ctx.setLineDash(mode === 'print' ? [] : [v.scale * 0.6, v.scale * 0.3]);
     ctx.stroke();
     ctx.restore();
@@ -252,9 +271,9 @@ export function drawProps(
     ctx.setTransform(1, 0, 0, 1, 0, 0); // the name reads upright, even on a field turned around
     ctx.font = `700 ${px}px system-ui, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     const maxW = Math.max(w, h) * Math.hypot(m.a, m.b);
-    ctx.lineWidth = px * 0.3; ctx.lineJoin = 'round'; ctx.strokeStyle = mode === 'print' ? '#fff' : 'rgba(0,0,0,0.85)';
+    ctx.lineWidth = px * 0.3; ctx.lineJoin = 'round'; ctx.strokeStyle = I.propHalo;
     ctx.strokeText(pr.name, at.x, at.y, maxW); // an edge, so lines on the field don't run through the name
-    ctx.fillStyle = mode === 'print' ? '#000' : sel ? PALETTE.gold : '#fff';
+    ctx.fillStyle = mode === 'print' ? '#000' : sel ? I.selLine : I.propName;
     ctx.fillText(pr.name, at.x, at.y, maxW);
     ctx.restore();
   }
@@ -266,9 +285,9 @@ export function drawProps(
  */
 export function drawPerformers(
   ctx: CanvasRenderingContext2D, v: View, dots: Dot[], selected: Set<string>, paths: Path[], box?: [Point, Point], dpr = 1,
-  { warn, lasso }: { warn?: Set<string>; lasso?: Point[] } = {},
+  { warn, lasso, look = 'screen' }: { warn?: Set<string>; lasso?: Point[]; look?: Look } = {},
 ) {
-  const s = v.scale;
+  const s = v.scale, I = INK[look];
   ctx.setLineDash([s * 0.4, s * 0.3]);
   ctx.lineWidth = Math.max(1.5, s * 0.12);
   const w = ctx.lineWidth;
@@ -293,14 +312,15 @@ export function drawPerformers(
     const sel = selected.has(d.id);
     ctx.globalAlpha = d.dim ? 0.3 : 1;
     if (d.glyph) {
-      drawGlyph(ctx, c, d.glyph, f, sel ? '#111' : d.color ?? '#fff', sel ? PALETTE.gold : undefined);
+      // On white, a section's own color keeps the dark outline (a light color needs it); plain letters are black on a white edge.
+      drawGlyph(ctx, c, d.glyph, f, sel ? '#111' : d.color ?? I.letter, sel ? PALETTE.gold : undefined, d.color ? INK.screen.outline : I.outline, sel ? I.badgeRing : undefined);
       continue;
     }
     ctx.beginPath(); ctx.arc(c.x, c.y, r, 0, Math.PI * 2);
     ctx.fillStyle = sel ? PALETTE.gold : d.color ?? '#111';
     ctx.fill();
     ctx.lineWidth = Math.max(1.5, r * 0.25);
-    ctx.strokeStyle = sel ? '#fff' : d.color ? '#111' : PALETTE.gold; // a colored dot gets a dark ring so light colors show on the turf
+    ctx.strokeStyle = sel ? I.selRing : d.color ? '#111' : I.dotRing; // a colored dot gets a dark ring so light colors show on the turf
     ctx.stroke();
   }
   ctx.globalAlpha = 1;
@@ -311,12 +331,12 @@ export function drawPerformers(
       ctx.strokeStyle = color; ctx.lineWidth = width; ctx.beginPath(); ctx.arc(c.x, c.y, rr, 0, Math.PI * 2); ctx.stroke();
     }
   }
-  drawLabels(ctx, dots.map((d) => ({ ...d, first: selected.has(d.id) })), v, r, Math.max(10 * dpr, s * 0.8), '#fff', 'rgba(0,0,0,0.85)'); // at least 10 CSS px: smaller isn't readable; black outline so yard lines don't swallow them
+  drawLabels(ctx, dots.map((d) => ({ ...d, first: selected.has(d.id) })), v, r, Math.max(10 * dpr, s * 0.8), I.label, I.halo); // at least 10 CSS px: smaller isn't readable; black outline so yard lines don't swallow them
 
   if (box) {
     const a = toScreen(v, box[0]), b = toScreen(v, box[1]);
     ctx.fillStyle = 'rgba(255,209,102,0.12)';
-    ctx.strokeStyle = PALETTE.gold;
+    ctx.strokeStyle = I.selLine;
     ctx.lineWidth = 1;
     ctx.fillRect(a.x, a.y, b.x - a.x, b.y - a.y);
     ctx.strokeRect(a.x, a.y, b.x - a.x, b.y - a.y);
@@ -326,17 +346,18 @@ export function drawPerformers(
     lasso.forEach((p, k) => { const q = toScreen(v, p); if (k) ctx.lineTo(q.x, q.y); else ctx.moveTo(q.x, q.y); });
     ctx.closePath();
     ctx.fillStyle = 'rgba(255,209,102,0.12)'; ctx.fill(); // the box's fill: gold, faint
-    ctx.strokeStyle = PALETTE.gold; ctx.lineWidth = Math.max(1, dpr); ctx.setLineDash([4 * dpr, 3 * dpr]); ctx.stroke(); ctx.setLineDash([]);
+    ctx.strokeStyle = I.selLine; ctx.lineWidth = Math.max(1, dpr); ctx.setLineDash([4 * dpr, 3 * dpr]); ctx.stroke(); ctx.setLineDash([]);
   }
 }
 
 /** Shape guide (dashed) and its draggable handles. */
 export function drawShape(
   ctx: CanvasRenderingContext2D, v: View, guide: Point[], closed: boolean, handles: Point[],
-  controls: boolean[] = [], arms: [Point, Point][] = [],
+  controls: boolean[] = [], arms: [Point, Point][] = [], look: Look = 'screen',
 ) {
+  const I = INK[look];
   ctx.save();
-  ctx.strokeStyle = PALETTE.blue;
+  ctx.strokeStyle = I.guide;
   ctx.lineWidth = Math.max(1.5, v.scale * 0.1);
   ctx.setLineDash([6, 4]);
   ctx.beginPath();
@@ -345,7 +366,7 @@ export function drawShape(
   ctx.stroke();
   ctx.setLineDash([]);
   // Bézier control arms: thin lines from each anchor to its controls.
-  ctx.strokeStyle = 'rgba(90,209,255,0.7)';
+  ctx.strokeStyle = I.guideArm;
   ctx.lineWidth = 1.5;
   for (const [a, b] of arms) {
     const p = toScreen(v, a), q = toScreen(v, b);
@@ -355,7 +376,7 @@ export function drawShape(
   handles.forEach((h, k) => {
     const s = toScreen(v, h);
     ctx.fillStyle = PALETTE.blue;
-    ctx.strokeStyle = '#0b2a36';
+    ctx.strokeStyle = I.guideEdge;
     ctx.lineWidth = 2;
     if (controls[k]) { // controls are circles; points the shape passes through are squares
       ctx.beginPath(); ctx.arc(s.x, s.y, r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
@@ -372,15 +393,16 @@ export const HANDLE_PX = 6; // half-size of a shape handle, in CSS pixels
 /** Page markup: text notes, arrows, freehand ink. `selected` gets a blue outline. */
 export function drawMarks(ctx: CanvasRenderingContext2D, v: View, marks: Mark[], theme: Theme = 'screen', selected?: string | null) {
   const s = v.scale;
-  const ink = theme === 'print' ? '#000' : '#fff';
-  const halo = theme === 'print' ? '#fff' : 'rgba(0,0,0,0.55)';
+  const I = INK[theme === 'print' ? 'white' : theme];
+  const ink = theme === 'print' ? '#000' : I.mark;
+  const halo = theme === 'print' ? '#fff' : I.markHalo;
   ctx.save();
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
   for (const m of marks) {
     const sel = m.id === selected;
     const stroke = (w: number, path: () => void) => {
-      if (sel) { ctx.strokeStyle = PALETTE.blue; ctx.lineWidth = w + 6; ctx.beginPath(); path(); ctx.stroke(); }
+      if (sel) { ctx.strokeStyle = I.guide; ctx.lineWidth = w + 6; ctx.beginPath(); path(); ctx.stroke(); }
       ctx.strokeStyle = ink; ctx.lineWidth = w; ctx.beginPath(); path(); ctx.stroke();
     };
     if (m.kind === 'text') {
@@ -388,11 +410,11 @@ export function drawMarks(ctx: CanvasRenderingContext2D, v: View, marks: Mark[],
       ctx.font = `600 ${TEXT_STEPS * s}px system-ui, sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'alphabetic';
-      const label = m.text || (theme === 'screen' ? '(type a note)' : '');
+      const label = m.text || (theme !== 'print' ? '(type a note)' : '');
       ctx.lineWidth = 0.4 * s;
-      ctx.strokeStyle = sel ? PALETTE.blue : halo;
+      ctx.strokeStyle = sel ? I.guide : halo;
       ctx.strokeText(label, q.x, q.y);
-      ctx.fillStyle = m.text ? ink : 'rgba(255,255,255,0.5)';
+      ctx.fillStyle = m.text ? ink : I.markEmpty;
       ctx.fillText(label, q.x, q.y);
     } else if (m.kind === 'arrow') {
       const a = toScreen(v, m.from), b = toScreen(v, m.to);

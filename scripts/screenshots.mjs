@@ -65,6 +65,16 @@ shot('editor', async () => {
   await goSet(page, 2);
   await save(page, 'editor');
 });
+shot('white-field', async () => {
+  // Layout → White field, set 2 with part of the arc selected.
+  const page = await editor();
+  await page.getByRole('button', { name: /^Layout/ }).click();
+  await page.getByRole('button', { name: 'White field' }).click();
+  await goSet(page, 2);
+  await box(page, { x: -24, y: 40 }, { x: -2, y: 22 });
+  await page.waitForTimeout(300);
+  await save(page, 'white-field', { x: 0, y: 125, width: 1095, height: 620 });
+});
 shot('add-performers', async () => {
   const page = await editor();
   await page.getByRole('button', { name: /^Add.*: choose$/ }).click(); await page.waitForTimeout(200); // the Add button's ▾ part

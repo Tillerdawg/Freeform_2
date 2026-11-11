@@ -43,6 +43,20 @@ describe.each([['app/index.html', app], ['index.html (the front page)', front], 
 // three common kinds (Machado, Oliveira & Fernandes 2009, full strength) and measure the difference (CIE76 ΔE: about 2 is
 // barely visible, 10+ easy to see, 20+ clearly different). A pure red can't stay far from both green and yellow for everyone,
 // so panel signals ask for 12 and lean on their words; field paths ask for 20.
+describe('the white field (Layout → White field)', () => {
+  const full = (h: string) => (h.length === 4 ? '#' + [...h.slice(1)].map((c) => c + c).join('') : h); // #111 → #111111
+  const lum = (h: string) => { h = full(h); const c = [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255).map((x) => (x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4)); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };
+  const ratio = (a: string, b: string) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+  it('keeps letters, labels, lines, and the selection legible on white (text 4.5:1, lines and rings 3:1)', async () => {
+    const { INK, THEMES } = await import('../field/drawField');
+    const W = THEMES.white.turf, I = INK.white;
+    for (const c of [I.letter, I.label, I.mark, I.propName]) expect(ratio(c, W)).toBeGreaterThanOrEqual(4.5);
+    for (const c of [THEMES.white.line, I.selRing, I.selLine, I.dotRing, I.guide, I.guideEdge, I.propLine]) expect(ratio(c, W)).toBeGreaterThanOrEqual(3);
+    expect(ratio(PALETTE['bg-deep'], W)).toBeGreaterThanOrEqual(3); // normal paths, and the casing under warning paths
+    expect(ratio('#111111', PALETTE['gold-fill'])).toBeGreaterThanOrEqual(4.5); // a selected letter on its gold badge
+  });
+});
+
 describe('color blindness', () => {
   const SIM = {
     normal: null,

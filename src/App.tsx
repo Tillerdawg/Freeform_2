@@ -134,6 +134,8 @@ export function App() {
   useEffect(() => setSideChoice(null), [narrow]);
   const sideOpen = sideChoice ?? !narrow;
   const [sideLeft, setSideLeft] = useState(() => layoutPref('sideLeft')); // sidebar on the left instead of the right
+  const [whiteField, setWhiteField] = useState(() => layoutPref('whiteField')); // a white field with black lines, instead of green turf
+  const fieldLook: 'white' | 'screen' = whiteField ? 'white' : 'screen';
   const [timelineTop, setTimelineTop] = useState(() => layoutPref('timelineTop')); // timeline above the field instead of below
   const [timelineOpen, setTimelineOpen] = useState(true); // hide it for more field while writing (a tablet)
   const [adding, setAdding] = useState(false); // tap adds to the selection (shift-click without a keyboard)
@@ -346,20 +348,20 @@ export function App() {
   useEffect(() => {
     if (!view) return;
     const ctx = canvasRef.current!.getContext('2d')!;
-    drawField(ctx, view, fieldOf(show));
+    drawField(ctx, view, fieldOf(show), fieldLook);
     if (trace && show.trace) { // under everything else, see-through
       const tr = show.trace, h = (tr.w * trace.height) / trace.width, tl = toScreen(view, { x: tr.x - tr.w / 2, y: tr.y + h / 2 });
       ctx.save(); ctx.globalAlpha = tr.opacity; ctx.drawImage(trace, tl.x, tl.y, tr.w * view.scale, h * view.scale); ctx.restore();
     }
-    drawProps(ctx, view, show.props ?? [], propsAt(show, t), selectedProp, 'screen', 12 * dpr);
+    drawProps(ctx, view, show.props ?? [], propsAt(show, t), selectedProp, fieldLook, 12 * dpr);
     const pins = onSet >= 0 ? show.sets[onSet].labels : undefined;
     const shown = !playing; // labels jump around as dots move; selected performers keep theirs either way
     const dots = show.performers.filter((p) => positions[p.id] && faded.get(p.id) !== 'hide').map((p) => { const m = mark(show, p), dim = faded.has(p.id); return { id: p.id, dim, label: (shown || selected.has(p.id)) && !dim ? m.label : '', glyph: m.glyph, at: positions[p.id], pin: pins?.[p.id], color: colorOf(show, p) }; });
-    if (onSet >= 0) drawMarks(ctx, view, show.sets[onSet].marks ?? [], 'screen', selectedMark);
-    drawPerformers(ctx, view, dots, selected, paths, box, dpr, { warn, lasso });
-    if (ftlGroup?.turns) drawShape(ctx, view, [], false, ftlGroup.turns); // the selected FTL group's turns: drag to move
+    if (onSet >= 0) drawMarks(ctx, view, show.sets[onSet].marks ?? [], fieldLook, selectedMark);
+    drawPerformers(ctx, view, dots, selected, paths, box, dpr, { warn, lasso, look: fieldLook });
+    if (ftlGroup?.turns) drawShape(ctx, view, [], false, ftlGroup.turns, [], [], fieldLook); // the selected FTL group's turns: drag to move
     const fr = frameNow();
-    if (fr) drawShape(ctx, view, fr.corners, true, [...fr.corners, fr.knob], [false, false, false, false, true], [[fr.stem, fr.knob]]);
+    if (fr) drawShape(ctx, view, fr.corners, true, [...fr.corners, fr.knob], [false, false, false, false, true], [[fr.stem, fr.knob]], fieldLook);
     if (shapeEdit) {
       const sh = shapeEdit.shape;
       const [a, b] = sh.handles;
@@ -370,9 +372,9 @@ export function App() {
       const arms: [Point, Point][] = sh.kind === 'bezier'
         ? h.flatMap((p, k) => (k % 3 === 1 ? [[h[k - 1], p] as [Point, Point]] : k % 3 === 2 ? [[h[k + 1], p] as [Point, Point]] : []))
         : [];
-      drawShape(ctx, view, guide.pts, guide.closed, h, h.map((_, k) => isControl(sh, k)), arms);
+      drawShape(ctx, view, guide.pts, guide.closed, h, h.map((_, k) => isControl(sh, k)), arms, fieldLook);
     }
-  }, [view, show, positions, selected, paths, box, lasso, warn, shapeEdit, onSet, selectedMark, selectedProp, playing, t, theme, tool, trace, faded]);
+  }, [view, show, positions, selected, paths, box, lasso, warn, shapeEdit, onSet, selectedMark, selectedProp, playing, t, theme, tool, trace, faded, fieldLook]);
 
   // Empty text notes are removed as soon as they're not the one being edited (no timing to get wrong).
   useEffect(() => {
@@ -909,10 +911,12 @@ export function App() {
           )}</Menu>
         </span>
         <span style={{ flex: 'none' }}>
-          <Menu label="Layout" title="Put the sidebar on the left or right, and the timeline on the top or bottom">{(close) => (
+          <Menu label="Layout" title="Put the sidebar on the left or right and the timeline on the top or bottom, or switch to a white field">{(close) => (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'stretch' }}>
               <button onClick={() => { close(); setSideLeft(!sideLeft); setLayoutPref('sideLeft', !sideLeft); }}>{sideLeft ? 'Sidebar on the right' : 'Sidebar on the left'}</button>
               <button onClick={() => { close(); setTimelineTop(!timelineTop); setLayoutPref('timelineTop', !timelineTop); }}>{timelineTop ? 'Timeline at the bottom' : 'Timeline at the top'}</button>
+              <button onClick={() => { close(); setWhiteField(!whiteField); setLayoutPref('whiteField', !whiteField); }}
+                title="The field's look while you write. Printed charts are always black on white.">{whiteField ? 'Green field' : 'White field'}</button>
             </div>
           )}</Menu>
         </span>
