@@ -13,6 +13,7 @@ describe('myDots', () => {
     expect(myDots(show, g6)[2].way).toBe('not a straight line (watch the move), ending up back and to your left (facing the front)');
     expect(myDots(show, g6, 'es')[2].way).toMatch(/^no es en línea recta/);
     expect(myDots(show, g6)[1].way).toBe('moving forward (facing the front)'); // straight moves read as before
+    expect(myDots(show, g6).map((r) => r.bends)).toEqual(show.sets.map((_, i) => i === 2)); // only set 3 offers Watch
   });
 
   it('has one row per set, with the same coordinates as the printed dot sheet', () => {

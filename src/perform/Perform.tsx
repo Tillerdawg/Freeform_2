@@ -23,6 +23,7 @@ import { WhoPicker } from './WhoPicker';
 import { myDots, paneFor } from './myDots';
 import { lang, setLang, tr } from '../i18n';
 import { NumberField } from '../ui/NumberField';
+import { useDialog } from '../ui/useDialog';
 import { AUTOSAVE } from '../ui/showStore';
 import { addShow, readLibrary, removeShow, STAFF, type Library, type Saved } from './library';
 
@@ -139,7 +140,10 @@ export function Perform() {
   const [loop, setLoop] = useState<[number, number] | null>(null);
   const [picking, setPicking] = useState<[number, number] | null>(null); // the Loop panel's choice while it's open
   useEffect(() => { setLoop(null); setPicking(null); }, [lib.current, show?.sets.length]); // another show, or sets added or removed in an update
-  const span = useMemo<[number, number]>(() => (loop ? [starts[loop[0]], starts[loop[1]]] : [0, total]), [loop, starts, total]);
+  const loopPanel = useDialog(() => setPicking(null), !!picking); // focus moves in when it opens and back to Loop after; Esc closes it
+  // Watch on a My dots card: play just the move into that set, once, on the field. Cleared when play stops.
+  const [watch, setWatch] = useState<number | null>(null);
+  const span = useMemo<[number, number]>(() => (watch != null ? [starts[watch - 1], starts[watch]] : loop ? [starts[loop[0]], starts[loop[1]]] : [0, total]), [watch, loop, starts, total]);
   // Play with the recording when this phone has it and the show has tapped counts; "♪ Music" off goes back to Tempo.
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
   const [useMusic, setUseMusic] = useState(true);
@@ -152,13 +156,22 @@ export function Perform() {
   }, [audioId, audioVer]);
   const music = useMemo(() => (audio && useMusic && show?.music ? { audio, taps: show.music.taps } : null), [audio, useMusic, show?.music]);
   const [clickOn, setClickOn] = useState(clickWanted);
-  usePlayback(playing, setPlaying, t, setT, bpm, span, !!loop, total, music, clickOn && !music ? starts : null);
+  usePlayback(playing, setPlaying, t, setT, bpm, span, !!loop && watch == null, total, music, clickOn && !music ? starts : null);
+  useEffect(() => { if (!playing) setWatch(null); }, [playing]);
   // Count-in: COUNT_IN clicks (and 4-3-2-1 on the field) at the playing tempo before play starts.
   const [countIn, setCountIn] = useState(() => { try { return localStorage.getItem(COUNT_KEY) === '1'; } catch { return false; } });
   const [counting, setCounting] = useState(0); // the number on screen during a count-in; 0 when not counting
   const countTimers = useRef<number[]>([]);
   const stopCount = () => { countTimers.current.forEach(clearTimeout); countTimers.current = []; setCounting(0); };
   useEffect(() => stopCount, [lib.current]); // another show, or leaving the page
+  const watchMove = (i: number) => {
+    stopCount();
+    setChosen('field'); // the move plays on the field; My dots is a tap away
+    setWatch(i); setT(starts[i - 1]);
+    if (clickOn) wakeClick(); // sound starts only inside a tap
+    if (music) music.audio.play().catch(() => {});
+    setPlaying(true);
+  };
   const togglePlay = () => {
     if (counting) { stopCount(); return; }
     if (playing) { setPlaying(false); return; }
@@ -474,13 +487,14 @@ export function Perform() {
                 {r.cue && <span className="dot-small"><span className="perform-k">{tr('My notes')}</span>{r.cue}</span>}
                 {r.note && <span className="dot-small"><span className="perform-k">{tr('Ensemble')}</span>{r.note}</span>}
               </button>
+              {r.bends && <button className="dot-watch" onClick={() => watchMove(r.index)}>▶ {tr('Watch the move into set {name}', { name: r.set })}</button>}
             </li>
           ))}
         </ol>
       </section>
       <footer className="perform-controls">
         {picking && (
-          <div className="perform-add" role="dialog" aria-label={tr('Loop sets')}>
+          <div ref={loopPanel} tabIndex={-1} className="perform-add" role="dialog" aria-label={tr('Loop sets')}>
             <span>{tr('Practice a few sets over and over. Play starts on the first set and jumps back to it after the last one.')}</span>
             <span>{tr('Sets')}{' '}
               <select aria-label={tr('Loop from set')} value={picking[0]} onChange={(e) => { const v = Number(e.target.value); setPicking([v, Math.max(v + 1, picking[1])]); }} style={{ fontSize: 16 }}>
