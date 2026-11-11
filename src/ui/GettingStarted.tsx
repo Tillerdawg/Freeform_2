@@ -4,12 +4,13 @@
 import { useState, type ReactNode } from 'react';
 import type { Step } from './gettingStarted';
 
-export function GettingStarted({ steps, onHide, start, dock = 'center' }: { steps: Step[]; onHide: () => void; start?: ReactNode; dock?: 'center' | 'top' }) {
+export function GettingStarted({ steps, onHide, start, dock = 'center', logo }: { steps: Step[]; onHide: () => void; start?: ReactNode; dock?: 'center' | 'top'; logo?: ReactNode }) {
   const [small, setSmall] = useState(false);
   const n = steps.filter((s) => s.done).length, next = steps.findIndex((s) => !s.done);
   const center = !!start && next === 0; // a blank field: the card is where you start
   return (
     <section className={center ? `getting-started ${dock}` : 'getting-started'} aria-label={center ? 'Start your show' : 'Getting started'}>
+      {center && logo}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
         <strong style={{ flex: 1, fontSize: center ? 16 : undefined }}>{center ? 'Start your show' : `Getting started: ${n} of ${steps.length}`}</strong>
         {!center && <button onClick={() => setSmall(!small)} aria-expanded={!small} title={small ? 'Show the steps' : 'Fold the list down to this line'}>{small ? 'Show' : 'Fold'}</button>}

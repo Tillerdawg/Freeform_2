@@ -363,6 +363,8 @@ export function App() {
   };
   // Where the blank field's note sits: the middle of an empty field; the top once there's a prop to see under it.
   const startDock = (show.props?.length ?? 0) > 0 ? 'top' : 'center';
+  // In the middle of an empty field the note is the welcome screen, so it carries the full logo (Jason); docked at the top, it stays short.
+  const startLogo = startDock === 'center' && <img className="start-logo" src={theme === 'light' ? '../logo-light.svg' : '../logo.svg'} alt="FreeFORM Drill" />;
   // The ways to begin a blank show: the Start note, and step 1 of the checklist when it's on.
   const startOptions = <>
     <span>Place performers on the field (or props first, like a stage or a backdrop), bring in a roster from Excel, or look around the sample show first. On a new computer? Open your show from its phone link or recovery code.</span>
@@ -1061,9 +1063,10 @@ export function App() {
         {/* A blank field: the Start note in the middle of the field (Jason). With the checklist on, the note is its step 1.
             While placing performers, both get out of the field's middle: the checklist moves to the corner, the note goes. */}
         {show.performers.length === 0 && !otherTab && (gsSteps
-          ? <GettingStarted steps={gsSteps} onHide={hideGs} start={tool === 'select' ? startOptions : undefined} dock={startDock} />
+          ? <GettingStarted steps={gsSteps} onHide={hideGs} start={tool === 'select' ? startOptions : undefined} dock={startDock} logo={startLogo || undefined} />
           : tool === 'select' && (
             <section className={`getting-started ${startDock}`} aria-label="Start your show">
+              {startLogo}
               <strong style={{ display: 'block', fontSize: 16, marginBottom: 6 }}>Start your show</strong>
               {startOptions}
               <p style={{ margin: '12px 0 0', paddingTop: 10, borderTop: '1px solid var(--line)' }}>
