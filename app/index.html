@@ -35,7 +35,7 @@
       /* Buttons and fields: one calm style everywhere. Heights stay within the fixed rows (top bar 40, toolbar 44, timeline 30). */
       button { font: inherit; font-size: 13px; line-height: 18px; color: var(--text); background: var(--surface-2); border: 1px solid var(--line-strong); border-radius: 6px;
         padding: 3px 10px; cursor: pointer; transition: background .12s, border-color .12s, box-shadow .12s; }
-      @media (hover: hover) { button:hover:not(:disabled) { background: var(--line); border-color: var(--muted); } } /* a tapped button on a touch screen would keep its hover look */
+      @media (hover: hover) { button:hover:not(:disabled):not([aria-pressed=true]):not([aria-checked=true]) { background: var(--line); border-color: var(--muted); } } /* a tapped button on a touch screen would keep its hover look. Not on a pressed toggle: it would lose its gold under dark text */
       button:active:not(:disabled) { background: var(--surface); }
       button:disabled { opacity: .45; cursor: default; }
       button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
