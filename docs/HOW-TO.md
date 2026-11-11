@@ -462,15 +462,20 @@ When a student opens your link on their phone, they pick who they are.
 
 They can search by name, by dot (P4), or by section, and **Staff (whole band)** at the top shows everyone. FreeFORM remembers their choice, and the show keeps working offline once it's opened. (If the phone can't save it, say in a private window or with its storage full, a warning says so: the show will be gone when they close it and won't work offline, so they should open it in a regular window.)
 
-![A performer's view of set 2 on a phone](img/phone.png)
+**Upright, the phone shows their dots.** Holding the phone upright, a performer sees **My dots**: a card for every set, like their printed dot sheet. Each card has the set, its counts and measures, the side-to-side and front-to-back spot, and the step size into it. It also says the move in plain words, like "normal steps, moving back and to your left (facing the front)," plus any hold before stepping off, their own notes, and the ensemble notes. The set they're on is outlined in gold. Tap a card to go to that set.
 
-On the performer screen:
+![A performer's dots, set by set, on an upright phone](img/phone.png)
 
-- **Follow my dot** (next to who they are) keeps their dot in the middle through each move. Tap it off to see the whole field. Pinch-zoom works either way. Zoomed out on the whole band, performers show as dots until a pinch makes room for their letters.
+**Sideways, the phone shows the field.** Turn the phone on its side and the field takes the left side of the screen, with the controls in a column on the right:
+
+![The field and playback on a phone held sideways](img/phone-field.png)
+
+- **My dots** and **Field**, next to who they are, switch between the two by hand. That's for a phone locked upright, or for a quick look at the list while it's sideways. Turning the phone goes back to its own view.
+- **Follow my dot** keeps their dot in the middle through each move. Tap it off to see the whole field. Pinch-zoom works either way. Zoomed out on the whole band, performers show as dots until a pinch makes room for their letters.
 - The field orientation button, next to the show's title, reads **From the press box** when the field is drawn the way the editor shows it. Tap it to switch to **Facing the front**, which turns the field around to match what they see facing the audience.
-- Under the field they see the spot they're standing on, then their next spot and how many counts it takes to get there (with measures and step size), plus their notes and the ensemble notes. Under the step size, the move is in plain words too, like "normal steps, moving back and to your left (facing the front)." On the field, the performers closest to them are drawn a little brighter and labeled.
+- One line under the field (or at the top of the column) says the set and the spot they're standing on. On the field, the performers closest to them are drawn a little brighter and labeled.
 - They can play at any tempo, step count by count, scrub, or tap a set number to jump to it. If the show has music, Play follows it, and **♪ Music** switches back to a tempo.
-- With the phone on its side, the field takes the left side and gets the whole height; everything else is in a column on the right that scrolls.
+- **Staff (whole band)** always sees the field, upright or sideways.
 
 **Loop a few sets.** **Loop** (next to the tempo) opens a panel to pick **Sets … to …**. Tap **Loop these sets**, and Play starts on the first set and jumps back to it each time it reaches the last one, at the tempo or with the music. The button then reads **Loop 8–10** (or whichever sets). Tap it again to change the sets or **Stop looping**.
 

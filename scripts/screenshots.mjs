@@ -344,9 +344,19 @@ shot('phone', async () => {
   await page.waitForTimeout(200);
   await save(page, 'phone-who');
   await page.keyboard.press('Enter');
-  await page.getByRole('group', { name: 'Go to set' }).getByRole('button', { name: '2', exact: true }).click();
-  await page.waitForTimeout(600);
+  // Upright: My dots, with set 2 tapped.
+  await page.getByRole('region', { name: 'My dots' }).getByRole('button', { name: /^Set 2/ }).click();
+  await page.waitForTimeout(400);
   await save(page, 'phone');
+  // On its side: the field and playback.
+  await page.setViewportSize({ width: 844, height: 390 });
+  await page.waitForTimeout(800);
+  await save(page, 'phone-field');
+  // Back upright, the Field switch (a phone locked upright), then Loop.
+  await page.setViewportSize({ width: 393, height: 659 });
+  await page.waitForTimeout(400);
+  await page.getByRole('button', { name: 'Field', exact: true }).click();
+  await page.waitForTimeout(400);
   await page.getByRole('button', { name: 'Loop', exact: true }).click();
   await page.getByRole('combobox', { name: 'Loop from set' }).selectOption({ label: '2' });
   await page.getByRole('combobox', { name: 'Loop to set' }).selectOption({ label: '3' });

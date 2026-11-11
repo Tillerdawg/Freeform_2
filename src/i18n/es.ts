@@ -70,6 +70,8 @@ export const ES: Record<string, string> = {
   'Field orientation: from the press box. Tap to turn it around.': 'Vista del campo: desde el palco. Toca para darle la vuelta.',
   'Field orientation: facing the front. Tap to turn it around.': 'Vista del campo: mirando al frente. Toca para darle la vuelta.',
   'Follow my dot': 'Seguir mi punto',
+  'My dots': 'Mis puntos',
+  'Show my dots or the field': 'Ver mis puntos o el campo',
   'Reset zoom': 'Restablecer zoom',
 
   // Where I am and where I go

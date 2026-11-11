@@ -1,12 +1,13 @@
 import { PALETTE, useTheme } from '../ui/palette';
 import { ThemeButton } from '../ui/ThemeButton';
-// Performer / staff view: read-only playback of a shared show, centered on "my" dot. Built for phones (portrait).
+// Performer / staff view: read-only playback of a shared show, centered on "my" dot. Built for phones: upright, a performer
+// sees their dots as a list (My dots); sideways, the field and playback. A switch overrides the phone's orientation.
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { fieldDepth, readout, type Point } from '../engine/coords';
 import { decodeShow, fetchHosted, LOAD_PREFIX, linkHash, parseHosted, SHARE_PREFIX } from '../engine/share';
 const Scanner = lazy(() => import('./Scanner').then((m) => ({ default: m.Scanner }))); // the QR reader is big; only a scan loads it
 import { isPhone } from './device';
-import { colorOf, fieldOf, propsAt, locate, mark, moveSteps, timingOf, parseShow, positionsAt, setAt, setStarts, showLength, type Show } from '../engine/show';
+import { colorOf, fieldOf, propsAt, locate, mark, parseShow, positionsAt, setAt, setStarts, showLength, type Show } from '../engine/show';
 import { drawField, drawGlyph, drawLabels, drawMarks, drawPerformers, drawProps, fitView, STEP_TEXT, toScreen, type View } from '../field/drawField';
 import { fmtStep } from '../ui/format';
 import { usePlayback } from '../ui/usePlayback';
@@ -18,6 +19,7 @@ import { IconNext, IconPause, IconPlay, IconPrev } from '../ui/icons';
 import { moveWords, nearest, stepWords, yardLabel } from './neighbors';
 import { panCenter, pinchZoom, ZOOM_MAX } from './gestures';
 import { WhoPicker } from './WhoPicker';
+import { myDots, paneFor } from './myDots';
 import { lang, setLang, tr } from '../i18n';
 import { NumberField } from '../ui/NumberField';
 import { AUTOSAVE } from '../ui/showStore';
@@ -231,6 +233,19 @@ export function Perform() {
   }, [dpr, !!show]);
 
   const me = state?.me && state.me !== STAFF ? show?.performers.find((p) => p.id === state.me) : undefined;
+  // Upright: My dots. Sideways: the field. The switch overrides it (for a phone locked upright) until the phone turns again.
+  const tall = () => matchMedia('(orientation: portrait)').matches;
+  const [portrait, setPortrait] = useState(tall);
+  const [chosen, setChosen] = useState<'dots' | 'field' | null>(null);
+  useEffect(() => {
+    const m = matchMedia('(orientation: portrait)');
+    const turn = () => { setPortrait(m.matches); setChosen(null); };
+    m.addEventListener('change', turn);
+    return () => m.removeEventListener('change', turn);
+  }, []);
+  const pane = paneFor(!me, chosen, portrait);
+  const rows = useMemo(() => (show && me ? myDots(show, me.id, lang) : []), [show, me]);
+  const listRef = useRef<HTMLOListElement>(null);
   // Both views zoom in as close as Follow my dot does at its max (the whole field starts much further out).
   const maxZoom = me && state?.follow ? ZOOM_MAX : size[0] ? (ZOOM_MAX * size[0]) / FOLLOW_STEPS / fitView(size[0], size[1], show ? fieldOf(show) : undefined).scale : ZOOM_MAX;
   maxRef.current = maxZoom;
@@ -259,6 +274,11 @@ export function Perform() {
   const hasNext = !!show && next < show.sets.length && (onSet < 0 || onSet + 1 < show.sets.length);
 
   const around = useMemo(() => (me ? nearest(positions, me.id) : []), [positions, me]);
+  // The set I'm on stays in view in My dots (when it opens, and as the set changes).
+  useEffect(() => {
+    if (pane !== 'dots') return;
+    (listRef.current?.querySelector('[aria-current]') as HTMLElement | null)?.scrollIntoView({ block: 'nearest' });
+  }, [pane, cur]);
 
   // My path into the next set, sampled count by count (so follow-the-leader trails come out right).
   const myPath = useMemo<Point[]>(() => {
@@ -371,14 +391,17 @@ export function Perform() {
     );
   }
 
-  const steps = me && hasNext ? moveSteps(show, next)[me.id] : null;
-  const s = show.sets[cur], nx = hasNext ? show.sets[next] : null;
-  const myCue = (i: number) => (me ? show.sets[i]?.cues?.[me.id] : undefined);
+  const s = show.sets[cur];
+  // Saved-or-not and revision: at the top of My dots, and under the controls with the field.
+  const meta = <>
+    {unsaved === 'seen' && !preview && <p className="perform-note" style={{ color: 'var(--warn)' }}>{tr("Not saved on this phone: it won't work offline.")}</p>}
+    {(show.revision || state!.source) && <p className="perform-note">{show.revision ? tr('Revision {n}', { n: show.revision }) : tr('No revision number')}{state!.source && <> · {state!.checked ? tr('checked for updates {time}', { time: checkedAt(state!.checked) }) : tr('not checked for updates yet')}</>}</p>}
+  </>;
   const btn: React.CSSProperties = { fontSize: 18, minWidth: 44, minHeight: 44, display: 'grid', placeItems: 'center' };
 
 
   return (
-    <main className="perform">
+    <main className="perform" data-pane={pane}>
       {/* The header, readout, and controls: one scrolling column beside the field on a phone held sideways; on an upright
           phone this wrapper drops out of the layout (display: contents) and CSS order puts the field under the header. */}
       <div className="perform-side">
@@ -401,42 +424,53 @@ export function Perform() {
             )}</span>
           {!isPhone() && <button onClick={toEditor} title={tr('Back to the drill editor')} style={{ fontSize: 14 }}>{tr('← Editor')}</button>}
           {/* The view buttons sit up here, beside the title, so nothing covers the field (they used to float over it). */}
-          <button className="perform-view" aria-label={state!.facingFront ? tr('Field orientation: facing the front. Tap to turn it around.') : tr('Field orientation: from the press box. Tap to turn it around.')} onClick={() => update({ facingFront: !state!.facingFront })}>{state!.facingFront ? tr('Facing the front') : tr('From the press box')}</button>
+          {pane === 'field' && <button className="perform-view" aria-label={state!.facingFront ? tr('Field orientation: facing the front. Tap to turn it around.') : tr('Field orientation: from the press box. Tap to turn it around.')} onClick={() => update({ facingFront: !state!.facingFront })}>{state!.facingFront ? tr('Facing the front') : tr('From the press box')}</button>}
           <ThemeButton />
         </div>
         {adding && <div className="perform-add" role="dialog" aria-label={tr('Add a show')}><span>{tr("Open another show's link, or paste it or scan its QR code here. It's added to this phone's list.")}</span><PasteLink /><button onClick={() => setAdding(false)}>{tr('Cancel')}</button></div>}
         <div className="perform-who">
           <WhoPicker show={show} value={state!.me} staff={STAFF} onPick={(v) => { update({ me: v }); setZoom(1); setCenter({ x: 0, y: 42 }); }} />
-          {me && <button className="perform-view" aria-pressed={state!.follow} onClick={() => { update({ follow: !state!.follow }); setZoom(1); setCenter({ x: 0, y: 42 }); }}>{tr('Follow my dot')}</button>}
+          {me && <div className="perform-pane" role="group" aria-label={tr('Show my dots or the field')}>
+            <button aria-pressed={pane === 'dots'} onClick={() => setChosen('dots')}>{tr('My dots')}</button>
+            <button aria-pressed={pane === 'field'} onClick={() => setChosen('field')}>{tr('Field')}</button>
+          </div>}
         </div>
+        {me && pane === 'field' && <div className="perform-who">
+          <button className="perform-view" aria-pressed={state!.follow} onClick={() => { update({ follow: !state!.follow }); setZoom(1); setCenter({ x: 0, y: 42 }); }}>{tr('Follow my dot')}</button>
+        </div>}
       </header>
-      <section className="perform-info" aria-live="off" aria-label={tr('Where you are')} tabIndex={0}>{/* focusable: it scrolls when the notes are long */}
-        <div className="perform-set">
-          <strong>{tr('Set {name}', { name: s.name })}</strong>
+      {/* Field: one line of where I am, over the controls. */}
+      <p className="perform-line" aria-live="off">
+        <strong>{tr('Set {name}', { name: s.name })}</strong>
+        {onSet < 0 ? <span> · {tr('count {c} of {n}', { c: Math.floor(count), n: s.counts })}</span> : <>
           {cur > 0 && <span> · {tr('{n} cts', { n: s.counts })}</span>}
-          {s.measures && <span> · {tr('m. {m}', { m: s.measures })}</span>}
-          {onSet < 0 && <span> · {tr('count {c} of {n}', { c: Math.floor(count), n: s.counts })}</span>}
-        </div>
-        {unsaved === 'seen' && !preview && <p className="perform-note" style={{ color: 'var(--warn)' }}>{tr("Not saved on this phone: it won't work offline.")}</p>}
-        {(show.revision || state!.source) && <p className="perform-note">{show.revision ? tr('Revision {n}', { n: show.revision }) : tr('No revision number')}{state!.source && <> · {state!.checked ? tr('checked for updates {time}', { time: checkedAt(state!.checked) }) : tr('not checked for updates yet')}</>}</p>}
-        {me ? (
-          <>
-            <p className="perform-coord"><span className="perform-k">{onSet >= 0 ? tr('My spot') : tr('Now')}</span> {readout(positions[me.id], fieldOf(show), lang)}</p>
-            {nx && (
-              <p className="perform-coord">
-                <span className="perform-k">{tr('Next: set {name} in {n} cts', { name: nx.name, n: nx.counts })}{nx.measures ? ` (${tr('m. {m}', { m: nx.measures })})` : ''}</span>{' '}
-                {readout(nx.pos[me.id], fieldOf(show), lang)}
-                {steps && <span style={{ color: STEP_TEXT[steps.tier] }}> · {fmtStep(steps.per5, lang)}</span>}
-                {steps && <span className="perform-plain">{[stepWords(steps.per5), steps.per5 === Infinity ? '' : moveWords(show.sets[next - 1].pos[me.id], nx.pos[me.id])].filter(Boolean).join(', ')}</span>}
-                {(() => { const tm = timingOf(nx, me.id); return tm.move < nx.counts ? <span> · {tr('hold {w}, move {m}', { w: tm.wait, m: tm.move })}{nx.counts - tm.wait - tm.move ? `, ${tr('hold {w}', { w: nx.counts - tm.wait - tm.move })}` : ''}</span> : null; })()}
-              </p>
-            )}
-            {myCue(cur) && <p className="perform-note"><span className="perform-k">{tr('My notes')}</span> {myCue(cur)}</p>}
-          </>
-        ) : state!.me === STAFF ? null : (
-          <p className="perform-note">{tr('Pick who you are above to see your spot.')}</p>
-        )}
-        {s.note && <p className="perform-note"><span className="perform-k">{tr('Ensemble')}</span> {s.note}</p>}
+          {s.measures && <span> · {tr('m. {m}', { m: s.measures })}</span>}</>}
+        {me ? <span> · {readout(positions[me.id], fieldOf(show), lang)}</span>
+          : state!.me === STAFF ? null : <span> · {tr('Pick who you are above to see your spot.')}</span>}
+      </p>
+      {/* My dots: my spot in every set, like the printed dot sheet. Tap a set to go to it. */}
+      <section className="perform-dots" aria-label={tr('My dots')} tabIndex={-1}>
+        {meta}
+        <ol ref={listRef}>
+          {rows.map((r) => (
+            <li key={r.index}>
+              <button className="dot-row" aria-current={r.index === cur ? 'step' : undefined} onClick={() => { setPlaying(false); setT(starts[r.index]); }}>
+                <span className="dot-head"><strong>{tr('Set {name}', { name: r.set })}</strong>
+                  <span>{[r.counts != null ? tr('{n} cts', { n: r.counts }) : '', r.measures ? tr('m. {m}', { m: r.measures }) : ''].filter(Boolean).join(' · ')}</span></span>
+                <span className="dot-coord">{r.side}</span>
+                <span className="dot-coord">{r.front}</span>
+                {(r.steps || r.hold) && <span className="dot-small">
+                  {r.steps && <span style={{ color: STEP_TEXT[r.steps.tier] }}>{fmtStep(r.steps.per5, lang)}</span>}
+                  {r.steps && r.hold && ' · '}
+                  {r.hold && <>{tr('hold {w}, move {m}', { w: r.hold.wait, m: r.hold.move })}{r.hold.after ? `, ${tr('hold {w}', { w: r.hold.after })}` : ''}</>}
+                </span>}
+                {r.steps && me && <span className="dot-small">{[stepWords(r.steps.per5), moveWords(show.sets[r.index - 1].pos[me.id], show.sets[r.index].pos[me.id])].filter(Boolean).join(', ')}</span>}
+                {r.cue && <span className="dot-small"><span className="perform-k">{tr('My notes')}</span>{r.cue}</span>}
+                {r.note && <span className="dot-small"><span className="perform-k">{tr('Ensemble')}</span>{r.note}</span>}
+              </button>
+            </li>
+          ))}
+        </ol>
       </section>
       <footer className="perform-controls">
         {picking && (
@@ -478,6 +512,7 @@ export function Perform() {
           {!music && <button aria-pressed={clickOn} title={clickOn ? tr('A click on every count. Tap to turn it off.') : tr('A click on every count while it plays')} onClick={() => { setClickOn(!clickOn); setClickWanted(!clickOn); if (!clickOn) wakeClick(); }} style={{ fontSize: 14, minHeight: 44 }}>{tr('Click')}</button>}
         </div>
       </footer>
+      <div className="perform-meta">{meta}</div>
       </div>
       <div className="perform-field">
         <canvas ref={canvasRef} aria-label={tr('Field')} style={{ width: '100%', height: '100%', display: 'block', touchAction: 'none' }}
