@@ -37,7 +37,7 @@ import { PALETTE, useTheme } from './ui/palette';
 import { ThemeButton } from './ui/ThemeButton';
 import { layoutPref, setLayoutPref } from './ui/layout';
 import { RosterImport } from './ui/RosterImport';
-import { sampleShow } from './engine/sample';
+import { practiceShow, sampleShow } from './engine/sample';
 
 import { AUTOSAVE } from './ui/showStore';
 import { IconFit, IconZoomIn, IconZoomOut } from './ui/icons';
@@ -820,8 +820,8 @@ export function App() {
     setTool('add'); setOpenAdd((n) => n + 1); // a blank field: straight to placing performers (Jason)
   };
   const [openAdd, setOpenAdd] = useState(0);
-  // The docs' demo show, to look around in before writing one: a show of its own in the library.
-  const trySample = async () => { await flush(); openShow({ ...sampleShow(), id: newShowId() }); setTool('select'); }; // in the main bundle: the offline cache only keeps files the page links
+  // The docs' demo show, to look around in before writing one (or the practice show, with problems to fix): a show of its own in the library.
+  const trySample = async (practice = false) => { await flush(); openShow({ ...(practice ? practiceShow() : sampleShow()), id: newShowId() }); setTool('select'); }; // in the main bundle: the offline cache only keeps files the page links
   // The front page's "Try the sample show" opens app/?sample.
   useEffect(() => { if (new URLSearchParams(location.search).has('sample')) { history.replaceState(null, '', location.pathname + location.hash); trySample(); } }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const [library, setLibrary] = useState<boolean | 'link'>(false); // 'link': opened on Open from a link
@@ -904,10 +904,11 @@ export function App() {
             Review{issues.length ? ` (${issues.length})` : ''}</button>
         </span>
         <span style={{ flex: 'none' }}>
-          <Menu label="Help" title="The how-to guide, and a sample show to look around in">{(close) => (
+          <Menu label="Help" title="The how-to guide, a sample show to look around in, and a practice show">{(close) => (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'stretch' }}>
               <button onClick={() => { close(); window.open(GUIDE, '_blank', 'noopener'); }} title="The step-by-step guide, with pictures (opens in a new tab)">How-to guide</button>
               <button onClick={() => { close(); trySample(); }} title="Open the 47-performer sample show as a show of its own (yours stays under Shows…)">Try the sample show</button>
+              <button onClick={() => { close(); trySample(true); }} title="The sample with three problems to find and fix, each explained in its set's notes. Open Review to start (yours stays under Shows…)">Try the practice show</button>
               <button onClick={() => { close(); setFeedback(true); }} title="Report a problem or suggest something: it goes straight to me, with no account needed">Send feedback</button>
               <button onClick={() => { close(); window.open('https://ko-fi.com/tillerdawg', '_blank', 'noopener'); }} title="FreeFORM is free and always will be. A tip on Ko-fi helps with hosting (opens in a new tab)">Support FreeFORM</button>
               <button onClick={() => { close(); window.open('../', '_blank', 'noopener'); }} title="FreeFORM Drill's front page: what it is, privacy, and coming from Pyware (opens in a new tab)">About FreeFORM Drill</button>
@@ -957,7 +958,7 @@ export function App() {
             <span><strong>Start your show.</strong> Place performers on the field, bring in a roster from Excel, or look around the sample show first. On a new computer? Open your show from its phone link or recovery code.</span>
             <button className="primary" onClick={() => { setTool('add'); setOpenAdd((n) => n + 1); }}>Place performers</button>
             <button onClick={() => setRoster(true)}>Import a roster…</button>
-            <button onClick={trySample}>Try the sample show</button>
+            <button onClick={() => trySample()}>Try the sample show</button>
             <button onClick={() => setLibrary('link')} title="Open a show from the link students use, or from a recovery code from your other computer">Open from a link or recovery code…</button>
           </div>
         )}

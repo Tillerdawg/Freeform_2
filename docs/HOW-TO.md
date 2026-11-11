@@ -4,7 +4,7 @@ This guide walks you through writing a show in FreeFORM, from an empty field to 
 
 FreeFORM runs in your web browser. The front page, <https://freeformdrill.org/>, says what it is; click **Open the editor** there, or go straight to <https://freeformdrill.org/app/>. There's nothing to install and no account to make. (Share links made before the editor moved to /app/ still work.)
 
-The pictures in this guide come from a small sample show (47 performers, 4 sets) that ships with the code. Your screen will look the same, just with your own drill on it.
+The pictures in this guide come from a small sample show (47 performers, 4 sets) that ships with the code. The pictures of warnings come from its practice show, the same drill with a few problems left in (see [Review the whole show](#review-the-whole-show)). Your screen will look the same, just with your own drill on it.
 
 ## Contents
 
@@ -50,7 +50,7 @@ One thing to know up front: **your shows are saved in the browser you're using.*
 
 From top to bottom:
 
-- **The top bar** has the logo, a reminder of how to move around the field, **Help** (the **How-to guide**, which opens this guide in a new tab at freeformdrill.org/guide/, **Try the sample show**, **Send feedback**, a short form to report a problem or suggest something (it goes straight to me, with no account needed), **Support FreeFORM**, a tip jar on Ko-fi (FreeFORM is free either way), and **About FreeFORM Drill**, the front page), **Layout** (**Sidebar on the left** or right, **Timeline at the top** or bottom, and **White field** or green; this browser remembers your choices), and at the far right the sun/moon button, which switches between dark mode and light mode. Until you click it, FreeFORM follows your computer's or iPad's own light or dark setting. The field looks the same either way.
+- **The top bar** has the logo, a reminder of how to move around the field, **Help** (the **How-to guide**, which opens this guide in a new tab at freeformdrill.org/guide/, **Try the sample show**, **Try the practice show** (the sample with three problems to find and fix), **Send feedback**, a short form to report a problem or suggest something (it goes straight to me, with no account needed), **Support FreeFORM**, a tip jar on Ko-fi (FreeFORM is free either way), and **About FreeFORM Drill**, the front page), **Layout** (**Sidebar on the left** or right, **Timeline at the top** or bottom, and **White field** or green; this browser remembers your choices), and at the far right the sun/moon button, which switches between dark mode and light mode. Until you click it, FreeFORM follows your computer's or iPad's own light or dark setting. The field looks the same either way.
 - **The drill toolbar** has two rows. The first row has **Select**, **Add** (performers, a set, or a prop), and **Delete**, then the set you're on with its **Counts** and **Measures**. At the right end are Undo and Redo. The second row has the tools for placing and moving performers: **Snap to grid**, **Markup**, **Shape**, **Mirror**, **Rotate & Scale**, **Path**, **Move**, **Labels**, and **Reset to set**. At its right end are the timeline button and the sidebar button.
 - **The field** is in the middle. You're looking at it from the press box: the front sideline is at the bottom and Side 1 is on the left. Scroll to move around, and pinch (or hold ⌘ or Ctrl and scroll) to zoom. The zoom buttons sit in the field's top-right corner: **−** and **+** zoom out and in, the number between them is how far you're zoomed (100% shows the whole field), and **Fit** zooms back out to the whole field.
 - **A white field.** If you'd rather write on paper colors, choose **Layout → White field**. The turf turns white with black lines, letters, and labels. Selected performers keep their gold, with a dark ring, and step warnings keep their colors on a dark edge. **Layout → Green field** switches back. It only changes what you see on this computer or iPad: printed charts are always black on white, and videos stay green. Phones have their own **White field** button.
@@ -63,7 +63,7 @@ From top to bottom:
 
 Click **New** in the sidebar to start a show. The show you had open stays in this browser: **Shows…** opens it again (see [Several shows: Opener, Ballad, Closer](#saving-backing-up-and-opening-files)).
 
-When the field has no performers, a note over it offers four ways to begin: **Place performers** opens the **Add** menu so you can pick a section and start clicking, **Import a roster…** brings in a list from Excel (see **Names** under [Add performers](#add-performers)), **Try the sample show** opens a 47-performer sample to look around in first (it keeps a few warnings on purpose, like a too-big step and counts not written yet, so you can see how **Review** works), and **Open from a link or recovery code…** brings in a show you published from another computer (see [A new computer or iPad mid-season](#send-the-show-to-your-performers)). **Help** (in the top bar), then **Try the sample show**, opens the same show any time. It opens as a show of its own, so yours stays under **Shows…**.
+When the field has no performers, a note over it offers four ways to begin: **Place performers** opens the **Add** menu so you can pick a section and start clicking, **Import a roster…** brings in a list from Excel (see **Names** under [Add performers](#add-performers)), **Try the sample show** opens a finished 47-performer show to look around in first, and **Open from a link or recovery code…** brings in a show you published from another computer (see [A new computer or iPad mid-season](#send-the-show-to-your-performers)). **Help** (in the top bar), then **Try the sample show**, opens the same show any time. It opens as a show of its own, so yours stays under **Shows…**.
 
 ![The note on a blank field](img/start.png)
 
@@ -293,7 +293,7 @@ Props show on the field, on printed charts, and on phones.
 
 ## Step-size and too-close warnings
 
-![Paths into set 4, too fast on purpose](img/step-warnings.png)
+![Paths into set 4 in the practice show, too fast on purpose](img/step-warnings.png)
 
 FreeFORM checks every move against the counts it has:
 
@@ -321,6 +321,8 @@ The warnings on the timeline cover one move at a time. **Review**, in the top ba
 - **Not written**: counts in your **Movements** that don't have sets yet.
 
 Click an item to go there: the playhead moves to that set or count, the performers are selected, and a note at the bottom of the field says what's wrong. The list stays open while you fix things and updates as you go, and it says "Nothing to fix" when none of those problems are left. That covers only the checks above (and leaves out anything you dismissed), so still watch the show through before you send it. **Close** puts it away.
+
+**Practice first.** **Help**, then **Try the practice show**, opens the sample show with three problems left in: two trumpets who cut through the line and pass too close in the move to set 3, a move into set 4 that's too fast for its 8 counts, and counts in the Opener with no sets yet. Each set's notes say what's wrong and how to fix it. Open **Review**, fix all three, and watch it say "Nothing to fix." It opens as a show of its own, so yours stays under **Shows…**. (The plain sample show is finished, so Review has nothing to say about it.)
 
 **Dismissing a warning.** Some warnings are fine as written: two performers who pass each other on purpose, or one long step you've already planned for. Check the box beside it (or beside several, or **Select all** at the top of the list) and click **Dismiss**. They leave the list and the count on the **Review** button, and they're saved with the show. If a problem changes (another performer joins it, say), it shows up again as a new warning. It also comes back if it gets worse than when you dismissed it: a 2-to-5 you dismissed shows again if it becomes a 1-to-5, and a pair you dismissed at 0.8 steps apart shows again if they get closer. If it gets better, it stays dismissed. Once you've dismissed any, the list has two tabs, **To check** and **Dismissed**. To bring warnings back, open **Dismissed**, check one, several, or **Select all**, and click **Bring back**.
 

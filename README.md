@@ -67,7 +67,7 @@ A note on where the ideas came from: FreeFORM is modeled on Pyware and the Ultim
 - Earlier versions of each show, kept as you work, to look back at and restore.
 - A warning when the same show is changed in two tabs, instead of one quietly saving over the other.
 - **Full backup…**: a show file that also holds the recording and tracing picture, to move a show to another computer complete.
-- A sample show to look around in before you write your own.
+- A sample show to look around in before you write your own, and a practice show: the same drill with three problems to find and fix in Review, each explained in its notes.
 - Import Pyware 3D (`.3dj`) shows, tested with files from 2008 to 2010.
 
 It runs on a current Chrome, Edge, Firefox, or Safari, and on iPadOS/iOS 16.4 or later. Write drill on a computer or an iPad (hide the timeline and sidebar for more field). Phones get only the performer view.
@@ -98,7 +98,7 @@ Every push to `main` runs the checks and tests and then publishes to GitHub Page
 
 ### Screenshots
 
-The pictures in the How-to guide and this README are made by a script, from a sample show in [`src/engine/sample.ts`](src/engine/sample.ts). After a change to anything they show, retake them:
+The pictures in the How-to guide and this README are made by a script, from a sample show in [`src/engine/sample.ts`](src/engine/sample.ts) (and, for the warnings, its practice show). After a change to anything they show, retake them:
 
 ```sh
 npm i --no-save playwright && npx playwright install chromium   # once

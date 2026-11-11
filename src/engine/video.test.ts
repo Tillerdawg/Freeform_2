@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { sampleShow } from './sample';
+import { practiceShow } from './sample';
 import { setStarts } from './show';
 import { FPS, TAIL, videoCaption, videoFrames } from './video';
 
 describe('video export', () => {
-  const show = sampleShow(); // sets at counts 0, 16, 32, 40 (movement "Opener")
+  const show = practiceShow(); // sets at counts 0, 16, 32, 40 (movement "Opener")
   it('at a tempo: one frame per 1/30 s, from the first set to the last, then a short hold', () => {
     const v = videoFrames(show, 1, 3, 120); // 24 counts at 120 bpm = 12 s
     expect(v.seconds).toBeCloseTo(12 + TAIL);
@@ -25,8 +25,8 @@ describe('video export', () => {
     expect(v.counts.at(-1)).toBe(s[3]);
   });
   it('captions the corner with the title, the piece, and where the drill is', () => {
-    expect(videoCaption(show, 16)).toEqual({ title: 'Sample Show · Opener', place: 'Set 2' });
-    expect(videoCaption(show, 21.5)).toEqual({ title: 'Sample Show · Opener', place: 'Set 2 → 3 · count 6 of 16' });
+    expect(videoCaption(show, 16)).toEqual({ title: 'Practice Show · Opener', place: 'Set 2' });
+    expect(videoCaption(show, 21.5)).toEqual({ title: 'Practice Show · Opener', place: 'Set 2 → 3 · count 6 of 16' });
     expect(videoCaption({ ...show, title: '', movements: undefined }, 0).title).toBe('Untitled show');
   });
 });

@@ -1,4 +1,4 @@
-// Retakes every screenshot in the docs (docs/img/) from the sample show in src/engine/sample.ts.
+// Retakes every screenshot in the docs (docs/img/) from the sample show in src/engine/sample.ts (the warnings: its practice show).
 // Run after a UI change the screenshots show:  node scripts/screenshots.mjs [name...]
 // Needs Playwright's Chromium once:  npm i --no-save playwright && npx playwright install chromium
 import { createServer } from 'vite';
@@ -13,16 +13,16 @@ await server.listen();
 const URL_ = 'http://localhost:5199/app/'; // the editor; the front page is at /
 const browser = await chromium.launch(process.env.CHROME ? { executablePath: process.env.CHROME } : {}); // CHROME: use an installed Chrome instead
 
-/** A fresh editor (1440 × 900, at 2× for sharp images) with the sample show loaded. */
-async function editor(opts = {}) {
+/** A fresh editor (1440 × 900, at 2× for sharp images) with the sample show loaded (`practice`: the practice show, for the warnings). */
+async function editor({ practice = false, ...opts } = {}) {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2, colorScheme: 'dark', ...opts }); // dark: the app follows the device's setting
   const page = await ctx.newPage();
   await page.goto(URL_);
-  await page.evaluate(async () => {
-    const { sampleShow } = await import('/src/engine/sample.ts');
+  await page.evaluate(async (practice) => {
+    const { sampleShow, practiceShow } = await import('/src/engine/sample.ts');
     localStorage.clear();
-    localStorage.setItem('freeform:autosave', JSON.stringify(sampleShow()));
-  });
+    localStorage.setItem('freeform:autosave', JSON.stringify(practice ? practiceShow() : sampleShow()));
+  }, practice);
   await page.reload();
   await page.waitForSelector('canvas');
   await page.waitForTimeout(500);
@@ -136,17 +136,8 @@ shot('shows', async () => {
   await save(page, 'shows', await around(page.locator('[role=dialog] > div').first()));
 });
 shot('too-close', async () => {
-  // Two neighbors in the sample's arc swap spots into set 3, so they pass each other; then the timeline's warning is clicked.
-  const page = await editor();
-  await page.evaluate(async () => {
-    const { placeInSet } = await import('/src/engine/show.ts');
-    let show = JSON.parse(localStorage.getItem('freeform:autosave'));
-    const [a, b] = show.performers.filter((p) => show.sections.find((s) => s.id === p.section).letter === 'P').map((p) => p.id);
-    show = placeInSet(show, 2, { [a]: show.sets[2].pos[b], [b]: show.sets[2].pos[a] });
-    localStorage.setItem('freeform:autosave', JSON.stringify(show));
-  });
-  await page.reload();
-  await page.waitForTimeout(500);
+  // The practice show: two trumpets in the arc swap spots into set 3 and cut past F1; then the timeline's warning is clicked.
+  const page = await editor({ practice: true });
   await page.getByRole('button', { name: /too close/ }).first().click();
   await page.waitForTimeout(300);
   await save(page, 'too-close', { x: 0, y: 40, width: 1110, height: H - 40 });
@@ -160,13 +151,13 @@ shot('coordinates', async () => {
   await save(page, 'coordinates', { ...sidebar, height: 680 }); // down to the coordinate, under the file buttons
 });
 shot('step-warnings', async () => {
-  const page = await editor();
+  const page = await editor({ practice: true }); // set 4 in only 8 counts
   await goSet(page, 4);
   await save(page, 'step-warnings', await fieldClip(page, { x: -32, y: 54 }, { x: 32, y: 22 }));
 });
 shot('review', async () => {
-  // The whole-show Review list over the field; its first item (set 4's big steps) clicked, so they're ringed and selected, and checked.
-  const page = await editor();
+  // The practice show's Review list over the field; its first item clicked, so they're ringed and selected, and checked.
+  const page = await editor({ practice: true });
   await menu(page, 'Review');
   await page.locator('section[aria-label=Review] li button').first().click();
   await page.locator('section[aria-label=Review] li input[type=checkbox]').first().check(); // shows a checked box and the Dismiss count
