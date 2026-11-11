@@ -159,6 +159,9 @@
         overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
       .perform-meta { padding: 0 12px 8px; flex-shrink: 0; }
       .perform-meta p, .perform-dots > p { margin: 4px 0; font-size: 13px; }
+      .perform-meta .perform-status { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } /* one line under the field, so it never changes the field's height; the full line is in My dots */
+      .perform-check { font-size: 14px; min-height: 44px; margin: 0 0 6px; }
+      .perform-help { margin: 16px 0 8px; font-size: 15px; }
       /* My dots: a card per set, like the printed dot sheet. The set I'm on is outlined in gold. */
       .perform-dots { flex: 1; min-height: 0; overflow-y: auto; padding: 8px 12px 16px; }
       .perform-dots ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); }

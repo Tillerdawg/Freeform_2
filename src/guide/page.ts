@@ -8,7 +8,21 @@ export const slug = (text: string) => text.toLowerCase().replace(/[^\w\- ]+/g, '
 
 const vars = (p: Record<string, string>) => Object.entries(p).map(([k, v]) => `--${k}: ${v};`).join(' ');
 
-export function guidePage(md: string): string {
+/** How a page differs from the director's guide: its title, language, where the site's root and the guide's pictures are
+ * from the page, and its header links. The student quickstart (docs/STUDENTS.md) uses the same page. */
+export interface PageOptions { title: string; lang: 'en' | 'es'; root: string; img: string; header: string }
+const GUIDE: PageOptions = { title: 'How to use FreeFORM', lang: 'en', root: '../', img: 'img/', header: '<a href="../">FreeFORM Drill</a> · <a href="../app/">Open the editor</a>' };
+
+/** The student quickstart, at students/ (English) or es/students/ (Spanish), with the guide's pictures and a link to it. */
+export const studentPage = (md: string, lang: 'en' | 'es') => {
+  const root = lang === 'es' ? '../../' : '../';
+  return guidePage(md, {
+    title: lang === 'es' ? 'FreeFORM para los integrantes' : 'FreeFORM for performers', lang, root, img: `${root}guide/img/`,
+    header: `<a href="${lang === 'es' ? `${root}es/` : root}">FreeFORM Drill</a> · <a href="${lang === 'es' ? `${root}students/` : `${root}es/students/`}" lang="${lang === 'es' ? 'en' : 'es'}">${lang === 'es' ? 'English' : 'Español'}</a>`,
+  });
+};
+
+export function guidePage(md: string, o: PageOptions = GUIDE): string {
   const marked = new Marked({
     renderer: {
       heading(this: { parser: { parseInline: (t: Tokens.Heading['tokens']) => string } }, { tokens, depth, text }: Tokens.Heading) {
@@ -16,14 +30,16 @@ export function guidePage(md: string): string {
       },
     },
   });
-  const body = marked.parse(md, { async: false });
+  const body = marked.parse(md, { async: false })
+    .replaceAll('src="img/', `src="${o.img}`)
+    .replaceAll('href="HOW-TO.md"', `href="${o.root}guide/"`); // a link from the quickstart to the guide works on GitHub and on the site
   return `<!doctype html>
-<html lang="en">
+<html lang="${o.lang}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>How to use FreeFORM</title>
-<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<title>${o.title}</title>
+<link rel="icon" href="${o.root}favicon.svg" type="image/svg+xml">
 <script>try { if (localStorage.getItem(${JSON.stringify(THEME_KEY)}) === 'light') document.documentElement.dataset.theme = 'light'; } catch {}</script>
 <style>
   :root { ${vars(PALETTE)} }
@@ -41,7 +57,7 @@ export function guidePage(md: string): string {
 </style>
 </head>
 <body>
-<header><a href="../">FreeFORM Drill</a> · <a href="../app/">Open the editor</a></header>
+<header>${o.header}</header>
 <main>
 ${body}
 </main>

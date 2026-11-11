@@ -21,6 +21,7 @@ import { nearest, stepWords, yardLabel } from './neighbors';
 import { panCenter, pinchZoom, ZOOM_MAX } from './gestures';
 import { WhoPicker } from './WhoPicker';
 import { myDots, paneFor } from './myDots';
+import { statusParts, type Check } from './status';
 import { lang, setLang, tr } from '../i18n';
 import { NumberField } from '../ui/NumberField';
 import { useDialog } from '../ui/useDialog';
@@ -30,6 +31,8 @@ import { addShow, readLibrary, removeShow, STAFF, type Library, type Saved } fro
 /** "3:42 PM" today, "Nov 5" before that. */
 const checkedAt = (ms: number) => new Date(ms).toDateString() === new Date().toDateString()
   ? new Date(ms).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : new Date(ms).toLocaleDateString([], { month: 'short', day: 'numeric' });
+/** The student quickstart (docs/STUDENTS.md) on the site, in the phone's language. */
+const studentsLink = lang === 'es' ? '../es/students/' : '../students/';
 const STORE = 'freeform:performer'; // separate from the editor's autosave, so opening a link never touches a director's work
 const COUNT_KEY = 'freeform:count-in'; // whether Count-in is on, kept on this phone
 const FOLLOW_STEPS = 36; // how much field fits across the screen when following a performer
@@ -92,17 +95,35 @@ export function Perform() {
   };
   // When this phone last reached a hosted show's file, so "do you have the latest?" has an answer on screen.
   const markChecked = (source: string) => { const l = libRef.current; setLib({ ...l, shows: l.shows.map((x) => (x.source === source ? { ...x, checked: Date.now() } : x)) }); };
-  // Opening a hosted show: quietly check for a newer version when online. Offline, the saved copy is used.
+  // Opening a hosted show (or Check for updates, or coming back online): check for a newer version. Offline, or if the check
+  // fails, the saved copy is used, and the status line says so instead of leaving the student to guess.
+  const [check, setCheck] = useState<Check>(null);
   const checkHosted = () => {
     const saved = libRef.current.shows[libRef.current.current];
-    if (!saved?.source || !navigator.onLine) return;
+    if (!saved?.source) { setCheck(null); return; }
+    if (!navigator.onLine) { setCheck('offline'); return; }
+    setCheck('checking');
     // An unchanged file isn't downloaded again: the fetch revalidates (cache: 'no-cache'), and GitHub answers 304 for the same ETag.
     fetchHosted(saved.source).then(({ show, audio }) => {
+      if (libRef.current.shows[libRef.current.current]?.source !== saved.source) return; // switched to another show meanwhile
       if (JSON.stringify(show) !== JSON.stringify(saved.show)) { adopt(show, saved.source, false, audio); setNotice(show.revision ? tr('Updated to revision {n}.', { n: show.revision }) : tr('Show updated.')); }
       else keepAudio(show, audio, saved.show); // same show; the recording may be new (added to the file later)
       markChecked(saved.source!);
-    }).catch(() => { /* keep the saved copy */ });
+      setCheck(null);
+    }).catch(() => { if (libRef.current.shows[libRef.current.current]?.source === saved.source) setCheck(navigator.onLine ? 'failed' : 'offline'); });
   };
+  useEffect(() => { // signal comes back: check again; signal goes: say so
+    const on = () => checkHosted(), off = () => { if (libRef.current.shows[libRef.current.current]?.source) setCheck('offline'); };
+    window.addEventListener('online', on); window.addEventListener('offline', off);
+    return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off); };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // "Ready offline" only once the offline files are installed (the service worker controls the page) and the show is saved.
+  const [installed, setInstalled] = useState(() => !!navigator.serviceWorker?.controller);
+  useEffect(() => {
+    const sw = navigator.serviceWorker, on = () => setInstalled(!!sw?.controller);
+    sw?.addEventListener('controllerchange', on); on(); // and now, in case it changed between the first render and here
+    return () => sw?.removeEventListener('controllerchange', on);
+  }, []);
   const switchTo = (i: number) => { setLib({ ...libRef.current, current: i }); setT(0); setPlaying(false); setNotice(''); setError(''); checkHosted(); };
   const [adding, setAdding] = useState(false); // the paste-a-link / scan panel, to add another show
   const remove = (i: number) => {
@@ -403,6 +424,7 @@ export function Perform() {
           : canStore() ? <p>{tr('Open the show link your director sent you. It will be saved on this phone and work offline after that.')}</p>
           : <p>{tr("Open the show link your director sent you. This phone can't save shows right now (its storage is full or turned off, as in a private window), so you'll need the link each time, and it won't work offline.")}</p>}
 <PasteLink />
+        <p><a href={studentsLink} style={{ color: 'var(--blue)' }}>{tr('How it works for performers (2 minutes)')}</a></p>
         <p><a href={lang === 'es' ? '../es/' : '../'} style={{ color: 'var(--blue)' }}>{tr("What's FreeFORM Drill?")}</a></p>
         <LanguageButton />
         {!isPhone() && <p><a href="#" style={{ color: 'var(--blue)' }} onClick={(e) => { e.preventDefault(); toEditor(); }}>{tr('← Editor')}</a></p>}
@@ -411,11 +433,18 @@ export function Perform() {
   }
 
   const s = show.sets[cur];
+  const status = preview ? [] : statusParts({
+    ready: installed && unsaved === 'no', music: !!audio, revision: show.revision, hosted: !!state!.source,
+    checked: state!.checked, check: state!.source ? check : null, when: checkedAt, lang,
+  });
   // Saved-or-not and revision: at the top of My dots, and under the controls with the field.
   const meta = <>
     {unsaved === 'seen' && !preview && <p className="perform-note" style={{ color: 'var(--warn)' }}>{tr("Not saved on this phone: it won't work offline.")}</p>}
-    {(show.revision || state!.source) && <p className="perform-note">{show.revision ? tr('Revision {n}', { n: show.revision }) : tr('No revision number')}{state!.source && <> · {state!.checked ? tr('checked for updates {time}', { time: checkedAt(state!.checked) }) : tr('not checked for updates yet')}</>}</p>}
+    {status.length > 0 && <p className="perform-note perform-status" title={status.join(' · ')}>{status.join(' · ')}</p>}
   </>;
+  const checkButton = !preview && state!.source && check !== 'checking' && (
+    <button className="perform-check" onClick={checkHosted}>{tr('Check for updates')}</button>
+  );
   const btn: React.CSSProperties = { fontSize: 18, minWidth: 44, minHeight: 44, display: 'grid', placeItems: 'center' };
 
 
@@ -472,6 +501,7 @@ export function Perform() {
       {/* My dots: my spot in every set, like the printed dot sheet. Tap a set to go to it. */}
       <section className="perform-dots" aria-label={tr('My dots')} tabIndex={-1}>
         {meta}
+        {checkButton}
         <ol ref={listRef}>
           {rows.map((r) => (
             <li key={r.index}>
@@ -491,6 +521,8 @@ export function Perform() {
             </li>
           ))}
         </ol>
+        <p className="perform-help"><a href={studentsLink} style={{ color: 'var(--blue)' }}>{tr('How it works for performers (2 minutes)')}</a></p>
+        <LanguageButton />
       </section>
       <footer className="perform-controls">
         {picking && (
