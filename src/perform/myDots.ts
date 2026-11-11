@@ -9,7 +9,8 @@ export interface DotRow {
   measures: string;
   side: string;
   front: string;
-  steps: { per5: number; tier: StepTier } | null; // step size into this set (none for set 1, or standing still)
+  steps: { per5: number; tier: StepTier } | null; // step size into this set (none for set 1, or a hold)
+  held: boolean; // no travel into this set: the same spot as the set before (mark time, visuals, and the rest are in the notes)
   hold: { wait: number; move: number; after: number } | null; // a delayed or early step-off; null when moving every count
   cue: string; // my notes for this set
   note: string; // the ensemble's notes for this set
@@ -30,7 +31,8 @@ export function myDots(show: Show, id: string, lang: 'en' | 'es' = 'en'): DotRow
       side: p ? sideToSide(p.x, f, lang) : '',
       front: p ? frontToBack(p.y, f, lang) : '',
       steps: st && st.per5 !== Infinity && st.per5 > 0 ? st : null,
-      hold: tm && tm.move < s.counts ? { wait: tm.wait, move: tm.move, after: s.counts - tm.wait - tm.move } : null,
+      held: !!st && st.per5 === Infinity,
+      hold: st?.per5 !== Infinity && tm && tm.move < s.counts ? { wait: tm.wait, move: tm.move, after: s.counts - tm.wait - tm.move } : null,
       cue: s.cues?.[id] ?? '',
       note: s.note ?? '',
     };

@@ -27,6 +27,6 @@ describe('Spanish', () => {
     expect(moveWords({ x: 0, y: 20 }, { x: 8, y: 30 }, 'es')).toBe('moviéndote hacia atrás y a tu izquierda (mirando al frente)');
     expect(moveWords({ x: 0, y: 20 }, { x: 8, y: 30 }, 'en')).toBe('moving back and to your left (facing the front)');
     expect(yardLabel(-8, 'es')).toBe('L1 45');
-    expect([fmtStep(8, 'es'), fmtStep(Infinity, 'es'), fmtStep(5.33)]).toEqual(['8 a 5', 'quieto', '5.3-to-5']);
+    expect([fmtStep(8, 'es'), fmtStep(Infinity, 'es'), fmtStep(5.33)]).toEqual(['8 a 5', 'mantener', '5.3-to-5']);
   });
 });

@@ -30,6 +30,16 @@ describe('myDots', () => {
     expect(myDots(s, me)[1].hold).toEqual({ wait: 4, move: 8, after: 4 });
   });
 
+  it('marks a set with no travel as a hold, with no step size or step-off', () => {
+    const s = { ...show, sets: show.sets.map((x, i) => (i === 2 ? { ...x, pos: { ...x.pos, [me]: show.sets[1].pos[me] }, timing: { [me]: { wait: 4, move: 8 } } } : x)) };
+    const r = myDots(s, me)[2];
+    expect(r.held).toBe(true);
+    expect(r.steps).toBeNull();
+    expect(r.hold).toBeNull();
+    expect(myDots(s, me)[1].held).toBe(false);
+    expect(myDots(s, me)[0].held).toBe(false); // set 1 has no move into it
+  });
+
   it('carries my notes and the ensemble notes', () => {
     const s = { ...show, sets: show.sets.map((x, i) => (i === 2 ? { ...x, note: 'Flags up on 9', cues: { [me]: 'Horns up on 13' } } : x)) };
     const r = myDots(s, me)[2];

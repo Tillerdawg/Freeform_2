@@ -464,6 +464,7 @@ export function Perform() {
                   const way = moveWords(show.sets[r.index - 1].pos[me.id], show.sets[r.index].pos[me.id]);
                   return <span className="dot-small">{stepWords(r.steps.per5)} (<span style={{ color: STEP_TEXT[r.steps.tier] }}>{fmtStep(r.steps.per5, lang)}</span>){way ? `, ${way}` : ''}</span>;
                 })()}
+                {r.held && <span className="dot-small">{tr('Hold (same spot as set {name})', { name: show.sets[r.index - 1].name })}</span>}
                 {r.hold && <span className="dot-small">{tr('hold {w}, move {m}', { w: r.hold.wait, m: r.hold.move })}{r.hold.after ? `, ${tr('hold {w}', { w: r.hold.after })}` : ''}</span>}
                 {r.cue && <span className="dot-small"><span className="perform-k">{tr('My notes')}</span>{r.cue}</span>}
                 {r.note && <span className="dot-small"><span className="perform-k">{tr('Ensemble')}</span>{r.note}</span>}
