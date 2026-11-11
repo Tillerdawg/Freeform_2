@@ -40,6 +40,7 @@ import { RosterImport } from './ui/RosterImport';
 import { sampleShow } from './engine/sample';
 
 import { AUTOSAVE } from './ui/showStore';
+import { IconFit, IconZoomIn, IconZoomOut } from './ui/icons';
 export { AUTOSAVE };
 const GUIDE = '../guide/'; // made from docs/HOW-TO.md when the site is built
 const UNEXPORTED = 'freeform:unexported-since', unexportedKey = (id?: string) => `${UNEXPORTED}:${id}`, SNOOZE = 'freeform:backup-later', DAY = 86_400_000, BACKUP_DAYS = 7;
@@ -444,6 +445,8 @@ export function App() {
   }, [dpr]);
 
   const fit = () => { const c = canvasRef.current!; setView(fitView(c.width, c.height, fieldOf(show))); };
+  // Zoom as a percent of Fit: 100% shows the whole field.
+  const zoomPct = view && canvasRef.current?.width ? Math.round((100 * view.scale) / fitView(canvasRef.current.width, canvasRef.current.height, fieldOf(show)).scale) : 100;
   /** Zoom around the middle of the field's window, within the wheel's limits. */
   const zoomBy = (k: number) => setView((v) => {
     if (!v) return v;
@@ -919,7 +922,7 @@ export function App() {
         selectedMark={selectedMark} setSelectedMark={setSelectedMark} showSidebar={() => setSideChoice(true)} openTrace={() => { setSideChoice(true); setTraceAsk((n) => n + 1); }} show={show} setShow={setShow} onSet={onSet} selected={selected} setSelected={setSelected} tool={tool} setTool={setTool}
         section={section} setSection={setSection} snap={snap} setSnap={setSnap}
         onUndo={() => step('undo')} onRedo={() => step('redo')} canUndo={!!hist.past.length} canRedo={!!hist.future.length}
-        onFit={fit} sidebar={{ open: sideOpen, toggle: () => setSideChoice(!sideOpen), left: sideLeft }}
+        sidebar={{ open: sideOpen, toggle: () => setSideChoice(!sideOpen), left: sideLeft }}
         timeline={{ open: timelineOpen, toggle: () => setTimelineOpen(!timelineOpen), top: timelineTop }}
         shape={shapeEdit?.shape ?? null} startShape={startShape} updateShape={updateShape} endShape={() => setShapeEdit(null)} />
       </header>
@@ -973,6 +976,13 @@ export function App() {
             <button onClick={() => { const n = Date.now() + DAY; writeTime(SNOOZE, n); setSnooze(n); }}>Later</button>
           </div>
         )}
+        {/* Zoom, in the field's top-right corner. 100% is the whole field (Fit). Fixed widths, so nothing shifts as the number changes. */}
+        {view && <div role="group" aria-label="Zoom" className="zoom-box">
+          <button className="icon" onClick={() => zoomBy(1 / 1.25)} title="Zoom out (⌘− / Ctrl+−)" aria-label="Zoom out"><IconZoomOut /></button>
+          <span className="zoom-pct" aria-live="polite" title="Zoom: 100% shows the whole field">{zoomPct}%</span>
+          <button className="icon" onClick={() => zoomBy(1.25)} title="Zoom in (⌘+ / Ctrl+=)" aria-label="Zoom in"><IconZoomIn /></button>
+          <button onClick={fit} title="Fit: zoom out to the whole field (F)" aria-label="Fit field"><IconFit /> Fit</button>
+        </div>}
         {reviewing && <ReviewPanel show={show} setShow={setShow} issues={issues} all={allIssues} dismissed={dismissed} onGo={goToIssue} onClose={() => setReviewing(false)} />}
         {/* Floats over the field so its changing length can't move the layout. */}
         {(notice?.t === t || hover) && (

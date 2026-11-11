@@ -1498,3 +1498,8 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Who:** Jason Tiller
 - **Context:** The Add button's main part read **Add · F**, which didn't say what F was.
 - **Decision:** It reads **Add Performer (F)**, with the section's letter in parentheses. **Add Set** and **Add Prop** are unchanged. On a narrow iPad (mini size) it shortens to **Add (F)** so the top row still fits (Claude's call; Jason can veto).
+
+## 2026-11-11: Zoom buttons on the field
+- **Who:** Jason Tiller (layout details by Claude; Jason can veto)
+- **Context:** Fit was an icon at the right end of the top toolbar, away from the field it acts on, and zooming took a pinch, ⌘/Ctrl + scroll, or a shortcut.
+- **Decision:** A small panel in the field's top-right corner holds **−**, the zoom as a percent, **+**, and **Fit**. 100% means the whole field (the Fit view), so the number reads as "how far in am I." The buttons step by 25%, like ⌘+ and ⌘−. Fit left the toolbar. The Review panel, when open, covers the zoom panel.
