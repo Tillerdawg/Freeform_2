@@ -26,7 +26,7 @@ export function yardLabel(x: number, l: Lang = 'en'): string {
 
 /** A step size in words a student knows: 8-to-5 is a normal step, fewer steps per 5 yards is a bigger step. */
 export function stepWords(per5: number, l: Lang = current): string {
-  const w = per5 === Infinity ? 'stand still' : per5 > 9 ? 'smaller step size than normal' : per5 >= 7 ? 'normal steps' : per5 >= 6 ? 'bigger step size than normal' : 'very big steps';
+  const w = per5 === Infinity ? 'stand still' : per5 > 9 ? 'smaller step size than normal' : per5 >= 7 ? 'normal step size' : per5 >= 6 ? 'bigger step size than normal' : 'very big step size';
   return tr(w, undefined, l);
 }
 

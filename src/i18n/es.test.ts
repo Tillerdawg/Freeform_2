@@ -23,7 +23,7 @@ describe('Spanish', () => {
     expect(tr('Not in the list yet', undefined, 'es')).toBe('Not in the list yet');
   });
   it('says steps, directions, and yard lines in Spanish', () => {
-    expect(stepWords(8, 'es')).toBe('pasos normales');
+    expect(stepWords(8, 'es')).toBe('tamaño de paso normal');
     expect(moveWords({ x: 0, y: 20 }, { x: 8, y: 30 }, 'es')).toBe('moviéndote hacia atrás y a tu izquierda (mirando al frente)');
     expect(moveWords({ x: 0, y: 20 }, { x: 8, y: 30 }, 'en')).toBe('moving back and to your left (facing the front)');
     expect(yardLabel(-8, 'es')).toBe('L1 45');
