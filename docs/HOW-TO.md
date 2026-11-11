@@ -146,7 +146,7 @@ The Selection area also has **Select all** (⌘A, or Ctrl+A on Windows) and **Se
 
 **Copying spots from one set to another.** Select performers, click **Copy spots** (⌘C, or Ctrl+C), go to another set, and click **Paste spots** (⌘V, or Ctrl+V). The same performers go back to the same spots. This is handy for a picture that comes back later in the show.
 
-**Snap to grid** (in the toolbar) sets how dragging and adding land: on a **Whole step**, **Half step**, or **Quarter step** grid, or anywhere (**Free**). If performers are already off the grid (after a rotate, a shape, or an import), select them and click **Apply**, next to it, to round them onto the grid (with **Free** chosen, onto whole steps). FreeFORM warns you if two performers would land on the same spot.
+**Snap to grid** (in the toolbar) sets how dragging and adding land: on a **Whole step**, **Half step**, or **Quarter step** grid, or anywhere (**Free**). If performers are already off the grid (after a rotate, a shape, or an import), select them and click **Snap selected**, next to it, to round them onto the grid (with **Free** chosen, onto whole steps). FreeFORM warns you if two performers would land on the same spot.
 
 **Dimming or hiding sections.** When the field is crowded, open **Sections** in the sidebar and click the first button on a section's row. It cycles **On**, **Dim** (drawn faint, with no labels), and **Off** (hidden). Dimmed and hidden performers can't be clicked, boxed, or picked by **Select all**, and their paths aren't drawn, so you can write the guard without grabbing the horns. **Show all** brings everyone back. This only changes your view in the editor, in this browser: printed charts and phones always show everyone.
 
@@ -241,7 +241,7 @@ Two menus do the same jobs with exact numbers.
 
 Mirror and Rotate & Scale keep the form you have and move or resize it. To change the form itself, like a block into an arc, use **Shape**.
 
-Rotating or stretching usually leaves performers between grid steps. Use **Snap to grid → Apply** if you want them back on whole, half, or quarter steps.
+Rotating or stretching usually leaves performers between grid steps. Select them and click **Snap selected** (next to **Snap to grid**) if you want them back on whole, half, or quarter steps.
 
 ## Paths: straight, follow the leader, and custom
 

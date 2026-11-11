@@ -1592,6 +1592,6 @@ Each entry: timestamp, who decided, context, options considered, decision.
 ## 2026-11-11: Save status at the bottom of the sidebar, quarter-step snapping, and Get a show back's last case
 - **Who:** Jason Tiller (layout details by Claude; Jason can veto)
 - **Save status:** moved from the top bar to the bottom of the sidebar, pinned there as the sidebar scrolls, with a line each for Browser, File, and Phones (the sidebar has room the top bar didn't, so nothing is cut off). The dashed outline and the panel it opens are unchanged; the panel opens upward. When the sidebar is closed, the status is too; the top bar is less crowded for it.
-- **Snap to grid:** the choices read **Whole step**, **Half step**, **Quarter step** (new), and **Free**. **Apply** (round the selected performers onto the grid) uses the chosen grid; with **Free** it rounds to whole steps, and its tooltip now says so.
+- **Snap to grid:** the choices read **Whole step**, **Half step**, **Quarter step** (new), and **Free**. The button beside it, which rounds the selected performers onto the grid, is renamed from **Apply** to **Snap selected** (Jason), so it says what it does; it uses the chosen grid, and with **Free** it rounds to whole steps, as its tooltip says.
 - **Get a show back:** the last case reads "Something happened and I need to recover my show", explaining that a published show's phone link brings the whole show back, with **Open from a link or recovery code…**.
 

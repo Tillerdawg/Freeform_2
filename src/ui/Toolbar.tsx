@@ -134,7 +134,7 @@ export function Toolbar(p: ToolbarProps) {
         </select>
       </label>
       <button disabled={!any} onClick={snapSel}
-        title={any ? `Round the selected performers onto ${snapUnit === 1 ? 'whole' : snapUnit === 0.5 ? 'half' : 'quarter'} steps${p.snap ? '' : ' (Free has no grid, so whole steps)'}, for dots left off the grid by a rotate, a shape, or an import` : `Rounds selected performers onto the grid (${pick.toLowerCase()})`} aria-label="Apply the grid to selected performers">Apply</button>
+        title={any ? `Round the selected performers onto ${snapUnit === 1 ? 'whole' : snapUnit === 0.5 ? 'half' : 'quarter'} steps${p.snap ? '' : ' (Free has no grid, so whole steps)'}, for dots left off the grid by a rotate, a shape, or an import` : `Rounds selected performers onto the grid (${pick.toLowerCase()})`} >Snap selected</button>
       {snapNote && <span role="alert" className="tb-note" title={snapNote}>{snapNote}</span>}
       <span className="tb-sep" />
       {/* Markup (instructions on the page) is a separate kind of tool from placing performers. */}
