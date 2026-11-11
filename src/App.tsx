@@ -1028,9 +1028,9 @@ export function App() {
               <button className="menu-two" onClick={() => { close(); trySample(); }}>Try the sample show<span>A finished 47-performer show to look around in</span></button>
               <button className="menu-two" onClick={() => { close(); trySample(true); }}>Try the practice show<span>The same show with 3 problems to find and fix, explained in its notes</span></button>
               <span className="menu-head">FreeFORM Drill</span>
-              <button onClick={() => { close(); setFeedback(true); }} title="Report a problem or suggest something: it goes straight to me, with no account needed">Send feedback</button>
-              <button onClick={() => { close(); window.open('https://ko-fi.com/tillerdawg', '_blank', 'noopener'); }} title="FreeFORM is free and always will be. A tip on Ko-fi helps with hosting (opens in a new tab)">Support FreeFORM</button>
-              <button onClick={() => { close(); window.open('../', '_blank', 'noopener'); }} title="FreeFORM Drill's front page: what it is, privacy, and coming from Pyware (opens in a new tab)">About FreeFORM Drill</button>
+              <button className="primary" onClick={() => { close(); setFeedback(true); }} title="Report a problem or suggest something: it goes straight to me, with no account needed">Send feedback</button>
+              <button className="primary" onClick={() => { close(); window.open('https://ko-fi.com/tillerdawg', '_blank', 'noopener'); }} title="FreeFORM is free and always will be. A tip on Ko-fi helps with hosting (opens in a new tab)">Support FreeFORM</button>
+              <button className="primary" onClick={() => { close(); window.open('../', '_blank', 'noopener'); }} title="FreeFORM Drill's front page: what it is, privacy, and coming from Pyware (opens in a new tab)">About FreeFORM Drill</button>
             </div>
           )}</Menu>
         </span>

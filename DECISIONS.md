@@ -1595,3 +1595,7 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Snap to grid:** the choices read **Whole step**, **Half step**, **Quarter step** (new), and **Free**. The button beside it, which rounds the selected performers onto the grid, is renamed from **Apply** to **Snap selected** (Jason), so it says what it does; it uses the chosen grid, and with **Free** it rounds to whole steps, as its tooltip says.
 - **Get a show back:** the last case reads "Something happened and I need to recover my show", explaining that a published show's phone link brings the whole show back, with **Open from a link or recovery code…**.
 
+## 2026-11-11: Help's FreeFORM Drill buttons in green
+- **Who:** Jason Tiller
+- **Decision:** **Send feedback**, **Support FreeFORM**, and **About FreeFORM Drill** in **Help** use the same green button style as **Print…**, **Share…**, and **Video…** (the `primary` class, so they follow the palette in light and dark mode).
+
