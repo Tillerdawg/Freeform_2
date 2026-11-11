@@ -8,7 +8,8 @@ import { decodeShow, fetchHosted, LOAD_PREFIX, linkHash, parseHosted, SHARE_PREF
 const Scanner = lazy(() => import('./Scanner').then((m) => ({ default: m.Scanner }))); // the QR reader is big; only a scan loads it
 import { isPhone } from './device';
 import { colorOf, fieldOf, propsAt, locate, mark, parseShow, positionsAt, setAt, setStarts, showLength, type Show } from '../engine/show';
-import { drawField, drawGlyph, drawLabels, drawMarks, drawPerformers, drawProps, fitView, STEP_TEXT, toScreen, type View } from '../field/drawField';
+import { drawField, drawGlyph, drawLabels, drawMarks, drawPerformers, drawProps, fitView, INK, STEP_TEXT, toScreen, type View } from '../field/drawField';
+import { layoutPref, setLayoutPref } from '../ui/layout';
 import { fmtStep } from '../ui/format';
 import { usePlayback } from '../ui/usePlayback';
 import { audioTime, clickAt, clickWanted, setClickWanted, wakeClick } from '../ui/click';
@@ -237,6 +238,9 @@ export function Perform() {
   const tall = () => matchMedia('(orientation: portrait)').matches;
   const [portrait, setPortrait] = useState(tall);
   const [chosen, setChosen] = useState<'dots' | 'field' | null>(null);
+  // A white field with black marks instead of green turf (shared with the editor's own choice on the same device).
+  const [whiteField, setWhiteField] = useState(() => layoutPref('whiteField'));
+  const look = whiteField ? 'white' as const : 'screen' as const;
   useEffect(() => {
     const m = matchMedia('(orientation: portrait)');
     const turn = () => { setPortrait(m.matches); setChosen(null); };
@@ -305,9 +309,10 @@ export function Perform() {
     viewRef.current = v;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     if (state!.facingFront) ctx.setTransform(-1, 0, 0, -1, W, H); // turn the field around: front sideline at the top
-    drawField(ctx, v, fieldOf(show));
-    drawProps(ctx, v, show.props ?? [], propsAt(show, t), null, 'screen', 12 * dpr);
-    if (onSet >= 0) drawMarks(ctx, v, show.sets[onSet].marks ?? [], 'screen');
+    const I = INK[look];
+    drawField(ctx, v, fieldOf(show), look);
+    drawProps(ctx, v, show.props ?? [], propsAt(show, t), null, look, 12 * dpr);
+    if (onSet >= 0) drawMarks(ctx, v, show.sets[onSet].marks ?? [], look);
     if (!me) {
       const shown = !playing; // labels would jump around as dots move
       // Zoomed out on a phone, letters at their smallest readable size are bigger than the 2 steps between neighbors and pile
@@ -316,46 +321,47 @@ export function Perform() {
       drawPerformers(ctx, v, show.performers.filter((p) => positions[p.id]).map((p) => {
         const m = mark(show, p), lbl = crowded && m.glyph ? m.glyph + m.label : m.label;
         return { id: p.id, label: shown ? lbl : '', glyph: crowded ? undefined : m.glyph, at: positions[p.id], pin: onSet >= 0 ? show.sets[onSet].labels?.[p.id] : undefined, color: colorOf(show, p) };
-      }), new Set(), [], undefined, dpr);
+      }), new Set(), [], undefined, dpr, { look });
     } else {
       const s = v.scale, letters = show.symbols !== 'dots', f = Math.max(11 * dpr, s * 1.1); // letter height, as in the staff view
-      const drawMark = (q: Point, id: string, size: number, color: string, badge?: string) => drawGlyph(ctx, q, mark(show, show.performers.find((x) => x.id === id)!).glyph!, size, color, badge);
+      const drawMark = (q: Point, id: string, size: number, color: string, badge?: string) => drawGlyph(ctx, q, mark(show, show.performers.find((x) => x.id === id)!).glyph!, size, color, badge, I.outline, badge ? I.badgeRing : undefined);
+      const quiet = whiteField ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.6)', bright = whiteField ? I.letter : PALETTE.text; // the rest of the band; my neighbors
       const near = new Set(around.map((n) => n.id));
       for (const p of show.performers) {
         if (p.id === me.id || !positions[p.id]) continue;
         const q = toScreen(v, positions[p.id]);
-        if (letters) { if (!near.has(p.id)) drawMark(q, p.id, f, 'rgba(255,255,255,0.6)'); continue; } // the rest of the band, quieter
-        ctx.fillStyle = 'rgba(255,255,255,0.45)';
+        if (letters) { if (!near.has(p.id)) drawMark(q, p.id, f, quiet); continue; } // the rest of the band, quieter
+        ctx.fillStyle = whiteField ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.45)';
         ctx.beginPath(); ctx.arc(q.x, q.y, Math.max(3, s * 0.3), 0, Math.PI * 2); ctx.fill();
       }
       if (myPath.length) {
         ctx.setLineDash([s * 0.5, s * 0.35]);
-        ctx.strokeStyle = PALETTE.gold; ctx.lineWidth = Math.max(2, s * 0.15);
+        ctx.strokeStyle = I.selLine; ctx.lineWidth = Math.max(2, s * 0.15);
         ctx.beginPath(); myPath.forEach((p, k) => { const q = toScreen(v, p); if (k) ctx.lineTo(q.x, q.y); else ctx.moveTo(q.x, q.y); }); ctx.stroke();
         ctx.setLineDash([]);
         const end = toScreen(v, myPath.at(-1)!);
-        ctx.strokeStyle = PALETTE.gold; ctx.lineWidth = Math.max(2, s * 0.12);
+        ctx.strokeStyle = I.selLine; ctx.lineWidth = Math.max(2, s * 0.12);
         ctx.beginPath(); ctx.arc(end.x, end.y, Math.max(6, s * 0.55), 0, Math.PI * 2); ctx.stroke();
       }
       const q = toScreen(v, positions[me.id]);
       if (letters) drawMark(q, me.id, Math.max(16 * dpr, s * 1.3), '#111', PALETTE.gold); // me: my letter on a gold badge
       else {
-        ctx.fillStyle = PALETTE.gold; ctx.strokeStyle = '#fff'; ctx.lineWidth = Math.max(2, s * 0.15);
+        ctx.fillStyle = PALETTE.gold; ctx.strokeStyle = I.selRing; ctx.lineWidth = Math.max(2, s * 0.15);
         ctx.beginPath(); ctx.arc(q.x, q.y, Math.max(7, s * 0.6), 0, Math.PI * 2); ctx.fill(); ctx.stroke();
       }
       // Neighbors: brighter, so "who I'm next to" stands out from the rest of the band.
       for (const n of around) {
         const nq = toScreen(v, positions[n.id]);
-        if (letters) { drawMark(nq, n.id, f, PALETTE.text); continue; }
-        ctx.fillStyle = PALETTE.text;
+        if (letters) { drawMark(nq, n.id, f, bright); continue; }
+        ctx.fillStyle = bright;
         ctx.beginPath(); ctx.arc(nq.x, nq.y, Math.max(4, s * 0.38), 0, Math.PI * 2); ctx.fill();
       }
       // Labels (upright either way, placed so they don't collide): mine first, then my nearest neighbors'. With letters, just the number.
       const text = (id: string) => mark(show, show.performers.find((x) => x.id === id)!).label;
       drawLabels(ctx, [
-        { id: me.id, label: text(me.id), at: positions[me.id], first: true, px: 14 * dpr, color: '#fff' },
+        { id: me.id, label: text(me.id), at: positions[me.id], first: true, px: 14 * dpr, color: I.label },
         ...(!playing ? around : []).map((n) => ({ id: n.id, label: text(n.id), at: positions[n.id] })),
-      ], v, letters ? f * 0.55 : Math.max(7, s * 0.6), 12 * dpr, PALETTE.text, 'rgba(0,0,0,0.65)');
+      ], v, letters ? f * 0.55 : Math.max(7, s * 0.6), 12 * dpr, bright, I.halo);
     }
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     if (follow || zoom > 1) {
@@ -373,7 +379,7 @@ export function Perform() {
         ctx.fillText(yardLabel(x, lang), at, H - band / 2 + 2 * dpr);
       }
     }
-  }, [show, size, positions, me, state, onSet, myPath, dpr, around, zoom, center, playing, t, theme]);
+  }, [show, size, positions, me, state, onSet, myPath, dpr, around, zoom, center, playing, t, theme, look]);
 
   if (!show) {
     return (
@@ -435,8 +441,10 @@ export function Perform() {
             <button aria-pressed={pane === 'field'} onClick={() => setChosen('field')}>{tr('Field')}</button>
           </div>}
         </div>
-        {me && pane === 'field' && <div className="perform-who">
-          <button className="perform-view" aria-pressed={state!.follow} onClick={() => { update({ follow: !state!.follow }); setZoom(1); setCenter({ x: 0, y: 42 }); }}>{tr('Follow my dot')}</button>
+        {pane === 'field' && <div className="perform-who">
+          {me && <button className="perform-view" aria-pressed={state!.follow} onClick={() => { update({ follow: !state!.follow }); setZoom(1); setCenter({ x: 0, y: 42 }); }}>{tr('Follow my dot')}</button>}
+          <button className="perform-view" aria-pressed={whiteField} title={tr('A white field with black lines, instead of green')}
+            onClick={() => { setWhiteField(!whiteField); setLayoutPref('whiteField', !whiteField); }}>{tr('White field')}</button>
         </div>}
       </header>
       {/* Field: one line of where I am, over the controls. */}

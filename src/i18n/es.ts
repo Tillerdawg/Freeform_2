@@ -71,6 +71,8 @@ export const ES: Record<string, string> = {
   'Field orientation: facing the front. Tap to turn it around.': 'Vista del campo: mirando al frente. Toca para darle la vuelta.',
   'Follow my dot': 'Seguir mi punto',
   'My dots': 'Mis puntos',
+  'White field': 'Campo blanco',
+  'A white field with black lines, instead of green': 'Un campo blanco con líneas negras, en vez de verde',
   'Show my dots or the field': 'Ver mis puntos o el campo',
   'Reset zoom': 'Restablecer zoom',
 

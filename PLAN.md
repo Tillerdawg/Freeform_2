@@ -79,7 +79,7 @@ Claude went through the docs, ran the tests, and clicked through the editor and 
 - ✅ A phone loads only the performer view: the editor, the performer view, and the QR scanner are separate downloads (a phone fetches about 107 KB zipped, down from 216). The offline cache keeps all of them, from a list the build writes (`precache.json`).
 
 ### Editor
-- ✅ A white field (Jason, 2026-11-11): **Layout → White field** draws the turf white with black lines, letters, and labels, a dark-ringed gold selection, dark-blue shape guides, and the same cased step paths; remembered per browser. Printing is unchanged (black on white already); phones and videos stay green. Follow-up, if asked: the same choice on phones.
+- ✅ A white field (Jason, 2026-11-11): **Layout → White field** draws the turf white with black lines, letters, and labels, a dark-ringed gold selection, dark-blue shape guides, and the same cased step paths; remembered per browser. Printing is unchanged (black on white already); videos stay green. ✅ Phones too (same day): a **White field** toggle beside **Follow my dot**, remembered on the phone.
 - ✅ The timeline's top row: the controls scroll sideways in a narrow window, with a faded edge where more are hidden; the status text stays put at the right.
 - ✅ At least 24 by 24 px for every button with a mouse (WCAG 2.2): the play buttons, set buttons (their rows are a little taller), **Add**'s **▾**, and the Roster's names.
 - ✅ **Print…** and **Share…** on their own row under the file buttons, in the green primary style.
