@@ -1574,3 +1574,7 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Decision:** **New** starts in Select, like any show, and the blank field's note leads (**Place performers**, **Import a roster…**, the sample, or a link).
 - **Update (same day, Jason):** the note opens in the middle of the field, and the checklist is chosen, not pushed: the note has a **Getting started, step by step** button (and **Help** has **Getting started checklist** for any show). With the checklist on, a blank field's note becomes its step 1 (the four ways to begin as its buttons, steps 2 to 6 listed under it); **Close** turns it off for that show, replacing the earlier "Hide for good". While placing performers, the note leaves and the checklist moves to the bottom-right corner, so neither covers the middle of the field (Claude's call; Jason can veto).
 
+## 2026-11-11: Props first, from the Start note
+- **Who:** Jason Tiller (some writers place props before performers); placement details by Claude (Jason can veto)
+- **Decision:** The blank field's **Start your show** note (and checklist step 1) has **Place a prop**, next to **Place performers**. It adds the same 8 by 8 prop as **Add**, then **Prop**, picked, with its box open in the sidebar. A new prop lands in the middle of the field, under where the note sits, so once a show has a prop the note docks at the top of the field instead of the middle.
+

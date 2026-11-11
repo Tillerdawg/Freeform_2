@@ -9,7 +9,7 @@ import { colorOf,
   addPerformer, closeCalls, setFtlTurns, locate, label, mark, newId, setMarks, moveSegments, fieldOf,  hitProp, placeProp, propsAt, removeProp, normalizeFtl, overLimit, snapPoint, playRange, newShow, parseShow, placeInSet, positionsAt, removePerformers,
   rotateScale, setAt, setStarts, withShowId, type Show, newShowId, parseShowFile, type Attached,
   showLength,
-  revisionLabel,
+  revisionLabel, addProp, newPropSpot,
 } from './engine/show';
 import { pinchView } from './perform/gestures';
 import { coarse } from './perform/device';
@@ -356,11 +356,19 @@ export function App() {
   const startGs = () => { if (!gsDid) writeGs({}); };
   const hideGs = () => writeGs(null);
   const gsSteps = gsDid ? gettingStarted(show, gsDid, issues.length) : null;
+  // A prop before any performers (a stage, a backdrop): as Add, then Prop does.
+  const placePropFirst = () => {
+    const r = addProp(show, `Prop ${(show.props?.length ?? 0) + 1}`, 8, 8, false, newPropSpot(show));
+    setShow(() => r.show); setSelected(new Set()); setSelectedMark(null); setSelectedProp(r.id); setTool('select'); setSideChoice(true);
+  };
+  // Where the blank field's note sits: the middle of an empty field; the top once there's a prop to see under it.
+  const startDock = (show.props?.length ?? 0) > 0 ? 'top' : 'center';
   // The ways to begin a blank show: the Start note, and step 1 of the checklist when it's on.
   const startOptions = <>
-    <span>Place performers on the field, bring in a roster from Excel, or look around the sample show first. On a new computer? Open your show from its phone link or recovery code.</span>
+    <span>Place performers on the field (or props first, like a stage or a backdrop), bring in a roster from Excel, or look around the sample show first. On a new computer? Open your show from its phone link or recovery code.</span>
     <span style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 6 }}>
       <button className="primary" onClick={() => { setTool('add'); setOpenAdd((n) => n + 1); }}>Place performers</button>
+      <button onClick={placePropFirst} title="An 8 by 8 prop in the middle of the field, picked, with its size and name in the sidebar">Place a prop</button>
       <button onClick={() => setRoster(true)}>Import a roster…</button>
       <button onClick={() => trySample()}>Try the sample show</button>
       <button onClick={() => setLibrary('link')} title="Open a show from the link students use, or from a recovery code from your other computer">Open from a link or recovery code…</button>
@@ -1053,9 +1061,9 @@ export function App() {
         {/* A blank field: the Start note in the middle of the field (Jason). With the checklist on, the note is its step 1.
             While placing performers, both get out of the field's middle: the checklist moves to the corner, the note goes. */}
         {show.performers.length === 0 && !otherTab && (gsSteps
-          ? <GettingStarted steps={gsSteps} onHide={hideGs} start={tool === 'select' ? startOptions : undefined} />
+          ? <GettingStarted steps={gsSteps} onHide={hideGs} start={tool === 'select' ? startOptions : undefined} dock={startDock} />
           : tool === 'select' && (
-            <section className="getting-started center" aria-label="Start your show">
+            <section className={`getting-started ${startDock}`} aria-label="Start your show">
               <strong style={{ display: 'block', fontSize: 16, marginBottom: 6 }}>Start your show</strong>
               {startOptions}
               <p style={{ margin: '12px 0 0', paddingTop: 10, borderTop: '1px solid var(--line)' }}>
