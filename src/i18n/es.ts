@@ -54,6 +54,15 @@ export const ES: Record<string, string> = {
   'No revision number': 'Sin número de revisión',
   'checked for updates {time}': 'buscó actualizaciones a las {time}',
   'not checked for updates yet': 'todavía no ha buscado actualizaciones',
+  'Ready offline': 'Listo sin internet',
+  'Ready offline, with the music': 'Listo sin internet, con la música',
+  'last checked {time}': 'última revisión {time}',
+  'never checked': 'nunca revisado',
+  'checking for updates…': 'buscando actualizaciones…',
+  'Offline: using the copy on this phone ({last})': 'Sin internet: usando la copia de este teléfono ({last})',
+  "Couldn't check for updates: using the copy on this phone ({last})": 'No se pudo buscar actualizaciones: usando la copia de este teléfono ({last})',
+  'Check for updates': 'Buscar actualizaciones',
+  'How it works for performers (2 minutes)': 'Cómo funciona para los integrantes (2 minutos)',
 
   // Who are you?
   'Who are you?': '¿Quién eres?',

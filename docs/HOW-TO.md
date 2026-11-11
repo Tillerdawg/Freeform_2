@@ -453,11 +453,19 @@ If the old device is gone and you have no file, the drill isn't lost: paste the 
 - **Publish to your own GitHub repository** in one click, once you connect FreeFORM to a public repository of your own. (Public is fine, since the file is encrypted.) You'll need the repository's name and a fine-grained GitHub token that can write only to that repository (*Contents: Read and write*). Both stay in your browser.
 - **Host the file yourself**: download the locked file and upload it anywhere that gives you a direct link to it. Paste that address into the box, and FreeFORM makes your short link.
 
-**Revision numbers.** Each time you click **Publish to phones** (or **Publish update**), or download a locked file, the show's revision number goes up by one. Phones show it under the set ("Revision 6"), and so do printed charts and dot sheets. If you change the drill after publishing, paper you print says "rev 6 + changes" until you publish again, so a newer chart can't pass for what's on the phones. **Share** says so too. At rehearsal, "Does everyone have revision 6?" is a quick check. A hosted show on a phone also says when it last checked for an update ("checked for updates 3:42 PM"). Share links don't change the number.
+**Revision numbers.** Each time you click **Publish to phones** (or **Publish update**), or download a locked file, the show's revision number goes up by one. Phones show it under the set ("Revision 6"), and so do printed charts and dot sheets. If you change the drill after publishing, paper you print says "rev 6 + changes" until you publish again, so a newer chart can't pass for what's on the phones. **Share** says so too. At rehearsal, "Does everyone have revision 6?" is a quick check. Share links don't change the number.
+
+**What the phone says about its copy.** One line at the top of **My dots** (and under the field) tells a student where they stand, like "Ready offline · Revision 6 · checked for updates 3:42 PM":
+
+- **Ready offline** (or **Ready offline, with the music**): the show and FreeFORM itself are saved on the phone, so it works with no signal. It doesn't say this until both are true.
+- **Revision 6**: which version they have.
+- For a hosted link, whether it's the latest: **checked for updates 3:42 PM**, **checking for updates…**, **Offline: using the copy on this phone (last checked 3:42 PM)**, or **Couldn't check for updates: using the copy on this phone**. A **Check for updates** button under the line checks again right away, and the phone checks on its own when it gets signal back.
 
 To cut off a link (say, a student leaves the program), click **Stop sharing**, then **Publish to phones** again for a new link, and send the new one to everyone else. Phones that already had the show keep their copy but get no more updates, and a student who opens the old link is told it isn't online anymore.
 
 ## What performers see on their phones
+
+**A two-minute guide for students.** Send your students [freeformdrill.org/students/](https://freeformdrill.org/students/) (in Spanish, [freeformdrill.org/es/students/](https://freeformdrill.org/es/students/)) with the show link the first time. It walks them through opening the link, picking who they are, reading their dots, watching a move, and checking their revision. The phone links to it too, under **My dots** and on its first screen. It's written in [docs/STUDENTS.md](STUDENTS.md).
 
 When a student opens your link on their phone, they pick who they are.
 
@@ -571,7 +579,7 @@ Arrows move the selection the way it looks on screen: ↑ is toward the back sid
 
 **I made a mistake.** Undo (⌘Z or Ctrl+Z) works for every edit, including deleting performers. For something older than Undo reaches, try **Shows…**, then **Versions of "…"**.
 
-**A student's phone shows an old version.** A share link holds the show as it was when you made it, so send a new one. A hosted link updates itself when the phone opens it while online. If you changed the file online but the phone hasn't caught up, have the student close the show and open it again while connected. The revision number under the set, and when it last checked for updates, tell you which version a phone has.
+**A student's phone shows an old version.** A share link holds the show as it was when you made it, so send a new one. A hosted link updates itself when the phone opens it while online. If you changed the file online but the phone hasn't caught up, have the student tap **Check for updates** (at the top of **My dots**) while connected. The line above it says which revision the phone has, when it last checked, and whether it's offline.
 
 **The browser says it's too old.** Update your browser, or on an iPad, update iPadOS to 16.4 or later.
 

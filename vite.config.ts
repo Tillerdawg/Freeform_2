@@ -1,7 +1,7 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
-import { guidePage } from './src/guide/page';
+import { guidePage, studentPage } from './src/guide/page';
 import { sampleShow } from './src/engine/sample';
 import { qrSvg } from './src/engine/qr';
 
@@ -14,6 +14,9 @@ const guide: Plugin = {
   generateBundle() {
     this.emitFile({ type: 'asset', fileName: 'guide/index.html', source: guidePage(readFileSync('docs/HOW-TO.md', 'utf8')) });
     for (const f of readdirSync('docs/img')) this.emitFile({ type: 'asset', fileName: `guide/img/${f}`, source: readFileSync(`docs/img/${f}`) });
+    // The student quickstart, in English and Spanish, using the guide's pictures.
+    this.emitFile({ type: 'asset', fileName: 'students/index.html', source: studentPage(readFileSync('docs/STUDENTS.md', 'utf8'), 'en') });
+    this.emitFile({ type: 'asset', fileName: 'es/students/index.html', source: studentPage(readFileSync('docs/STUDENTS.es.md', 'utf8'), 'es') });
   },
 };
 
@@ -38,7 +41,7 @@ const precache: Plugin = {
   generateBundle(_, bundle) {
     const built = Object.keys(bundle).filter((f) => f.startsWith('assets/') && !f.endsWith('.png')); // not the front page's screenshots
     const pub = readdirSync('public').filter((f) => f !== 'sw.js' && f !== 'og-image.png' && !f.startsWith('.'));
-    this.emitFile({ type: 'asset', fileName: 'precache.json', source: JSON.stringify(['./', 'app/', ...pub, ...built]) });
+    this.emitFile({ type: 'asset', fileName: 'precache.json', source: JSON.stringify(['./', 'app/', 'students/', 'es/students/', ...pub, ...built]) });
   },
 };
 
