@@ -30,7 +30,7 @@ A note on where the ideas came from: FreeFORM is modeled on Pyware and the Ultim
 ## What it does
 
 **Writing drill**
-- A football field with high school, college/DCI, or NFL hashes and an 8-to-5 grid, seen from the press box (Side 1 on the left), or a basketball court or custom floor for indoor shows.
+- A football field with high school, college/DCI, or NFL hashes and an 8-to-5 grid, seen from the press box (Side 1 on the left), or a basketball court or custom floor for indoor shows, picked when you start the show.
 - Coordinates in standard drill language, like "2 steps outside the Side 2 45, 2 steps in front of Front Hash."
 - Sections with letters and colors, a roster of names (paste it from a spreadsheet), and labels that stay out of each other's way.
 - Shapes: line, arc, curve, Bézier, circle, polygon, star, spiral, block, and letters (spell a word). A picture under the field to trace. FreeFORM assigns spots by least total travel, so paths don't cross.
@@ -115,7 +115,7 @@ node scripts/screenshots.mjs ftl print    # or just these
 |---|---|
 | `src/engine/` | The drill logic, with no UI: coordinates and readouts, the show model, shapes, markup, undo, which versions to keep, music timing, share links and locked files, QR codes, the Pyware reader, and the whole-show Review. Unit-tested. |
 | `src/field/` | Drawing the field, performers, shapes, and markup, plus dot-label placement and the rotate/stretch frame |
-| `src/ui/` | The toolbar, sidebar, timeline, Review list, music menu, show list, color palette, the keyboard handling every dialog shares (`useDialog`), where the sidebar and timeline sit (`layout.ts`), and browser storage (`audioStore.ts`, `showStore.ts`: recordings, pictures, the show library, and versions in IndexedDB) |
+| `src/ui/` | The toolbar, sidebar, the New show box and the field menu it shares (`FieldPicker.tsx`), timeline, Review list, music menu, show list, color palette, the keyboard handling every dialog shares (`useDialog`), where the sidebar and timeline sit (`layout.ts`), and browser storage (`audioStore.ts`, `showStore.ts`: recordings, pictures, the show library, and versions in IndexedDB) |
 | `src/print/` | Dot sheets and drill charts |
 | `src/perform/` | The performer view, the Share dialog, and the QR scanner |
 | `index.html`, `app/index.html` | The front page (freeformdrill.org) and the app (freeformdrill.org/app/), which old links (`/#show=…`) are forwarded to |

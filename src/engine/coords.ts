@@ -27,6 +27,8 @@ export interface Floor { kind: 'court' | 'floor'; w: number; d: number }
 export type FieldSpec = HashPreset | Floor;
 export const FEET = 12 / STEP_IN; // steps per foot
 export const COURT: Floor = { kind: 'court', w: 94 * FEET, d: 50 * FEET }; // a high school or college court, 94 by 50 feet
+/** A custom floor before it's sized: 60 by 40 feet, on quarter steps. */
+export const DEFAULT_FLOOR: Floor = { kind: 'floor', w: Math.round(60 * FEET * 4) / 4, d: Math.round(40 * FEET * 4) / 4 };
 /** How deep the surface is, front to back, in steps. */
 export const fieldDepth = (f: FieldSpec) => (typeof f === 'string' ? FIELD_WIDTH : f.d);
 

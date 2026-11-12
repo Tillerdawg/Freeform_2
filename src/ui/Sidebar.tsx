@@ -8,13 +8,14 @@ import { RosterImport } from './RosterImport';
 import { deleteAudio, putAudio } from './audioStore';
 import { IconGrip } from './icons';
 import { Menu } from './Toolbar';
-import { COURT, FEET, HASHES, distance, fieldDepth, readout, type HashPreset } from '../engine/coords';
+import { HASHES, distance, fieldDepth, readout, type HashPreset } from '../engine/coords';
 import type { Shape, ShapeKind } from '../engine/shapes';
 import {
-  fieldOf, addProp, newPropSpot, MAX_PROPS, placeProp, removeProp, updateProp, MAX_NAME, scoreOrder, setCue, setMarks, setNames, setNote, label, locate, newId, moveToSection, removeSection, duplicateLetters, renumberSection, placeInSet, remapHash, positionsAt, xFrom, yFrom,
+  fieldOf, withField, addProp, newPropSpot, MAX_PROPS, placeProp, removeProp, updateProp, MAX_NAME, scoreOrder, setCue, setMarks, setNames, setNote, label, locate, newId, moveToSection, removeSection, duplicateLetters, renumberSection, placeInSet, remapHash, positionsAt, xFrom, yFrom,
   type FrontDir, type FrontRef, type Section, type Show, type SideDir,
 } from '../engine/show';
 import { NumberField } from './NumberField';
+import { FieldSelect, FloorSize, PRESETS } from './FieldPicker';
 import { useDialog } from './useDialog';
 
 export type Tool = 'select' | 'add' | 'text' | 'arrow' | 'draw' | 'turn'; // turn: click to add an FTL leader's turning points
@@ -71,7 +72,6 @@ interface Props {
   status?: React.ReactNode; // the save status, pinned to the bottom
 }
 
-const PRESETS: [HashPreset, string][] = [['highSchool', 'High school'], ['college', 'College / DCI'], ['nfl', 'NFL']];
 const LINES = [50, 45, 40, 35, 30, 25, 20, 15, 10, 5, 0];
 const box: React.CSSProperties = { borderTop: '1px solid var(--line)', padding: '10px 0' };
 const row: React.CSSProperties = { display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', marginTop: 6 };
@@ -103,18 +103,11 @@ export function Sidebar(p: Props) {
       {p.fileError && <div role="alert" style={{ color: 'var(--danger)', marginTop: 6 }}>{p.fileError}</div>}
       <div style={{ ...row, marginBottom: 10 }}>
         <input aria-label="Show title" value={show.title} onChange={(e) => setShow((s) => ({ ...s, title: e.target.value }))} style={{ flex: 1 }} />
-        <select aria-label="Field" title="What the show is written on: a football field (by its hashes), a basketball court, or a floor or tarp you size" value={show.surface ? show.surface.kind : show.hash} onChange={(e) => {
-          const to = e.target.value;
-          if (to === 'court') setShow((s) => ({ ...s, surface: COURT }));
-          else if (to === 'floor') setShow((s) => ({ ...s, surface: { kind: 'floor', w: Math.round(60 * FEET * 4) / 4, d: Math.round(40 * FEET * 4) / 4 } }));
-          else if (show.surface) setShow(({ surface: _, ...s }) => ({ ...s, hash: to as HashPreset })); // back outside: spots stay put
-          else if (show.performers.length) setPendingHash(to as HashPreset); // ask what should happen to the drill
-          else setShow((s) => ({ ...s, hash: to as HashPreset }));
-        }}>
-          {PRESETS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
-          <option value="court">Basketball court</option>
-          <option value="floor">Custom floor</option>
-        </select>
+        <FieldSelect value={fieldOf(show)} onChange={(f) => {
+          // Other hashes under written drill: ask what should happen to it. Onto or off a floor, spots stay put in steps.
+          if (typeof f === 'string' && !show.surface && show.performers.length) setPendingHash(f);
+          else setShow((s) => withField(s, f));
+        }} />
         <select aria-label="Draw performers as" title="On the field, printed charts, and phones: the section letter labeled with the number, or a dot labeled P4"
           value={show.symbols ?? 'letters'} onChange={(e) => setShow((s) => { const { symbols: _, ...rest } = s, v = e.target.value; return v === 'dots' ? { ...rest, symbols: v } : rest; })}>
           <option value="letters">Letters</option>
@@ -123,11 +116,7 @@ export function Sidebar(p: Props) {
       </div>
       {show.surface?.kind === 'floor' && (
         <div style={{ ...row, marginTop: -4, marginBottom: 10 }}>
-          <label>Wide <NumberField aria-label="Floor width in feet" min={8} max={700} step={1} value={Math.round(show.surface.w / FEET)} style={{ width: 56 }}
-            onValue={(n) => setShow((s) => (s.surface ? { ...s, surface: { ...s.surface, w: n * FEET } } : s))} /></label>
-          <label>Deep <NumberField aria-label="Floor depth in feet" min={8} max={700} step={1} value={Math.round(show.surface.d / FEET)} style={{ width: 56 }}
-            onValue={(n) => setShow((s) => (s.surface ? { ...s, surface: { ...s.surface, d: n * FEET } } : s))} /></label>
-          <span style={{ fontSize: 12, opacity: 0.75 }}>feet</span>
+          <FloorSize value={show.surface} onChange={(f) => setShow((s) => withField(s, f))} />
         </div>
       )}
       {show.surface && show.performers.some((x) => show.sets.some((st) => { const q = st.pos[x.id]; return q && (Math.abs(q.x) > show.surface!.w / 2 || q.y < 0 || q.y > show.surface!.d); })) && (

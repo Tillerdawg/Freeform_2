@@ -122,6 +122,15 @@ shot('start', async () => {
   await page.waitForTimeout(500);
   await save(page, 'start', await around(page.locator('.getting-started')));
 });
+shot('new-show', async () => {
+  // New: the title and the surface come first. A custom floor, so its size shows too.
+  const page = await editor();
+  await page.getByRole('button', { name: 'New', exact: true }).click(); await page.waitForTimeout(300);
+  await page.getByLabel('New show title').fill('Winter Guard 2027');
+  await page.getByRole('dialog').getByRole('combobox', { name: 'Field' }).selectOption('floor');
+  await page.waitForTimeout(200);
+  await save(page, 'new-show', await around(page.locator('[role=dialog] > form'), 12));
+});
 shot('getting-started', async () => {
   // A blank show, the checklist turned on, four performers placed, and a second set added: two steps in.
   const page = await editor();

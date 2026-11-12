@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { insidePolygon, readout, type Point } from './engine/coords';
+import { insidePolygon, readout, type FieldSpec, type Point } from './engine/coords';
 import { newlyStraight, reviewShow, splitDismissed, type Issue } from './engine/review';
 import { ReviewPanel } from './ui/Review';
 import { emptyHistory, record, redo, undo } from './engine/history';
@@ -7,7 +7,7 @@ import { addInk, hitMark, moveMark, type Mark } from './engine/marks';
 import { assign, fitShape, fitText, handleName, isControl, moveHandle, samplePath, slots, type Shape, type ShapeKind } from './engine/shapes';
 import { colorOf,
   addPerformer, closeCalls, setFtlTurns, locate, label, mark, newId, setMarks, moveSegments, fieldOf,  hitProp, placeProp, propsAt, removeProp, normalizeFtl, overLimit, snapPoint, playRange, newShow, parseShow, placeInSet, positionsAt, removePerformers,
-  rotateScale, setAt, setStarts, withShowId, type Show, newShowId, parseShowFile, type Attached,
+  rotateScale, setAt, setStarts, withShowId, withField, type Show, newShowId, parseShowFile, type Attached,
   showLength,
   revisionLabel, addProp, newPropSpot,
 } from './engine/show';
@@ -18,6 +18,9 @@ import { frameDrag, selectionFrame } from './field/frame';
 import { Sidebar, type Snap, type Tool } from './ui/Sidebar';
 import { Timeline } from './ui/Timeline';
 import { startingSections } from './ui/startingSections';
+import { saveStartingField, startingField } from './ui/startingField';
+import { NewShowDialog } from './ui/NewShow';
+import { FieldSelect, FloorSize } from './ui/FieldPicker';
 import { MusicMenu } from './ui/Music';
 import { getAudio, putAudio } from './ui/audioStore';
 import { addVersion, forgetShow, keepShow, listShows, loadShow, type Entry } from './ui/showStore';
@@ -68,7 +71,7 @@ function loadAutosave(): Show {
     // Bad data: keep a copy before the fresh show's autosave overwrites it.
     try { if (raw) localStorage.setItem(`${AUTOSAVE}:unreadable`, raw); } catch { /* storage blocked */ }
   }
-  return newShow(startingSections());
+  return newShow(startingSections(), startingField());
 }
 
 const toBase64 = (b: Blob) => new Promise<string>((ok, fail) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(',')[1] ?? ''); r.onerror = () => fail(r.error); r.readAsDataURL(b); });
@@ -389,7 +392,12 @@ export function App() {
   // In the middle of an empty field the note is the welcome screen, so it carries the full logo (Jason); docked at the top, it stays short.
   const startLogo = startDock === 'center' && <img className="start-logo" src={theme === 'light' ? '../logo-light.svg' : '../logo.svg'} alt="FreeFORM Drill" />;
   // The ways to begin a blank show: the Start note, and step 1 of the checklist when it's on.
+  // A blank field can still switch surfaces (a first visit lands on one): nobody's on it yet, so nothing moves.
+  const pickField = (f: FieldSpec) => { setShow((s) => withField(s, f)); saveStartingField(f); };
   const startOptions = <>
+    <span style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', marginBottom: 6 }}>
+      Written on <FieldSelect value={fieldOf(show)} onChange={pickField} /> <FloorSize value={fieldOf(show)} onChange={pickField} />
+    </span>
     <span>Place performers on the field (or props first, like a stage or a backdrop), bring in a roster from Excel, or look around the sample show first. On a new computer? Open your show from its phone link or recovery code.</span>
     <span style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 6 }}>
       <button className="primary" onClick={() => { setTool('add'); setOpenAdd((n) => n + 1); }}>Place performers</button>
@@ -952,9 +960,12 @@ export function App() {
     }
   };
 
-  const fresh = async () => {
+  const [newing, setNewing] = useState(false); // the New show dialog: title and field first
+  const fresh = async (title: string, field: FieldSpec) => {
+    setNewing(false);
+    saveStartingField(field); // the next new show starts on the same surface
     await flush();
-    openShow(newShow(startingSections())); // nothing to back up yet
+    openShow({ ...newShow(startingSections(), field), title }); // nothing to back up yet
     setTool('select'); // the blank field's note leads: Place performers, Import a roster, or the sample (Jason, 2026-11-11)
   };
   const [openAdd, setOpenAdd] = useState(0);
@@ -968,7 +979,7 @@ export function App() {
   const [feedback, setFeedback] = useState(false); // the Send feedback form
   const act: ShowActions = {
     flush,
-    fresh: () => fresh().then(() => setLibrary(false)),
+    fresh: async () => { setLibrary(false); setNewing(true); },
     open: async (id) => { const s = await loadShow(id); await flush(); openShow(s); setLibrary(false); },
     // Open a show from a phone link or a recovery code: recovers the drill (the link holds the key that unlocks it), and
     // with a recovery code, keeps updating the same link from here.
@@ -1001,7 +1012,7 @@ export function App() {
       await forgetShow(id);
       writeTime(unexportedKey(id), null);
       const next = (await listShows())[0];
-      openShow(next ? await loadShow(next.id) : newShow(startingSections()));
+      openShow(next ? await loadShow(next.id) : newShow(startingSections(), startingField()));
     },
     restore: async (e: Entry) => {
       await addVersion(show); // the show as it is now stays recoverable after the page closes
@@ -1167,7 +1178,7 @@ export function App() {
         show={show} setShow={setShow} t={t} setT={(x) => { setPlaying(false); setT(x); }} onSet={onSet}
         selected={selected} setSelected={setSelected} tool={tool} setTool={setTool}
         section={section} setSection={setSection} snap={snap} setSnap={setSnap} starts={starts}
-        onNew={fresh} onOpen={() => fileRef.current?.click()} onSave={save} onSaveAs={saveAs} onShows={() => setLibrary(true)} onFullBackup={() => saveTo(false, true)} onPrint={() => setPrinting(true)} onShare={() => setSharing(true)} onVideo={() => setVideo(true)} fileError={fileError}
+        onNew={() => setNewing(true)} onOpen={() => fileRef.current?.click()} onSave={save} onSaveAs={saveAs} onShows={() => setLibrary(true)} onFullBackup={() => saveTo(false, true)} onPrint={() => setPrinting(true)} onShare={() => setSharing(true)} onVideo={() => setVideo(true)} fileError={fileError}
         selectedMark={selectedMark} setSelectedMark={setSelectedMark} adding={adding} setAdding={setAdding} lassoOn={lassoOn} setLassoOn={setLassoOn}
         look={look} setLook={setLook}
         clip={clip ? Object.keys(clip).length : 0} onCopy={copySpots} onPaste={pasteSpots} selectedProp={selectedProp} setSelectedProp={setSelectedProp} onTrace={() => setTraceTick((n) => n + 1)} traceAsk={traceAsk}
@@ -1199,6 +1210,7 @@ export function App() {
       </div>
       {sharing && <ShareDialog show={show} onClose={() => setSharing(false)} published={(p) => setShow((s) => ({ ...s, revision: p.revision, revisionSig: p.revisionSig }))} />}
       {roster && <RosterImport show={show} setShow={setShow} onClose={() => setRoster(false)} />}
+      {newing && <NewShowDialog onStart={fresh} onClose={() => setNewing(false)} />}
       {library && <ShowsDialog show={show} act={act} linkFirst={library === 'link'} versionsFirst={library === 'versions'} onClose={() => setLibrary(false)} />}
       {recovering && <RecoverDialog title={show.title} fileSaved={fileSavedAt ? `${today(fileSavedAt) ? 'at' : 'on'} ${whenLabel(fileSavedAt)}` : null} onClose={() => setRecovering(false)} act={{
         canUndo: !!hist.past.length, undo: () => step('undo'), versions: () => setLibrary('versions'), shows: () => setLibrary(true),
