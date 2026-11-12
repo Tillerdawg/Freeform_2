@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { bandMessage, gettingStarted, sendSteps } from './gettingStarted';
+import { bandMessage, gettingStarted, sendSteps } from './gettingStartedSteps';
 import { addPerformer, addSetAfter, newShow, placeInSet } from '../engine/show';
 
 const done = (steps: { id: string; done: boolean }[]) => steps.filter((s) => s.done).map((s) => s.id);
