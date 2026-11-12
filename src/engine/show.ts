@@ -152,8 +152,9 @@ export function validSectionList(x: unknown): SectionList | null {
     ? x.map((s) => ({ name: s.name, letter: s.letter, ...(s.color ? { color: s.color } : {}) })) : null;
 }
 
-export function newShow(sections: SectionList = DEFAULT_SECTIONS): Show {
-  return {
+/** A new show, on a football field (high school hashes unless `field` says otherwise) or the floor `field` names. */
+export function newShow(sections: SectionList = DEFAULT_SECTIONS, field: FieldSpec = 'highSchool'): Show {
+  return withField({
     format: 'freeform-show',
     version: 1,
     id: newShowId(),
@@ -162,7 +163,25 @@ export function newShow(sections: SectionList = DEFAULT_SECTIONS): Show {
     sections: sections.map(({ name, letter, color }) => ({ id: newId('s'), name, letter, ...(color ? { color } : {}) })),
     performers: [],
     sets: [{ id: newId('set'), name: '1', counts: 0, pos: {} }],
-  };
+  }, field);
+}
+
+/**
+ * The show written on `field` instead, with everyone keeping their spots in steps. Meant for a show with no drill yet
+ * (a new show, a blank field): changing the hashes under written drill goes through remapHash instead.
+ */
+export function withField(show: Show, field: FieldSpec): Show {
+  if (typeof field !== 'string') return { ...show, surface: { ...field } };
+  const { surface: _, ...rest } = show;
+  return { ...rest, hash: field };
+}
+
+/** What a show can be written on, as saved for the next new show: kept only if it's a hash level or a sensibly sized floor. */
+export function validField(x: unknown): FieldSpec | null {
+  if (typeof x === 'string') return Object.hasOwn(HASHES, x) ? x as HashPreset : null;
+  const f = x as Floor | null;
+  return (f?.kind === 'court' || f?.kind === 'floor') && Number.isFinite(f.w) && f.w >= 4 && f.w <= 400 && Number.isFinite(f.d) && f.d >= 4 && f.d <= 400
+    ? { kind: f.kind, w: f.w, d: f.d } : null;
 }
 
 /** The color a performer's section is drawn in, if it has one. */
@@ -1012,8 +1031,7 @@ function checkShow(s: any): Show { // eslint-disable-line @typescript-eslint/no-
     && Number.isFinite(p.w) && p.w > 0 && p.w <= 200 && Number.isFinite(p.h) && p.h > 0 && p.h <= 200 && (p.round === undefined || typeof p.round === 'boolean')))) bad('props');
   if (s.trace !== undefined && !(str(s.trace?.id) && Number.isFinite(s.trace.x) && Number.isFinite(s.trace.y) && Number.isFinite(s.trace.w) && s.trace.w > 0
     && Number.isFinite(s.trace.opacity) && s.trace.opacity >= 0 && s.trace.opacity <= 1)) bad('trace');
-  if (s.surface !== undefined && !((s.surface?.kind === 'court' || s.surface?.kind === 'floor') && Number.isFinite(s.surface.w) && s.surface.w >= 4 && s.surface.w <= 400
-    && Number.isFinite(s.surface.d) && s.surface.d >= 4 && s.surface.d <= 400)) bad('surface');
+  if (s.surface !== undefined && (typeof s.surface !== 'object' || !validField(s.surface))) bad('surface');
   if (s.dismissed !== undefined && !(Array.isArray(s.dismissed) && s.dismissed.length <= 5000 && s.dismissed.every((k: unknown) => typeof k === 'string' && k.length <= 20_000))) bad('dismissed warnings');
   if (s.stepLimit !== undefined && !(Number.isFinite(s.stepLimit) && s.stepLimit >= MIN_STEP_LIMIT && s.stepLimit <= MAX_STEP_LIMIT)) bad('step limit');
   const propIds = new Set((s.props ?? []).map((p: Prop) => p.id));

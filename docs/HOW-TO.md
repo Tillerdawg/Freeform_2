@@ -61,9 +61,11 @@ From top to bottom:
 
 ## Set up a new show
 
-Click **New** in the sidebar to start a show. The show you had open stays in this browser: **Shows…** opens it again (see [Several shows: Opener, Ballad, Closer](#saving-backing-up-and-opening-files)).
+Click **New** in the sidebar to start a show. A box asks for two things first: the show's **Title**, and what it's **Written on**: a **Football field** (pick its **Hashes**: **High school**, **College / DCI**, or **NFL**), a **Basketball court**, or a **Custom floor** with its **Wide** and **Deep** in feet (see step 2 below). It starts on whatever your last new show used, so a winter guard writer doesn't have to pick the floor every time. Click **Start the show**. You can change either one later in the sidebar. The show you had open stays in this browser: **Shows…** opens it again (see [Several shows: Opener, Ballad, Closer](#saving-backing-up-and-opening-files)).
 
-When the field has no performers, the **Start your show** note in the middle of the field offers five ways to begin: **Place performers** opens the **Add** menu so you can pick a section and start clicking, **Place a prop** puts a prop on the field first (a stage or a backdrop you'll write around; see [Props](#props)), **Import a roster…** brings in a list from Excel (see **Names** under [Add performers](#add-performers)), **Try the sample show** opens a finished 47-performer show to look around in first, and **Open from a link or recovery code…** brings in a show you published from another computer (see [A new computer or iPad mid-season](#send-the-show-to-your-performers)). **Help** (in the top bar), then **Try the sample show**, opens the same show any time. It opens as a show of its own, so yours stays under **Shows…**. While you're placing performers, the note gets out of the way, and once there's a prop on the field it moves to the top, so the prop isn't hidden under it.
+![The New show box, set to a custom floor](img/new-show.png)
+
+When the field has no performers, the **Start your show** note in the middle of the field has the same **Written on** menu at the top (handy on your first visit, which opens a blank show without asking), then five ways to begin: **Place performers** opens the **Add** menu so you can pick a section and start clicking, **Place a prop** puts a prop on the field first (a stage or a backdrop you'll write around; see [Props](#props)), **Import a roster…** brings in a list from Excel (see **Names** under [Add performers](#add-performers)), **Try the sample show** opens a finished 47-performer show to look around in first, and **Open from a link or recovery code…** brings in a show you published from another computer (see [A new computer or iPad mid-season](#send-the-show-to-your-performers)). **Help** (in the top bar), then **Try the sample show**, opens the same show any time. It opens as a show of its own, so yours stays under **Shows…**. While you're placing performers, the note gets out of the way, and once there's a prop on the field it moves to the top, so the prop isn't hidden under it.
 
 ![The Start your show note on a blank field](img/start.png)
 
@@ -72,7 +74,7 @@ When the field has no performers, the **Start your show** note in the middle of 
 ![The getting-started checklist](img/getting-started.png)
 
 1. **Name it.** Type the title in the box under the file buttons. It prints on every dot sheet and chart.
-2. **Pick your field.** The menu under the title has **High school**, **College / DCI**, and **NFL** for a football field, plus **Basketball court** and **Custom floor** for indoor shows (more on those just below). For a football field FreeFORM draws the field the way drill software does, with whole-step hashes:
+2. **Pick your field.** You picked it when you started the show, and the menu under the title changes it: **Football field**, or **Basketball court** and **Custom floor** for indoor shows (more on those just below). For a football field, the **Hashes** menu under it picks **High school**, **College / DCI**, or **NFL**. FreeFORM draws the field the way drill software does, with whole-step hashes:
 
    | Level | Sideline to hash / hash to hash / hash to sideline |
    |---|---|
@@ -108,7 +110,7 @@ If your program always uses the same sections, set them up once and choose **Sta
 
 **Add** is two buttons in one. The **▾** part opens its menu, where you pick what to add: a set, a section's performers, or a prop. The main part repeats your last pick, and its name says what that is: **Add Performer (P)** places more trumpets, **Add Set** adds another set, and **Add Prop** adds another prop.
 
-**New** drops you here: the field is blank, adding performers is on, and the **Add** menu is open.
+After **Start the show** you land here: the field is blank, adding performers is on, and the **Add** menu is open.
 
 1. Click **Add**'s **▾** and pick a section under **Performers**. For a section that isn't there yet (a drum major, a soloist), click **Create New Section**, type its name and letter, and click **Add**: it's made and picked in one step. Later, **Add Performer (P)** (or whichever section you used last) picks up where you left off, and so does the A key.
 2. Click the field wherever you want each one. They're numbered in order: P1, P2, P3, and so on.

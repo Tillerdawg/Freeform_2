@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { HASHES, readout } from './coords';
+import { COURT, DEFAULT_FLOOR, HASHES, readout } from './coords';
 import {
   nextRevision, revisionLabel,
   addPerformer, addSetAfter, advance, biggestStep, chainOrder, clearFtl, ftlTrail, moveSteps, normalizeFtl, flip, mirrorSides, moveSetTo, remapHash, rotateScale, setFtl, newShowId, parseShowFile, snapSelection, playRange, playPlan, label, locate, newShow, parseShow, placeInSet, positionsAt,
   removePerformers, renumberSets, scoreOrder, DEFAULT_SECTIONS, removeSet, setAt, setCounts, setStarts, totalCounts, xFrom, yFrom, insertSetAt, showLength, movementAt, movementOfSet, setFtlTurns,
-  addSetHere, setCue, newPropSpot, setFtlSmooth, routeTurns, leaderDistance, setTiming, timingOf, fitTurn, setTurning, turnRoute, counterMarch, closeCalls, addProp, placeProp, propsAt, hitProp, removeProp, fieldOf, moveSegments, withShowId,
+  addSetHere, setCue, newPropSpot, setFtlSmooth, routeTurns, leaderDistance, setTiming, timingOf, fitTurn, setTurning, turnRoute, counterMarch, closeCalls, addProp, placeProp, propsAt, hitProp, removeProp, fieldOf, moveSegments, withShowId, withField, validField,
 } from './show';
 
 function twoSetShow() {
@@ -15,6 +15,32 @@ function twoSetShow() {
   show = placeInSet(show, 1, { [a.id]: { x: -16, y: 28 } }); // 16 steps in 16 counts: 8-to-5
   return { show, id: a.id, trumpet };
 }
+
+describe('what a new show is written on', () => {
+  it('starts on high school hashes, or on the field or floor asked for', () => {
+    expect(fieldOf(newShow())).toBe('highSchool');
+    expect(fieldOf(newShow(DEFAULT_SECTIONS, 'nfl'))).toBe('nfl');
+    const court = newShow(DEFAULT_SECTIONS, COURT);
+    expect(fieldOf(court)).toEqual(COURT);
+    expect(court.surface).not.toBe(COURT); // its own copy
+  });
+  it('goes onto a floor and back outside, keeping its hashes for outside', () => {
+    const show = newShow(DEFAULT_SECTIONS, 'college');
+    const floor = withField(show, DEFAULT_FLOOR);
+    expect(fieldOf(floor)).toEqual(DEFAULT_FLOOR);
+    expect(floor.hash).toBe('college');
+    const out = withField(floor, 'nfl');
+    expect(fieldOf(out)).toBe('nfl');
+    expect('surface' in out).toBe(false);
+  });
+  it('keeps a saved choice only if it makes sense', () => {
+    expect(validField('college')).toBe('college');
+    expect(validField(COURT)).toEqual(COURT);
+    expect(validField({ kind: 'floor', w: 32, d: 21, extra: 1 })).toEqual({ kind: 'floor', w: 32, d: 21 });
+    for (const bad of ['toString', 'grass', null, 3, {}, { kind: 'floor', w: 2, d: 20 }, { kind: 'floor', w: 20, d: 1e9 }, { kind: 'pool', w: 20, d: 20 }, { kind: 'court', w: NaN, d: 20 }])
+      expect(validField(bad)).toBeNull();
+  });
+});
 
 describe('show model', () => {
   it('gives every new show its own permanent id, kept in the file and checked when read', () => {
