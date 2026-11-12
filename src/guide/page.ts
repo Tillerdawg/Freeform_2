@@ -11,13 +11,13 @@ const vars = (p: Record<string, string>) => Object.entries(p).map(([k, v]) => `-
 /** How a page differs from the director's guide: its title, language, where the site's root and the guide's pictures are
  * from the page, and its header links. The student quickstart (docs/STUDENTS.md) uses the same page. */
 export interface PageOptions { title: string; lang: 'en' | 'es'; root: string; img: string; header: string }
-const GUIDE: PageOptions = { title: 'How to use FreeFORM', lang: 'en', root: '../', img: 'img/', header: '<a href="../">FreeFORM Drill</a> · <a href="../app/">Open the editor</a>' };
+const GUIDE: PageOptions = { title: 'How to use FreeFORM Drill', lang: 'en', root: '../', img: 'img/', header: '<a href="../">FreeFORM Drill</a> · <a href="../app/">Open the editor</a>' };
 
 /** The student quickstart, at students/ (English) or es/students/ (Spanish), with the guide's pictures and a link to it. */
 export const studentPage = (md: string, lang: 'en' | 'es') => {
   const root = lang === 'es' ? '../../' : '../';
   return guidePage(md, {
-    title: lang === 'es' ? 'FreeFORM para los integrantes' : 'FreeFORM for performers', lang, root, img: `${root}guide/img/`,
+    title: lang === 'es' ? 'FreeFORM Drill para los integrantes' : 'FreeFORM Drill for performers', lang, root, img: `${root}guide/img/`,
     header: `<a href="${lang === 'es' ? `${root}es/` : root}">FreeFORM Drill</a> · <a href="${lang === 'es' ? `${root}students/` : `${root}es/students/`}" lang="${lang === 'es' ? 'en' : 'es'}">${lang === 'es' ? 'English' : 'Español'}</a>`,
   });
 };

@@ -131,3 +131,6 @@ export function setTheme(t: ThemeName) {
 }
 /** The current mode; a component using it redraws its canvas when the mode changes. */
 export const useTheme = () => useSyncExternalStore((f) => { listeners.add(f); return () => { listeners.delete(f); }; }, () => theme);
+
+/** The FreeFORM logo in the middle of a QR code: the app icon's colors (field dark, the dots, Set 1's gold), the same in both modes. */
+export const QR_LOGO = { tile: PALETTE.bg, dot: PALETTE.text, accent: PALETTE.gold };

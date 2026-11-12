@@ -919,7 +919,7 @@ export function App() {
         await w.write(blob); await w.close();
         setNotice({ text: `Saved to ${h.name}.`, t });
       } else if (pick) {
-        const h = await pick({ suggestedName: name, types: [{ description: 'FreeFORM show', accept: { 'application/octet-stream': ['.freeform'] } }] });
+        const h = await pick({ suggestedName: name, types: [{ description: 'FreeFORM Drill show', accept: { 'application/octet-stream': ['.freeform'] } }] });
         const w = await h.createWritable();
         await w.write(blob); await w.close();
         if (!full) fileHandle.current = h;

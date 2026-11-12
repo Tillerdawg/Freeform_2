@@ -1,6 +1,6 @@
-# How to use FreeFORM
+# How to use FreeFORM Drill
 
-This guide walks you through writing a show in FreeFORM, from an empty field to dot sheets in your students' hands and the drill on their phones. It's written for band directors and drill writers. You don't need to have used Pyware or UDB before, but if you have, most of this will feel familiar.
+This guide walks you through writing a show in FreeFORM Drill, from an empty field to dot sheets in your students' hands and the drill on their phones. It's written for band directors and drill writers. You don't need to have used Pyware or UDB before, but if you have, most of this will feel familiar.
 
 FreeFORM runs in your web browser. The front page, <https://freeformdrill.org/>, says what it is; click **Open the editor** there, or go straight to <https://freeformdrill.org/app/>. There's nothing to install and no account to make. (Share links made before the editor moved to /app/ still work.)
 
@@ -451,6 +451,12 @@ Click **Share…** in the sidebar. The dialog has two choices at the top, and ea
 **Keep phones up to date** is better for a real season. Click **Publish to phones**, and you get one short link (and a QR code that scans easily) that keeps working when you change the show: after an edit, click **Publish update**, and performers' phones pick up your latest version the next time they open it online, within a minute or so. There's no account and no setup. A published show carries performers' names and, if you check the box, the music.
 
 ![Keep phones up to date](img/share-update.png)
+
+**Put the QR code on a slide, a handout, or an email.** Under either QR code, **Copy picture** copies it so you can paste it straight into PowerPoint, Keynote, Google Slides, a document, or an email. **Save picture** saves it as a PNG file, big enough to fill a projector screen or a printed page. **SVG** saves a copy that stays sharp at any size, for a poster. With the box checked (it starts checked), the picture has the show's title above the code and "Scan with your phone's camera" below it, in English and Spanish; uncheck it for just the code. A few tips:
+
+- For a slide or a poster, use the **Keep phones up to date** code. Its link is short, so the code has big squares that scan from the back of a band room, and it has the FreeFORM Drill logo in the middle. A **Send this version** code holds the whole show, so its squares are tiny, it needs to be big and close, and it has no room for the logo.
+- In an email, include the link too. Most students read email on their phones, and a phone can't scan a code on its own screen. The picture helps the ones reading on a laptop.
+- Anyone who can scan the picture can open the show, so share it the way you'd share the link. A slide you post online for everyone shares the show with everyone.
 
 **Your show is encrypted before it leaves your computer.** FreeFORM locks the show in your browser with a secret key, and the key is only in your link: in the part after the #, which browsers never send to any server. The file that goes online is unreadable without that key. No one can open your show, not even FreeFORM or me, unless they have your link. That makes **the link the password, so share it only with your band.** Your browser remembers the link, but keep a copy too (your band's group chat is fine): without the link, no one can recover the key.
 

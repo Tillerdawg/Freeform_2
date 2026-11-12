@@ -123,3 +123,69 @@ describe('finding a link in text', () => {
     expect(linkHash('#perform')).toBeNull();
   });
 });
+
+describe('saved QR pictures', async () => {
+  const { qrCardSvg, qrGrid, cardTitle, qrFileName } = await import('./qr');
+  const colors = { paper: 'P', ink: 'I' };
+  it('draws the same squares as the on-screen code, with the title and the scan line', () => {
+    const svg = qrCardSvg('https://freeformdrill.org/app/#load=x', 'Opener & <Ballad>', colors)!;
+    expect(svg).toContain('Opener &amp; &lt;Ballad&gt;');
+    expect(svg).toContain("Scan with your phone's camera");
+    expect(svg).toContain('Escanea con la cámara de tu teléfono');
+    const g = qrGrid('https://freeformdrill.org/app/#load=x')!;
+    let dark = 0;
+    for (let r = 0; r < g.size; r++) for (let c = 0; c < g.size; c++) if (g.dark(r, c)) dark++;
+    expect((svg.match(/M\d/g) ?? []).length).toBe(dark);
+  });
+  it('leaves the labels off when there is no title, and refuses links too big for a code', () => {
+    expect(qrCardSvg('abc', '', colors)).not.toContain('<text');
+    expect(qrCardSvg('x'.repeat(5000), 'T', colors)).toBeNull();
+  });
+  it('keeps long titles to one line and makes safe file names', () => {
+    expect(cardTitle('A'.repeat(60)).length).toBe(40);
+    expect(qrFileName('2026: "Gold" Show', 'png')).toBe('2026 Gold Show QR code.png');
+  });
+});
+
+describe('the FreeFORM logo in the middle of a QR code', async () => {
+  const { makeQr, logoShapes, qrSvg } = await import('./qr');
+  const jsQR = (await import('jsqr')).default;
+  const { hostedLink: hl, newKey: nk } = await import('./share');
+  const { cloudUrl } = await import('./cloud');
+  const link = () => hl('https://freeformdrill.org/app/', cloudUrl('a1b2c3d4e5f6g7h8'), nk());
+  /** Draw the code and its logo into gray pixels (the logo's tile dark, its dots light), then read it the way the phone's scanner does. */
+  function scan(text: string, cell = 5): string | undefined {
+    const code = makeQr(text, true)!, W = (code.size + 8) * cell, px = new Uint8ClampedArray(W * W * 4).fill(255);
+    const L = code.hole && logoShapes((4 + code.hole.start) * cell + cell * 0.6, (4 + code.hole.start) * cell + cell * 0.6, code.hole.side * cell - cell * 1.2);
+    for (let y = 0; y < W; y++) for (let x = 0; x < W; x++) {
+      const r = Math.floor(y / cell) - 4, c = Math.floor(x / cell) - 4;
+      let v = r >= 0 && c >= 0 && r < code.size && c < code.size && code.dark(r, c) ? 0 : 255;
+      if (L && x >= L.tile.x && y >= L.tile.y && x < L.tile.x + L.tile.w && y < L.tile.y + L.tile.w) v = 29; // field dark
+      if (L && L.dots.some((d) => (x - d.cx) ** 2 + (y - d.cy) ** 2 <= d.r ** 2)) v = 235; // the dots
+      const i = (y * W + x) * 4; px[i] = px[i + 1] = px[i + 2] = v;
+    }
+    return jsQR(px, W, W)?.data;
+  }
+  it('puts a logo in a published link and still scans to the exact link', () => {
+    for (let k = 0; k < 5; k++) {
+      const l = link(), code = makeQr(l, true)!;
+      expect(code.hole).not.toBeNull();
+      expect(scan(l)).toBe(l);
+    }
+  });
+  it('keeps the logo small: about a fifth of the width, in the exact middle', () => {
+    const code = makeQr(link(), true)!;
+    expect(code.hole!.side / code.size).toBeGreaterThan(0.18);
+    expect(code.hole!.side / code.size).toBeLessThan(0.26);
+    expect(code.hole!.start * 2 + code.hole!.side).toBe(code.size);
+  });
+  it('leaves big Send this version links plain, since they only fit at the lowest error correction', () => {
+    const big = 'https://freeformdrill.org/app/#show=' + 'x'.repeat(2000);
+    expect(makeQr(big, true)!.hole).toBeNull();
+    expect(qrSvg(big, { tile: 'T', dot: 'D', accent: 'A' })).not.toContain('<circle');
+  });
+  it('draws the logo in the SVG only when asked', () => {
+    expect(qrSvg(link(), { tile: 'T', dot: 'D', accent: 'A' })).toContain('fill="A"');
+    expect(qrSvg(link())).not.toContain('<circle');
+  });
+});

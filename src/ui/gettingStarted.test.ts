@@ -39,7 +39,7 @@ describe('send it to your band', () => {
   });
   it('writes a message with the link (or where to paste it) and the student guide in both languages', () => {
     const m = bandMessage('Opener', 'https://freeformdrill.org/app/#load=x');
-    expect(m).toContain('Opener in FreeFORM: https://freeformdrill.org/app/#load=x');
+    expect(m).toContain('Opener in FreeFORM Drill: https://freeformdrill.org/app/#load=x');
     expect(m).toContain('https://freeformdrill.org/students/');
     expect(m).toContain('https://freeformdrill.org/es/students/');
     expect(bandMessage('', null)).toContain('(paste the link from Share here)');

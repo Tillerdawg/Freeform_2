@@ -1,4 +1,4 @@
-# Working on FreeFORM
+# Working on FreeFORM Drill
 
 Instructions for anyone (person or AI agent) changing this repo. IDEA.md is the original brief; PLAN.md is the roadmap.
 
@@ -13,6 +13,7 @@ Instructions for anyone (person or AI agent) changing this repo. IDEA.md is the 
 4. **Test before pushing:** `npm run typecheck`, `npm test`, `npm run build` (`src/engine/guide.test.ts` checks that every picture the docs use exists and every screenshot is used). New logic gets unit tests in `src/engine/` (or next to the code); UI changes get checked in a real browser.
 
 ## House rules learned the hard way
+- **The name is FreeFORM Drill (Jason).** Plain "Freeform" belongs to other products (Apple's, for one), so the full name leads. Write **FreeFORM Drill** in titles and headings, page and tab titles, the manifest, alt text, copyright lines, anything that leaves the app (emails, messages to students, file names, recovery codes, issue forms), and the first mention on every page, screen, or document. After that, plain **FreeFORM** is fine in running text, in the app's own buttons and messages, and in code comments. Never translate it. Names saved data or links depend on stay as they are (`.freeform`, `freeform-show`, `freeform:` keys), and so do the brand's names for its parts (the FreeFORM curve, the FreeFORM wordmark, the `freeform-*` logo files).
 - **Nothing in the top bar or bottom panel may change height** as you move the mouse, switch sets, or play. A canvas resize clears and refits the field, which flashes. Use fixed heights and no wrapping.
 - **Legible beats pretty (Jason).** Keep strong contrast between everything on screen and paper; when in doubt, choose the more readable option. Targets: text at least 4.5:1 against what's behind it, lines and shapes at least 3:1 (WCAG). `palette.test.ts` checks the main pairs; check new color pairs the same way.
 - **Color is never the only signal (Jason).** About 1 in 12 boys can't tell some reds from greens. Anything that means something by color (a warning, an error, a too-big step, "done", the selection) also says it in words, or shows it with a shape, a line style, an underline, or an outline. Prefer that to a color-blind mode: it works for everyone, with no setting to find. `palette.test.ts` also simulates the three common kinds of color blindness and checks that colors with different meanings still look different; check new ones the same way.

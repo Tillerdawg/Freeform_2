@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { encodeShow, fetchHosted, hostedLink, linkHash, lockShow, newKey, parseHosted, SHARE_PREFIX } from '../engine/share';
 import { qrSvg } from '../engine/qr';
+import { QrExport } from './QrExport';
 import { nextRevision, revisionLabel, type Show } from '../engine/show';
-import { FIELD } from '../ui/palette'; // the QR code's white: scanners need it
+import { FIELD, QR_LOGO } from '../ui/palette'; // the QR code's white: scanners need it
 import { synced } from '../engine/music';
 import { getAudio } from '../ui/audioStore';
 import { useDialog } from '../ui/useDialog';
@@ -32,7 +33,7 @@ export function ShareDialog({ show, onClose, published }: { show: Show; onClose:
   useEffect(() => { encodeShow(show).then((code) => setUrl(location.origin + location.pathname + SHARE_PREFIX + code)); }, [show]);
   const dialog = useDialog(onClose);
   const kb = Math.ceil(url.length / 1024);
-  const qr = url ? qrSvg(url) : null;
+  const qr = url ? qrSvg(url, QR_LOGO) : null; // the logo goes in when the link is short enough
   // Hosted link. The field takes a file address, or an existing hosted link (whose key then locks the updated file).
   const sid = show.id ?? show.title, saveKey = (k: string | null) => saveKeyFor(sid, k);
   const [field, setField] = useState(() => loadLinks()[sid] ?? loadLinks()[show.title] ?? '');
@@ -46,7 +47,7 @@ export function ShareDialog({ show, onClose, published }: { show: Show; onClose:
   const base = location.origin + location.pathname;
   const hosted = (() => { try { return fileUrl && key ? hostedLink(base, fileUrl, key) : ''; } catch { return ''; } })();
   const badUrl = !!fileUrl && (() => { try { return new URL(fileUrl).protocol !== 'https:'; } catch { return true; } })();
-  const hostedQr = hosted ? qrSvg(hosted) : null;
+  const hostedQr = hosted ? qrSvg(hosted, QR_LOGO) : null;
   // The recording can ride along in the locked file, so phones play the drill with the music (share links can't carry it).
   const [audio, setAudio] = useState<Blob | null>(null);
   const [withMusic, setWithMusic] = useState(true);
@@ -157,6 +158,7 @@ export function ShareDialog({ show, onClose, published }: { show: Show; onClose:
             {url && !qr && ' Too big for a QR code: use Keep phones up to date instead.'}
           </p>
           {qr && <div role="img" aria-label="QR code for the share link" style={{ background: FIELD.white, width: 200, margin: '0 auto 10px' }} dangerouslySetInnerHTML={{ __html: qr }} />}
+          {qr && <QrExport text={url} title={show.title} />}
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end', margin: '0 0 10px' }}>
             <button disabled={!url} onClick={() => { location.hash = url.slice(url.indexOf('#')); }}
               title="Switch this app to the performer view of this show (← Editor comes back)">Open performer view here</button>
@@ -193,6 +195,7 @@ export function ShareDialog({ show, onClose, published }: { show: Show; onClose:
           {busy && <p role="status" style={{ fontSize: 12, margin: '6px 0 0' }}>{busy}</p>}
           {hosted && <>
             {hostedQr && <div role="img" aria-label="QR code for the hosted link" style={{ background: FIELD.white, width: 200, margin: '8px auto' }} dangerouslySetInnerHTML={{ __html: hostedQr }} />}
+            {hostedQr && <QrExport text={hosted} title={show.title} />}
             <p role="status" style={{ fontSize: 12, margin: '4px 0' }}>{check}</p>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap' }}>
               {onService && <button onClick={stopSharing} title="Take the show off FreeFORM's service: the link stops working">Stop sharing</button>}
@@ -215,7 +218,7 @@ export function ShareDialog({ show, onClose, published }: { show: Show; onClose:
               <textarea aria-label="Recovery code" readOnly rows={5} value={codeMessage} onFocus={(e) => e.currentTarget.select()}
                 style={{ width: '100%', boxSizing: 'border-box', font: 'inherit', fontSize: 11 }} />
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap' }}>
-                <a className="button-link" href={`mailto:?subject=${encodeURIComponent(`FreeFORM recovery code: ${show.title || 'Untitled show'}`)}&body=${encodeURIComponent(codeMessage)}`}
+                <a className="button-link" href={`mailto:?subject=${encodeURIComponent(`FreeFORM Drill recovery code: ${show.title || 'Untitled show'}`)}&body=${encodeURIComponent(codeMessage)}`}
                   style={{ color: 'var(--blue)', alignSelf: 'center' }}>Email it to yourself</a>
                 <button onClick={() => copy(codeMessage)}>Copy recovery code</button>
               </div>
