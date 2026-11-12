@@ -5,7 +5,7 @@ Instructions for anyone (person or AI agent) changing this repo. IDEA.md is the 
 ## Every change
 1. **Keep the docs current and true.** When a feature is added, changed, renamed, or removed, update in the same commit:
    - **docs/HOW-TO.md**, the user guide: the steps, button names, keyboard shortcuts, and anything else the change affects. It's the only copy: the build turns it into the site's guide page (freeformdrill.org/guide/, `src/guide/page.ts`), so never edit the page itself.
-   - **README.md**: the short feature list, the roadmap, the code map.
+   - **README.md**: the short feature list and the code map. A new folder goes in the code map (`src/engine/readme.test.ts` fails if a folder is missing or a listed path is gone). The roadmap is only in PLAN.md; the README just points there, so don't copy items into it.
    - **The screenshots** (`docs/img/`), when the change alters what one shows: retake it with `node scripts/screenshots.mjs <name>` and look at it. A new screen worth showing gets a shot in the script and a picture in the guide. The sample show is `src/engine/sample.ts`.
    Don't describe features that don't exist yet as if they do. Write plainly, the way Jason would explain it to another band director: short sentences, button names in **bold**, the Oxford comma (a, b, and c), and no em dashes.
 2. **Log decisions in DECISIONS.md:** timestamp, who decided, context, other options, and the decision. Include decisions you make yourself, and mark them so Jason can veto.

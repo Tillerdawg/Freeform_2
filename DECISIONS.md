@@ -1664,3 +1664,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - **Context:** `src/ui/GettingStarted.tsx` (the checklist panel) sat next to `src/ui/gettingStarted.ts` (its steps). Linux treats those as two names, so the tests and the build passed, but a Mac treats them as one, so the editor crashed on load in the dev server ("does not provide an export named GettingStarted").
 - **Other options:** rename the panel instead; merge the two files.
 - **Decision:** The steps file is now `gettingStartedSteps.ts` (and its test `gettingStartedSteps.test.ts`). A new test, `src/engine/filenames.test.ts`, fails if two code files in one folder differ only in capitalization, so this can't come back unnoticed.
+
+## 2026-11-12 12:55 EST: Keeping the README from going stale
+- **Who:** Jason Tiller chose these two fixes (from Claude's list); the test's details are Claude's *(Jason can veto)*.
+- **Context:** The README fell behind even though the house rules say to update it. Its roadmap repeated PLAN.md and kept an item PLAN had ticked off (the upload service), and its code map missed folders added in a big change (`src/i18n/`, `es/`).
+- **Other options:** a once-a-month review that opens a PR when the README is off (not now; easy to add); a checkbox on pull requests (gets checked without reading); a test for the feature list (no test can tell whether a sentence describes the app).
+- **Decision:** The README's roadmap is now one line pointing to PLAN.md, so there's only one copy to keep current. A new test, `src/engine/readme.test.ts`, fails if a folder in the repo (or in `src/`) is missing from the code map, or if a path the map lists doesn't exist. CLAUDE.md says both. The feature list stays a short summary, with the detail in the How-to guide.

@@ -79,12 +79,7 @@ It runs on a current Chrome, Edge, Firefox, or Safari, and on iPadOS/iOS 16.4 or
 
 ## Roadmap
 
-The full list is in [PLAN.md](PLAN.md). What's next, roughly:
-
-- Touch versions of the few actions that still need a keyboard key
-- Faster count entry for recordings that weren't made from the score (tap a few downbeats, FreeFORM fills in the rest)
-- Markup that spans several sets
-- Later: optional cloud sync and app-store versions
+The roadmap is in [PLAN.md](PLAN.md): what's done, what's next, and ideas for later. It's kept only there, so it's always current.
 
 ## Running it yourself
 
