@@ -45,6 +45,7 @@ A note on where the ideas came from: FreeFORM is modeled on Pyware and the Ultim
 - Text, arrows, and freehand markup on each set, plus ensemble notes and per-performer notes.
 - Undo for every edit.
 - Sidebar on the left or right, and the timeline on the top or bottom (**Layout**, in the top bar).
+- Dark mode or light mode (the sun/moon button), following your computer's own setting until you choose.
 
 **Timing and music**
 - A timeline you can scrub count by count, play at any tempo (with a click if you like, on the computer or the phone), or loop over a range of sets.
@@ -72,6 +73,7 @@ A note on where the ideas came from: FreeFORM is modeled on Pyware and the Ultim
 - **Help → Get a show back**: what happened (a mistake, an earlier version, a missing show, a new computer, or something else, where a phone link brings it back) and the button that fixes it.
 - Shape handles you can move with the keyboard: Tab steps through them, arrows move them.
 - Import Pyware 3D (`.3dj`) shows, tested with files from 2008 to 2010.
+- **Help → Send feedback**: a short form that comes straight to me, with no account needed. Help also has **Support FreeFORM** (a tip jar on Ko-fi), **About FreeFORM Drill** (the front page), and **See the code on GitHub**.
 
 It runs on a current Chrome, Edge, Firefox, or Safari, and on iPadOS/iOS 16.4 or later. Write drill on a computer or an iPad (hide the timeline and sidebar for more field). Phones get only the performer view.
 
@@ -79,7 +81,6 @@ It runs on a current Chrome, Edge, Firefox, or Safari, and on iPadOS/iOS 16.4 or
 
 The full list is in [PLAN.md](PLAN.md). What's next, roughly:
 
-- A FreeFORM-run upload service, so keeping phones up to date doesn't need a GitHub account
 - Touch versions of the few actions that still need a keyboard key
 - Faster count entry for recordings that weren't made from the score (tap a few downbeats, FreeFORM fills in the rest)
 - Markup that spans several sets
@@ -119,10 +120,12 @@ node scripts/screenshots.mjs ftl print    # or just these
 | `src/print/` | Dot sheets and drill charts |
 | `src/perform/` | The performer view, the Share dialog (with saving its QR code as a picture), and the QR scanner |
 | `index.html`, `app/index.html` | The front page (freeformdrill.org) and the app (freeformdrill.org/app/), which old links (`/#show=…`) are forwarded to |
+| `es/` | The front page in Spanish (freeformdrill.org/es/) |
+| `src/i18n/` | The Spanish for the phone's performer view: `tr('English text')` looks it up in `es.ts`, and a test fails if one is missing |
 | `src/guide/` | Turns `docs/HOW-TO.md` into the guide page on the site (`/guide/`) when the site is built |
 | `services/api/` | FreeFORM's small web service on Cloudflare (api.freeformdrill.org): the feedback form (emailed to Jason) and published shows (encrypted files only, in Workers KV, cleaned up after a year unused). Deploy steps in its README |
 | `public/` | App icons, logos, the link-preview image, the manifest, and the offline service worker (it keeps what the build lists in `precache.json`) |
-| `docs/` | The How-to guide and its screenshots (the only copy: the site's guide page is made from it) |
+| `docs/` | The How-to guide and its screenshots (the only copy: the site's guide page is made from it), and the student guide in English and Spanish (`STUDENTS.md`, `STUDENTS.es.md`, the site's /students/ pages) |
 | `scripts/` | The screenshot script |
 | `brand/` | Logo files, colors, and rules ([brand/README.md](brand/README.md)) |
 
