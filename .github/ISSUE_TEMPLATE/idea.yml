@@ -1,5 +1,5 @@
 name: An idea or a missing feature
-description: Something FreeFORM should do, or do differently. Band directors and drill writers especially welcome.
+description: Something FreeFORM Drill should do, or do differently. Band directors and drill writers especially welcome.
 labels: [idea]
 body:
   - type: textarea

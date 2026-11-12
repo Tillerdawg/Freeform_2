@@ -1,6 +1,6 @@
-# FreeFORM for performers
+# FreeFORM Drill for performers
 
-Your director writes the drill in FreeFORM and sends you a link. This page shows you how to use it on your phone. It takes about two minutes to read. (The director's guide is [here](HOW-TO.md).)
+Your director writes the drill in FreeFORM Drill and sends you a link. This page shows you how to use it on your phone. It takes about two minutes to read. (The director's guide is [here](HOW-TO.md).)
 
 ## 1. Open the link
 

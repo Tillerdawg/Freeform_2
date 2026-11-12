@@ -1,6 +1,6 @@
-# Contributing to FreeFORM
+# Contributing to FreeFORM Drill
 
-Thanks for helping. FreeFORM is a free drill design tool for marching bands, drum corps, and indoor programs, and it gets better when people who write and teach drill say how things should work.
+Thanks for helping. FreeFORM Drill is a free drill design tool for marching bands, drum corps, and indoor programs, and it gets better when people who write and teach drill say how things should work.
 
 ## Reporting a problem or an idea
 

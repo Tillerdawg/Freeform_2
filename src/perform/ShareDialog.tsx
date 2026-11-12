@@ -218,7 +218,7 @@ export function ShareDialog({ show, onClose, published }: { show: Show; onClose:
               <textarea aria-label="Recovery code" readOnly rows={5} value={codeMessage} onFocus={(e) => e.currentTarget.select()}
                 style={{ width: '100%', boxSizing: 'border-box', font: 'inherit', fontSize: 11 }} />
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap' }}>
-                <a className="button-link" href={`mailto:?subject=${encodeURIComponent(`FreeFORM recovery code: ${show.title || 'Untitled show'}`)}&body=${encodeURIComponent(codeMessage)}`}
+                <a className="button-link" href={`mailto:?subject=${encodeURIComponent(`FreeFORM Drill recovery code: ${show.title || 'Untitled show'}`)}&body=${encodeURIComponent(codeMessage)}`}
                   style={{ color: 'var(--blue)', alignSelf: 'center' }}>Email it to yourself</a>
                 <button onClick={() => copy(codeMessage)}>Copy recovery code</button>
               </div>

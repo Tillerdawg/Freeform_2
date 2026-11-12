@@ -71,7 +71,7 @@ export const publishingCode = (p: Publishing) => PREFIX + b64url(JSON.stringify(
  * device) knows what to do with it. Pasting the whole message works: readPublishingCode finds the code inside.
  */
 export const publishingMessage = (p: Publishing, title: string) => [
-  `FreeFORM recovery code for "${title || 'Untitled show'}"`,
+  `FreeFORM Drill recovery code for "${title || 'Untitled show'}"`,
   '',
   'To keep updating the same phone link from a new computer or iPad: open https://freeformdrill.org/app/, click Open from a link or recovery code… (on a blank field, or under Shows…), and paste this whole message. The show opens, and Publish update keeps the link your students already have.',
   '',

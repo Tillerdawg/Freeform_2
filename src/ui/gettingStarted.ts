@@ -44,9 +44,9 @@ export function sendSteps(show: Show, did: SendDone, openIssues: number): Step[]
 /** The message to paste for the band: the show's link (if it's published) and the student guide, in English and Spanish. */
 export function bandMessage(title: string, link: string | null): string {
   return [
-    `Here's our drill for ${title || 'the show'} in FreeFORM: ${link ?? '(paste the link from Share here)'}`,
+    `Here's our drill for ${title || 'the show'} in FreeFORM Drill: ${link ?? '(paste the link from Share here)'}`,
     'Open it on your phone, pick your name, and your dots are there. It works with no signal once it\'s opened.',
-    'New to FreeFORM? This two-minute guide shows how: https://freeformdrill.org/students/',
+    'New to FreeFORM Drill? This two-minute guide shows how: https://freeformdrill.org/students/',
     'En español: https://freeformdrill.org/es/students/',
   ].join('\n');
 }

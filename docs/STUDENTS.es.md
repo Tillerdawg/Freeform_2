@@ -1,6 +1,6 @@
-# FreeFORM para los integrantes
+# FreeFORM Drill para los integrantes
 
-Tu director escribe el drill en FreeFORM y te manda un enlace. Esta página explica cómo usarlo en tu teléfono. Se lee en unos dos minutos.
+Tu director escribe el drill en FreeFORM Drill y te manda un enlace. Esta página explica cómo usarlo en tu teléfono. Se lee en unos dos minutos.
 
 ## 1. Abre el enlace
 

@@ -3,7 +3,7 @@
 // What to keep is listed in precache.json, written by the build (vite.config.ts): both pages, every built file (the
 // editor and the performer view are separate downloads), and the icons and logos.
 // Bump when a file without a hash in its name changes (icons, manifest): cached copies are otherwise kept forever.
-const CACHE = 'freeform-v10'; // v10: the student quickstart (students/, es/students/); v9: the front page at /, the app at /app/, precache.json
+const CACHE = 'freeform-v11'; // v11: the manifest's name is FreeFORM Drill; v10: the student quickstart (students/, es/students/); v9: the front page at /, the app at /app/, precache.json
 
 const wanted = async () => (await fetch('./precache.json', { cache: 'no-cache' })).json();
 

@@ -7,7 +7,7 @@
 
 <p align="center"><em>Drill, without the bill.</em></p>
 
-**FreeFORM is a free and open-source drill design and learning tool for all marching arts organizations.**
+**FreeFORM Drill is a free and open-source drill design and learning tool for all marching arts organizations.**
 
 I'm a former band director. Over my career teaching in public and private K-12 schools, I wrote several marching band shows in Pyware, and over the years the software frustrated me more and more: the yearly license fee, the limits on how many performers a show could have, and the tools locked behind higher tiers. I built FreeFORM because I wanted a drill writing tool that was easy to use, gave users every tool from the start, worked for marching ensembles of any size, and eased my organization's financial burden. I made FreeFORM free and open-source because I believe other marching arts directors and drill writers may want a tool that solves these same pain points.
 
@@ -136,7 +136,7 @@ Every design decision is logged in [DECISIONS.md](DECISIONS.md): when, who made 
 
 FreeFORM is written from scratch. I studied Pyware and UDB only through how they behave and what their documentation says, never by decompiling them, and there's no third-party code or show file in this repo.
 
-## Supporting FreeFORM
+## Supporting FreeFORM Drill
 
 FreeFORM is free and always will be. If it saves your program money, you can [buy me a coffee on Ko-fi](https://ko-fi.com/tillerdawg) to help with hosting. It's never required.
 
@@ -146,4 +146,4 @@ Issues and pull requests are welcome (see [CONTRIBUTING.md](CONTRIBUTING.md)), e
 
 ## License
 
-[MIT](LICENSE) © Jason Tiller and FreeFORM contributors.
+[MIT](LICENSE) © Jason Tiller and FreeFORM Drill contributors.

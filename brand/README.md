@@ -1,4 +1,4 @@
-# FreeFORM logo and brand
+# FreeFORM Drill logo and brand
 
 <p align="center">
   <picture>

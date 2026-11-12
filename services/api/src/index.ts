@@ -68,7 +68,7 @@ export default {
     try {
       // Email Routing's free sending (to a verified address in this account), not Email Sending, which needs Workers Paid.
       const from = 'feedback@freeformdrill.org';
-      const msg = mimeMessage({ from, fromName: 'FreeFORM feedback', to: env.FEEDBACK_TO, replyTo: r.feedback.email || undefined, subject, text, id: crypto.randomUUID(), date: new Date() });
+      const msg = mimeMessage({ from, fromName: 'FreeFORM Drill feedback', to: env.FEEDBACK_TO, replyTo: r.feedback.email || undefined, subject, text, id: crypto.randomUUID(), date: new Date() });
       await env.EMAIL.send(new EmailMessage(from, env.FEEDBACK_TO, msg));
     } catch (e) {
       console.error('send failed', (e as { code?: string }).code, (e as Error).message);

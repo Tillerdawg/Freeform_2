@@ -26,7 +26,7 @@ export function feedbackEmail(f: Feedback): { subject: string; text: string } {
   const label = { problem: 'Problem', idea: 'Idea', spanish: 'Spanish translation', other: 'Feedback' }[f.kind] ?? 'Feedback';
   const line = f.message.split('\n')[0].replace(/\s+/g, ' '), first = line.slice(0, 60).trimEnd();
   return {
-    subject: `FreeFORM ${label}: ${first}${line.length > 60 ? '…' : ''}`,
+    subject: `FreeFORM Drill ${label}: ${first}${line.length > 60 ? '…' : ''}`,
     text: [
       f.message, '', '---',
       `From: ${f.name || '(no name)'}${f.email ? ` <${f.email}>` : ' (no email: they can\'t be answered)'}`,

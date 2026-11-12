@@ -1,6 +1,6 @@
-# How to use FreeFORM
+# How to use FreeFORM Drill
 
-This guide walks you through writing a show in FreeFORM, from an empty field to dot sheets in your students' hands and the drill on their phones. It's written for band directors and drill writers. You don't need to have used Pyware or UDB before, but if you have, most of this will feel familiar.
+This guide walks you through writing a show in FreeFORM Drill, from an empty field to dot sheets in your students' hands and the drill on their phones. It's written for band directors and drill writers. You don't need to have used Pyware or UDB before, but if you have, most of this will feel familiar.
 
 FreeFORM runs in your web browser. The front page, <https://freeformdrill.org/>, says what it is; click **Open the editor** there, or go straight to <https://freeformdrill.org/app/>. There's nothing to install and no account to make. (Share links made before the editor moved to /app/ still work.)
 

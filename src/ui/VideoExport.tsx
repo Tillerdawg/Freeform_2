@@ -78,7 +78,7 @@ export function VideoDialog({ show, bpm, onClose }: { show: Show; bpm: number; o
       await out.finalize();
       const a = document.createElement('a');
       a.href = URL.createObjectURL(new Blob([out.target.buffer!], { type: 'video/mp4' }));
-      a.download = `${(show.title || 'FreeFORM show').replace(/[\\/:*?"<>|]+/g, '-')}.mp4`;
+      a.download = `${(show.title || 'FreeFORM Drill show').replace(/[\\/:*?"<>|]+/g, '-')}.mp4`;
       a.click();
       setTimeout(() => URL.revokeObjectURL(a.href), 60_000);
       setNote(audio && !acodec ? "Saved. This browser can't encode audio, so the video has no music." : 'Saved. It went to your Downloads folder (or wherever your browser saves files).');
