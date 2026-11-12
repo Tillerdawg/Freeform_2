@@ -112,6 +112,7 @@ Claude went through the docs, ran the tests, and clicked through the editor and 
 - ✅ The timeline strip is no longer a slider with buttons inside it: a hidden count slider stands for it (Tab to it, then the arrow keys, Home, and End), and the strip shows its focus.
 - ✅ The QR codes are images with their labels read.
 - ✅ Save the share QR code as a picture (2026-11-12, Jason asked): **Copy picture**, **Save picture** (PNG), and **SVG** under either code, labeled with the show's title and a scan line in English and Spanish, for a director's slides, handouts, and emails.
+- ✅ The FreeFORM Drill logo (the app icon) in the middle of QR codes whose links are short enough: published links, and the front page's sample-show code (2026-11-12, Jason asked).
 - ✅ Landmarks: the top bar and toolbar are the header, the field and timeline the main part, the sidebar an aside; the phone view is a main part too.
 - ✅ The editor's field canvas has a label.
 - ✅ Tab order: checked. Closed panels (**Sections**, **Roster**) aren't in the Tab order at all; an open Sections list has four controls per section, which is normal for a list you edit, so it stays.

@@ -454,7 +454,7 @@ Click **Share…** in the sidebar. The dialog has two choices at the top, and ea
 
 **Put the QR code on a slide, a handout, or an email.** Under either QR code, **Copy picture** copies it so you can paste it straight into PowerPoint, Keynote, Google Slides, a document, or an email. **Save picture** saves it as a PNG file, big enough to fill a projector screen or a printed page. **SVG** saves a copy that stays sharp at any size, for a poster. With the box checked (it starts checked), the picture has the show's title above the code and "Scan with your phone's camera" below it, in English and Spanish; uncheck it for just the code. A few tips:
 
-- For a slide or a poster, use the **Keep phones up to date** code. Its link is short, so the code has big squares that scan from the back of a band room. A **Send this version** code holds the whole show, so its squares are tiny and it needs to be big and close.
+- For a slide or a poster, use the **Keep phones up to date** code. Its link is short, so the code has big squares that scan from the back of a band room, and it has the FreeFORM Drill logo in the middle. A **Send this version** code holds the whole show, so its squares are tiny, it needs to be big and close, and it has no room for the logo.
 - In an email, include the link too. Most students read email on their phones, and a phone can't scan a code on its own screen. The picture helps the ones reading on a laptop.
 - Anyone who can scan the picture can open the show, so share it the way you'd share the link. A slide you post online for everyone shares the show with everyone.
 

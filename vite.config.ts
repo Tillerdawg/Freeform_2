@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react';
 import { guidePage, studentPage } from './src/guide/page';
 import { sampleShow } from './src/engine/sample';
 import { qrSvg } from './src/engine/qr';
+import { QR_LOGO } from './src/ui/palette';
 
 const SITE = 'https://freeformdrill.org/';
 
@@ -30,7 +31,7 @@ function sampleFile(): string {
 const SAMPLE_LINK = `${SITE}app/#load=${encodeURIComponent(`${SITE}sample.freeform`)}`;
 const sample: Plugin = {
   name: 'sample',
-  transformIndexHtml: (html) => html.replaceAll('%SAMPLE_PHONE_LINK%', SAMPLE_LINK).replace('%SAMPLE_QR%', qrSvg(SAMPLE_LINK) ?? ''),
+  transformIndexHtml: (html) => html.replaceAll('%SAMPLE_PHONE_LINK%', SAMPLE_LINK).replace('%SAMPLE_QR%', qrSvg(SAMPLE_LINK, QR_LOGO) ?? ''),
   generateBundle() { this.emitFile({ type: 'asset', fileName: 'sample.freeform', source: sampleFile() }); },
 };
 

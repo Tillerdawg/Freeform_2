@@ -3,7 +3,7 @@ import { encodeShow, fetchHosted, hostedLink, linkHash, lockShow, newKey, parseH
 import { qrSvg } from '../engine/qr';
 import { QrExport } from './QrExport';
 import { nextRevision, revisionLabel, type Show } from '../engine/show';
-import { FIELD } from '../ui/palette'; // the QR code's white: scanners need it
+import { FIELD, QR_LOGO } from '../ui/palette'; // the QR code's white: scanners need it
 import { synced } from '../engine/music';
 import { getAudio } from '../ui/audioStore';
 import { useDialog } from '../ui/useDialog';
@@ -33,7 +33,7 @@ export function ShareDialog({ show, onClose, published }: { show: Show; onClose:
   useEffect(() => { encodeShow(show).then((code) => setUrl(location.origin + location.pathname + SHARE_PREFIX + code)); }, [show]);
   const dialog = useDialog(onClose);
   const kb = Math.ceil(url.length / 1024);
-  const qr = url ? qrSvg(url) : null;
+  const qr = url ? qrSvg(url, QR_LOGO) : null; // the logo goes in when the link is short enough
   // Hosted link. The field takes a file address, or an existing hosted link (whose key then locks the updated file).
   const sid = show.id ?? show.title, saveKey = (k: string | null) => saveKeyFor(sid, k);
   const [field, setField] = useState(() => loadLinks()[sid] ?? loadLinks()[show.title] ?? '');
@@ -47,7 +47,7 @@ export function ShareDialog({ show, onClose, published }: { show: Show; onClose:
   const base = location.origin + location.pathname;
   const hosted = (() => { try { return fileUrl && key ? hostedLink(base, fileUrl, key) : ''; } catch { return ''; } })();
   const badUrl = !!fileUrl && (() => { try { return new URL(fileUrl).protocol !== 'https:'; } catch { return true; } })();
-  const hostedQr = hosted ? qrSvg(hosted) : null;
+  const hostedQr = hosted ? qrSvg(hosted, QR_LOGO) : null;
   // The recording can ride along in the locked file, so phones play the drill with the music (share links can't carry it).
   const [audio, setAudio] = useState<Blob | null>(null);
   const [withMusic, setWithMusic] = useState(true);

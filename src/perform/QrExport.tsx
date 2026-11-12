@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { cardLayout, cardTitle, QR_CAPTION, qrCardSvg, qrFileName, qrGrid } from '../engine/qr';
-import { FIELD } from '../ui/palette'; // black on white: scanners need it, and it prints and projects cleanly
+import { cardLayout, cardTitle, logoShapes, makeQr, QR_CAPTION, qrCardSvg, qrFileName } from '../engine/qr';
+import { FIELD, QR_LOGO } from '../ui/palette'; // black on white: scanners need it, and it prints and projects cleanly
 
 const COLORS = { paper: FIELD.white, ink: FIELD.black };
 
 /** The saved picture as a PNG, drawn straight onto a canvas (big enough for a projector or a printed handout). */
 async function qrPng(text: string, title: string): Promise<Blob> {
-  const g = qrGrid(text);
+  const g = makeQr(text, true);
   if (!g) throw new Error('Too big for a QR code.');
   const cell = Math.max(8, Math.ceil(1200 / (g.size + 8))); // about 1200 pixels across, whatever the code's size
   const t = cardTitle(title), L = cardLayout(g.size, cell, !!t);
@@ -16,6 +16,13 @@ async function qrPng(text: string, title: string): Promise<Blob> {
   ctx.fillStyle = COLORS.paper; ctx.fillRect(0, 0, L.width, L.height);
   ctx.fillStyle = COLORS.ink;
   for (let r = 0; r < g.size; r++) for (let c = 0; c < g.size; c++) if (g.dark(r, c)) ctx.fillRect(L.codeX + c * cell, L.codeY + r * cell, cell, cell);
+  if (g.hole) {
+    const pad = cell * 0.6, logo = logoShapes(L.codeX + g.hole.start * cell + pad, L.codeY + g.hole.start * cell + pad, g.hole.side * cell - 2 * pad);
+    ctx.fillStyle = QR_LOGO.tile;
+    ctx.beginPath(); ctx.roundRect(logo.tile.x, logo.tile.y, logo.tile.w, logo.tile.w, logo.tile.r); ctx.fill();
+    for (const d of logo.dots) { ctx.fillStyle = d.accent ? QR_LOGO.accent : QR_LOGO.dot; ctx.beginPath(); ctx.arc(d.cx, d.cy, d.r, 0, Math.PI * 2); ctx.fill(); }
+    ctx.fillStyle = COLORS.ink;
+  }
   if (t) {
     await document.fonts?.ready;
     ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
@@ -52,7 +59,7 @@ export function QrExport({ text, title }: { text: string; title: string }) {
     try { save(await qrPng(text, name), qrFileName(title, 'png')); setNote(''); } catch (e) { setNote(`✗ ${e instanceof Error ? e.message : String(e)}`); }
   };
   const svg = () => {
-    const s = qrCardSvg(text, name, COLORS);
+    const s = qrCardSvg(text, name, COLORS, QR_LOGO);
     if (s) save(new Blob([s], { type: 'image/svg+xml' }), qrFileName(title, 'svg'));
   };
   return (
