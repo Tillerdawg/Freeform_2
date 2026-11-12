@@ -35,7 +35,7 @@ import { FeedbackDialog } from './ui/Feedback';
 import { readPublishing, readPublishingCode, type Publishing } from './engine/cloud';
 import { getPublishing, setPublishing } from './ui/publishing';
 import { saveStatus } from './ui/saveStatus';
-import { bandMessage, gettingStarted, sendSteps, type Done, type SendDone } from './ui/gettingStarted';
+import { bandMessage, gettingStarted, sendSteps, type Done, type SendDone } from './ui/gettingStartedSteps';
 import { GettingStarted } from './ui/GettingStarted';
 import { RecoverDialog } from './ui/Recover';
 import { decodeShow, fetchHosted, linkHash, SHARE_PREFIX } from './engine/share';
@@ -1068,6 +1068,7 @@ export function App() {
               <button className="primary" onClick={() => { close(); setFeedback(true); }} title="Report a problem or suggest something: it goes straight to me, with no account needed">Send feedback</button>
               <button className="primary" onClick={() => { close(); window.open('https://ko-fi.com/tillerdawg', '_blank', 'noopener'); }} title="FreeFORM is free and always will be. A tip on Ko-fi helps with hosting (opens in a new tab)">Support FreeFORM</button>
               <button className="primary" onClick={() => { close(); window.open('../', '_blank', 'noopener'); }} title="FreeFORM Drill's front page: what it is, privacy, and coming from Pyware (opens in a new tab)">About FreeFORM Drill</button>
+              <button className="primary" onClick={() => { close(); window.open('https://github.com/Tillerdawg/freeform-drill', '_blank', 'noopener'); }} title="FreeFORM Drill is open source: browse the code, the plan, and the decisions behind it on GitHub (opens in a new tab)">See the code on GitHub</button>
             </div>
           )}</Menu>
         </span>

@@ -2,7 +2,7 @@
 // blank field, Getting started is the "Start your show" card in the middle of the field, with step 1's ways to begin as
 // buttons; otherwise a card sits in the bottom-right corner, out of the way of the drill.
 import { useState, type ReactNode } from 'react';
-import type { Step } from './gettingStarted';
+import type { Step } from './gettingStartedSteps';
 
 /** A step, with a button or two for the step you're on (Open Review, Copy the message). */
 export type CardStep = Step & { action?: ReactNode };
