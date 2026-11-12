@@ -452,6 +452,12 @@ Click **Share…** in the sidebar. The dialog has two choices at the top, and ea
 
 ![Keep phones up to date](img/share-update.png)
 
+**Put the QR code on a slide, a handout, or an email.** Under either QR code, **Copy picture** copies it so you can paste it straight into PowerPoint, Keynote, Google Slides, a document, or an email. **Save picture** saves it as a PNG file, big enough to fill a projector screen or a printed page. **SVG** saves a copy that stays sharp at any size, for a poster. With the box checked (it starts checked), the picture has the show's title above the code and "Scan with your phone's camera" below it, in English and Spanish; uncheck it for just the code. A few tips:
+
+- For a slide or a poster, use the **Keep phones up to date** code. Its link is short, so the code has big squares that scan from the back of a band room. A **Send this version** code holds the whole show, so its squares are tiny and it needs to be big and close.
+- In an email, include the link too. Most students read email on their phones, and a phone can't scan a code on its own screen. The picture helps the ones reading on a laptop.
+- Anyone who can scan the picture can open the show, so share it the way you'd share the link. A slide you post online for everyone shares the show with everyone.
+
 **Your show is encrypted before it leaves your computer.** FreeFORM locks the show in your browser with a secret key, and the key is only in your link: in the part after the #, which browsers never send to any server. The file that goes online is unreadable without that key. No one can open your show, not even FreeFORM or me, unless they have your link. That makes **the link the password, so share it only with your band.** Your browser remembers the link, but keep a copy too (your band's group chat is fine): without the link, no one can recover the key.
 
 FreeFORM's service keeps published shows for free. A show nobody has opened or updated for a year is deleted automatically. **Stop sharing** takes a show off right away.

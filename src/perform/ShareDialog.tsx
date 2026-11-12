@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { encodeShow, fetchHosted, hostedLink, linkHash, lockShow, newKey, parseHosted, SHARE_PREFIX } from '../engine/share';
 import { qrSvg } from '../engine/qr';
+import { QrExport } from './QrExport';
 import { nextRevision, revisionLabel, type Show } from '../engine/show';
 import { FIELD } from '../ui/palette'; // the QR code's white: scanners need it
 import { synced } from '../engine/music';
@@ -157,6 +158,7 @@ export function ShareDialog({ show, onClose, published }: { show: Show; onClose:
             {url && !qr && ' Too big for a QR code: use Keep phones up to date instead.'}
           </p>
           {qr && <div role="img" aria-label="QR code for the share link" style={{ background: FIELD.white, width: 200, margin: '0 auto 10px' }} dangerouslySetInnerHTML={{ __html: qr }} />}
+          {qr && <QrExport text={url} title={show.title} />}
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end', margin: '0 0 10px' }}>
             <button disabled={!url} onClick={() => { location.hash = url.slice(url.indexOf('#')); }}
               title="Switch this app to the performer view of this show (← Editor comes back)">Open performer view here</button>
@@ -193,6 +195,7 @@ export function ShareDialog({ show, onClose, published }: { show: Show; onClose:
           {busy && <p role="status" style={{ fontSize: 12, margin: '6px 0 0' }}>{busy}</p>}
           {hosted && <>
             {hostedQr && <div role="img" aria-label="QR code for the hosted link" style={{ background: FIELD.white, width: 200, margin: '8px auto' }} dangerouslySetInnerHTML={{ __html: hostedQr }} />}
+            {hostedQr && <QrExport text={hosted} title={show.title} />}
             <p role="status" style={{ fontSize: 12, margin: '4px 0' }}>{check}</p>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap' }}>
               {onService && <button onClick={stopSharing} title="Take the show off FreeFORM's service: the link stops working">Stop sharing</button>}

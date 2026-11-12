@@ -123,3 +123,26 @@ describe('finding a link in text', () => {
     expect(linkHash('#perform')).toBeNull();
   });
 });
+
+describe('saved QR pictures', async () => {
+  const { qrCardSvg, qrGrid, cardTitle, qrFileName } = await import('./qr');
+  const colors = { paper: 'P', ink: 'I' };
+  it('draws the same squares as the on-screen code, with the title and the scan line', () => {
+    const svg = qrCardSvg('https://freeformdrill.org/app/#load=x', 'Opener & <Ballad>', colors)!;
+    expect(svg).toContain('Opener &amp; &lt;Ballad&gt;');
+    expect(svg).toContain("Scan with your phone's camera");
+    expect(svg).toContain('Escanea con la cámara de tu teléfono');
+    const g = qrGrid('https://freeformdrill.org/app/#load=x')!;
+    let dark = 0;
+    for (let r = 0; r < g.size; r++) for (let c = 0; c < g.size; c++) if (g.dark(r, c)) dark++;
+    expect((svg.match(/M\d/g) ?? []).length).toBe(dark);
+  });
+  it('leaves the labels off when there is no title, and refuses links too big for a code', () => {
+    expect(qrCardSvg('abc', '', colors)).not.toContain('<text');
+    expect(qrCardSvg('x'.repeat(5000), 'T', colors)).toBeNull();
+  });
+  it('keeps long titles to one line and makes safe file names', () => {
+    expect(cardTitle('A'.repeat(60)).length).toBe(40);
+    expect(qrFileName('2026: "Gold" Show', 'png')).toBe('2026 Gold Show QR code.png');
+  });
+});
