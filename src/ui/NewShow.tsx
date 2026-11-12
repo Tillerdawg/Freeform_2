@@ -1,7 +1,7 @@
 // New show: name it and pick what it's written on before the blank field opens.
 import { useState } from 'react';
 import type { FieldSpec } from '../engine/coords';
-import { FieldSelect, FloorSize } from './FieldPicker';
+import { FieldSelect, FieldDetails } from './FieldPicker';
 import { startingField } from './startingField';
 import { useDialog } from './useDialog';
 
@@ -21,7 +21,7 @@ export function NewShowDialog({ onStart, onClose }: { onStart: (title: string, f
           <span>Written on</span>
           <span style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
             <FieldSelect value={field} onChange={setField} />
-            <FloorSize value={field} onChange={setField} />
+            <FieldDetails value={field} onChange={setField} />
           </span>
           <span style={{ fontSize: 12, opacity: 0.75 }}>A football field by its hashes, a basketball court, or a floor or tarp you size. You can change it later in the sidebar.</span>
         </div>

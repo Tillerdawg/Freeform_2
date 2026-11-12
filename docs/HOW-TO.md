@@ -61,7 +61,7 @@ From top to bottom:
 
 ## Set up a new show
 
-Click **New** in the sidebar to start a show. A box asks for two things first: the show's **Title**, and what it's **Written on**: a football field (**High school**, **College / DCI**, or **NFL** hashes), a **Basketball court**, or a **Custom floor** with its **Wide** and **Deep** in feet (see step 2 below). It starts on whatever your last new show used, so a winter guard writer doesn't have to pick the floor every time. Click **Start the show**. You can change either one later in the sidebar. The show you had open stays in this browser: **Shows…** opens it again (see [Several shows: Opener, Ballad, Closer](#saving-backing-up-and-opening-files)).
+Click **New** in the sidebar to start a show. A box asks for two things first: the show's **Title**, and what it's **Written on**: a **Football field** (pick its **Hashes**: **High school**, **College / DCI**, or **NFL**), a **Basketball court**, or a **Custom floor** with its **Wide** and **Deep** in feet (see step 2 below). It starts on whatever your last new show used, so a winter guard writer doesn't have to pick the floor every time. Click **Start the show**. You can change either one later in the sidebar. The show you had open stays in this browser: **Shows…** opens it again (see [Several shows: Opener, Ballad, Closer](#saving-backing-up-and-opening-files)).
 
 ![The New show box, set to a custom floor](img/new-show.png)
 
@@ -74,7 +74,7 @@ When the field has no performers, the **Start your show** note in the middle of 
 ![The getting-started checklist](img/getting-started.png)
 
 1. **Name it.** Type the title in the box under the file buttons. It prints on every dot sheet and chart.
-2. **Pick your field.** You picked it when you started the show, and the menu under the title changes it. It has **High school**, **College / DCI**, and **NFL** for a football field, plus **Basketball court** and **Custom floor** for indoor shows (more on those just below). For a football field FreeFORM draws the field the way drill software does, with whole-step hashes:
+2. **Pick your field.** You picked it when you started the show, and the menu under the title changes it: **Football field**, or **Basketball court** and **Custom floor** for indoor shows (more on those just below). For a football field, the **Hashes** menu under it picks **High school**, **College / DCI**, or **NFL**. FreeFORM draws the field the way drill software does, with whole-step hashes:
 
    | Level | Sideline to hash / hash to hash / hash to sideline |
    |---|---|

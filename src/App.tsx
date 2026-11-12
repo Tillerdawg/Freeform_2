@@ -20,7 +20,7 @@ import { Timeline } from './ui/Timeline';
 import { startingSections } from './ui/startingSections';
 import { saveStartingField, startingField } from './ui/startingField';
 import { NewShowDialog } from './ui/NewShow';
-import { FieldSelect, FloorSize } from './ui/FieldPicker';
+import { FieldSelect, FieldDetails } from './ui/FieldPicker';
 import { MusicMenu } from './ui/Music';
 import { getAudio, putAudio } from './ui/audioStore';
 import { addVersion, forgetShow, keepShow, listShows, loadShow, type Entry } from './ui/showStore';
@@ -396,7 +396,7 @@ export function App() {
   const pickField = (f: FieldSpec) => { setShow((s) => withField(s, f)); saveStartingField(f); };
   const startOptions = <>
     <span style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', marginBottom: 6 }}>
-      Written on <FieldSelect value={fieldOf(show)} onChange={pickField} /> <FloorSize value={fieldOf(show)} onChange={pickField} />
+      Written on <FieldSelect value={fieldOf(show)} outside={show.hash} onChange={pickField} /> <FieldDetails value={fieldOf(show)} onChange={pickField} />
     </span>
     <span>Place performers on the field (or props first, like a stage or a backdrop), bring in a roster from Excel, or look around the sample show first. On a new computer? Open your show from its phone link or recovery code.</span>
     <span style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 6 }}>

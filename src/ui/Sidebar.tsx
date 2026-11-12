@@ -15,7 +15,7 @@ import {
   type FrontDir, type FrontRef, type Section, type Show, type SideDir,
 } from '../engine/show';
 import { NumberField } from './NumberField';
-import { FieldSelect, FloorSize, PRESETS } from './FieldPicker';
+import { FieldSelect, FieldDetails, PRESETS } from './FieldPicker';
 import { useDialog } from './useDialog';
 
 export type Tool = 'select' | 'add' | 'text' | 'arrow' | 'draw' | 'turn'; // turn: click to add an FTL leader's turning points
@@ -103,10 +103,8 @@ export function Sidebar(p: Props) {
       {p.fileError && <div role="alert" style={{ color: 'var(--danger)', marginTop: 6 }}>{p.fileError}</div>}
       <div style={{ ...row, marginBottom: 10 }}>
         <input aria-label="Show title" value={show.title} onChange={(e) => setShow((s) => ({ ...s, title: e.target.value }))} style={{ flex: 1 }} />
-        <FieldSelect value={fieldOf(show)} onChange={(f) => {
-          // Other hashes under written drill: ask what should happen to it. Onto or off a floor, spots stay put in steps.
-          if (typeof f === 'string' && !show.surface && show.performers.length) setPendingHash(f);
-          else setShow((s) => withField(s, f));
+        <FieldSelect value={fieldOf(show)} outside={show.hash} onChange={(f) => {
+          setShow((s) => withField(s, f)); // onto or off a floor: spots stay put in steps
         }} />
         <select aria-label="Draw performers as" title="On the field, printed charts, and phones: the section letter labeled with the number, or a dot labeled P4"
           value={show.symbols ?? 'letters'} onChange={(e) => setShow((s) => { const { symbols: _, ...rest } = s, v = e.target.value; return v === 'dots' ? { ...rest, symbols: v } : rest; })}>
@@ -114,9 +112,13 @@ export function Sidebar(p: Props) {
           <option value="dots">Dots</option>
         </select>
       </div>
-      {show.surface?.kind === 'floor' && (
+      {show.surface?.kind !== 'court' && (
         <div style={{ ...row, marginTop: -4, marginBottom: 10 }}>
-          <FloorSize value={show.surface} onChange={(f) => setShow((s) => withField(s, f))} />
+          <FieldDetails value={fieldOf(show)} onChange={(f) => {
+            // Other hashes under written drill: ask what should happen to it.
+            if (typeof f === 'string' && show.performers.length) setPendingHash(f);
+            else setShow((s) => withField(s, f));
+          }} />
         </div>
       )}
       {show.surface && show.performers.some((x) => show.sets.some((st) => { const q = st.pos[x.id]; return q && (Math.abs(q.x) > show.surface!.w / 2 || q.y < 0 || q.y > show.surface!.d); })) && (
