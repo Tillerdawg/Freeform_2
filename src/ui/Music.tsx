@@ -112,7 +112,7 @@ export function MusicMenu({ show, setShow, audio, onAudio, useMusic, setUseMusic
     <>
       <Menu label={label} pressed={!!(m && synced(m) && useMusic && audio)} title="Play the drill with the show's recording">
         {(close) => <>
-          {!m && <p style={{ margin: 0, fontSize: 12, maxWidth: 320 }}>Add a MusicXML (.musicxml or .mxl) or MIDI score to make a rehearsal track. If you have a recording made from the score, add both in either order to sync the counts. MuseScore files work with a recording, too. To use a recording on its own, tap the counts.</p>}
+          {!m && <p style={{ margin: 0, fontSize: 12, maxWidth: 320 }}>Add a MuseScore (.mscz), MusicXML, or MIDI score to make a rehearsal track. If you have a recording made from the score, add both in either order to sync the counts. To use a recording on its own, tap the counts.</p>}
           {m && <p style={{ margin: 0, fontSize: 12 }}><strong>{m.name}</strong><br />
             {m.taps.length ? `${m.taps.length} of ${total + 1} counts placed${m.taps.length < total + 1 ? '; later counts keep the last pace' : ''}.` : 'No counts yet: add the score, or tap them.'}</p>}
           {m && !audio && <p role="alert" style={{ margin: 0, fontSize: 12, color: 'var(--warn)' }}>{rehearsal ? "The rehearsal track isn't in this browser. Add the score again and make the track to hear it." : `The recording isn't in this browser. Add ${m.name} again to hear it.`}</p>}

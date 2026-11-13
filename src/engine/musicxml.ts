@@ -271,15 +271,20 @@ async function readZip(buf: ArrayBuffer, what: string): Promise<Record<string, (
 /** The main score file inside a compressed MusicXML (.mxl) zip. */
 export async function unzipMxl(buf: ArrayBuffer): Promise<string> {
   const files = await readZip(buf, '.mxl');
-  const container = files['META-INF/container.xml'] && parseXml(await files['META-INF/container.xml']());
-  const rootfile = container && findDeep(container, 'rootfile')?.attrs['full-path'];
+  return readMxl(files, await scorePaths(files));
+}
+
+function readMxl(files: Record<string, () => Promise<string>>, [rootfile]: string[]): Promise<string> {
   const main = (rootfile && files[rootfile]) ? rootfile : Object.keys(files).find((f) => !f.startsWith('META-INF/') && /\.(musicxml|xml)$/i.test(f));
   if (!main) throw new Error('No score was found inside that .mxl file.');
   return files[main]();
 }
 
-function findDeep(e: El, tag: string): El | undefined {
-  for (const k of e.kids) { if (k.tag === tag) return k; const f = findDeep(k, tag); if (f) return f; }
+async function scorePaths(files: Record<string, () => Promise<string>>): Promise<string[]> {
+  const read = files['META-INF/container.xml'];
+  if (!read) return [];
+  const rootfiles = kid(kid(parseXml(await read()), 'container'), 'rootfiles');
+  return (rootfiles?.kids ?? []).filter((e) => e.tag === 'rootfile').map((e) => e.attrs['full-path']);
 }
 
 /** The score's timing and, when available, its notes for a rehearsal track. File types are detected by content. */
@@ -290,13 +295,15 @@ export async function parseScore(buf: ArrayBuffer): Promise<Midi & { rehearsal?:
   if (sig === 'MThd') return { ...parseMidi(buf), rehearsal: buf };
   if (sig.startsWith('PK')) {
     const files = await readZip(buf, 'score');
-    const mscx = Object.keys(files).find((f) => !f.includes('/') && /\.mscx$/i.test(f)); // a MuseScore .mscz (its parts live in Excerpts/)
-    if (mscx) return parseMscx(await files[mscx]());
-    const { map, rehearsal } = readMusicXml(await unzipMxl(buf), true);
+    const paths = await scorePaths(files);
+    const mscx = paths.find((f) => /\.mscx$/i.test(f) && files[f])
+      ?? Object.keys(files).find((f) => !f.includes('/') && /\.mscx$/i.test(f)); // older archives may lack a manifest
+    if (mscx) return readMscx(await files[mscx]());
+    const { map, rehearsal } = readMusicXml(await readMxl(files, paths), true);
     return { ...map, rehearsal };
   }
-  if (/<museScore\b/.test(new TextDecoder().decode(buf.slice(0, 2000)))) return parseMscx(new TextDecoder().decode(buf)); // an uncompressed .mscx
   const text = new TextDecoder().decode(buf);
+  if (/<museScore\b/.test(text.slice(0, 2000))) return readMscx(text); // an uncompressed .mscx
   if (/<score-(partwise|timewise)\b/.test(text.slice(0, 5000))) {
     const { map, rehearsal } = readMusicXml(text, true);
     return { ...map, rehearsal };
@@ -309,10 +316,15 @@ const frac = (t: string | undefined) => { const [a, b] = (t ?? '').split('/').ma
 const isGrace = (c: El) => c.kids.some((k) => /^(grace|acciaccatura|appoggiatura)/.test(k.tag));
 
 /**
- * A MuseScore 4 score (the .mscx inside a .mscz): measures and their real lengths (an irregular bar's `len`, else
- * its meter), tempo marks (stored in quarters per second), fermatas with their stretch, and whether anything sounds.
+ * A MuseScore score (the .mscx inside a .mscz): measures and their real lengths (an irregular bar's `len`, else
+ * its meter), tempo marks (stored in quarters per second), fermatas with their stretch, and notes for rehearsal.
  */
 export function parseMscx(text: string): Midi & { warnings: string[] } {
+  const { rehearsal: _, ...map } = readMscx(text, false);
+  return map;
+}
+
+function readMscx(text: string, readNotes = true) {
   if (text.length > MAX_BYTES) throw new Error('That file is too big to be a score.');
   const ms = parseXml(text).kids.find((k) => k.tag === 'museScore');
   const version = parseFloat(ms?.attrs.version ?? '');
@@ -326,8 +338,22 @@ export function parseMscx(text: string): Midi & { warnings: string[] } {
   const bars: Bar[] = Array.from({ length: count }, () => ({ len: 0, beats: 4, den: 4, sounding: false, tempos: [] }));
   const holds: Hold[] = [], onsets: [number, number][] = [];
   const marks: BarMarks[] = Array.from({ length: count }, () => ({}));
+  const instruments = new Map<string, number | null>();
+  if (readNotes) {
+    for (const part of score?.kids.filter((e) => e.tag === 'Part') ?? []) {
+      const instrument = kid(part, 'Instrument');
+      const program = museProgram(instrument);
+      for (const staff of part.kids.filter((e) => e.tag === 'Staff')) {
+        const percussion = kid(staff, 'StaffType')?.attrs.group === 'percussion';
+        instruments.set(staff.attrs.id, percussion ? null : program);
+      }
+    }
+  }
+  const parts: RehearsalPart[] = [];
   staves.forEach((st, si) => {
     let beats = 4, den = 4;
+    const program = instruments.get(st.attrs.id);
+    const track: RehearsalPart = { program: program === undefined ? 0 : program, notes: [] };
     // A multi-measure rest is stored as an extra measure in front of the real ones: skip it (MuseScore rebuilds it).
     st.kids.filter((k) => k.tag === 'Measure' && !kid(k, 'multiMeasureRest')).forEach((m, i) => {
       const bar = bars[i];
@@ -339,12 +365,14 @@ export function parseMscx(text: string): Midi & { warnings: string[] } {
         else if (e.tag === 'Jump') {
           const t = (tag: string) => kid(e, tag)?.text.trim() ?? '';
           marks[i].jump = { to: t('jumpTo') || 'start', until: t('playUntil') || 'end', ...(t('continueAt') ? { continueAt: t('continueAt') } : {}), ...(num(kid(e, 'playRepeats')) ? { playRepeats: true } : {}) };
-        } else if (e.tag === 'Spanner' && e.attrs.type === 'Volta' && kid(e, 'Volta')) { // its end is this many bars on
-          const n = num(kid(kid(kid(e, 'next'), 'location'), 'measures')) || 1;
+        } else if (e.tag === 'Spanner' && e.attrs.type === 'Volta' && kid(e, 'Volta')) {
+          const location = kid(kid(e, 'next'), 'location');
+          // A volta can end at the next downbeat or inside its final bar (including the end of the score).
+          const n = Math.max(1, (num(kid(location, 'measures')) || 0) + (frac(kid(location, 'fractions')?.text) > 0 ? 1 : 0));
           for (let k = i; k < Math.min(count, i + n); k++) addEndings(marks[k], endingNumbers(kid(kid(e, 'Volta'), 'endings')?.text));
         }
       }
-      for (const v of m.kids.filter((k) => k.tag === 'voice')) {
+      for (const [vi, v] of m.kids.filter((k) => k.tag === 'voice').entries()) {
         let pos = 0;
         const tup = [1];
         let fermata = 0; // the stretch of a fermata waiting for its chord or rest
@@ -357,8 +385,25 @@ export function parseMscx(text: string): Midi & { warnings: string[] } {
           else if (e.tag === 'Fermata') fermata = num(kid(e, 'timeStretch')) || 2; // MuseScore 4 holds a fermata twice as long by default
           else if ((e.tag === 'Chord' || e.tag === 'Rest') && !isGrace(e)) {
             const t = kid(e, 'durationType')?.text.trim() ?? '';
-            const d = t === 'measure' ? frac(kid(e, 'duration')?.text) * 4 : (DUR[t] ?? 0) * (2 - 1 / 2 ** (num(kid(e, 'dots')) || 0)) * tup[tup.length - 1];
-            if (e.tag === 'Chord') bar.sounding = true;
+            const d = t === 'measure'
+              ? (frac(kid(e, 'duration')?.text) || frac(m.attrs.len) || beats / den) * 4
+              : (DUR[t] ?? 0) * (2 - 1 / 2 ** (num(kid(e, 'dots')) || 0)) * tup[tup.length - 1];
+            if (e.tag === 'Chord') {
+              bar.sounding = true;
+              if (readNotes && Number.isFinite(d) && d > 0) {
+                for (const note of e.kids.filter((k) => k.tag === 'Note')) {
+                  // MuseScore stores the sounding MIDI pitch even when the part is written transposed.
+                  const key = num(kid(note, 'pitch'));
+                  if (!Number.isInteger(key) || key < 0 || key > 127 || num(kid(note, 'play')) === 0) continue;
+                  const ties = note.kids.filter((k) => k.tag === 'Spanner' && k.attrs.type === 'Tie');
+                  track.notes.push({
+                    bar: i, from: pos, to: pos + d, key: track.program === null && (key < 35 || key > 81) ? 38 : key, voice: String(vi),
+                    tieIn: ties.some((k) => !!kid(k, 'prev')),
+                    tieOut: ties.some((k) => !!kid(k, 'next')),
+                  });
+                }
+              }
+            }
             onsets.push([i, pos]);
             if (fermata) { holds.push([i, pos, pos + (d || 0), fermata]); fermata = 0; }
             pos += d || 0;
@@ -369,6 +414,15 @@ export function parseMscx(text: string): Midi & { warnings: string[] } {
       const len = frac(m.attrs.len) * 4; // an irregular bar (a pickup) says how long it really is; otherwise its meter
       bar.len = Number.isFinite(len) ? len : Math.max(bar.len, (beats * 4) / den);
     });
+    if (track.notes.length) parts.push(track);
   });
-  return toMap(bars, holds, onsets, playbackOrder(marks, MAX_MEASURES));
+  const playback = playbackOrder(marks, MAX_MEASURES);
+  return { ...toMap(bars, holds, onsets, playback), rehearsal: { parts, order: playback.order } };
+}
+
+function museProgram(instrument: El | undefined): number | null {
+  if (num(kid(instrument, 'useDrumset')) === 1 || kid(instrument, 'Drum')) return null;
+  const program = kid(kid(instrument, 'Channel'), 'program');
+  const n = Number(program?.attrs.value ?? program?.text);
+  return Number.isInteger(n) && n >= 0 && n <= 127 ? n : 0;
 }

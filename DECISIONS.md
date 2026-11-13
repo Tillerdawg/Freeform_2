@@ -1706,3 +1706,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - FreeFORM already read the bar and tempo map from MusicXML. We considered adding a separate score converter, which would have to interpret repeats and tempo marks the same way as the count reader.
 - The notes now use the same expanded bars and tempo map as the counts. The existing worker writes MIDI from that shared timing and renders it with the same instrument library. For rehearsal, it plays pitches, chords, ties, and standard drum-kit sounds with a steady note velocity. The tests compare rendered audio with the drill counts on both passes and in each ending.
 - Chrome's AAC encoder and container added about 60 ms to the entrances in the test score. New rehearsal tracks use Opus in WebM where the browser can encode and play it, with WAV as the fallback. The saved Opus track's four entrances were within 14 ms of the expected counts.
+
+## 2026-11-13 10:57 EST — Native MuseScore rehearsal tracks
+
+- Jason asked for rehearsal tracks directly from `.mscz` files, with audio in sync through repeats and endings. The playback details are Codex's choices, subject to Jason's review.
+- FreeFORM already used these files for counts. We considered an external MuseScore conversion step. The native reader now reads note pitches and ties as it builds the count map, and the existing browser renderer uses that same bar order and timing.
+- For rehearsal, each staff uses its starting instrument with steady note velocity, and unpitched percussion uses a standard drum kit. A score saved in MuseScore 4.7.6 was checked against MuseScore's MIDI export. In Chrome, all four audio entrances through the repeat and both endings landed within 6 ms of the expected counts for both Opus and WAV.
