@@ -1,6 +1,8 @@
 // @ts-expect-error: the tests run in Node, but its type definitions aren't installed (nothing else needs them)
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import { MIDIBuilder } from 'spessasynth_core';
+import { MARCHING_DEFAULT_KEYS, MARCHING_PROGRAMS, MARCHING_SOUNDFONT } from './marching';
 import { parseMidi, secondsAt } from './midi';
 import { parseScore } from './musicxml';
 import { RATE, renderMidi, wavBytes } from './rehearsal';
@@ -56,5 +58,39 @@ describe('rehearsal tracks', () => {
   it('passes an imported MIDI straight to the rehearsal renderer', async () => {
     const file = midi();
     expect((await parseScore(file)).rehearsal).toBe(file);
+  });
+  it('renders all battery programs on separate ports and keeps an ordinary SFX kit', async () => {
+    const bytes: Uint8Array = readFileSync(new URL(`../../public/sounds/${MARCHING_SOUNDFONT}`, import.meta.url));
+    const load = async () => bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
+    const midi = new MIDIBuilder({ format: 1 });
+    midi.addTrack('SFX Kit');
+    midi.programChange(0, 1, 9, 56);
+    midi.noteOn(0, 1, 9, 50, 80);
+    midi.noteOff(120, 1, 9, 50);
+    for (const [i, program] of MARCHING_PROGRAMS.entries()) {
+      const start = (i + 1) * 1920;
+      const key = MARCHING_DEFAULT_KEYS[program];
+      midi.addTrack(program === 56 ? 'Marching Snare Drum' : '', i + 1);
+      midi.programChange(0, i + 2, 9, program);
+      midi.noteOn(start, i + 2, 9, key, 80);
+      midi.noteOff(start + 120, i + 2, 9, key);
+    }
+    midi.flush();
+    const source = midi.writeMIDI();
+    const audio = await renderMidi(bank, source, undefined, load);
+    const fallback = await renderMidi(bank, source);
+    const power = (samples: Float32Array, start: number) => samples.slice(start, start + RATE / 10).reduce((sum, x) => sum + x * x, 0);
+    const sfxPower = power(audio.left, 0);
+    const fallbackPower = power(fallback.left, 0);
+    expect(sfxPower).toBeGreaterThan(0);
+    for (let i = 0; i < RATE / 10; i += 13) {
+      expect(audio.left[i] / Math.sqrt(sfxPower)).toBeCloseTo(fallback.left[i] / Math.sqrt(fallbackPower), 5);
+    }
+    for (let i = 1; i <= MARCHING_PROGRAMS.length; i++) {
+      const at = i * 2 * RATE;
+      expect(power(audio.left, at)).toBeGreaterThan(0.01);
+      const changed = audio.left.slice(at, at + RATE / 10).some((x, j) => Math.abs(x - fallback.left[at + j]) > 0.04);
+      expect(changed).toBe(true);
+    }
   });
 });

@@ -50,7 +50,7 @@ A note on where the ideas came from: FreeFORM is modeled on Pyware and the Ultim
 **Timing and music**
 - A timeline you can scrub count by count, play at any tempo (with a click if you like, on the computer or the phone), or loop over a range of sets.
 - Lay out a show by counts first (one movement per tune), then add sets at any count.
-- Sync to a recording: take every count's timing from the score (MuseScore, MusicXML from Finale, Sibelius, or Dorico, or MIDI), with repeats and endings played out, or tap the counts along with any mp3. No recording yet? Make a rehearsal track from MuseScore (`.mscz`), MusicXML, or MIDI.
+- Sync to a recording: take every count's timing from the score (MuseScore, MusicXML from Finale, Sibelius, or Dorico, or MIDI), with repeats and endings played out, or tap the counts along with any mp3. No recording yet? Make a rehearsal track from MuseScore (`.mscz`), MusicXML, or MIDI, with dedicated marching percussion sounds.
 
 **Getting it to the band**
 - Dot sheets (four cards per page, one per page with a notes column, or one per page with a small field picture for each set, like a dot book) and drill charts (one per set, with or without the paths into it), printed or saved as PDF, for the whole show or a range of sets.
@@ -132,7 +132,7 @@ Every design decision is logged in [DECISIONS.md](DECISIONS.md): when, who made 
 
 ### Clean room
 
-FreeFORM is written from scratch. I studied Pyware and UDB only through how they behave and what their documentation says, never by decompiling them, and there's no third-party code or show file in this repo. The libraries FreeFORM uses come from npm (`package.json`), and the build lists each one with its license in `licenses.txt` (**Help → Open-source credits**). The one outside file in the repo is the rehearsal track's instrument sounds, [GeneralUser GS](https://www.schristiancollins.com/generaluser.php) by S. Christian Collins, in `public/sounds/` with its license.
+FreeFORM is written from scratch. I studied Pyware and UDB only through how they behave and what their documentation says, never by decompiling them, and there's no third-party code or show file in this repo. The libraries FreeFORM uses come from npm (`package.json`), and the build lists each one with its license in `licenses.txt` (**Help → Open-source credits**). The rehearsal sounds and their licenses live in `public/sounds/`. They come from GeneralUser GS by S. Christian Collins and the marching percussion presets from MS Basic. [GeneralUser GS](https://www.schristiancollins.com/generaluser.php) · [MS Basic](https://github.com/mrbumpy409/MS_Basic)
 
 ## Supporting FreeFORM Drill
 

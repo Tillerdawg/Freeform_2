@@ -2,8 +2,9 @@
 // without a recording (Jason: it can sound like a notation program's playback; a real recording stays the upgrade).
 // The audio and the counts come from the same MIDI, so the counts are exact. Pure rendering, no UI: the editor runs it
 // in a worker (src/ui/rehearsalWorker.ts) so the page doesn't freeze.
-import { BasicMIDI, BasicSoundBank, SoundBankLoader, SpessaSynthProcessor, SpessaSynthSequencer } from 'spessasynth_core';
+import { BasicMIDI, BasicSoundBank, MIDIControllers, MIDIMessage, MIDIMessageTypes, SoundBankLoader, SpessaSynthProcessor, SpessaSynthSequencer } from 'spessasynth_core';
 import { MAX_TRACK_SECONDS } from './scoreMidi';
+import { marchingProgram, MARCHING_BANK, MARCHING_PROGRAMS } from './marching';
 
 export const RATE = 44100; // AAC encoders take 44.1 or 48 kHz
 const TAIL = 2; // seconds after the last note, for the final chord to ring
@@ -13,13 +14,16 @@ const BLOCK = 128; // the synthesizer's largest render size
  * Render a MIDI file with a SoundFont (SF2, or SF3 with compressed samples). The track starts at the MIDI's time 0, not
  * at its first note, so it lines up with the counts. Scaled to a steady peak, so quiet and loud scores come out alike.
  */
-export async function renderMidi(bank: ArrayBuffer, midiFile: ArrayBuffer, onProgress?: (done: number) => void): Promise<{ left: Float32Array; right: Float32Array; sampleRate: number }> {
+export async function renderMidi(bank: ArrayBuffer, midiFile: ArrayBuffer, onProgress?: (done: number) => void, loadMarching?: () => Promise<ArrayBuffer>): Promise<{ left: Float32Array; right: Float32Array; sampleRate: number }> {
   await BasicSoundBank.ready; // the SF3 decoder
   const midi = BasicMIDI.fromArrayBuffer(midiFile);
   if (!(midi.duration > 0)) throw new Error('That MIDI file has no music in it.');
   if (midi.duration > MAX_TRACK_SECONDS) throw new Error('That MIDI file is longer than 30 minutes, too long for a rehearsal track.');
   const synth = new SpessaSynthProcessor(RATE, { effectsEnabled: true, eventsEnabled: false });
   synth.soundBankManager.addSoundBank(SoundBankLoader.fromArrayBuffer(bank), 'main');
+  if (loadMarching && selectMarchingKits(midi)) {
+    synth.soundBankManager.addSoundBank(SoundBankLoader.fromArrayBuffer(await loadMarching()), 'marching', MARCHING_BANK);
+  }
   await synth.ready;
   const seq = new SpessaSynthSequencer(synth);
   seq.skipToFirstNoteOn = false; // keep the lead-in: count 0 is the MIDI's time 0
@@ -37,6 +41,35 @@ export async function renderMidi(bank: ArrayBuffer, midiFile: ArrayBuffer, onPro
   if (peak > 0) { const k = 0.9 / peak; for (let i = 0; i < n; i++) { left[i] *= k; right[i] *= k; } }
   onProgress?.(1);
   return { left, right, sampleRate: RATE };
+}
+
+/** MuseScore MIDI exports put battery programs on channel 10, often on separate ports. */
+function selectMarchingKits(midi: BasicMIDI): boolean {
+  let usesMarching = false;
+  const banks = new Map<number, { written: number; selected: number }>();
+  const changes: { track: number; index: number; tick: number; bank: number }[] = [];
+  midi.iterate((event, track, indices) => {
+    const { ticks, statusByte, data } = event;
+    const port = midi.tracks[track].port;
+    if (statusByte === (MIDIMessageTypes.controllerChange | 9) && data[0] === MIDIControllers.bankSelect) {
+      banks.set(port, { written: data[1], selected: data[1] });
+    } else if (statusByte === (MIDIMessageTypes.programChange | 9)) {
+      const bank = banks.get(port) ?? { written: 0, selected: 0 };
+      const kit = MARCHING_PROGRAMS.includes(data[0])
+        && (bank.written === MARCHING_BANK || (bank.written === 0 && (data[0] !== 56 || marchingProgram(midi.tracks[track].name) === 56)));
+      if (kit) usesMarching = true;
+      const selected = kit ? MARCHING_BANK : bank.written;
+      if (selected !== bank.selected) {
+        changes.push({ track, index: indices[track], tick: ticks, bank: selected });
+        banks.set(port, { written: bank.written, selected });
+      }
+    }
+  });
+  for (const { track, index, tick, bank } of changes.reverse()) {
+    midi.tracks[track].addEvents(index, MIDIMessage.controllerChange(tick, 9, MIDIControllers.bankSelect, bank));
+  }
+  if (changes.length) midi.flush();
+  return usesMarching;
 }
 
 /** 16-bit stereo WAV bytes, for browsers that can't compress audio. */

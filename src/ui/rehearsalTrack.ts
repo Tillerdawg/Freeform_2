@@ -3,6 +3,7 @@
 import { wavBytes } from '../engine/rehearsal';
 import type { Midi } from '../engine/midi';
 import type { RehearsalSource } from '../engine/scoreMidi';
+import { MARCHING_SOUNDFONT } from '../engine/marching';
 
 /** The General MIDI sound library (GeneralUser GS, by S. Christian Collins; its license is beside it). Not in the offline download until first used. */
 const BANK = 'sounds/GeneralUser-GS.sf3';
@@ -16,10 +17,12 @@ export async function makeRehearsalTrack(source: RehearsalSource, map: Midi, onS
     const w = new Worker(new URL('./rehearsalWorker.ts', import.meta.url), { type: 'module' });
     w.onmessage = (e) => {
       if ('progress' in e.data) onStep('playing', e.data.progress);
+      else if ('instruments' in e.data) onStep('instruments', 0);
       else { w.terminate(); if ('done' in e.data) ok(e.data.done); else fail(new Error(e.data.error)); }
     };
     w.onerror = () => { w.terminate(); fail(new Error("The rehearsal track couldn't be made in this browser.")); };
-    w.postMessage({ bank, source, map }, [bank]);
+    const marchingUrl = new URL(`../sounds/${MARCHING_SOUNDFONT}`, location.href).href;
+    w.postMessage({ bank, source, map, marchingUrl }, [bank]);
   });
   onStep('saving', 0);
   return (await compress(left, right, sampleRate)) ?? new Blob([wavBytes(left, right, sampleRate) as BlobPart], { type: 'audio/wav' });

@@ -388,9 +388,11 @@ You can do steps 2 and 3 in either order. Once both are in, FreeFORM takes the t
 
 **With any recording, by tapping:** add just the recording (mp3, m4a, or wav), then choose **Tap counts…**. FreeFORM plays it from the top while you press Space on every count, starting with count 0 (set 1). You can undo a tap, pause, or start over. To fix part of it later, set **Redo from count** first.
 
-**With no recording, a rehearsal track:** add a MuseScore score (`.mscz`), MusicXML (`.musicxml`, `.xml`, or `.mxl`), or MIDI, then choose **Make a rehearsal track**. FreeFORM plays the score with standard instrument sounds, and the counts follow the same repeats, endings, and tempos as the audio. For MuseScore and MusicXML, it plays the notes and ties with a steady volume. MuseScore parts use their starting instruments, and unpitched percussion uses a standard drum kit.
+**With no recording, a rehearsal track:** add a MuseScore score (`.mscz`), MusicXML (`.musicxml`, `.xml`, or `.mxl`), or MIDI, then choose **Make a rehearsal track**. The counts follow the same repeats, endings, and tempos as the audio. For MuseScore and MusicXML, FreeFORM plays the notes and ties with a steady volume. MuseScore parts use their starting instruments.
 
-It takes a few seconds. The first time, FreeFORM downloads the instrument sounds (about 7 MB). After that, they work offline. The track goes along in **Full backup…** and in shared files with the music included. When the real recording comes in, choose **Use a real recording instead…**.
+Recognized marching snares, tenors, bass drums, and cymbals get their own sounds. Other unpitched parts use the standard kit. If your notation program exports a generic drum track, use the native MuseScore score or export MusicXML with the marching instruments named.
+
+It takes a few seconds. The first time, FreeFORM downloads the instrument sounds (about 7 MB, plus 1.4 MB if the score uses marching percussion). After that, the downloaded sounds work offline. The track goes along in **Full backup…** and in shared files with the music included. When the real recording comes in, choose **Use a real recording instead…**.
 
 When the counts are in, Play follows the music, rubato and all, and the recording's waveform shows along the bottom of the timeline. Uncheck **Play with music** to go back to the Tempo setting.
 

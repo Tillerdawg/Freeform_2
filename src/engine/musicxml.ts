@@ -5,6 +5,7 @@
 import { parseMidi, type Midi } from './midi';
 import { endingNumbers, playbackOrder, type BarMarks } from './repeats';
 import type { RehearsalNote, RehearsalPart, RehearsalSource } from './scoreMidi';
+import { marchingProgram, MARCHING_PROGRAMS, MARCHING_DEFAULT_KEYS } from './marching';
 
 const PPQ = 480, MAX_BYTES = 60_000_000, MAX_MEASURES = 5000;
 const SEMITONES: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
@@ -55,10 +56,12 @@ function readMusicXml(text: string, readNotes: boolean) {
   const rehearsal: RehearsalPart[] = [];
   for (const part of parts) {
     const instruments = new Map<string, RehearsalPart>();
-    const percussion = { program: null, notes: [] as RehearsalNote[] };
+    const percussion = new Map<number | undefined, RehearsalPart>();
     const shifts = new Map<string, number>();
     const definition = definitions.find((e) => e.attrs.id === part.attrs.id);
     const midi = new Map(definition?.kids.filter((e) => e.tag === 'midi-instrument').map((e) => [e.attrs.id, e]));
+    const namedMarching = marchingProgram((definition?.kids.filter((e) => e.tag === 'part-name' || e.tag === 'score-instrument')
+      .map((e) => e.tag === 'part-name' ? e.text : kid(e, 'instrument-name')?.text).join(' ') ?? ''));
     const defaultInstrument = kid(definition, 'score-instrument')?.attrs.id ?? midi.keys().next().value ?? '';
     let div = 1, beats = 4, den = 4, ending: number[] | null = null; // the ending (volta) this part is under
     part.kids.filter((k) => k.tag === 'measure').forEach((m, i) => {
@@ -89,12 +92,19 @@ function readMusicXml(text: string, readNotes: boolean) {
               const unpitched = !!kid(e, 'unpitched');
               const instrument = midi.get(id);
               const drum = midiValue(kid(instrument, 'midi-unpitched'));
-              const key = unpitched ? drum ?? 38 : pitchOf(e, shift);
+              const program = midiValue(kid(instrument, 'midi-program'));
+              const explicitKit = program !== undefined && MARCHING_PROGRAMS.includes(program)
+                && (program !== 56 || namedMarching === 56 || num(kid(instrument, 'midi-bank')) === 129);
+              const marching = unpitched ? (explicitKit ? program : namedMarching) : undefined;
+              const key = unpitched
+                ? marching === undefined ? drum ?? 38 : (explicitKit ? drum : undefined) ?? MARCHING_DEFAULT_KEYS[marching]
+                : pitchOf(e, shift);
               if (key === undefined) continue;
-              let track = unpitched ? percussion : instruments.get(id);
+              let track = unpitched ? percussion.get(marching) : instruments.get(id);
               if (!track) {
-                track = { program: midiValue(kid(instrument, 'midi-program')) ?? 0, notes: [] };
-                instruments.set(id, track);
+                track = { program: unpitched ? null : program ?? 0, marching, notes: [] };
+                if (unpitched) percussion.set(marching, track);
+                else instruments.set(id, track);
               }
               track.notes.push({
                 bar: i, from: at, to: at + d, key, voice: `${staff}/${kid(e, 'voice')?.text.trim() || '1'}`,
@@ -134,7 +144,7 @@ function readMusicXml(text: string, readNotes: boolean) {
       if (!bar.sig) { bar.beats = beats; bar.den = den; bar.sig = true; }
     });
     rehearsal.push(...instruments.values());
-    if (percussion.notes.length) rehearsal.push(percussion);
+    rehearsal.push(...percussion.values());
   }
   // A D.C. or D.S. in MusicXML doesn't say where it plays to: al Coda if the score has a To Coda, al Fine if it has a Fine.
   const has = (l: string) => marks.some((b) => b.markers?.includes(l));
@@ -338,22 +348,23 @@ function readMscx(text: string, readNotes = true) {
   const bars: Bar[] = Array.from({ length: count }, () => ({ len: 0, beats: 4, den: 4, sounding: false, tempos: [] }));
   const holds: Hold[] = [], onsets: [number, number][] = [];
   const marks: BarMarks[] = Array.from({ length: count }, () => ({}));
-  const instruments = new Map<string, number | null>();
+  const instruments = new Map<string, Pick<RehearsalPart, 'program' | 'marching'>>();
   if (readNotes) {
+    let staffIndex = 0;
     for (const part of score?.kids.filter((e) => e.tag === 'Part') ?? []) {
       const instrument = kid(part, 'Instrument');
-      const program = museProgram(instrument);
       for (const staff of part.kids.filter((e) => e.tag === 'Staff')) {
-        const percussion = kid(staff, 'StaffType')?.attrs.group === 'percussion';
-        instruments.set(staff.attrs.id, percussion ? null : program);
+        // Current MuseScore files omit IDs on the Part's staff definitions. Their order matches the score's staves.
+        const id = staff.attrs.id ?? staves[staffIndex]?.attrs.id;
+        if (id !== undefined) instruments.set(id, museInstrument(instrument, staff));
+        staffIndex++;
       }
     }
   }
   const parts: RehearsalPart[] = [];
   staves.forEach((st, si) => {
     let beats = 4, den = 4;
-    const program = instruments.get(st.attrs.id);
-    const track: RehearsalPart = { program: program === undefined ? 0 : program, notes: [] };
+    const track: RehearsalPart = { ...(instruments.get(st.attrs.id) ?? { program: 0 }), notes: [] };
     // A multi-measure rest is stored as an extra measure in front of the real ones: skip it (MuseScore rebuilds it).
     st.kids.filter((k) => k.tag === 'Measure' && !kid(k, 'multiMeasureRest')).forEach((m, i) => {
       const bar = bars[i];
@@ -397,7 +408,7 @@ function readMscx(text: string, readNotes = true) {
                   if (!Number.isInteger(key) || key < 0 || key > 127 || num(kid(note, 'play')) === 0) continue;
                   const ties = note.kids.filter((k) => k.tag === 'Spanner' && k.attrs.type === 'Tie');
                   track.notes.push({
-                    bar: i, from: pos, to: pos + d, key: track.program === null && (key < 35 || key > 81) ? 38 : key, voice: String(vi),
+                    bar: i, from: pos, to: pos + d, key: track.program === null && track.marching === undefined && (key < 35 || key > 81) ? 38 : key, voice: String(vi),
                     tieIn: ties.some((k) => !!kid(k, 'prev')),
                     tieOut: ties.some((k) => !!kid(k, 'next')),
                   });
@@ -420,9 +431,15 @@ function readMscx(text: string, readNotes = true) {
   return { ...toMap(bars, holds, onsets, playback), rehearsal: { parts, order: playback.order } };
 }
 
-function museProgram(instrument: El | undefined): number | null {
-  if (num(kid(instrument, 'useDrumset')) === 1 || kid(instrument, 'Drum')) return null;
-  const program = kid(kid(instrument, 'Channel'), 'program');
+function museInstrument(instrument: El | undefined, staff: El): Pick<RehearsalPart, 'program' | 'marching'> {
+  const channel = kid(instrument, 'Channel');
+  const program = kid(channel, 'program');
   const n = Number(program?.attrs.value ?? program?.text);
-  return Number.isInteger(n) && n >= 0 && n <= 127 ? n : 0;
+  const percussion = num(kid(instrument, 'useDrumset')) === 1 || kid(instrument, 'Drum') || kid(staff, 'StaffType')?.attrs.group === 'percussion';
+  if (!percussion) return { program: Number.isInteger(n) && n >= 0 && n <= 127 ? n : 0 };
+  const name = (instrument?.attrs.id ?? kid(instrument, 'trackName')?.text ?? '').replace(/-/g, ' ');
+  const named = marchingProgram(name);
+  const bank = channel?.kids.find((e) => e.tag === 'controller' && e.attrs.ctrl === '0');
+  const explicitKit = MARCHING_PROGRAMS.includes(n) && (n !== 56 || named === 56 || bank?.attrs.value === '1');
+  return { program: null, marching: explicitKit ? n : named };
 }
