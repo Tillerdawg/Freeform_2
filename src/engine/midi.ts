@@ -7,9 +7,9 @@ import { newId, subSetName, type Show } from './show';
 export interface Midi {
   ppq: number; // ticks per quarter note
   tempos: [tick: number, usPerQuarter: number][];
-  measures: { start: number; beats: number; den: number; sounding: boolean }[]; // in order; starts in ticks; sounding = some note is heard in it
+  measures: { start: number; beats: number; den: number; sounding: boolean; written?: number }[]; // in the order heard; starts in ticks; sounding = some note is heard in it; written = its bar number in the score, when repeats moved it
   end: number; // last event tick
-  warnings?: string[]; // what a score reader couldn't follow (e.g. repeats in MusicXML)
+  warnings?: string[]; // notes from a score reader (how it played out repeats, or what it couldn't follow)
 }
 
 /** Read a Standard MIDI File (formats 0 and 1). Throws a readable message on anything else. */
