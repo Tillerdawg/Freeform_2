@@ -197,12 +197,16 @@ shot('shows', async () => {
     const { keepShow } = await import('/src/ui/showStore.ts');
     const { sampleShow } = await import('/src/engine/sample.ts');
     const { newShowId } = await import('/src/engine/show.ts');
+    const { BACKUP_AGE, DAY, unexportedKey, writeTime } = await import('/src/ui/backupReminder.ts');
     const t = Date.now();
     await keepShow({ ...sampleShow(), id: newShowId(), title: 'Ballad' }, t - 86_400_000);
-    await keepShow({ ...sampleShow(), id: newShowId(), title: 'Closer' }, t - 3 * 86_400_000);
+    const closer = { ...sampleShow(), id: newShowId(), title: 'Closer' };
+    await keepShow(closer, t - BACKUP_AGE - DAY);
+    writeTime(unexportedKey(closer.id), t - BACKUP_AGE - DAY);
   });
   await page.getByLabel('Show title').fill('Opener');
   await page.getByRole('button', { name: 'Shows…' }).click();
+  await page.getByText('Backup due', { exact: true }).waitFor();
   await page.waitForTimeout(400);
   await save(page, 'shows', await around(page.locator('[role=dialog] > div').first()));
 });

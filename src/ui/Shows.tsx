@@ -4,6 +4,7 @@ import { DAILY_DAYS, RECENT, VERSION_EVERY } from '../engine/versions';
 import { useDialog } from './useDialog';
 import { listShows, listVersions, type Entry, type Listed } from './showStore';
 import { VersionPreview } from './VersionPreview';
+import { backupDue, readTime, unexportedKey } from './backupReminder';
 
 /** What the dialog asks the editor to do; each returns once it's done, so the list can be read again. */
 export interface ShowActions {
@@ -82,6 +83,7 @@ export function ShowsDialog({ show, act, onClose, linkFirst = false, versionsFir
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontWeight: open ? 700 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.title || 'Untitled show'}{open && ' (open)'}</div>
                   <div style={{ fontSize: 12, opacity: 0.75 }}>{size(x)} · changed {when(x.at)}</div>
+                  {backupDue(x.performers, readTime(unexportedKey(x.id))) && <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--warn)' }}>Backup due</div>}
                 </div>
                 <button disabled={open} onClick={doing(() => act.open(x.id))}>Open</button>
                 <button onClick={doing(async () => { const t = prompt('New name for the show', x.title); if (t?.trim()) await act.rename(x.id, t.trim()); })}>Rename…</button>

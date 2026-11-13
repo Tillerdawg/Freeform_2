@@ -49,11 +49,10 @@ import { practiceShow, sampleShow } from './engine/sample';
 
 import { AUTOSAVE } from './ui/showStore';
 import { IconFit, IconZoomIn, IconZoomOut } from './ui/icons';
+import { backupDue, DAY, readTime, UNEXPORTED, unexportedKey, writeTime } from './ui/backupReminder';
 export { AUTOSAVE };
 const GUIDE = '../guide/'; // made from docs/HOW-TO.md when the site is built
-const UNEXPORTED = 'freeform:unexported-since', unexportedKey = (id?: string) => `${UNEXPORTED}:${id}`, fileSavedKey = (id?: string) => `freeform:file-saved:${id}`, SNOOZE = 'freeform:backup-later', DAY = 86_400_000, BACKUP_DAYS = 7;
-const readTime = (k: string) => { try { const n = Number(localStorage.getItem(k)); return n > 0 ? n : null; } catch { return null; } };
-const writeTime = (k: string, n: number | null) => { try { if (n) localStorage.setItem(k, String(n)); else localStorage.removeItem(k); } catch { /* storage blocked */ } };
+const fileSavedKey = (id?: string) => `freeform:file-saved:${id}`, SNOOZE = 'freeform:backup-later';
 const LOOK = 'freeform:section-view'; // which sections are dimmed or hidden in the editor
 
 function loadAutosave(): Show {
@@ -203,7 +202,7 @@ export function App() {
     return () => window.removeEventListener('storage', f);
   }, []);
 
-  // Backups: the show lives only in this browser, so after BACKUP_DAYS of changes that haven't been exported, a notice
+  // Backups: the show lives only in this browser, so after a week of changes that haven't been exported, a notice
   // asks for an Export. "Later" asks again in a day.
   const firstShow = useRef(show);
   // Each show has its own "changed since" time (unexportedKey).
@@ -212,7 +211,7 @@ export function App() {
   useEffect(() => { if (show !== firstShow.current && !unexported) { const now = Date.now(); writeTime(unexportedKey(show.id), now); setUnexported(now); } }, [show]); // eslint-disable-line react-hooks/exhaustive-deps
   const [fileSavedAt, setFileSavedAt] = useState(() => readTime(fileSavedKey(show.id))); // when Save last wrote this show to a file, for the status chip
   const backedUp = () => { const now = Date.now(); writeTime(unexportedKey(show.id), null); setUnexported(null); writeTime(fileSavedKey(show.id), now); setFileSavedAt(now); };
-  const remindBackup = !!unexported && show.performers.length > 0 && Date.now() - unexported > BACKUP_DAYS * DAY && Date.now() > (snooze ?? 0);
+  const remindBackup = backupDue(show.performers.length, unexported) && Date.now() > (snooze ?? 0);
   /**
    * Open a show in the editor (from the library, a file, a blank show, the sample). The one that was open stays in the
    * library. `fromFile`: it counts as backed up until it's changed. Undo starts over: it never reaches into another show.
@@ -1014,14 +1013,22 @@ export function App() {
     },
     rename: async (id, title) => {
       if (id === show.id) { setShow((s) => ({ ...s, title })); await keepShow({ ...show, title }); }
-      else await keepShow({ ...(await loadShow(id)), title });
+      else {
+        const saved = await loadShow(id);
+        if (saved.title === title) return;
+        if (!(await keepShow({ ...saved, title }))) throw new Error("This browser couldn't save the new show name.");
+        const key = unexportedKey(id);
+        if (readTime(key) === null) writeTime(key, Date.now());
+      }
     },
     duplicate: async (id) => {
       const s = id === show.id ? show : await loadShow(id);
-      if (!(await keepShow(await ownFiles({ ...s, id: newShowId(), title: `${s.title} (copy)` })))) throw new Error("This browser wouldn't store the copy (it may be out of space).");
+      const copy = await ownFiles({ ...s, id: newShowId(), title: `${s.title} (copy)` });
+      if (!(await keepShow(copy))) throw new Error("This browser wouldn't store the copy (it may be out of space).");
+      writeTime(unexportedKey(copy.id), Date.now());
     },
     remove: async (id) => {
-      if (id !== show.id) { await forgetShow(id); return; }
+      if (id !== show.id) { await forgetShow(id); writeTime(unexportedKey(id), null); return; }
       clearTimeout(keepTimer.current); // or the open show's next save would bring it back
       await forgetShow(id);
       writeTime(unexportedKey(id), null);
