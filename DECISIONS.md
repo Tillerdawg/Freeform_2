@@ -1736,3 +1736,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - Jason asked for the logo on the guide page (freeformdrill.org/guide/). The details below are Claude's choices, subject to Jason's review.
 - The header's "FreeFORM Drill" text link is now the small logo, linking to the front page, in the same size and with the same light and dark versions as the front page header. We considered adding the logo beside the text, but the logo already says the name, and its alt text keeps it for screen readers.
 - The student quickstart pages (students/ and es/students/) use the same page template, so they get the logo too. The Spanish page's logo links to the Spanish front page.
+  
+## 2026-11-13 12:17 EST — Preview earlier versions before restoring
+
+- Jason asked to see the field and step through the sets of an earlier version before choosing whether to restore. The preview controls are Codex's choices, subject to Jason's review.
+- The list used to offer Restore next to each timestamp. We considered opening the full editor temporarily. The list now opens a preview inside the same dialog, using the saved version's field, performers, props, and marks.
+- Previous set, Next set, and the set menu browse the saved formations. Back to versions returns to the list. Restore keeps a copy of the current show before applying the previewed version as an undoable edit.

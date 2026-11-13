@@ -23,7 +23,7 @@ import { NewShowDialog } from './ui/NewShow';
 import { FieldSelect, FieldDetails } from './ui/FieldPicker';
 import { MusicMenu } from './ui/Music';
 import { getAudio, putAudio } from './ui/audioStore';
-import { addVersion, forgetShow, keepShow, listShows, loadShow, type Entry } from './ui/showStore';
+import { addVersion, forgetShow, keepShow, listShows, loadShow } from './ui/showStore';
 import { ShowsDialog, type ShowActions } from './ui/Shows';
 import { peaks } from './engine/music';
 import { confirmDelete, Menu, SHAPES, Toolbar } from './ui/Toolbar';
@@ -1028,10 +1028,10 @@ export function App() {
       const next = (await listShows())[0];
       openShow(next ? await loadShow(next.id) : newShow(startingSections(), startingField()));
     },
-    restore: async (e: Entry) => {
-      await addVersion(show); // the show as it is now stays recoverable after the page closes
+    restore: async (version) => {
+      if (!(await addVersion(show))) throw new Error("This browser couldn't keep a copy of the current show. Try restoring again after checking browser storage.");
       setShapeEdit(null);
-      setShow({ ...parseShow(e.json), id: show.id }); // an ordinary change: Undo takes it back
+      setShow({ ...version, id: show.id }); // an ordinary change: Undo takes it back
     },
   };
   // A close call on the timeline: go to the count where the closest pair is nearest and select them.
