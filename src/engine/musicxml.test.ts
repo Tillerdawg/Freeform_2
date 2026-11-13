@@ -116,20 +116,22 @@ describe('counts from a MuseScore file', () => {
     expect((await parseScore(await zip({ 'score.mscx': mscx, 'Excerpts/part.mscx': '<museScore version="4.70"/>' }))).measures).toHaveLength(4);
     expect(() => parseMscx('<museScore version="2.06"><Score/></museScore>')).toThrow(/older version/);
   });
-  it('renders a native archive in the drill’s playback order through repeats and both endings', async () => {
+  it.each([false, true])('renders the native repeat and both endings with marching percussion = %s', async (marching) => {
     // The native forms MuseScore writes for repeat bars, a volta to the next bar, and a volta to the end of the score.
     const rest = (type: string) => `<Rest><durationType>${type}</durationType></Rest>`;
     const note = (key: number) => `<Chord><durationType>16th</durationType><Note><pitch>${key}</pitch></Note></Chord>`;
     const tail = rest('16th') + rest('eighth') + rest('half');
     const volta = (n: number, location: string) => `<Spanner type="Volta"><Volta><endings>${n}</endings></Volta><next><location>${location}</location></next></Spanner>`;
+    const keys = marching ? [50, 52, 53] : [58, 62, 65];
+    const instrument = marching ? 'id="marching-snare"><useDrumset>1</useDrumset>' : 'id="bb-trumpet"><transposeChromatic>-2</transposeChromatic>';
     const native = `<museScore version="4.70"><Score>
-      <Part><Staff id="1"/><Instrument id="bb-trumpet"><transposeChromatic>-2</transposeChromatic><Channel><program value="56"/></Channel></Instrument></Part>
+      <Part><Staff/><Instrument ${instrument}<Channel><program value="56"/></Channel></Instrument></Part>
       <Staff id="1">
-        <Measure><startRepeat/><voice><Tempo><tempo>2</tempo></Tempo>${rest('quarter')}${note(58)}${tail}</voice></Measure>
+        <Measure><startRepeat/><voice><Tempo><tempo>2</tempo></Tempo>${rest('quarter')}${note(keys[0])}${tail}</voice></Measure>
         <Measure><endRepeat>2</endRepeat><voice><Tempo><tempo>1</tempo></Tempo>
-          ${volta(1, '<measures>1</measures>')}${note(62)}${tail}${rest('quarter')}</voice></Measure>
+          ${volta(1, '<measures>1</measures>')}${note(keys[1])}${tail}${rest('quarter')}</voice></Measure>
         <Measure><voice><Tempo><tempo>1.5</tempo></Tempo>
-          ${volta(2, '<fractions>1/1</fractions>')}${note(65)}${tail}${rest('quarter')}</voice></Measure>
+          ${volta(2, '<fractions>1/1</fractions>')}${note(keys[2])}${tail}${rest('quarter')}</voice></Measure>
       </Staff></Score></museScore>`;
     const archive = await zip({
       'META-INF/container.xml': '<container><rootfiles><rootfile full-path="score_style.mss"/><rootfile full-path="scores/band.mscx"/></rootfiles></container>',
@@ -142,16 +144,22 @@ describe('counts from a MuseScore file', () => {
     expect(rehearsal.order).toEqual([0, 1, 0, 2]);
     const bytes = scoreMidi(rehearsal, map);
     const events = BasicMIDI.fromArrayBuffer(bytes).tracks.flatMap((track) => track.events);
-    expect(events.find((e) => e.statusByte === MIDIMessageTypes.programChange)?.data[0]).toBe(56);
-    const notes = events.filter((e) => e.statusByte === MIDIMessageTypes.noteOn);
-    expect(notes.map((e) => e.data[0])).toEqual([58, 62, 58, 65]);
+    const channel = marching ? 9 : 0;
+    expect(events.find((e) => e.statusByte === (MIDIMessageTypes.programChange | channel))?.data[0]).toBe(56);
+    const notes = events.filter((e) => e.statusByte === (MIDIMessageTypes.noteOn | channel));
+    expect(notes.map((e) => e.data[0])).toEqual([keys[0], keys[1], keys[0], keys[2]]);
     const counts = countsFromMidi(map, [{ name: '1', counts: 0 }, { name: '2', counts: 16, measures: '1–4' }]);
     expect(counts.matched).toBe(1);
     const entrances = [2, 5, 10, 13].map((i) => counts.taps[i]);
     expect(entrances).toEqual([0.5, 2, 6.5, 8]);
     const midiMap = parseMidi(bytes);
     expect(notes.map((e) => secondsAt(midiMap, e.ticks))).toEqual(entrances);
-    const audio = await renderMidi(soundBank(), bytes);
+    let loaded = 0;
+    const audio = await renderMidi(soundBank(), bytes, undefined, async () => {
+      loaded++;
+      return soundBank('MS-Basic-Marching.sf3');
+    });
+    expect(loaded).toBe(marching ? 1 : 0);
     expectEntrances(audio, entrances);
   });
   it('reads chord tones, ties, and percussion from independent staves and voices', async () => {
@@ -242,10 +250,27 @@ describe('MusicXML rehearsal tracks', () => {
     const release = events.find((e) => e.statusByte === MIDIMessageTypes.noteOff && e.data[0] === 60);
     expect(release?.ticks).toBe(960);
   });
+  it('uses marching presets only for identified percussion and keeps exported battery keys', async () => {
+    const parts = [
+      ['Snare Drum', 'Battery Snare', 57, 51, 56, 50],
+      ['Marching Tenors', 'Drum 4', 97, 97, 96, 96],
+      ['Marching Bass Drums', 'Bass Drum', 60, 86, 59, 85],
+      ['Marching Cymbals', 'Crash', 1, 50, 58, 72],
+      ['Drum kit', 'Acoustic Snare', 57, 39, undefined, 38],
+    ] as const;
+    const definitions = parts.map(([name, instrument, program, key], i) => `<score-part id="P${i}"><part-name>${name}</part-name>
+      <score-instrument id="I${i}"><instrument-name>${instrument}</instrument-name></score-instrument>
+      <midi-instrument id="I${i}"><midi-program>${program}</midi-program><midi-unpitched>${key}</midi-unpitched></midi-instrument></score-part>`);
+    const body = parts.map((_, i) => `<part id="P${i}"><measure><note><unpitched/><duration>4</duration><instrument id="I${i}"/></note></measure></part>`);
+    const xml = `<score-partwise><part-list>${definitions.join('')}</part-list>${body.join('')}</score-partwise>`;
+    const { rehearsal } = await parseScore(await zip({ 'score.musicxml': xml }));
+    if (!rehearsal || rehearsal instanceof ArrayBuffer) throw new Error('Expected MusicXML rehearsal notes.');
+    expect(rehearsal.parts.map((p) => [p.program, p.marching, p.notes[0].key])).toEqual(parts.map((p) => [null, p[4], p[5]]));
+  });
 });
 
-function soundBank(): ArrayBuffer {
-  const file: Uint8Array = readFileSync(new URL('../../public/sounds/GeneralUser-GS.sf3', import.meta.url));
+function soundBank(name = 'GeneralUser-GS.sf3'): ArrayBuffer {
+  const file: Uint8Array = readFileSync(new URL(`../../public/sounds/${name}`, import.meta.url));
   return file.buffer.slice(file.byteOffset, file.byteOffset + file.byteLength) as ArrayBuffer;
 }
 

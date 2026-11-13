@@ -43,6 +43,10 @@ const licenses = () => creditsText(shipped(files), [{
   title: 'GeneralUser GS 1.471, by S. Christian Collins (the rehearsal track\'s instrument sounds, public/sounds/)',
   source: 'https://www.schristiancollins.com/generaluser.php',
   text: readFileSync('public/sounds/GeneralUser-GS-LICENSE.txt', 'utf8'),
+}, {
+  title: 'MS Basic marching percussion subset (MIT, public/sounds/)',
+  source: 'https://github.com/mrbumpy409/MS_Basic',
+  text: readFileSync('public/sounds/MS-Basic-Marching-LICENSE.txt', 'utf8'),
 }]);
 const credits: Plugin = {
   name: 'credits',
@@ -56,7 +60,7 @@ const precache: Plugin = {
   name: 'precache',
   generateBundle(_, bundle) {
     const built = Object.keys(bundle).filter((f) => f.startsWith('assets/') && !f.endsWith('.png')); // not the front page's screenshots
-    // Not the rehearsal track's sound library (sounds/, 7 MB): it's fetched the first time someone makes a track, then cached.
+    // Sound banks are fetched when a rehearsal track needs them, then cached.
     const pub = readdirSync('public').filter((f) => f !== 'sw.js' && f !== 'og-image.png' && f !== 'sounds' && !f.startsWith('.'));
     this.emitFile({ type: 'asset', fileName: 'precache.json', source: JSON.stringify(['./', 'app/', 'students/', 'es/students/', ...pub, ...built]) });
   },

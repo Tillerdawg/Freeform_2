@@ -1712,3 +1712,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - Jason asked for rehearsal tracks directly from `.mscz` files, with audio in sync through repeats and endings. The playback details are Codex's choices, subject to Jason's review.
 - FreeFORM already used these files for counts. We considered an external MuseScore conversion step. The native reader now reads note pitches and ties as it builds the count map, and the existing browser renderer uses that same bar order and timing.
 - For rehearsal, each staff uses its starting instrument with steady note velocity, and unpitched percussion uses a standard drum kit. A score saved in MuseScore 4.7.6 was checked against MuseScore's MIDI export. In Chrome, all four audio entrances through the repeat and both endings landed within 6 ms of the expected counts for both Opus and WAV.
+
+## 2026-11-13 11:12 EST — Marching percussion for rehearsal tracks
+
+- Jason asked for marching percussion that stays in sync through repeats and endings. The sound bank and mapping are Codex's choices, subject to Jason's review.
+- The standard drum kit used different sounds for battery notes. We considered shipping the full MS Basic library. Instead, FreeFORM downloads a 1.4 MB subset when a rehearsal track uses marching snare, tenors, bass drums, or cymbals. It includes the older tenor and bass presets for scores using those key maps. The license and sample credits ship with the sounds.
+- Identified marching parts use their battery presets. Other parts keep their usual sounds. Native MuseScore files can assign instruments by staff order when the part omits staff IDs. The renderer selects sounds without moving any notes. In Chrome, the four snare entrances from a MuseScore score and its MusicXML and MIDI exports landed within 4 ms of the expected counts.

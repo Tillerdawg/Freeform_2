@@ -1,5 +1,6 @@
 import { MIDIBuilder, MIDIControllers, MIDIMessageTypes } from 'spessasynth_core';
 import { secondsAt, type Midi } from './midi';
+import { MARCHING_BANK } from './marching';
 
 export type RehearsalNote = {
   bar: number;
@@ -11,7 +12,7 @@ export type RehearsalNote = {
   tieOut: boolean;
 };
 
-export type RehearsalPart = { program: number | null; notes: RehearsalNote[] };
+export type RehearsalPart = { program: number | null; marching?: number; notes: RehearsalNote[] };
 export type ScoreNotes = { parts: RehearsalPart[]; order: number[] };
 export type RehearsalSource = ArrayBuffer | ScoreNotes;
 
@@ -31,7 +32,7 @@ export function scoreMidi(score: ScoreNotes, map: Midi): ArrayBuffer {
     midi.addEvent(tick, 0, MIDIMessageTypes.setTempo, [us >> 16, (us >> 8) & 255, us & 255]);
   }
   let pitched = 0, drums = 0, noteCount = 0;
-  for (const { program, notes } of score.parts) {
+  for (const { program, marching, notes } of score.parts) {
     const byBar = new Map<number, RehearsalNote[]>();
     for (const note of notes) {
       let bar = byBar.get(note.bar);
@@ -65,7 +66,10 @@ export function scoreMidi(score: ScoreNotes, map: Midi): ArrayBuffer {
     if (port > 127) throw new Error('That score has too many instrument parts for a rehearsal track.');
     midi.addTrack('', port);
     const track = midi.tracks.length - 1;
-    if (program !== null) midi.programChange(0, track, channel, program);
+    if (marching !== undefined) {
+      midi.controllerChange(0, track, channel, MIDIControllers.bankSelect, MARCHING_BANK);
+      midi.programChange(0, track, channel, marching);
+    } else if (program !== null) midi.programChange(0, track, channel, program);
     // Two voices can overlap on the same key. Release it after both voices have finished.
     const keys = new Map<number, RehearsalNote>();
     for (const note of heard.sort((a, b) => a.from - b.from)) {
