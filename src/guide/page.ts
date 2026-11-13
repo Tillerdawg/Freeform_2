@@ -10,15 +10,20 @@ const vars = (p: Record<string, string>) => Object.entries(p).map(([k, v]) => `-
 
 /** How a page differs from the director's guide: its title, language, where the site's root and the guide's pictures are
  * from the page, and its header links. The student quickstart (docs/STUDENTS.md) uses the same page. */
-export interface PageOptions { title: string; lang: 'en' | 'es'; root: string; img: string; header: string }
-const GUIDE: PageOptions = { title: 'How to use FreeFORM Drill', lang: 'en', root: '../', img: 'img/', header: '<a href="../">FreeFORM Drill</a> · <a href="../app/">Open the editor</a>' };
+export interface PageOptions { title: string; lang: 'en' | 'es'; root: string; img: string; header: string; home?: string }
+const GUIDE: PageOptions = { title: 'How to use FreeFORM Drill', lang: 'en', root: '../', img: 'img/', header: '<a href="../app/">Open the editor</a>' };
+
+/** The FreeFORM Drill logo, linking home, the way the front page shows it: the light-mode version when the theme is light. */
+const logo = (root: string, home: string) =>
+  `<a class="logo" href="${home}"><img class="dark-only" src="${root}logo-small.svg" alt="FreeFORM Drill"><img class="light-only" src="${root}logo-small-light.svg" alt="FreeFORM Drill"></a>`;
 
 /** The student quickstart, at students/ (English) or es/students/ (Spanish), with the guide's pictures and a link to it. */
 export const studentPage = (md: string, lang: 'en' | 'es') => {
   const root = lang === 'es' ? '../../' : '../';
   return guidePage(md, {
     title: lang === 'es' ? 'FreeFORM Drill para los integrantes' : 'FreeFORM Drill for performers', lang, root, img: `${root}guide/img/`,
-    header: `<a href="${lang === 'es' ? `${root}es/` : root}">FreeFORM Drill</a> · <a href="${lang === 'es' ? `${root}students/` : `${root}es/students/`}" lang="${lang === 'es' ? 'en' : 'es'}">${lang === 'es' ? 'English' : 'Español'}</a>`,
+    home: lang === 'es' ? `${root}es/` : root,
+    header: `<a href="${lang === 'es' ? `${root}students/` : `${root}es/students/`}" lang="${lang === 'es' ? 'en' : 'es'}">${lang === 'es' ? 'English' : 'Español'}</a>`,
   });
 };
 
@@ -45,7 +50,9 @@ export function guidePage(md: string, o: PageOptions = GUIDE): string {
   :root { ${vars(PALETTE)} }
   :root[data-theme=light] { ${vars(LIGHT)} }
   body { margin: 0; background: var(--bg); color: var(--text); font: 17px/1.55 system-ui, sans-serif; }
-  header { position: sticky; top: 0; background: var(--bg-deep); border-bottom: 1px solid var(--line); padding: 10px 16px; }
+  header { position: sticky; top: 0; background: var(--bg-deep); border-bottom: 1px solid var(--line); padding: 10px 16px; display: flex; align-items: center; gap: 16px; }
+  header .logo img { height: 28px; width: auto; display: block; border: 0; border-radius: 0; }
+  :root[data-theme=light] .dark-only, :root:not([data-theme=light]) .light-only { display: none !important; }
   main { max-width: 820px; margin: 0 auto; padding: 8px 16px 64px; }
   a { color: var(--blue); }
   img { max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 6px; }
@@ -53,11 +60,11 @@ export function guidePage(md: string, o: PageOptions = GUIDE): string {
   th, td { border: 1px solid var(--line); padding: 6px 8px; text-align: left; vertical-align: top; }
   code { background: var(--surface-2); padding: 1px 4px; border-radius: 4px; }
   h2 { margin-top: 2em; border-bottom: 1px solid var(--line); padding-bottom: 4px; }
-  [id] { scroll-margin-top: 56px; } /* clear of the sticky header after a contents link */
+  [id] { scroll-margin-top: 64px; } /* clear of the sticky header after a contents link */
 </style>
 </head>
 <body>
-<header>${o.header}</header>
+<header>${logo(o.root, o.home ?? o.root)}${o.header}</header>
 <main>
 ${body}
 </main>

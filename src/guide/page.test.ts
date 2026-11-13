@@ -16,6 +16,11 @@ describe('the guide page', () => {
     expect(html).toContain('src="img/editor.png"');
     expect(html).toContain('href="../"');
   });
+  it('shows the FreeFORM Drill logo in both themes, from the site root', () => {
+    expect(html).toContain('src="../logo-small.svg" alt="FreeFORM Drill"');
+    expect(html).toContain('src="../logo-small-light.svg" alt="FreeFORM Drill"');
+    expect(studentPage(estudiantes, 'es')).toContain('<a class="logo" href="../../es/"><img class="dark-only" src="../../logo-small.svg"');
+  });
   it('makes anchors the way GitHub does', () => {
     expect(slug('Shapes: lines, arcs, and letters')).toBe('shapes-lines-arcs-and-letters');
     expect(slug('Saving, backing up, and opening files')).toBe('saving-backing-up-and-opening-files');
