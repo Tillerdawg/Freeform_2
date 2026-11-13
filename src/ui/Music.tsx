@@ -77,12 +77,12 @@ export function MusicMenu({ show, setShow, audio, onAudio, useMusic, setUseMusic
     <>
       <Menu label={label} pressed={!!(m && synced(m) && useMusic && audio)} title="Play the drill with the show's recording">
         {(close) => <>
-          {!m && <p style={{ margin: 0, fontSize: 12, maxWidth: 320 }}>Add the score and its recording (exported from MuseScore as mp3), in either order: every count then comes from the score. Or add just a recording and tap the counts.</p>}
+          {!m && <p style={{ margin: 0, fontSize: 12, maxWidth: 320 }}>Add the score and the recording made from it, in either order: every count then comes from the score. The score can be MuseScore, MusicXML (exported from Finale, Sibelius, or Dorico), or MIDI. Or add just a recording and tap the counts.</p>}
           {m && <p style={{ margin: 0, fontSize: 12 }}><strong>{m.name}</strong><br />
             {m.taps.length ? `${m.taps.length} of ${total + 1} counts placed${m.taps.length < total + 1 ? '; later counts keep the last pace' : ''}.` : 'No counts yet: add the score, or tap them.'}</p>}
           {m && !audio && <p role="alert" style={{ margin: 0, fontSize: 12, color: 'var(--warn)' }}>The recording isn't in this browser. Add {m.name} again to hear it.</p>}
           <button onClick={() => scoreFile.current?.click()} title="The score the recording was rendered from: MuseScore (.mscz), MusicXML, .mxl, or MIDI. Each set's counts are placed in the measures typed for it.">
-            {done(!!score)}{score ? `Score: ${score.name}` : m?.taps.length ? 'Add the score again…' : 'Add the score (MuseScore)…'}</button>
+            {done(!!score)}{score ? `Score: ${score.name}` : m?.taps.length ? 'Add the score again…' : 'Add the score…'}</button>
           <button onClick={() => file.current?.click()}>{done(!!m && !!audio)}{m ? 'Replace the recording…' : 'Add the recording (mp3)…'}</button>
           {m && <button disabled={!audio} onClick={() => { setTapping(true); close(); }}>Tap counts…</button>}
           {m && synced(m) && <label style={{ fontSize: 13 }}><input type="checkbox" checked={useMusic} onChange={(e) => setUseMusic(e.target.checked)} /> Play with music (off: use Tempo)</label>}
