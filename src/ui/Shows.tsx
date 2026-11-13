@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
-import type { Show } from '../engine/show';
+import { useEffect, useRef, useState } from 'react';
+import { normalizeFtl, parseShow, type Show } from '../engine/show';
 import { DAILY_DAYS, RECENT, VERSION_EVERY } from '../engine/versions';
 import { useDialog } from './useDialog';
 import { listShows, listVersions, type Entry, type Listed } from './showStore';
+import { VersionPreview } from './VersionPreview';
 
 /** What the dialog asks the editor to do; each returns once it's done, so the list can be read again. */
 export interface ShowActions {
@@ -12,7 +13,7 @@ export interface ShowActions {
   rename: (id: string, title: string) => Promise<void>;
   duplicate: (id: string) => Promise<void>;
   remove: (id: string) => Promise<void>;
-  restore: (e: Entry) => Promise<void>;
+  restore: (version: Show) => Promise<void>;
   flush: () => Promise<unknown>; // the open show into the library now, so the list is current
 }
 
@@ -24,19 +25,53 @@ const rowStyle: React.CSSProperties = { display: 'flex', gap: 8, alignItems: 'ce
 export function ShowsDialog({ show, act, onClose, linkFirst = false, versionsFirst = false }: { show: Show; act: ShowActions; onClose: () => void; linkFirst?: boolean; versionsFirst?: boolean }) {
   const [shows, setShows] = useState<Listed[] | null>(null);
   const [versions, setVersions] = useState<Entry[] | null>(null); // the versions view, when open
+  const [preview, setPreview] = useState<{ show: Show; at: number } | null>(null);
+  const [restoring, setRestoring] = useState(false);
+  const returnTo = useRef<number | null>(null);
   const [error, setError] = useState('');
   const [link, setLink] = useState<string | null>(linkFirst ? '' : null); // Open from a link or recovery code: the box's text, while it's open
   const list = () => listShows().then(setShows, () => { setShows([]); setError("This browser wouldn't read its saved shows (its storage may be turned off)."); });
   // The open show goes into the library first, so the list is current. Only here: right after an action the editor may not have caught up.
   useEffect(() => { act.flush().then(list); }, [show.id]); // eslint-disable-line react-hooks/exhaustive-deps
-  const dialog = useDialog(onClose);
+  const backToVersions = () => {
+    returnTo.current = preview?.at ?? null;
+    setPreview(null);
+    setError('');
+  };
+  const dialog = useDialog(() => {
+    if (restoring) return;
+    if (preview) backToVersions();
+    else onClose();
+  });
+  useEffect(() => {
+    if (!preview && returnTo.current !== null) {
+      dialog.current?.querySelector<HTMLButtonElement>(`button[data-version="${returnTo.current}"]`)?.focus();
+      returnTo.current = null;
+    }
+  }, [dialog, preview]);
   const doing = (f: () => Promise<void>) => () => { setError(''); f().then(list, (e) => setError(e instanceof Error ? e.message : String(e))); };
-  const showVersions = () => act.flush().then(() => listVersions(show.id!)).then(setVersions, () => setVersions([]));
+  const showVersions = () => {
+    setError('');
+    return act.flush().then(() => listVersions(show.id!)).then(setVersions, () => {
+      setVersions([]);
+      setError("This browser couldn't read the show's earlier versions.");
+    });
+  };
   useEffect(() => { if (versionsFirst) showVersions(); }, []); // eslint-disable-line react-hooks/exhaustive-deps -- Get a show back, then See earlier versions
   return (
-    <div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-label={versions ? 'Earlier versions' : 'Shows in this browser'} style={{ position: 'fixed', inset: 0, background: 'var(--backdrop)', display: 'grid', placeItems: 'center', zIndex: 30 }}>
-      <div style={{ background: 'var(--bg)', border: '1px solid var(--line)', padding: 20, width: 640, maxWidth: 'calc(100vw - 32px)', maxHeight: 'calc(100vh - 32px)', overflow: 'auto' }}>
-        {!versions ? <>
+    <div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-label={preview ? 'Preview earlier version' : versions ? 'Earlier versions' : 'Shows in this browser'} style={{ position: 'fixed', inset: 0, background: 'var(--backdrop)', display: 'grid', placeItems: 'center', zIndex: 30 }}>
+      <div style={{ background: 'var(--bg)', border: '1px solid var(--line)', padding: 20, width: preview ? 820 : 640, maxWidth: 'calc(100vw - 32px)', maxHeight: 'calc(100dvh - 32px)', boxSizing: preview ? 'border-box' : undefined, overflow: 'auto' }}>
+        {preview ? <>
+          <VersionPreview show={preview.show} when={when(preview.at)} busy={restoring} onBack={backToVersions} onRestore={() => {
+            setError('');
+            setRestoring(true);
+            act.restore(preview.show).then(onClose, (e) => {
+              setError(e instanceof Error ? e.message : String(e));
+              setRestoring(false);
+            });
+          }} />
+          {error && <p role="alert" style={{ color: 'var(--danger)', margin: '6px 0' }}>{error}</p>}
+        </> : !versions ? <>
           <h2 style={{ margin: '0 0 6px', fontSize: 18 }}>Shows in this browser</h2>
           <p style={{ margin: '0 0 8px', fontSize: 13 }}>Every show you start or import is kept here and saved as you work. They live only in this browser: use <strong>Save</strong> to keep a copy in a file.</p>
           {error && <p role="alert" style={{ color: 'var(--danger)', margin: '6px 0' }}>{error}</p>}
@@ -79,7 +114,7 @@ export function ShowsDialog({ show, act, onClose, linkFirst = false, versionsFir
           <h2 style={{ margin: '0 0 6px', fontSize: 18 }}>Earlier versions of "{show.title || 'Untitled show'}"</h2>
           <p style={{ margin: '0 0 8px', fontSize: 13 }}>
             While you work, FreeFORM keeps a copy of the show at most every {VERSION_EVERY / 60_000} minutes: the last {RECENT}, plus the last one of each day
-            for {DAILY_DAYS} days. <strong>Restore</strong> puts a version in the editor. <strong>Undo</strong> takes it back, and the show as it was is kept here as a version too.
+            for {DAILY_DAYS} days. Choose <strong>Preview</strong> to look through its sets. If you restore it, you can use <strong>Undo</strong> or find the copy kept here before the restore.
           </p>
           {versions.length === 0 && <p style={{ opacity: 0.75 }}>No earlier versions yet. The first one is kept once you've worked on the show for a while.</p>}
           {versions.map((v) => (
@@ -88,7 +123,11 @@ export function ShowsDialog({ show, act, onClose, linkFirst = false, versionsFir
                 <div>{when(v.at)}</div>
                 <div style={{ fontSize: 12, opacity: 0.75, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.title || 'Untitled show'} · {size(v)}</div>
               </div>
-              <button onClick={() => act.restore(v).then(onClose, (e) => setError(String(e)))}>Restore</button>
+              <button data-version={v.at} aria-label={`Preview version saved ${when(v.at)}`} onClick={() => {
+                setError('');
+                try { setPreview({ show: normalizeFtl(parseShow(v.json)), at: v.at }); }
+                catch { setError("This earlier version couldn't be read. Try another version."); }
+              }}>Preview</button>
             </div>
           ))}
           {error && <p role="alert" style={{ color: 'var(--danger)', margin: '6px 0' }}>{error}</p>}

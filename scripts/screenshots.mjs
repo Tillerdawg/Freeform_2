@@ -206,6 +206,21 @@ shot('shows', async () => {
   await page.waitForTimeout(400);
   await save(page, 'shows', await around(page.locator('[role=dialog] > div').first()));
 });
+shot('version-preview', async () => {
+  const page = await editor();
+  await page.evaluate(async () => {
+    const { addVersion, AUTOSAVE } = await import('/src/ui/showStore.ts');
+    const show = JSON.parse(localStorage.getItem(AUTOSAVE));
+    await addVersion(show, Date.now() - 15 * 60_000);
+  });
+  await page.getByRole('button', { name: 'Shows…' }).click();
+  await page.getByRole('button', { name: /^Versions of/ }).click();
+  await page.getByRole('button', { name: /^Preview version saved/ }).first().click();
+  const preview = page.getByRole('dialog', { name: 'Preview earlier version' });
+  await preview.getByRole('button', { name: 'Next set' }).click();
+  await preview.getByRole('img', { name: 'Field preview of Set 2' }).waitFor();
+  await save(page, 'version-preview', await around(preview.locator(':scope > div')));
+});
 shot('too-close', async () => {
   // The practice show: two trumpets in the arc swap spots into set 3 and cut past F1; then the timeline's warning is clicked.
   const page = await editor({ practice: true });
