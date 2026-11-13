@@ -1718,3 +1718,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - Jason asked for marching percussion that stays in sync through repeats and endings. The sound bank and mapping are Codex's choices, subject to Jason's review.
 - The standard drum kit used different sounds for battery notes. We considered shipping the full MS Basic library. Instead, FreeFORM downloads a 1.4 MB subset when a rehearsal track uses marching snare, tenors, bass drums, or cymbals. It includes the older tenor and bass presets for scores using those key maps. The license and sample credits ship with the sounds.
 - Identified marching parts use their battery presets. Other parts keep their usual sounds. Native MuseScore files can assign instruments by staff order when the part omits staff IDs. The renderer selects sounds without moving any notes. In Chrome, the four snare entrances from a MuseScore score and its MusicXML and MIDI exports landed within 4 ms of the expected counts.
+
+## 2026-11-13 11:29 EST — Preview music sync
+
+- Jason asked to keep the drill he mapped from the score and choose which holds to add. The preview and its wording are Codex's choices, subject to Jason's review.
+- The app used to apply timing as soon as the score and recording were paired, add holds automatically, and fill blank measure labels. We considered a single switch for all holds.
+- The preview shows the timing for each set and flags missing measures, mismatches, and gaps. Holds start unchecked and can be selected individually. Applying uses the previewed timing and adds only those holds. Existing movement lengths, set numbers, counts, and measure labels stay as written. New holds add counts to the timeline, and the preview shows the resulting arrival counts.

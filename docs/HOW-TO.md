@@ -382,13 +382,17 @@ FreeFORM can play your drill along with the recording, so the moves line up with
 2. In FreeFORM, open **Music** (beside Tempo) and click **Add the score…**. From MuseScore, choose the `.mscz` file. From Finale, Sibelius, or Dorico, export the score as MusicXML first and choose that (`.musicxml`, `.xml`, or `.mxl`). MIDI works too.
 3. Click **Add the recording (mp3)…** and choose the mp3 you exported.
 
-You can do steps 2 and 3 in either order. Once both are in, FreeFORM takes the time of every count from the score, including meter changes, tempo marks, and fermatas, and places each set's counts in the measures you typed for it. It warns you if the recording's length doesn't match the score (usually a sign you picked the wrong file). Bars that no set covers, like a G.P. or an intro, get a hold sub-set (4A) so everyone stands still through them.
+You can do steps 2 and 3 in either order. When both are ready, **Preview music sync** shows which sets fit their measures and which need a look. It also warns when the recording and score lengths suggest you picked different versions. FreeFORM keeps your movement lengths, set numbers, counts, and measure labels, including blank ones.
+
+![Music sync preview with one hold selected](img/music-sync.png)
+
+Check each suggested hold you want to add for an intro, a G.P., or another gap in the music. The preview updates as you check them and shows the count where each set arrives. A hold adds counts before the next set and can push later sets past a movement boundary. Choose **Apply music sync** to use the timing and add the selected holds. Choose **Cancel** to edit the drill first. If the recording is already loaded, use **Music → Preview music sync…** to review the fit again.
 
 **Repeats, endings, D.C., D.S., Fine, and Coda** are played out the way MuseScore plays them, and the bars are numbered in the order you hear them. Say the score repeats m. 5–12, with a 1st ending on m. 12 and a 2nd ending on m. 13. Played through, that's m. 1–12, then m. 5–11 again, then the 2nd ending. In FreeFORM, the second time through is m. 13–19 and the 2nd ending is m. 20, so type each set's **Measures** that way. When you add the score, FreeFORM tells you how many bars it plays and gives an example from your score. It's the same numbering a MIDI exported from MuseScore uses.
 
 **With any recording, by tapping:** add just the recording (mp3, m4a, or wav), then choose **Tap counts…**. FreeFORM plays it from the top while you press Space on every count, starting with count 0 (set 1). You can undo a tap, pause, or start over. To fix part of it later, set **Redo from count** first.
 
-**With no recording, a rehearsal track:** add a MuseScore score (`.mscz`), MusicXML (`.musicxml`, `.xml`, or `.mxl`), or MIDI, then choose **Make a rehearsal track**. The counts follow the same repeats, endings, and tempos as the audio. For MuseScore and MusicXML, FreeFORM plays the notes and ties with a steady volume. MuseScore parts use their starting instruments.
+**With no recording, a rehearsal track:** add a MuseScore score (`.mscz`), MusicXML (`.musicxml`, `.xml`, or `.mxl`), or MIDI, then choose **Make a rehearsal track**. Review **Preview music sync** when the track is ready. The counts follow the same repeats, endings, and tempos as the audio. For MuseScore and MusicXML, FreeFORM plays the notes and ties with a steady volume. MuseScore parts use their starting instruments.
 
 Recognized marching snares, tenors, bass drums, and cymbals get their own sounds. Other unpitched parts use the standard kit. If your notation program exports a generic drum track, use the native MuseScore score or export MusicXML with the marching instruments named.
 

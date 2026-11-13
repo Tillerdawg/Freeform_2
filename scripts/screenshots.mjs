@@ -348,6 +348,31 @@ shot('music', async () => {
   await menu(page, 'Music');
   await save(page, 'music', { x: 0, y: 430, width: 760, height: H - 430 });
 });
+shot('music-sync', async () => {
+  const page = await editor();
+  await page.evaluate(async () => {
+    const { sampleShow } = await import('/src/engine/sample.ts');
+    const show = sampleShow();
+    show.sets = show.sets.slice(0, 4).map((set, i) => i === 1 ? { ...set, counts: 8, measures: '2–3' }
+      : i === 2 ? { ...set, counts: 9, measures: '5' } : set);
+    localStorage.setItem('freeform:autosave', JSON.stringify(show));
+  });
+  await page.reload();
+  await menu(page, 'Music');
+  const measure = '<measure><note><rest/><duration>4</duration></note></measure>';
+  const xml = `<score-partwise><part id="P1">${measure.repeat(12)}</part></score-partwise>`;
+  await page.locator('input[accept*=".musicxml"]').setInputFiles({ name: 'Opener.musicxml', mimeType: 'application/xml', buffer: Buffer.from(xml) });
+  const length = 24 * 8000;
+  const wav = Buffer.alloc(44 + length * 2);
+  wav.write('RIFF'); wav.writeUInt32LE(wav.length - 8, 4); wav.write('WAVEfmt ', 8);
+  wav.writeUInt32LE(16, 16); wav.writeUInt16LE(1, 20); wav.writeUInt16LE(1, 22); wav.writeUInt32LE(8000, 24);
+  wav.writeUInt32LE(16000, 28); wav.writeUInt16LE(2, 32); wav.writeUInt16LE(16, 34);
+  wav.write('data', 36); wav.writeUInt32LE(length * 2, 40);
+  await page.locator('input[accept^="audio/*"]').setInputFiles({ name: 'Opener.wav', mimeType: 'audio/wav', buffer: wav });
+  const preview = page.getByRole('dialog', { name: 'Preview music sync' });
+  await preview.getByRole('checkbox', { name: /^Add hold 1A/ }).check();
+  await save(page, 'music-sync', await around(preview.locator(':scope > div'), 16));
+});
 shot('movements', async () => {
   const page = await editor();
   await menu(page, 'Movements');
