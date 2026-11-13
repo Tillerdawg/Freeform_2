@@ -1,14 +1,15 @@
 // Making a rehearsal track in the browser: fetch the sound library (once; the service worker keeps it for offline use
-// after that), render the MIDI in a worker, and compress it the way Video does (AAC, else Opus, in an .m4a), or keep a WAV
-// when the browser can't compress audio. The result is stored like any recording.
+// after that), render the MIDI in a worker, and store the result like any recording.
 import { wavBytes } from '../engine/rehearsal';
+import type { Midi } from '../engine/midi';
+import type { RehearsalSource } from '../engine/scoreMidi';
 
 /** The General MIDI sound library (GeneralUser GS, by S. Christian Collins; its license is beside it). Not in the offline download until first used. */
 const BANK = 'sounds/GeneralUser-GS.sf3';
 
 export type Step = 'instruments' | 'playing' | 'saving';
 
-export async function makeRehearsalTrack(midi: ArrayBuffer, onStep: (step: Step, done: number) => void): Promise<Blob> {
+export async function makeRehearsalTrack(source: RehearsalSource, map: Midi, onStep: (step: Step, done: number) => void): Promise<Blob> {
   const bank = await fetchBank((f) => onStep('instruments', f));
   onStep('playing', 0);
   const { left, right, sampleRate } = await new Promise<{ left: Float32Array; right: Float32Array; sampleRate: number }>((ok, fail) => {
@@ -18,7 +19,7 @@ export async function makeRehearsalTrack(midi: ArrayBuffer, onStep: (step: Step,
       else { w.terminate(); if ('done' in e.data) ok(e.data.done); else fail(new Error(e.data.error)); }
     };
     w.onerror = () => { w.terminate(); fail(new Error("The rehearsal track couldn't be made in this browser.")); };
-    w.postMessage({ bank, midi: midi.slice(0) }, [bank]);
+    w.postMessage({ bank, source, map }, [bank]);
   });
   onStep('saving', 0);
   return (await compress(left, right, sampleRate)) ?? new Blob([wavBytes(left, right, sampleRate) as BlobPart], { type: 'audio/wav' });
@@ -42,21 +43,22 @@ async function fetchBank(onProgress: (done: number) => void): Promise<ArrayBuffe
   return out.buffer;
 }
 
-/** An .m4a (AAC, else Opus), or null when this browser can't encode audio. */
+/** Opus in WebM keeps the count alignment. The AAC path added a lead-in in Chrome. */
 async function compress(left: Float32Array, right: Float32Array, sampleRate: number): Promise<Blob | null> {
   try {
-    const { getFirstEncodableAudioCodec, Output, Mp4OutputFormat, BufferTarget, AudioBufferSource, QUALITY_HIGH } = await import('mediabunny');
-    const codec = await getFirstEncodableAudioCodec(['aac', 'opus'], { numberOfChannels: 2, sampleRate });
+    if (!new Audio().canPlayType('audio/webm; codecs="opus"')) return null;
+    const { getFirstEncodableAudioCodec, Output, WebMOutputFormat, BufferTarget, AudioBufferSource, QUALITY_HIGH } = await import('mediabunny');
+    const codec = await getFirstEncodableAudioCodec(['opus'], { numberOfChannels: 2, sampleRate: 48000 });
     if (!codec) return null;
     const audio = new AudioBuffer({ length: left.length, numberOfChannels: 2, sampleRate });
     audio.copyToChannel(left as Float32Array<ArrayBuffer>, 0); audio.copyToChannel(right as Float32Array<ArrayBuffer>, 1);
-    const out = new Output({ format: new Mp4OutputFormat({ fastStart: 'in-memory' }), target: new BufferTarget() });
+    const out = new Output({ format: new WebMOutputFormat(), target: new BufferTarget() });
     const src = new AudioBufferSource({ codec, bitrate: QUALITY_HIGH });
     out.addAudioTrack(src);
     await out.start();
     await src.add(audio);
     await out.finalize();
-    return new Blob([out.target.buffer!], { type: 'audio/mp4' });
+    return new Blob([out.target.buffer!], { type: 'audio/webm' });
   } catch {
     return null;
   }

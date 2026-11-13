@@ -4,8 +4,10 @@
 // handful of tags needed are read (no DTDs or entities are fetched or expanded).
 import { parseMidi, type Midi } from './midi';
 import { endingNumbers, playbackOrder, type BarMarks } from './repeats';
+import type { RehearsalNote, RehearsalPart, RehearsalSource } from './scoreMidi';
 
 const PPQ = 480, MAX_BYTES = 60_000_000, MAX_MEASURES = 5000;
+const SEMITONES: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
 
 type El = { tag: string; attrs: Record<string, string>; kids: El[]; text: string };
 
@@ -32,6 +34,10 @@ const num = (e: El | undefined) => (e ? Number(e.text.trim()) : NaN);
 
 /** Read a MusicXML score (partwise) into a bar and tempo map, with repeats, endings, D.C., D.S., Fine, and Coda played out. */
 export function parseMusicXml(text: string): Midi & { warnings: string[] } {
+  return readMusicXml(text, false).map;
+}
+
+function readMusicXml(text: string, readNotes: boolean) {
   if (text.length > MAX_BYTES) throw new Error('That file is too big to be a score.');
   const doc = parseXml(text);
   const score = doc.kids.find((k) => k.tag === 'score-partwise');
@@ -45,7 +51,15 @@ export function parseMusicXml(text: string): Midi & { warnings: string[] } {
   const marks: BarMarks[] = Array.from({ length: count }, () => ({}));
   const holds: Hold[] = []; // fermata notes (quarters into their bar)
   const onsets: [bar: number, at: number][] = []; // where every note and rest starts, in any part
+  const definitions = kid(score, 'part-list')?.kids.filter((e) => e.tag === 'score-part') ?? [];
+  const rehearsal: RehearsalPart[] = [];
   for (const part of parts) {
+    const instruments = new Map<string, RehearsalPart>();
+    const percussion = { program: null, notes: [] as RehearsalNote[] };
+    const shifts = new Map<string, number>();
+    const definition = definitions.find((e) => e.attrs.id === part.attrs.id);
+    const midi = new Map(definition?.kids.filter((e) => e.tag === 'midi-instrument').map((e) => [e.attrs.id, e]));
+    const defaultInstrument = kid(definition, 'score-instrument')?.attrs.id ?? midi.keys().next().value ?? '';
     let div = 1, beats = 4, den = 4, ending: number[] | null = null; // the ending (volta) this part is under
     part.kids.filter((k) => k.tag === 'measure').forEach((m, i) => {
       const bar = bars[i];
@@ -53,19 +67,47 @@ export function parseMusicXml(text: string): Midi & { warnings: string[] } {
       let pos = 0, max = 0, chordAt = 0;
       for (const e of m.kids) {
         if (e.tag === 'attributes') {
-          if (kid(e, 'divisions')) div = num(kid(e, 'divisions')) || div;
+          const divisions = num(kid(e, 'divisions'));
+          if (Number.isFinite(divisions) && divisions > 0) div = divisions;
           const t = kid(e, 'time');
           if (t && kid(t, 'beats')) { beats = parseInt(kid(t, 'beats')!.text, 10) || beats; den = num(kid(t, 'beat-type')) || den; }
+          for (const tr of e.kids.filter((k) => readNotes && k.tag === 'transpose')) {
+            if (!tr.attrs.number) shifts.clear();
+            shifts.set(tr.attrs.number ?? '', (num(kid(tr, 'chromatic')) || 0) + 12 * (num(kid(tr, 'octave-change')) || 0));
+          }
         } else if (e.tag === 'note') {
           if (kid(e, 'grace')) continue;
-          if (!kid(e, 'rest')) bar.sounding = true;
-          const d = num(kid(e, 'duration')) / div || 0, at = kid(e, 'chord') ? chordAt : pos;
+          const sounds = !kid(e, 'rest') && !kid(e, 'cue');
+          if (sounds) bar.sounding = true;
+          const d = duration(e, div), at = kid(e, 'chord') ? chordAt : pos;
           if (kid(kid(e, 'notations'), 'fermata')) holds.push([i, at, at + d, 2]);
+          if (readNotes && sounds && d > 0) {
+            const ids = e.kids.filter((k) => k.tag === 'instrument').map((k) => k.attrs.id);
+            for (const id of new Set(ids.length ? ids : [defaultInstrument])) {
+              const staff = kid(e, 'staff')?.text.trim() || '1';
+              const shift = shifts.get(staff) ?? shifts.get('') ?? 0;
+              const unpitched = !!kid(e, 'unpitched');
+              const instrument = midi.get(id);
+              const drum = midiValue(kid(instrument, 'midi-unpitched'));
+              const key = unpitched ? drum ?? 38 : pitchOf(e, shift);
+              if (key === undefined) continue;
+              let track = unpitched ? percussion : instruments.get(id);
+              if (!track) {
+                track = { program: midiValue(kid(instrument, 'midi-program')) ?? 0, notes: [] };
+                instruments.set(id, track);
+              }
+              track.notes.push({
+                bar: i, from: at, to: at + d, key, voice: `${staff}/${kid(e, 'voice')?.text.trim() || '1'}`,
+                tieIn: e.kids.some((k) => k.tag === 'tie' && k.attrs.type === 'stop'),
+                tieOut: e.kids.some((k) => k.tag === 'tie' && k.attrs.type === 'start'),
+              });
+            }
+          }
           chordAt = at;
           onsets.push([i, at]);
           if (!kid(e, 'chord')) pos += d;
-        } else if (e.tag === 'backup') pos -= num(kid(e, 'duration')) / div || 0;
-        else if (e.tag === 'forward') pos += num(kid(e, 'duration')) / div || 0;
+        } else if (e.tag === 'backup') pos = Math.max(0, pos - duration(e, div));
+        else if (e.tag === 'forward') pos += duration(e, div);
         else if (e.tag === 'barline') {
           const r = kid(e, 'repeat'), end = kid(e, 'ending');
           if (r?.attrs.direction === 'forward') marks[i].startRepeat = true;
@@ -81,18 +123,46 @@ export function parseMusicXml(text: string): Midi & { warnings: string[] } {
           // A metronome mark with no <sound tempo>: MuseScore plays it, so count it too (converted to quarters per minute).
           const met = kid(kid(e, 'direction-type'), 'metronome'), unit = met && { whole: 4, half: 2, quarter: 1, eighth: 0.5, '16th': 0.25 }[kid(met, 'beat-unit')?.text.trim() ?? ''];
           const q = bpm > 0 ? bpm : met && unit ? num(kid(met, 'per-minute')) * unit * (kid(met, 'beat-unit-dot') ? 1.5 : 1) : NaN;
-          if (q > 0 && q < 2000) bar.tempos.push([pos, q]);
+          const directionOffset = kid(e, 'offset');
+          const offset = kid(s, 'offset') ?? (directionOffset?.attrs.sound === 'yes' ? directionOffset : undefined);
+          const shift = num(offset) / div;
+          if (q > 0 && q < 2000) bar.tempos.push([Math.max(0, pos + (Number.isFinite(shift) ? shift : 0)), q]);
         }
         max = Math.max(max, pos);
       }
       bar.len = Math.max(bar.len, max);
       if (!bar.sig) { bar.beats = beats; bar.den = den; bar.sig = true; }
     });
+    rehearsal.push(...instruments.values());
+    if (percussion.notes.length) rehearsal.push(percussion);
   }
   // A D.C. or D.S. in MusicXML doesn't say where it plays to: al Coda if the score has a To Coda, al Fine if it has a Fine.
   const has = (l: string) => marks.some((b) => b.markers?.includes(l));
   for (const b of marks) if (b.jump) Object.assign(b.jump, has('coda') ? { until: 'coda', continueAt: 'codab' } : has('fine') ? { until: 'fine' } : {});
-  return toMap(bars, holds, onsets, marks);
+  const playback = playbackOrder(marks, MAX_MEASURES);
+  const map = toMap(bars, holds, onsets, playback);
+  return { map, rehearsal: { parts: rehearsal, order: playback.order } };
+}
+
+function duration(e: El, div: number): number {
+  const d = num(kid(e, 'duration')) / div;
+  return Number.isFinite(d) && d > 0 ? d : 0;
+}
+
+/** MusicXML's MIDI program and percussion key numbers are one-based. */
+function midiValue(e: El | undefined): number | undefined {
+  const n = num(e);
+  if (Number.isInteger(n) && n >= 1 && n <= 128) return n - 1;
+}
+
+function pitchOf(note: El, transpose: number): number | undefined {
+  const pitch = kid(note, 'pitch');
+  const step = kid(pitch, 'step')?.text.trim();
+  const semitone = step?.length === 1 ? SEMITONES[step] : undefined;
+  if (semitone === undefined) return;
+  const octave = num(kid(pitch, 'octave'));
+  const key = Math.round(12 * (octave + 1) + semitone + (num(kid(pitch, 'alter')) || 0) + transpose);
+  if (key >= 0 && key <= 127) return key;
 }
 
 const addEndings = (b: BarMarks, ns: number[]) => { if (ns.length) b.endings = [...new Set([...(b.endings ?? []), ...ns])]; };
@@ -117,8 +187,7 @@ type Hold = [bar: number, from: number, to: number, stretch: number];
  * gives, with the bars in the order they're heard (numbered that way too). A bar heard again takes the tempo it has
  * where it's written, as MuseScore plays it.
  */
-function toMap(written: Bar[], heldNotes: Hold[], noteStarts: [number, number][], marks: BarMarks[]): Midi & { warnings: string[] } {
-  const { order, capped } = playbackOrder(marks, MAX_MEASURES);
+function toMap(written: Bar[], heldNotes: Hold[], noteStarts: [number, number][], { order, capped }: ReturnType<typeof playbackOrder>): Midi & { warnings: string[] } {
   const startBpm: number[] = []; // the tempo in force at each written bar's downbeat
   let bpm = 120; // no mark at the start: 120 bpm, as MuseScore plays it
   for (const b of written) {
@@ -213,20 +282,25 @@ function findDeep(e: El, tag: string): El | undefined {
   for (const k of e.kids) { if (k.tag === tag) return k; const f = findDeep(k, tag); if (f) return f; }
 }
 
-/** A score's bar and tempo map from a MuseScore (.mscz), MIDI, MusicXML or .mxl file (told apart by content, not the file name). */
-export async function parseScore(buf: ArrayBuffer): Promise<Midi & { warnings?: string[] }> {
+/** The score's timing and, when available, its notes for a rehearsal track. File types are detected by content. */
+export async function parseScore(buf: ArrayBuffer): Promise<Midi & { rehearsal?: RehearsalSource }> {
   if (buf.byteLength > MAX_BYTES) throw new Error('That file is too big to be a score.');
   const head = new Uint8Array(buf, 0, Math.min(4, buf.byteLength));
   const sig = String.fromCharCode(...head);
-  if (sig === 'MThd') return parseMidi(buf);
+  if (sig === 'MThd') return { ...parseMidi(buf), rehearsal: buf };
   if (sig.startsWith('PK')) {
     const files = await readZip(buf, 'score');
     const mscx = Object.keys(files).find((f) => !f.includes('/') && /\.mscx$/i.test(f)); // a MuseScore .mscz (its parts live in Excerpts/)
-    return mscx ? parseMscx(await files[mscx]()) : parseMusicXml(await unzipMxl(buf));
+    if (mscx) return parseMscx(await files[mscx]());
+    const { map, rehearsal } = readMusicXml(await unzipMxl(buf), true);
+    return { ...map, rehearsal };
   }
   if (/<museScore\b/.test(new TextDecoder().decode(buf.slice(0, 2000)))) return parseMscx(new TextDecoder().decode(buf)); // an uncompressed .mscx
   const text = new TextDecoder().decode(buf);
-  if (/<score-(partwise|timewise)\b/.test(text.slice(0, 5000))) return parseMusicXml(text);
+  if (/<score-(partwise|timewise)\b/.test(text.slice(0, 5000))) {
+    const { map, rehearsal } = readMusicXml(text, true);
+    return { ...map, rehearsal };
+  }
   throw new Error("That isn't a MuseScore, MusicXML, or MIDI file. Choose the score's .mscz, or export it as MusicXML or MIDI.");
 }
 
@@ -296,5 +370,5 @@ export function parseMscx(text: string): Midi & { warnings: string[] } {
       bar.len = Number.isFinite(len) ? len : Math.max(bar.len, (beats * 4) / den);
     });
   });
-  return toMap(bars, holds, onsets, marks);
+  return toMap(bars, holds, onsets, playbackOrder(marks, MAX_MEASURES));
 }

@@ -2,7 +2,8 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { parseMidi, secondsAt } from './midi';
-import { isMidi, RATE, renderMidi, wavBytes } from './rehearsal';
+import { parseScore } from './musicxml';
+import { RATE, renderMidi, wavBytes } from './rehearsal';
 
 // The sound library the app ships (public/sounds), read from disk.
 const file: Uint8Array = readFileSync(new URL('../../public/sounds/GeneralUser-GS.sf3', import.meta.url));
@@ -52,8 +53,8 @@ describe('rehearsal tracks', () => {
     expect(v.getUint32(24, true)).toBe(44100);
     expect([v.getInt16(44, true), v.getInt16(46, true), v.getInt16(48, true), v.getInt16(50, true)]).toEqual([0, -32767, 32767, 16384]);
   });
-  it('tell MIDI files from others', () => {
-    expect(isMidi(midi())).toBe(true);
-    expect(isMidi(new TextEncoder().encode('<score-partwise').buffer)).toBe(false);
+  it('passes an imported MIDI straight to the rehearsal renderer', async () => {
+    const file = midi();
+    expect((await parseScore(file)).rehearsal).toBe(file);
   });
 });

@@ -3,10 +3,10 @@
 // The audio and the counts come from the same MIDI, so the counts are exact. Pure rendering, no UI: the editor runs it
 // in a worker (src/ui/rehearsalWorker.ts) so the page doesn't freeze.
 import { BasicMIDI, BasicSoundBank, SoundBankLoader, SpessaSynthProcessor, SpessaSynthSequencer } from 'spessasynth_core';
+import { MAX_TRACK_SECONDS } from './scoreMidi';
 
 export const RATE = 44100; // AAC encoders take 44.1 or 48 kHz
 const TAIL = 2; // seconds after the last note, for the final chord to ring
-const MAX_SECONDS = 30 * 60;
 const BLOCK = 128; // the synthesizer's largest render size
 
 /**
@@ -17,7 +17,7 @@ export async function renderMidi(bank: ArrayBuffer, midiFile: ArrayBuffer, onPro
   await BasicSoundBank.ready; // the SF3 decoder
   const midi = BasicMIDI.fromArrayBuffer(midiFile);
   if (!(midi.duration > 0)) throw new Error('That MIDI file has no music in it.');
-  if (midi.duration > MAX_SECONDS) throw new Error('That MIDI file is longer than 30 minutes, too long for a rehearsal track.');
+  if (midi.duration > MAX_TRACK_SECONDS) throw new Error('That MIDI file is longer than 30 minutes, too long for a rehearsal track.');
   const synth = new SpessaSynthProcessor(RATE, { effectsEnabled: true, eventsEnabled: false });
   synth.soundBankManager.addSoundBank(SoundBankLoader.fromArrayBuffer(bank), 'main');
   await synth.ready;
@@ -51,6 +51,3 @@ export function wavBytes(left: Float32Array, right: Float32Array, rate: number):
   for (let i = 0; i < n; i++) { v.setInt16(44 + i * 4, s16(left[i]), true); v.setInt16(46 + i * 4, s16(right[i]), true); }
   return out;
 }
-
-/** Whether a file is a Standard MIDI File (the only kind a rehearsal track can be made from, for now). */
-export const isMidi = (buf: ArrayBuffer) => buf.byteLength >= 4 && String.fromCharCode(...new Uint8Array(buf, 0, 4)) === 'MThd';

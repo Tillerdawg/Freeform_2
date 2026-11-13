@@ -3,7 +3,7 @@ import { countsFromMidi, fillMeasures, secondsAt, withHolds, type Midi } from '.
 import { parseScore } from '../engine/musicxml';
 import { synced } from '../engine/music';
 import { newId, showLength, type Show } from '../engine/show';
-import { isMidi } from '../engine/rehearsal';
+import type { RehearsalSource } from '../engine/scoreMidi';
 import { deleteAudio, putAudio } from './audioStore';
 import { makeRehearsalTrack } from './rehearsalTrack';
 import { Menu } from './Toolbar';
@@ -29,9 +29,13 @@ export function MusicMenu({ show, setShow, audio, onAudio, useMusic, setUseMusic
   const [tapping, setTapping] = useState(false);
   // A score added before its recording waits here (only for this session) until the recording comes.
   const [score, setScore] = useState<{ name: string; map: Midi } | null>(null);
-  // The last score added, when it's a MIDI file (this session only): FreeFORM can play it as a rehearsal track.
-  const [midi, setMidi] = useState<{ name: string; buf: ArrayBuffer; map: Midi } | null>(null);
+  const [playable, setPlayable] = useState<{ name: string; source: RehearsalSource; map: Midi } | null>(null);
   const [making, setMaking] = useState<string | null>(null); // the rehearsal track's progress
+  const currentShow = useRef<Show | null>(show);
+  useEffect(() => {
+    currentShow.current = show;
+    return () => { currentShow.current = null; };
+  }, [show]);
   const m = show.music, total = showLength(show);
   // Counts from the score (MuseScore, MusicXML, .mxl, or MIDI): exact when the recording was rendered from that same score.
   const counts = (map: Midi, name: string, s: Show) => {
@@ -69,29 +73,31 @@ export function MusicMenu({ show, setShow, audio, onAudio, useMusic, setUseMusic
   };
   const addScore = async (f: File) => {
     try {
-      const buf = await f.arrayBuffer(), map = await parseScore(buf);
-      setMidi(isMidi(buf) ? { name: f.name, buf, map } : null);
-      if (!show.music) { setScore({ name: f.name, map }); setNote([`Score added: ${f.name}.`, ...(map.warnings ?? []), isMidi(buf) ? 'Now add its recording (mp3), or make a rehearsal track from it.' : 'Now add its recording (mp3).'].join(' ')); return; }
+      const { rehearsal: source, ...map } = await parseScore(await f.arrayBuffer());
+      setPlayable(source ? { name: f.name, source, map } : null);
+      if (!show.music) { setScore({ name: f.name, map }); setNote([`Score added: ${f.name}.`, ...(map.warnings ?? []), source ? 'Make a rehearsal track, or add the recording made from this score.' : 'Now add its recording (mp3).'].join(' ')); return; }
       const c = counts(map, f.name, show);
       setShow((s) => (s.music ? { ...s, sets: c.sets, music: { ...s.music, taps: c.taps } } : s));
       setNote([...c.note, ...pairCheck(audio && Number.isFinite(audio.duration) ? audio.duration : null, map)].join(' '));
     } catch (e) { setNote(e instanceof Error ? e.message : "That score file couldn't be read."); }
   };
-  // The score played by FreeFORM itself, stored like a recording: its counts come from the same MIDI, so they're exact.
+  // The count map and the rendered notes follow the same score timing.
   const makeTrack = async () => {
-    if (!midi || making) return;
+    if (!playable || making) return;
     const pct = (f: number) => `${Math.round(f * 100)}%`;
     try {
       setNote('');
-      const blob = await makeRehearsalTrack(midi.buf, (step, f) => setMaking(step === 'instruments' ? `Getting the instrument sounds… ${pct(f)}` : step === 'playing' ? `Playing the score… ${pct(f)}` : 'Saving the track…'));
+      const blob = await makeRehearsalTrack(playable.source, playable.map, (step, f) => setMaking(step === 'instruments' ? `Getting the instrument sounds… ${pct(f)}` : step === 'playing' ? `Playing the score… ${pct(f)}` : 'Saving the track…'));
       const id = newId('a');
       if (!(await putAudio(id, blob))) throw new Error("This browser wouldn't store the rehearsal track (it may be out of space or in private mode).");
-      const old = show.music?.audioId;
+      const active = currentShow.current;
+      if (!active) { deleteAudio(id); return; }
+      const old = active.music?.audioId;
+      const c = counts(playable.map, playable.name, active);
+      setShow((s) => s.id === active.id ? { ...s, sets: c.sets, music: { name: rehearsalName(playable.name), audioId: id, taps: c.taps } } : s);
       if (old) deleteAudio(old);
       onAudio(id);
-      const c = counts(midi.map, midi.name, show);
-      setShow((s) => ({ ...s, sets: c.sets, music: { name: rehearsalName(midi.name), audioId: id, taps: c.taps } }));
-      setNote([`Made a rehearsal track from ${midi.name}.`, ...c.note].join(' '));
+      setNote([`Made a rehearsal track from ${playable.name}.`, ...c.note].join(' '));
       setScore(null);
     } catch (e) {
       setNote(e instanceof Error ? e.message : "The rehearsal track couldn't be made.");
@@ -106,19 +112,19 @@ export function MusicMenu({ show, setShow, audio, onAudio, useMusic, setUseMusic
     <>
       <Menu label={label} pressed={!!(m && synced(m) && useMusic && audio)} title="Play the drill with the show's recording">
         {(close) => <>
-          {!m && <p style={{ margin: 0, fontSize: 12, maxWidth: 320 }}>Add the score and the recording made from it, in either order: every count then comes from the score. The score can be MuseScore, MusicXML (exported from Finale, Sibelius, or Dorico), or MIDI. Or add just a recording and tap the counts. With a MIDI score, FreeFORM can make a rehearsal track instead of a recording.</p>}
+          {!m && <p style={{ margin: 0, fontSize: 12, maxWidth: 320 }}>Add a MusicXML (.musicxml or .mxl) or MIDI score to make a rehearsal track. If you have a recording made from the score, add both in either order to sync the counts. MuseScore files work with a recording, too. To use a recording on its own, tap the counts.</p>}
           {m && <p style={{ margin: 0, fontSize: 12 }}><strong>{m.name}</strong><br />
             {m.taps.length ? `${m.taps.length} of ${total + 1} counts placed${m.taps.length < total + 1 ? '; later counts keep the last pace' : ''}.` : 'No counts yet: add the score, or tap them.'}</p>}
-          {m && !audio && <p role="alert" style={{ margin: 0, fontSize: 12, color: 'var(--warn)' }}>{rehearsal ? "The rehearsal track isn't in this browser. Add the MIDI score again and make the track to hear it." : `The recording isn't in this browser. Add ${m.name} again to hear it.`}</p>}
-          <button onClick={() => scoreFile.current?.click()} title="The score the recording was rendered from: MuseScore (.mscz), MusicXML, .mxl, or MIDI. Each set's counts are placed in the measures typed for it.">
+          {m && !audio && <p role="alert" style={{ margin: 0, fontSize: 12, color: 'var(--warn)' }}>{rehearsal ? "The rehearsal track isn't in this browser. Add the score again and make the track to hear it." : `The recording isn't in this browser. Add ${m.name} again to hear it.`}</p>}
+          <button disabled={!!making} onClick={() => scoreFile.current?.click()} title="MuseScore (.mscz), MusicXML (exported from Finale, Sibelius, or Dorico), .mxl, or MIDI. Each set's counts are placed in the measures typed for it.">
             {done(!!score)}{score ? `Score: ${score.name}` : m?.taps.length ? 'Add the score again…' : 'Add the score…'}</button>
           <button disabled={!!making} onClick={() => file.current?.click()}>{done(!!m && !!audio && !rehearsal)}{rehearsal ? 'Use a real recording instead…' : m ? 'Replace the recording…' : 'Add the recording (mp3)…'}</button>
-          {midi && <button disabled={!!making} onClick={makeTrack} title="FreeFORM plays the MIDI score itself, with General MIDI instruments, like a notation program's playback. The counts come from the same score, so they're exact.">
+          {playable && <button disabled={!!making} onClick={makeTrack} title="FreeFORM plays the score with General MIDI instruments. The counts follow the same repeats, endings, and tempos.">
             {done(rehearsal && !!audio)}{rehearsal ? 'Make the rehearsal track again' : m ? 'Use a rehearsal track instead' : 'Make a rehearsal track'}</button>}
           {making && <p role="status" aria-live="polite" style={{ margin: 0, fontSize: 12 }}>{making}</p>}
           {m && <button disabled={!audio} onClick={() => { setTapping(true); close(); }}>Tap counts…</button>}
           {m && synced(m) && <label style={{ fontSize: 13 }}><input type="checkbox" checked={useMusic} onChange={(e) => setUseMusic(e.target.checked)} /> Play with music (off: use Tempo)</label>}
-          {m && <button className="danger" onClick={() => { deleteAudio(m.audioId); setShow((s) => { const { music: _, ...rest } = s; return rest; }); setNote(''); }}>Remove music</button>}
+          {m && <button disabled={!!making} className="danger" onClick={() => { deleteAudio(m.audioId); setShow((s) => { const { music: _, ...rest } = s; return rest; }); setNote(''); }}>Remove music</button>}
           {note && <p role="status" style={{ margin: 0, fontSize: 12, maxWidth: 320 }}>{note}</p>}
         </>}
       </Menu>
