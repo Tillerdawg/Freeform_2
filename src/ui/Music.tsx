@@ -65,7 +65,7 @@ export function MusicMenu({ show, setShow, audio, onAudio, useMusic, setUseMusic
   const addScore = async (f: File) => {
     try {
       const map = await parseScore(await f.arrayBuffer());
-      if (!show.music) { setScore({ name: f.name, map }); setNote(`Score added: ${f.name}. Now add its recording (mp3).`); return; }
+      if (!show.music) { setScore({ name: f.name, map }); setNote([`Score added: ${f.name}.`, ...(map.warnings ?? []), 'Now add its recording (mp3).'].join(' ')); return; }
       const c = counts(map, f.name, show);
       setShow((s) => (s.music ? { ...s, sets: c.sets, music: { ...s.music, taps: c.taps } } : s));
       setNote([...c.note, ...pairCheck(audio && Number.isFinite(audio.duration) ? audio.duration : null, map)].join(' '));

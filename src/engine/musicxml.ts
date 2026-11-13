@@ -3,6 +3,7 @@
 // in the same shape, so counts are placed by the same rules. Files come from anywhere: size-capped, and only the
 // handful of tags needed are read (no DTDs or entities are fetched or expanded).
 import { parseMidi, type Midi } from './midi';
+import { endingNumbers, playbackOrder, type BarMarks } from './repeats';
 
 const PPQ = 480, MAX_BYTES = 60_000_000, MAX_MEASURES = 5000;
 
@@ -29,7 +30,7 @@ export function parseXml(src: string): El {
 const kid = (e: El | undefined, tag: string) => e?.kids.find((k) => k.tag === tag);
 const num = (e: El | undefined) => (e ? Number(e.text.trim()) : NaN);
 
-/** Read a MusicXML score (partwise) into a bar and tempo map. `warnings` lists what it can't follow (repeats). */
+/** Read a MusicXML score (partwise) into a bar and tempo map, with repeats, endings, D.C., D.S., Fine, and Coda played out. */
 export function parseMusicXml(text: string): Midi & { warnings: string[] } {
   if (text.length > MAX_BYTES) throw new Error('That file is too big to be a score.');
   const doc = parseXml(text);
@@ -41,13 +42,14 @@ export function parseMusicXml(text: string): Midi & { warnings: string[] } {
   if (count > MAX_MEASURES) throw new Error('That score has too many measures.');
   // Per measure, over all parts: the longest voice (quarters), the meter in force, whether a note sounds, tempo marks.
   const bars = Array.from({ length: count }, () => ({ len: 0, beats: 4, den: 4, sig: false, sounding: false, tempos: [] as [number, number][] }));
-  let repeats = false;
+  const marks: BarMarks[] = Array.from({ length: count }, () => ({}));
   const holds: Hold[] = []; // fermata notes (quarters into their bar)
   const onsets: [bar: number, at: number][] = []; // where every note and rest starts, in any part
   for (const part of parts) {
-    let div = 1, beats = 4, den = 4;
+    let div = 1, beats = 4, den = 4, ending: number[] | null = null; // the ending (volta) this part is under
     part.kids.filter((k) => k.tag === 'measure').forEach((m, i) => {
       const bar = bars[i];
+      if (ending) addEndings(marks[i], ending);
       let pos = 0, max = 0, chordAt = 0;
       for (const e of m.kids) {
         if (e.tag === 'attributes') {
@@ -64,9 +66,17 @@ export function parseMusicXml(text: string): Midi & { warnings: string[] } {
           if (!kid(e, 'chord')) pos += d;
         } else if (e.tag === 'backup') pos -= num(kid(e, 'duration')) / div || 0;
         else if (e.tag === 'forward') pos += num(kid(e, 'duration')) / div || 0;
-        else if (e.tag === 'barline' && (kid(e, 'repeat') || kid(e, 'ending'))) repeats = true;
+        else if (e.tag === 'barline') {
+          const r = kid(e, 'repeat'), end = kid(e, 'ending');
+          if (r?.attrs.direction === 'forward') marks[i].startRepeat = true;
+          if (r?.attrs.direction === 'backward') marks[i].endRepeat = Math.min(Math.max(2, parseInt(r.attrs.times, 10) || 2), 20);
+          if (end?.attrs.type === 'start') { ending = endingNumbers(end.attrs.number); addEndings(marks[i], ending); }
+          if (end && /^(stop|discontinue)$/.test(end.attrs.type ?? '')) { addEndings(marks[i], endingNumbers(end.attrs.number)); ending = null; }
+          if (kid(e, 'sound')) soundMarks(kid(e, 'sound')!, marks[i]);
+        }
         if (e.tag === 'sound' || e.tag === 'direction') {
           const s = e.tag === 'sound' ? e : kid(e, 'sound');
+          if (s) soundMarks(s, marks[i]);
           const bpm = Number(s?.attrs.tempo);
           // A metronome mark with no <sound tempo>: MuseScore plays it, so count it too (converted to quarters per minute).
           const met = kid(kid(e, 'direction-type'), 'metronome'), unit = met && { whole: 4, half: 2, quarter: 1, eighth: 0.5, '16th': 0.25 }[kid(met, 'beat-unit')?.text.trim() ?? ''];
@@ -79,17 +89,51 @@ export function parseMusicXml(text: string): Midi & { warnings: string[] } {
       if (!bar.sig) { bar.beats = beats; bar.den = den; bar.sig = true; }
     });
   }
-  return toMap(bars, holds, onsets, repeats);
+  // A D.C. or D.S. in MusicXML doesn't say where it plays to: al Coda if the score has a To Coda, al Fine if it has a Fine.
+  const has = (l: string) => marks.some((b) => b.markers?.includes(l));
+  for (const b of marks) if (b.jump) Object.assign(b.jump, has('coda') ? { until: 'coda', continueAt: 'codab' } : has('fine') ? { until: 'fine' } : {});
+  return toMap(bars, holds, onsets, marks);
+}
+
+const addEndings = (b: BarMarks, ns: number[]) => { if (ns.length) b.endings = [...new Set([...(b.endings ?? []), ...ns])]; };
+const addMarker = (b: BarMarks, label: string) => { b.markers = [...new Set([...(b.markers ?? []), label])]; };
+
+/** A MusicXML <sound>'s playback marks, in MuseScore's labels: segno, coda (To Coda), codab (the Coda), fine, and the jumps. */
+function soundMarks(s: El, b: BarMarks) {
+  const a = s.attrs;
+  if (a.segno) addMarker(b, 'segno');
+  if (a.tocoda) addMarker(b, 'coda');
+  if (a.coda) addMarker(b, 'codab');
+  if (a.fine) addMarker(b, 'fine');
+  if (a.dacapo === 'yes') b.jump = { to: 'start', until: 'end' };
+  if (a.dalsegno) b.jump = { to: 'segno', until: 'end' };
 }
 
 type Bar = { len: number; beats: number; den: number; sig?: boolean; sounding: boolean; tempos: [number, number][] };
 type Hold = [bar: number, from: number, to: number, stretch: number];
 
-/** Bars (lengths in quarters, positions of tempo marks), fermatas and note starts → the same map a MIDI gives. */
-function toMap(bars: Bar[], holds: Hold[], onsets: [number, number][], repeats: boolean): Midi & { warnings: string[] } {
+/**
+ * Bars (lengths in quarters, positions of tempo marks), fermatas, note starts, and repeat marks → the same map a MIDI
+ * gives, with the bars in the order they're heard (numbered that way too). A bar heard again takes the tempo it has
+ * where it's written, as MuseScore plays it.
+ */
+function toMap(written: Bar[], heldNotes: Hold[], noteStarts: [number, number][], marks: BarMarks[]): Midi & { warnings: string[] } {
+  const { order, capped } = playbackOrder(marks, MAX_MEASURES);
+  const startBpm: number[] = []; // the tempo in force at each written bar's downbeat
+  let bpm = 120; // no mark at the start: 120 bpm, as MuseScore plays it
+  for (const b of written) {
+    const marks0 = b.tempos.filter(([p]) => p <= 1e-9);
+    startBpm.push(marks0.length ? marks0[marks0.length - 1][1] : bpm);
+    if (b.tempos.length) bpm = [...b.tempos].sort((x, y) => x[0] - y[0])[b.tempos.length - 1][1];
+  }
+  const at: number[][] = written.map(() => []); // written bar → where it's heard
+  order.forEach((w, p) => at[w].push(p));
+  const bars = order.map((w) => ({ ...written[w], tempos: [[0, startBpm[w]] as [number, number], ...written[w].tempos.filter(([p]) => p > 1e-9)] }));
+  const holds = heldNotes.flatMap(([w, a, b, k]) => at[w].map((p) => [p, a, b, k] as Hold));
+  const onsets = noteStarts.flatMap(([w, q]) => at[w].map((p) => [p, q] as [number, number]));
   const measures: Midi['measures'] = [], tempos: Midi['tempos'] = [];
   let tick = 0;
-  for (const b of bars) {
+  for (const [k, b] of bars.entries()) {
     const full = (b.beats * 4) / b.den;
     const len = b.len > 0 ? b.len : full; // a bar no part fills (an empty measure) takes its meter's length
     // A bar shorter or longer than its meter (a pickup, a glitch) keeps its real length, counted in the meter's note value.
@@ -100,7 +144,7 @@ function toMap(bars: Bar[], holds: Hold[], onsets: [number, number][], repeats: 
       beats = Math.round((len * den) / 4);
     }
     for (const [p, bpm] of b.tempos) tempos.push([tick + Math.round(p * PPQ), Math.round(60e6 / bpm)]);
-    measures.push({ start: tick, beats, den, sounding: b.sounding });
+    measures.push({ start: tick, beats, den, sounding: b.sounding, ...(order[k] !== k ? { written: order[k] + 1 } : {}) });
     tick += Math.round(len * PPQ);
   }
   tempos.sort((a, b) => a[0] - b[0]);
@@ -115,8 +159,18 @@ function toMap(bars: Bar[], holds: Hold[], onsets: [number, number][], repeats: 
   const edges = [...new Set([...tempos.map(([k]) => k), ...spans.flatMap(([a, b]) => [a, b])])].sort((a, b) => a - b);
   const map = edges.map((t) => [t, base(t) * held(t)] as [number, number]);
   const dedup = map.filter((t, k) => k === 0 || t[1] !== map[k - 1][1]);
-  const warnings = repeats ? ['This score has repeats or endings, which are counted as written (once through). If the recording plays them, use the score\'s MIDI instead.'] : [];
-  return { ppq: PPQ, tempos: dedup, measures, end: tick, warnings };
+  return { ppq: PPQ, tempos: dedup, measures, end: tick, warnings: repeatNote(order, written.length, capped) };
+}
+
+/** What playing out the repeats did to the bar numbers, with one example, so a director knows how to type Measures. */
+export function repeatNote(order: number[], written: number, capped: boolean): string[] {
+  if (capped) return ["This score's repeats and jumps couldn't be followed (they loop or run too long), so its bars are counted as written, once through."];
+  const p = order.findIndex((w, k) => k > 0 && w !== order[k - 1] + 1);
+  if (p < 0) return [];
+  let q = p;
+  while (q + 1 < order.length && order[q + 1] === order[q] + 1) q++;
+  const span = (a: number, b: number) => (a === b ? `m. ${a}` : `m. ${a}–${b}`);
+  return [`Repeats played out: the score's ${written} bars play as ${order.length}, numbered in the order they're heard. For example, ${span(p + 1, q + 1)} here is written ${span(order[p] + 1, order[q] + 1)}. Type each set's measures the same way.`];
 }
 
 /** The files in a zip (as text, read on demand): .mxl and MuseScore's .mscz are both zips. */
@@ -197,13 +251,25 @@ export function parseMscx(text: string): Midi & { warnings: string[] } {
   if (count > MAX_MEASURES) throw new Error('That score has too many measures.');
   const bars: Bar[] = Array.from({ length: count }, () => ({ len: 0, beats: 4, den: 4, sounding: false, tempos: [] }));
   const holds: Hold[] = [], onsets: [number, number][] = [];
-  let repeats = false;
+  const marks: BarMarks[] = Array.from({ length: count }, () => ({}));
   staves.forEach((st, si) => {
     let beats = 4, den = 4;
     // A multi-measure rest is stored as an extra measure in front of the real ones: skip it (MuseScore rebuilds it).
     st.kids.filter((k) => k.tag === 'Measure' && !kid(k, 'multiMeasureRest')).forEach((m, i) => {
       const bar = bars[i];
-      if (kid(m, 'startRepeat') || kid(m, 'endRepeat')) repeats = true;
+      if (kid(m, 'startRepeat')) marks[i].startRepeat = true;
+      if (kid(m, 'endRepeat')) marks[i].endRepeat = Math.min(Math.max(2, num(kid(m, 'endRepeat')) || 2), 20);
+      // Jumps, markers, and voltas: on the measure or in a voice, depending on the MuseScore version.
+      for (const e of [...m.kids, ...m.kids.filter((k) => k.tag === 'voice').flatMap((v) => v.kids)]) {
+        if (e.tag === 'Marker' && kid(e, 'label')) addMarker(marks[i], kid(e, 'label')!.text.trim());
+        else if (e.tag === 'Jump') {
+          const t = (tag: string) => kid(e, tag)?.text.trim() ?? '';
+          marks[i].jump = { to: t('jumpTo') || 'start', until: t('playUntil') || 'end', ...(t('continueAt') ? { continueAt: t('continueAt') } : {}), ...(num(kid(e, 'playRepeats')) ? { playRepeats: true } : {}) };
+        } else if (e.tag === 'Spanner' && e.attrs.type === 'Volta' && kid(e, 'Volta')) { // its end is this many bars on
+          const n = num(kid(kid(kid(e, 'next'), 'location'), 'measures')) || 1;
+          for (let k = i; k < Math.min(count, i + n); k++) addEndings(marks[k], endingNumbers(kid(kid(e, 'Volta'), 'endings')?.text));
+        }
+      }
       for (const v of m.kids.filter((k) => k.tag === 'voice')) {
         let pos = 0;
         const tup = [1];
@@ -215,7 +281,6 @@ export function parseMscx(text: string): Midi & { warnings: string[] } {
           else if (e.tag === 'location') pos += frac(kid(e, 'fractions')?.text) * 4 || 0;
           else if (e.tag === 'Tempo') { const q = num(kid(e, 'tempo')) * 60; if (q > 0 && q < 2000) bar.tempos.push([pos, q]); }
           else if (e.tag === 'Fermata') fermata = num(kid(e, 'timeStretch')) || 2; // MuseScore 4 holds a fermata twice as long by default
-          else if (e.tag === 'Volta' || (e.tag === 'Spanner' && e.attrs.type === 'Volta')) repeats = true;
           else if ((e.tag === 'Chord' || e.tag === 'Rest') && !isGrace(e)) {
             const t = kid(e, 'durationType')?.text.trim() ?? '';
             const d = t === 'measure' ? frac(kid(e, 'duration')?.text) * 4 : (DUR[t] ?? 0) * (2 - 1 / 2 ** (num(kid(e, 'dots')) || 0)) * tup[tup.length - 1];
@@ -231,5 +296,5 @@ export function parseMscx(text: string): Midi & { warnings: string[] } {
       bar.len = Number.isFinite(len) ? len : Math.max(bar.len, (beats * 4) / den);
     });
   });
-  return toMap(bars, holds, onsets, repeats);
+  return toMap(bars, holds, onsets, marks);
 }

@@ -384,6 +384,8 @@ FreeFORM can play your drill along with the recording, so the moves line up with
 
 You can do steps 2 and 3 in either order. Once both are in, FreeFORM takes the time of every count from the score, including meter changes, tempo marks, and fermatas, and places each set's counts in the measures you typed for it. It warns you if the recording's length doesn't match the score (usually a sign you picked the wrong file). Bars that no set covers, like a G.P. or an intro, get a hold sub-set (4A) so everyone stands still through them.
 
+**Repeats, endings, D.C., D.S., Fine, and Coda** are played out the way MuseScore plays them, and the bars are numbered in the order you hear them. Say the score repeats m. 5–12, with a 1st ending on m. 12 and a 2nd ending on m. 13. Played through, that's m. 1–12, then m. 5–11 again, then the 2nd ending. In FreeFORM, the second time through is m. 13–19 and the 2nd ending is m. 20, so type each set's **Measures** that way. When you add the score, FreeFORM tells you how many bars it plays and gives an example from your score. It's the same numbering a MIDI exported from MuseScore uses.
+
 **With any recording, by tapping:** add just the recording (mp3, m4a, or wav), then choose **Tap counts…**. FreeFORM plays it from the top while you press Space on every count, starting with count 0 (set 1). You can undo a tap, pause, or start over. To fix part of it later, set **Redo from count** first.
 
 When the counts are in, Play follows the music, rubato and all, and the recording's waveform shows along the bottom of the timeline. Uncheck **Play with music** to go back to the Tempo setting.

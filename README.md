@@ -50,7 +50,7 @@ A note on where the ideas came from: FreeFORM is modeled on Pyware and the Ultim
 **Timing and music**
 - A timeline you can scrub count by count, play at any tempo (with a click if you like, on the computer or the phone), or loop over a range of sets.
 - Lay out a show by counts first (one movement per tune), then add sets at any count.
-- Sync to a recording: take every count's timing from the score (MuseScore, MusicXML from Finale, Sibelius, or Dorico, or MIDI), or tap the counts along with any mp3.
+- Sync to a recording: take every count's timing from the score (MuseScore, MusicXML from Finale, Sibelius, or Dorico, or MIDI), with repeats and endings played out, or tap the counts along with any mp3.
 
 **Getting it to the band**
 - Dot sheets (four cards per page, one per page with a notes column, or one per page with a small field picture for each set, like a dot book) and drill charts (one per set, with or without the paths into it), printed or saved as PDF, for the whole show or a range of sets.
