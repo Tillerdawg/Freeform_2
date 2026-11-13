@@ -97,6 +97,16 @@ shot('shape-arc', async () => {
   await page.waitForTimeout(200);
   await save(page, 'shape-arc', { x: 240, y: 110, width: 660, height: 450 });
 });
+shot('shape-bezier', async () => {
+  const page = await editor({ ...devices['iPad Pro 11 landscape'] });
+  await box(page, { x: -42, y: 50 }, { x: -10, y: 28 });
+  await menu(page, 'Shape');
+  await page.getByRole('radio', { name: 'Bézier' }).tap();
+  await page.getByRole('button', { name: '+ Segment', exact: true }).tap();
+  await page.getByRole('button', { name: 'Independent handles' }).tap();
+  await page.waitForTimeout(350);
+  await save(page, 'shape-bezier');
+});
 shot('shape-spiral', async () => {
   const page = await editor();
   await box(page, { x: -13, y: 51 }, { x: 13, y: 29 });

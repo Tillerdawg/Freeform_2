@@ -92,7 +92,7 @@ type Drag =
   | { kind: 'box'; a: Point; b: Point; add: boolean }
   | { kind: 'lasso'; pts: Point[]; add: boolean }
   | { kind: 'pan'; x: number; y: number }
-  | { kind: 'handle'; i: number }
+  | { kind: 'handle'; i: number; pointerId: number; start: Point; at: [number, number]; moved?: boolean }
   | { kind: 'mark'; id: string; start: Point; orig: Mark; at: [number, number]; moved?: boolean }
   | { kind: 'prop'; id: string; start: Point; orig: { x: number; y: number; angle: number }; at: [number, number]; moved?: boolean }
   | { kind: 'arrow'; id: string }
@@ -123,7 +123,7 @@ export function App() {
   // Shape being edited: performers in slot order (order[k] takes slot k), in the set it was started in.
   const [selectedMark, setSelectedMark] = useState<string | null>(null);
   const [selectedProp, setSelectedProp] = useState<string | null>(null); // a prop picked on the field or in the sidebar
-  const [shapeEdit, setShapeEdit] = useState<{ shape: Shape; order: string[]; set: number; base: Show } | null>(null); // base: the show before this shape began
+  const [shapeEdit, setShapeEdit] = useState<{ shape: Shape; order: string[]; set: number; base: Show; handleMode?: 'independent' | 'smooth' } | null>(null); // base: the show before this shape began
   // The handle the keyboard is on (Tab steps through the open shape's handles, or the selected follow-the-leader group's
   // turns and a custom path's points), and what it was when it was picked, for Esc.
   const [keyHandle, setKeyHandle] = useState<number | null>(null);
@@ -497,7 +497,7 @@ export function App() {
     const order: string[] = [];
     ids.forEach((id, i) => { order[slotOf[i]] = id; });
     const base = shapeEdit?.set === onSet ? shapeEdit.base : show; // switching shapes keeps the show from before the first one
-    setShapeEdit({ shape, order, set: onSet, base });
+    setShapeEdit({ shape, order, set: onSet, base, handleMode: prev ? shapeEdit?.handleMode : undefined });
     applyShape(shape, order, base);
   };
 
@@ -512,6 +512,12 @@ export function App() {
     }
     setShapeEdit({ ...shapeEdit, shape, order });
     applyShape(shape, order, shapeEdit.base);
+  };
+
+  const moveShapeHandle = (i: number, p: Point, independent = false) => {
+    if (!shapeEdit) return;
+    const mode = shapeEdit.handleMode;
+    updateShape(moveHandle(shapeEdit.shape, i, p, independent || mode === 'independent', mode === 'smooth'));
   };
 
   // Trackpad/mouse wheel pans; pinch or ctrl+wheel zooms around the cursor.
@@ -553,7 +559,7 @@ export function App() {
   const keyTarget = (): KeyTarget | null => {
     if (shapeEdit) {
       const sh = shapeEdit.shape, title = SHAPES.find((x) => x[0] === sh.kind)?.[1] ?? 'Shape';
-      return { pts: sh.handles, noun: 'Handle', name: (k) => `${title}, ${handleName(sh, k)}`, move: (k, p) => updateShape(moveHandle(sh, k, p)), snapshot: sh, restore: (x) => updateShape(x as Shape) };
+      return { pts: sh.handles, noun: 'Handle', name: (k) => `${title}, ${handleName(sh, k)}`, move: (k, p) => moveShapeHandle(k, p), snapshot: sh, restore: (x) => updateShape(x as Shape) };
     }
     const g = ftlGroup;
     if (g?.turns?.length && onSet > 0 && (tool === 'select' || tool === 'turn')) {
@@ -699,24 +705,30 @@ export function App() {
     if (touch) {
       touches.current.set(e.pointerId, { x: e.nativeEvent.offsetX * dpr, y: e.nativeEvent.offsetY * dpr });
       if (touches.current.size >= 2) {
-        if (!penSeen.current) cancelGesture(); // with a Pencil, fingers never started anything (and the Pencil's work stays)
-        if (!pinch.current) pinch.current = { v: view, ...fingers() };
+        if (!pinch.current) {
+          if (!penSeen.current) cancelGesture();
+          else if (drag.current?.kind === 'handle') { drag.current = null; atDown.current = null; } // keep the Pencil edit up to the pinch
+          pinch.current = { v: view, ...fingers() };
+        }
         return;
       }
       if (penSeen.current) return; // Pencil in use: one finger or a resting palm does nothing; the Pencil edits
     }
+    if (pinch.current) return;
     atDown.current = { show, selected, mark: selectedMark, shape: shapeEdit };
     const add = e.shiftKey || adding;
     if (e.button === 1 || e.button === 2) { drag.current = { kind: 'pan', x: e.clientX, y: e.clientY }; return; }
     const p = world(e);
     const grab = Math.max(HANDLE_PX * 1.5, touch ? 22 : 0) * dpr; // a handle's reach: 44px across for a finger
     if (shapeEdit) {
-      const r = grab;
-      const i = shapeEdit.shape.handles.findIndex((h) => {
+      let nearest = -1, best = Infinity;
+      shapeEdit.shape.handles.forEach((h, i) => {
         const q = toScreen(view, h);
-        return Math.abs(q.x - e.nativeEvent.offsetX * dpr) <= r && Math.abs(q.y - e.nativeEvent.offsetY * dpr) <= r;
+        const dx = q.x - e.nativeEvent.offsetX * dpr, dy = q.y - e.nativeEvent.offsetY * dpr;
+        const d = Math.hypot(dx, dy);
+        if (Math.abs(dx) <= grab && Math.abs(dy) <= grab && d < best) { nearest = i; best = d; }
       });
-      if (i >= 0) { drag.current = { kind: 'handle', i }; return; }
+      if (nearest >= 0) { drag.current = { kind: 'handle', i: nearest, pointerId: e.pointerId, start: p, at: [e.clientX, e.clientY] }; return; }
       setShapeEdit(null); // clicking elsewhere finishes the shape
     }
     // A selected FTL group's turns have handles: grab one to move that turn (in Select or Add turns).
@@ -810,7 +822,8 @@ export function App() {
     const d = drag.current;
     if (!d) return;
     // A click isn't a drag: nothing moves (or snaps to the grid) until the pointer has really traveled.
-    if ((d.kind === 'move' || d.kind === 'mark' || d.kind === 'prop') && !d.moved) {
+    if (d.kind === 'handle' && d.pointerId !== e.pointerId) return;
+    if ((d.kind === 'move' || d.kind === 'mark' || d.kind === 'prop' || d.kind === 'handle') && !d.moved) {
       if (Math.hypot(e.clientX - d.at[0], e.clientY - d.at[1]) < 4) return;
       d.moved = true;
     }
@@ -845,8 +858,8 @@ export function App() {
       setShow(() => rotateScale(d.orig, onSet, d.ids, deg, kx, ky));
       setHover(d.mode === 'rotate' ? `Rotate ${Math.abs(deg)}° ${deg > 0 ? 'counterclockwise' : deg < 0 ? 'clockwise' : ''}` : `Side to side ${Math.round(kx * 100)}% · front to back ${Math.round(ky * 100)}%`);
     } else if (d.kind === 'handle') {
-      if (!shapeEdit) return;
-      updateShape(moveHandle(shapeEdit.shape, d.i, snapTo(p, snap), e.altKey)); // Option/Alt: move this handle alone
+      const h = atDown.current?.shape?.shape.handles[d.i];
+      if (h) moveShapeHandle(d.i, snapTo({ x: h.x + p.x - d.start.x, y: h.y + p.y - d.start.y }, snap), e.altKey);
     } else {
       // Snap the grabbed performer; the rest of the selection keeps its shape.
       const a0 = d.orig[d.anchor];
@@ -867,6 +880,7 @@ export function App() {
     const finger = touches.current.has(e.pointerId);
     liftFinger(e);
     if (finger && penSeen.current) return; // fingers only pan and zoom: what's under way belongs to the Pencil
+    if (drag.current?.kind === 'handle' && drag.current.pointerId !== e.pointerId) return;
     // Apply the release point too: a fast release can arrive without a final pointermove, landing the drag short.
     if (drag.current && drag.current.kind !== 'pan') onPointerMove(e);
     atDown.current = null; // after the last move: it still needs the show from when the drag began
@@ -1091,7 +1105,9 @@ export function App() {
         onUndo={() => step('undo')} onRedo={() => step('redo')} canUndo={!!hist.past.length} canRedo={!!hist.future.length}
         sidebar={{ open: sideOpen, toggle: () => setSideChoice(!sideOpen), left: sideLeft }}
         timeline={{ open: timelineOpen, toggle: () => setTimelineOpen(!timelineOpen), top: timelineTop }}
-        shape={shapeEdit?.shape ?? null} startShape={startShape} updateShape={updateShape} endShape={() => setShapeEdit(null)} />
+        shape={shapeEdit?.shape ?? null} startShape={startShape} updateShape={updateShape} endShape={() => setShapeEdit(null)}
+        independentHandles={shapeEdit?.handleMode === 'independent'}
+        setIndependentHandles={(on) => setShapeEdit((edit) => edit?.shape.kind === 'bezier' ? { ...edit, handleMode: on ? 'independent' : 'smooth' } : edit)} />
       </header>
       <div style={{ flex: 1, display: 'flex', flexDirection: sideLeft ? 'row-reverse' : 'row', minHeight: 0, position: 'relative' }}>
       <main style={{ flex: 1, display: 'flex', flexDirection: timelineTop ? 'column-reverse' : 'column', minWidth: 0 }}>

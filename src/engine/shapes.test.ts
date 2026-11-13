@@ -176,6 +176,12 @@ describe('bezier handle dragging', () => {
     const f = moveHandle(two(), 3, { x: 16, y: 8 }, true);
     near(f.handles[2], 12, 0);
   });
+  it('smooth editing can link a corner again on the next control drag', () => {
+    const corner = moveHandle(two(), 2, { x: 16, y: -4 }, true);
+    const smoothed = moveHandle(corner, 2, { x: 16, y: -8 }, false, true);
+    near(smoothed.handles[4], 16, 4);
+    near(smoothed.handles[3], 16, 0);
+  });
   it('other shapes just move the one handle', () => {
     const s = moveHandle(S('line', [{ x: 0, y: 0 }, { x: 8, y: 0 }]), 1, { x: 8, y: 4 });
     expect(s.handles).toEqual([{ x: 0, y: 0 }, { x: 8, y: 4 }]);

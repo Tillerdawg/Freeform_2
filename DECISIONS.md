@@ -1724,3 +1724,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - Jason asked to keep the drill he mapped from the score and choose which holds to add. The preview and its wording are Codex's choices, subject to Jason's review.
 - The app used to apply timing as soon as the score and recording were paired, add holds automatically, and fill blank measure labels. We considered a single switch for all holds.
 - The preview shows the timing for each set and flags missing measures, mismatches, and gaps. Holds start unchecked and can be selected individually. Applying uses the previewed timing and adds only those holds. Existing movement lengths, set numbers, counts, and measure labels stay as written. New holds add counts to the timeline, and the preview shows the resulting arrival counts.
+
+## 2026-11-13 11:42 EST — Independent Bézier handles on iPad
+
+- Jason asked for independent handle edits with touch or Apple Pencil, a way back to smooth editing, and pinch zoom that leaves the shape in place. The control and its behavior are Codex's choices, subject to Jason's review.
+- We considered using a long press on a handle. The Shape panel instead has an **Independent handles** toggle. Turning it off leaves the curve in place. The next drag of a round handle at a joint smooths that joint. Option-drag still moves a single handle.
+- A second finger cancels an unfinished finger edit and starts the pinch. When a Pencil edit is underway, the pinch keeps the Pencil's work up to that point and stops the handle drag.
