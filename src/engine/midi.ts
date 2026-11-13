@@ -2,7 +2,7 @@
 // changes), so when the show's audio was rendered from the same MIDI, every count's time is known, nothing tapped.
 // Each set's counts are spread evenly over the measures typed in its Measures box: that one rule covers counting in
 // one, cut time, odd bars, and G.P. bars (withHolds gives bars no set covers a hold sub-set, as in Pyware).
-import { newId, subSetName, type Show } from './show';
+import { newId, subSetName, type DrillSet, type Show } from './show';
 
 export interface Midi {
   ppq: number; // ticks per quarter note
@@ -97,31 +97,49 @@ function place(m: Midi, bars: number[], n: number, bar: (k: number) => number, h
 }
 
 /**
- * Bars that no set's measures cover (a G.P. between moves, or an intro before the first move) get a hold sub-set, as
+ * Bars that no set's measures cover (a G.P. between moves, or an intro before the first move) can get a hold sub-set, as
  * a Pyware drill writer would write it: named after the set before it (after 4: 4A; after 4A, or if 4A is taken: 4B), standing on that
  * set's spots, one count per beat of those bars. No hold when the set's counts run straight on through those bars to
  * its last one (its notes start a bar late): countsFromMidi places it. The writer's counts and measures are never
- * changed (Jason: trust the drill writer). Returns the show and the names added.
+ * changed (Jason: trust the drill writer).
  */
-export function withHolds(show: Show, m: Midi): { show: Show; added: string[] } {
-  const sets = [...show.sets], added: string[] = [], names = new Set(sets.map((x) => x.name));
+export type SuggestedHold = { beforeId: string; beforeName: string; set: DrillSet };
+
+export function suggestHolds(show: Show, m: Midi): SuggestedHold[] {
+  const { sets } = show, holds: SuggestedHold[] = [], names = new Set(sets.map((x) => x.name));
   const beatsIn = (a: number, b: number) => m.measures.slice(a - 1, b - 1 + 1).reduce((sum, x) => sum + x.beats, 0);
   let end = 0; // last bar covered so far
   for (let i = 1; i < sets.length; i++) {
     const r = range(sets[i].measures);
-    if (!r || r[0] < 1 || r[1] > lastBar(m)) { end = 0; continue; } // unknown measures: don't guess a gap
+    if (!r || r[0] < 1 || r[1] < r[0] || r[1] > lastBar(m)) { end = 0; continue; } // unknown measures: don't guess a gap
     if (end && r[0] > end + 1 && sets[i].counts !== beatsIn(end + 1, r[1]) || !end && i === 1 && r[0] > 1) {
       const a = end + 1, b = r[0] - 1, before = sets[i - 1];
       const name = subSetName(names, before.name);
       names.add(name);
       const counts = beatsIn(a, b);
-      sets.splice(i, 0, { id: newId('set'), name, counts, pos: { ...before.pos }, ...(before.labels ? { labels: { ...before.labels } } : {}), ...(before.props ? { props: { ...before.props } } : {}), measures: a === b ? `${a}` : `${a}–${b}`, note: `Hold (m. ${a === b ? a : `${a}–${b}`})` });
-      added.push(name);
-      i++;
+      const measures = a === b ? `${a}` : `${a}–${b}`;
+      holds.push({ beforeId: sets[i].id, beforeName: sets[i].name, set: {
+        id: newId('set'), name, counts, pos: { ...before.pos }, ...(before.labels ? { labels: { ...before.labels } } : {}),
+        ...(before.props ? { props: { ...before.props } } : {}), measures, note: `Hold (m. ${measures})`,
+      } });
     }
     end = r[1];
   }
-  return { show: added.length ? { ...show, sets } : show, added };
+  return holds;
+}
+
+export function insertHolds(sets: DrillSet[], holds: SuggestedHold[]): DrillSet[] {
+  if (!holds.length) return sets;
+  const before = new Map(holds.map((hold) => [hold.beforeId, hold.set]));
+  return sets.flatMap((set) => {
+    const hold = before.get(set.id);
+    return hold ? [hold, set] : [set];
+  });
+}
+
+export function withHolds(show: Show, m: Midi): { show: Show; added: string[] } {
+  const holds = suggestHolds(show, m);
+  return { show: holds.length ? { ...show, sets: insertHolds(show.sets, holds) } : show, added: holds.map(({ set }) => set.name) };
 }
 
 /**
@@ -157,18 +175,19 @@ const range = (s?: string): [number, number] | null => {
  * from where the last set ended. `matched` = sets placed by their measures; `fit[i]` = set i was; `notes` = sets that
  * don't fit theirs.
  */
-export function countsFromMidi(m: Midi, sets: { name: string; counts: number; measures?: string }[]): { taps: number[]; matched: number; notes: string[]; fit: boolean[] } {
+export function countsFromMidi(m: Midi, sets: { name: string; counts: number; measures?: string }[]) {
   const ticks: number[] = [NaN], notes: string[] = [], fit = [true];
+  const issues: (string | undefined)[] = [];
   let matched = 0;
   const barOf = (t: number) => { let k = 0; while (k + 1 < m.measures.length && m.measures[k + 1].start <= t + 1e-6) k++; return k + 1; };
-  const bar = (k: number) => m.measures[k - 1]?.start ?? m.measures[m.measures.length - 1].start + (k - lastBar(m)) * beatAt(m, m.end) * 4;
+  const bar = (k: number) => m.measures[k - 1]?.start ?? m.end;
   for (let i = 1; i < sets.length; i++) {
-    const { counts: n, name } = sets[i], r = range(sets[i].measures), prev = ticks[ticks.length - 1];
+    const { counts: n, name, measures } = sets[i], r = range(measures), prev = ticks[ticks.length - 1];
     const ok = !!r && r[0] >= 1 && r[1] >= r[0] && r[1] <= lastBar(m);
     // Straight on, a count per beat, from the beat after the last set's hit (or this set's first downbeat).
     const t0 = Number.isNaN(prev) ? (ok ? bar(r![0]) : 0) : prev + beatAt(m, prev), straight: number[] = [];
     for (let j = 0, t = t0; j < n; j++, t += beatAt(m, t)) straight.push(t);
-    const lands = ok && n > 0 && barOf(straight[n - 1]) === r![1] ? straight : null;
+    const lands = ok && n > 0 && straight[n - 1] < m.end && barOf(straight[n - 1]) === r![1] ? straight : null;
     // Hit mid-bar: the last set's next count (at its own count length: a beat, or a bar when "in one") isn't a downbeat.
     const next = prev + (ticks.length > 2 ? prev - ticks[ticks.length - 2] : beatAt(m, prev));
     const midBar = !Number.isNaN(prev) && !m.measures.some((x) => Math.abs(x.start - next) < 1e-6);
@@ -191,21 +210,32 @@ export function countsFromMidi(m: Midi, sets: { name: string; counts: number; me
       if (Number.isNaN(prev)) ticks[0] = got[0] - (got.length > 1 ? got[1] - got[0] : step);
       ticks.push(...got);
       matched++;
-      if (!placed) notes.push(`Set ${name}: ${n} counts over m. ${r[0]}–${r[1]} (${all.length} bars, ${beats} beats); spread evenly, so check its measures.`);
+      if (!placed) {
+        const span = r[0] === r[1] ? `${r[0]}` : `${r[0]}–${r[1]}`;
+        issues[i] = `${n} counts over m. ${span} (${beats} ${beats === 1 ? 'beat' : 'beats'}). The preview spaces them evenly.`;
+      }
     } else {
-      if (sets[i].measures && !r) notes.push(`Set ${name}: measures "${sets[i].measures}" aren't plain numbers, so it counts plain beats.`);
-      else if (r) notes.push(`Set ${name}: m. ${sets[i].measures} doesn't follow the set before it in this MIDI, so it counts plain beats.`);
+      if (measures?.trim() && !r) issues[i] = 'Enter a measure number or range to match this set. The preview follows the beat.';
+      else if (r && !ok) issues[i] = `Check this measure range. The score has ${lastBar(m)} measures in playback order. The preview follows the beat.`;
+      else if (r) issues[i] = "These measures don't follow the preceding set. The preview follows the beat.";
+      else issues[i] = 'No measures entered. The preview follows the beat.';
       let t = Number.isNaN(prev) ? 0 : prev;
       if (Number.isNaN(prev)) { ticks[0] = 0; t = 0; } else t += beatAt(m, t);
       for (let j = 0; j < n; j++, t += beatAt(m, t)) ticks.push(t);
     }
+    if (ticks.at(-1)! >= m.end) {
+      fit[i] = false;
+      issues[i] = [issues[i], 'The last count reaches or passes the end of the score.'].filter(Boolean).join(' ');
+    }
+    if (issues[i] && measures?.trim()) notes.push(`Set ${name}: ${issues[i]}`);
   }
   if (ticks.length === 1) ticks.push(beatAt(m, 0)); // a one-set show: still two taps, so playback has a pace
   if (ticks[0] < 0) ticks[0] = 0; // count 0 before the music starts: the move into count 1 is just a little shorter
-  notes.push(...oddBars(m));
+  const scoreNotes = oddBars(m);
+  notes.push(...scoreNotes);
   const taps = ticks.map((t) => secondsAt(m, t));
   for (let i = 1; i < taps.length; i++) if (!(taps[i] > taps[i - 1])) taps[i] = taps[i - 1] + 0.001; // keep strictly increasing
-  return { taps, matched, notes, fit };
+  return { taps, matched, notes, fit, issues, scoreNotes };
 }
 
 /**

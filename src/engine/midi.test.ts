@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { countsFromMidi, fillMeasures, oddBars, parseMidi, secondsAt, withHolds } from './midi';
+import { countsFromMidi, fillMeasures, insertHolds, oddBars, parseMidi, secondsAt, suggestHolds, withHolds } from './midi';
 import { newShow } from './show';
 
 /** A one-track MIDI: 480 ticks per quarter, events as [delta, ...bytes]. */
@@ -135,5 +135,33 @@ describe('counts from a MIDI file', () => {
   });
   it('rejects files that are not MIDI', () => {
     expect(() => parseMidi(new TextEncoder().encode('hello there, not midi').buffer)).toThrow(/isn't a MIDI file/);
+  });
+  it('previews independent holds and keeps every existing set and movement intact', () => {
+    const map = parseMidi(file), base = newShow();
+    const show = { ...base, movements: [{ id: 'm', name: 'Opener', counts: 30 }], sets: [
+      base.sets[0],
+      { id: 'b', name: '2', counts: 3, measures: '2', pos: {} },
+      { id: 'c', name: '3', counts: 9, measures: '4', pos: {} },
+      { id: 'd', name: '4', counts: 2, pos: {} },
+    ] };
+    const holds = suggestHolds(show, map);
+    expect(holds.map(({ beforeId, set }) => [beforeId, set.name, set.measures, set.counts])).toEqual([['b', '1A', '1', 3], ['c', '2A', '3', 3]]);
+    expect(insertHolds(show.sets, [])).toBe(show.sets);
+    const sets = insertHolds(show.sets, [holds[1]]);
+    expect(sets.map((set) => set.name)).toEqual(['1', '2', '2A', '3', '4']);
+    expect(sets.filter((set) => set !== holds[1].set)).toEqual(show.sets);
+    expect(show.movements[0].counts).toBe(30);
+    const result = countsFromMidi(map, sets);
+    expect(result.issues[3]).toMatch(/9 counts over m/);
+    expect(result.issues[4]).toMatch(/No measures entered/);
+    expect(result.taps).toHaveLength(18);
+  });
+  it('flags an out-of-range measure and a fallback that runs beyond the score', () => {
+    const map = parseMidi(file);
+    const result = countsFromMidi(map, [
+      { name: '1', counts: 0 }, { name: '2', counts: 3, measures: '999' }, { name: '3', counts: 80 },
+    ]);
+    expect(result.issues[1]).toMatch(/Check this measure range/);
+    expect(result.issues[2]).toMatch(/past|passes the end/);
   });
 });

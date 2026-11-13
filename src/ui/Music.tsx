@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { countsFromMidi, fillMeasures, secondsAt, withHolds, type Midi } from '../engine/midi';
+import { secondsAt, type Midi } from '../engine/midi';
 import { parseScore } from '../engine/musicxml';
 import { synced } from '../engine/music';
 import { newId, showLength, type Show } from '../engine/show';
@@ -9,6 +9,7 @@ import { makeRehearsalTrack } from './rehearsalTrack';
 import { Menu } from './Toolbar';
 import { NumberField } from './NumberField';
 import { useDialog } from './useDialog';
+import { MusicSyncPreview } from './MusicSyncPreview';
 
 interface Props {
   show: Show;
@@ -19,90 +20,110 @@ interface Props {
   setUseMusic: (on: boolean) => void;
 }
 
-/**
- * The show's music in two separate steps, in either order: the score (its counts) and the recording. Whichever comes
- * second completes it. A recording alone can have its counts tapped instead.
- */
+type Score = { name: string; map: Midi };
+type PendingSync = { score: Score; audioName: string; warning?: string } & ({ blob: Blob } | { audioId: string });
+
+/** The score and recording can be loaded in either order. Pairing them opens a preview before syncing. */
 export function MusicMenu({ show, setShow, audio, onAudio, useMusic, setUseMusic }: Props) {
   const file = useRef<HTMLInputElement>(null), scoreFile = useRef<HTMLInputElement>(null);
   const [note, setNote] = useState('');
   const [tapping, setTapping] = useState(false);
-  // A score added before its recording waits here (only for this session) until the recording comes.
-  const [score, setScore] = useState<{ name: string; map: Midi } | null>(null);
-  const [playable, setPlayable] = useState<{ name: string; source: RehearsalSource; map: Midi } | null>(null);
-  const [making, setMaking] = useState<string | null>(null); // the rehearsal track's progress
+  const [score, setScore] = useState<(Score & { source?: RehearsalSource }) | null>(null);
+  const [working, setWorking] = useState('');
+  const [preview, setPreview] = useState<PendingSync | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
   const currentShow = useRef<Show | null>(show);
   useEffect(() => {
     currentShow.current = show;
     return () => { currentShow.current = null; };
   }, [show]);
   const m = show.music, total = showLength(show);
-  // Counts from the score (MuseScore, MusicXML, .mxl, or MIDI): exact when the recording was rendered from that same score.
-  const counts = (map: Midi, name: string, s: Show) => {
-    const held = withHolds(s, map), r = countsFromMidi(map, held.show.sets), sets = held.show.sets.length - 1;
-    const note = [`Counts from ${name}: ${r.matched} of ${sets} sets placed by their measures${r.matched < sets ? '; the rest count plain beats' : ''}.`,
-      ...(held.added.length ? [`Added hold set${held.added.length > 1 ? 's' : ''} ${held.added.join(', ')} for bars no set covered (undo removes ${held.added.length > 1 ? 'them' : 'it'}).`] : []),
-      ...r.notes, ...(map.warnings ?? [])];
-    const f = fillMeasures(map, r.taps, held.show.sets);
-    if (f.filled) note.push(`Filled in the measures of ${f.filled} set${f.filled > 1 ? 's' : ''} that had none.`);
-    return { sets: f.sets, taps: r.taps, note };
-  };
-  // A recording much shorter, or much longer, than the score plays is probably a different piece (or another export).
-  const pairCheck = (length: number | null, map: Midi) => {
-    const s = secondsAt(map, map.end);
-    return length !== null && (length < s - 2 || length > s + 20) ? [`Check that these go together: the recording is ${fmt(length)} but the score plays for ${fmt(s)}.`] : [];
-  };
+  const startPreview = (pending: PendingSync) => { setError(''); setPreview(pending); };
+
   const load = async (f: File) => {
-    const id = newId('a');
-    const length = await duration(f);
-    if (!(await putAudio(id, f))) { setNote("This browser wouldn't store the music (it may be out of space or in private mode)."); return; }
-    const old = show.music?.audioId;
-    if (old && old !== id) deleteAudio(old);
-    onAudio(id);
-    if (score) { // the score came first: the recording completes it, counts and all
-      const c = counts(score.map, score.name, show);
-      setShow((s) => ({ ...s, sets: c.sets, music: { name: f.name, audioId: id, taps: c.taps } }));
-      setNote([`Loaded ${f.name}.`, ...c.note, ...pairCheck(length, score.map)].join(' '));
-      setScore(null);
-      return;
-    }
-    // A different recording needs new counts; the same file again (another computer) keeps them.
-    const keep = old && show.music!.name === f.name;
-    setShow((s) => ({ ...s, music: { name: f.name, audioId: id, taps: keep ? s.music!.taps : [] } }));
-    setNote(keep ? 'Loaded. Your counts still apply.' : `Loaded ${f.name}. Now add its score, or tap the counts.`);
-  };
-  const addScore = async (f: File) => {
+    setWorking('Opening the recording…');
     try {
-      const { rehearsal: source, ...map } = await parseScore(await f.arrayBuffer());
-      setPlayable(source ? { name: f.name, source, map } : null);
-      if (!show.music) { setScore({ name: f.name, map }); setNote([`Score added: ${f.name}.`, ...(map.warnings ?? []), source ? 'Make a rehearsal track, or add the recording made from this score.' : 'Now add its recording (mp3).'].join(' ')); return; }
-      const c = counts(map, f.name, show);
-      setShow((s) => (s.music ? { ...s, sets: c.sets, music: { ...s.music, taps: c.taps } } : s));
-      setNote([...c.note, ...pairCheck(audio && Number.isFinite(audio.duration) ? audio.duration : null, map)].join(' '));
-    } catch (e) { setNote(e instanceof Error ? e.message : "That score file couldn't be read."); }
-  };
-  // The count map and the rendered notes follow the same score timing.
-  const makeTrack = async () => {
-    if (!playable || making) return;
-    const pct = (f: number) => `${Math.round(f * 100)}%`;
-    try {
-      setNote('');
-      const blob = await makeRehearsalTrack(playable.source, playable.map, (step, f) => setMaking(step === 'instruments' ? `Getting the instrument sounds… ${pct(f)}` : step === 'playing' ? `Playing the score… ${pct(f)}` : 'Saving the track…'));
+      if (score) {
+        const length = await duration(f);
+        if (currentShow.current) startPreview({ score, audioName: f.name, blob: f, warning: pairWarning(length, score.map) });
+        return;
+      }
       const id = newId('a');
-      if (!(await putAudio(id, blob))) throw new Error("This browser wouldn't store the rehearsal track (it may be out of space or in private mode).");
+      if (!(await putAudio(id, f))) { setNote(storageError); return; }
       const active = currentShow.current;
       if (!active) { deleteAudio(id); return; }
-      const old = active.music?.audioId;
-      const c = counts(playable.map, playable.name, active);
-      setShow((s) => s.id === active.id ? { ...s, sets: c.sets, music: { name: rehearsalName(playable.name), audioId: id, taps: c.taps } } : s);
-      if (old) deleteAudio(old);
+      // Reopening the same recording on another computer keeps its timings.
+      const keep = active.music?.name === f.name;
+      setShow((s) => ({ ...s, music: { name: f.name, audioId: id, taps: keep ? s.music?.taps ?? [] : [] } }));
       onAudio(id);
-      setNote([`Made a rehearsal track from ${playable.name}.`, ...c.note].join(' '));
-      setScore(null);
+      setNote(keep ? 'Loaded. Your counts still apply.' : `Loaded ${f.name}. Now add its score, or tap the counts.`);
+    } finally {
+      setWorking('');
+    }
+  };
+
+  const addScore = async (f: File) => {
+    setWorking('Reading the score…');
+    try {
+      const { rehearsal: source, ...map } = await parseScore(await f.arrayBuffer());
+      const active = currentShow.current;
+      if (!active) return;
+      const next = { name: f.name, map, source };
+      setScore(next);
+      if (active.music && audio) {
+        startPreview({ score: next, audioName: active.music.name, audioId: active.music.audioId, warning: pairWarning(audio.duration, map) });
+      } else {
+        setNote([`Score added: ${f.name}.`, ...(map.warnings ?? []), source ? 'Make a rehearsal track, or add the recording made from this score.' : 'Now add its recording (mp3).'].join(' '));
+      }
+    } catch (e) {
+      setNote(e instanceof Error ? e.message : "That score file couldn't be read.");
+    } finally {
+      setWorking('');
+    }
+  };
+
+  const makeTrack = async () => {
+    if (!score?.source || working) return;
+    setWorking('Getting the instrument sounds…');
+    try {
+      setNote('');
+      const blob = await makeRehearsalTrack(score.source, score.map, (step, f) => {
+        const pct = `${Math.round(f * 100)}%`;
+        setWorking(step === 'instruments' ? `Getting the instrument sounds… ${pct}` : step === 'playing' ? `Playing the score… ${pct}` : 'Preparing the track…');
+      });
+      if (currentShow.current) startPreview({ score, audioName: rehearsalName(score.name), blob });
     } catch (e) {
       setNote(e instanceof Error ? e.message : "The rehearsal track couldn't be made.");
     } finally {
-      setMaking(null);
+      setWorking('');
+    }
+  };
+
+  const apply = async ({ sets, taps }: { sets: Show['sets']; taps: number[] }) => {
+    if (!preview || saving) return;
+    const active = currentShow.current;
+    if (!active) return;
+    setSaving(true);
+    setError('');
+    try {
+      const audioId = 'audioId' in preview ? preview.audioId : newId('a');
+      if ('blob' in preview && !(await putAudio(audioId, preview.blob))) {
+        setError(storageError);
+        return;
+      }
+      if (currentShow.current !== active || ('audioId' in preview && active.music?.audioId !== audioId)) {
+        if ('blob' in preview) deleteAudio(audioId);
+        setError('The show changed while applying the sync. Review it again or reopen the preview.');
+        return;
+      }
+      // Keep the earlier audio available to Undo and earlier versions.
+      setShow((s) => ({ ...s, sets, music: { name: preview.audioName, audioId, taps } }));
+      if ('blob' in preview) onAudio(audioId);
+      setNote(`Music sync applied from ${preview.score.name}.`);
+      setPreview(null);
+    } finally {
+      setSaving(false);
     }
   };
   const rehearsal = !!m && isRehearsal(m.name);
@@ -116,20 +137,23 @@ export function MusicMenu({ show, setShow, audio, onAudio, useMusic, setUseMusic
           {m && <p style={{ margin: 0, fontSize: 12 }}><strong>{m.name}</strong><br />
             {m.taps.length ? `${m.taps.length} of ${total + 1} counts placed${m.taps.length < total + 1 ? '; later counts keep the last pace' : ''}.` : 'No counts yet: add the score, or tap them.'}</p>}
           {m && !audio && <p role="alert" style={{ margin: 0, fontSize: 12, color: 'var(--warn)' }}>{rehearsal ? "The rehearsal track isn't in this browser. Add the score again and make the track to hear it." : `The recording isn't in this browser. Add ${m.name} again to hear it.`}</p>}
-          <button disabled={!!making} onClick={() => scoreFile.current?.click()} title="MuseScore (.mscz), MusicXML (exported from Finale, Sibelius, or Dorico), .mxl, or MIDI. Each set's counts are placed in the measures typed for it.">
+          <button disabled={!!working} onClick={() => scoreFile.current?.click()} title="MuseScore (.mscz), MusicXML (exported from Finale, Sibelius, or Dorico), .mxl, or MIDI. Each set's counts are placed in the measures typed for it.">
             {done(!!score)}{score ? `Score: ${score.name}` : m?.taps.length ? 'Add the score again…' : 'Add the score…'}</button>
-          <button disabled={!!making} onClick={() => file.current?.click()}>{done(!!m && !!audio && !rehearsal)}{rehearsal ? 'Use a real recording instead…' : m ? 'Replace the recording…' : 'Add the recording (mp3)…'}</button>
-          {playable && <button disabled={!!making} onClick={makeTrack} title="FreeFORM plays the score with General MIDI instruments. The counts follow the same repeats, endings, and tempos.">
+          <button disabled={!!working} onClick={() => file.current?.click()}>{done(!!m && !!audio && !rehearsal)}{rehearsal ? 'Use a real recording instead…' : m ? 'Replace the recording…' : 'Add the recording (mp3)…'}</button>
+          {score?.source && <button disabled={!!working} onClick={makeTrack} title="FreeFORM plays the score with General MIDI instruments. The counts follow the same repeats, endings, and tempos.">
             {done(rehearsal && !!audio)}{rehearsal ? 'Make the rehearsal track again' : m ? 'Use a rehearsal track instead' : 'Make a rehearsal track'}</button>}
-          {making && <p role="status" aria-live="polite" style={{ margin: 0, fontSize: 12 }}>{making}</p>}
-          {m && <button disabled={!audio} onClick={() => { setTapping(true); close(); }}>Tap counts…</button>}
+          {working && <p role="status" aria-live="polite" style={{ margin: 0, fontSize: 12 }}>{working}</p>}
+          {m && audio && score && <button disabled={!!working} onClick={() => startPreview({ score, audioName: m.name, audioId: m.audioId, warning: pairWarning(audio.duration, score.map) })}>Preview music sync…</button>}
+          {m && <button disabled={!audio || !!working} onClick={() => { setTapping(true); close(); }}>Tap counts…</button>}
           {m && synced(m) && <label style={{ fontSize: 13 }}><input type="checkbox" checked={useMusic} onChange={(e) => setUseMusic(e.target.checked)} /> Play with music (off: use Tempo)</label>}
-          {m && <button disabled={!!making} className="danger" onClick={() => { deleteAudio(m.audioId); setShow((s) => { const { music: _, ...rest } = s; return rest; }); setNote(''); }}>Remove music</button>}
+          {m && <button disabled={!!working} className="danger" onClick={() => { deleteAudio(m.audioId); setShow((s) => { const { music: _, ...rest } = s; return rest; }); setNote(''); }}>Remove music</button>}
           {note && <p role="status" style={{ margin: 0, fontSize: 12, maxWidth: 320 }}>{note}</p>}
         </>}
       </Menu>
       <input ref={file} type="file" accept="audio/*,.mp3,.m4a,.wav,.aac" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) load(f); e.target.value = ''; }} />
       <input ref={scoreFile} type="file" accept=".mscz,.mscx,.mid,.midi,audio/midi,.musicxml,.xml,.mxl,application/vnd.recordare.musicxml+xml,application/vnd.recordare.musicxml" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) addScore(f); e.target.value = ''; }} />
+      {preview && <MusicSyncPreview show={show} map={preview.score.map} scoreName={preview.score.name} audioName={preview.audioName} warning={preview.warning}
+        saving={saving} error={error} onApply={apply} onCancel={() => setPreview(null)} />}
       {tapping && audio && m && <TapDialog audio={audio} total={total} kept={m.taps} onDone={(taps) => { setTapping(false); if (taps) setShow((s) => (s.music ? { ...s, music: { ...s.music, taps } } : s)); }} />}
     </>
   );
@@ -215,3 +239,13 @@ const rehearsalName = (score: string) => `Rehearsal track (${score})`;
 /** A rehearsal track keeps its score's name in the show's music name (no new field in the show file). */
 const isRehearsal = (name: string) => name.startsWith('Rehearsal track (');
 const fmt = (s: number) => { const r = Math.round(s); return `${Math.floor(r / 60)}:${String(r % 60).padStart(2, "0")}`; };
+
+const storageError = "This browser wouldn't store the music (it may be out of space or in private mode).";
+
+/** Warn when the lengths suggest that the recording and score are different exports. */
+function pairWarning(length: number | null, map: Midi): string | undefined {
+  const scoreLength = secondsAt(map, map.end);
+  if (length !== null && Number.isFinite(length) && (length < scoreLength - 2 || length > scoreLength + 20)) {
+    return `Check that these go together. The recording is ${fmt(length)} and the score plays for ${fmt(scoreLength)}.`;
+  }
+}
