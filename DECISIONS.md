@@ -1742,3 +1742,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - Jason asked to see the field and step through the sets of an earlier version before choosing whether to restore. The preview controls are Codex's choices, subject to Jason's review.
 - The list used to offer Restore next to each timestamp. We considered opening the full editor temporarily. The list now opens a preview inside the same dialog, using the saved version's field, performers, props, and marks.
 - Previous set, Next set, and the set menu browse the saved formations. Back to versions returns to the list. Restore keeps a copy of the current show before applying the previewed version as an undoable edit.
+
+## 2026-11-13 15:27 EST — Backup due in Shows
+
+- Jason asked for a **Backup due** label on each qualifying show, including closed shows. The label placement is Codex's choice, subject to Jason's review.
+- The editor already tracks when each show first changed after its last file save. The library uses that timestamp and the editor's one-week rule. We considered using the library's most recent edit date, which would keep pushing the reminder back as a show is edited.
+- **Later** still snoozes the field reminder for a day. The library label reports which shows need a file copy and clears on a file save. A new duplicate or a rename made while a show is closed starts tracking changes for that show.
