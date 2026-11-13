@@ -1069,6 +1069,7 @@ export function App() {
               <button className="primary" onClick={() => { close(); window.open('https://ko-fi.com/tillerdawg', '_blank', 'noopener'); }} title="FreeFORM is free and always will be. A tip on Ko-fi helps with hosting (opens in a new tab)">Support FreeFORM</button>
               <button className="primary" onClick={() => { close(); window.open('../', '_blank', 'noopener'); }} title="FreeFORM Drill's front page: what it is, privacy, and coming from Pyware (opens in a new tab)">About FreeFORM Drill</button>
               <button className="primary" onClick={() => { close(); window.open('https://github.com/Tillerdawg/freeform-drill', '_blank', 'noopener'); }} title="FreeFORM Drill is open source: browse the code, the plan, and the decisions behind it on GitHub (opens in a new tab)">See the code on GitHub</button>
+              <button className="primary" onClick={() => { close(); window.open('../licenses.txt', '_blank', 'noopener'); }} title="The open-source work FreeFORM Drill is built with, and each one's license (opens in a new tab)">Open-source credits</button>
             </div>
           )}</Menu>
         </span>

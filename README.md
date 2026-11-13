@@ -73,7 +73,7 @@ A note on where the ideas came from: FreeFORM is modeled on Pyware and the Ultim
 - **Help → Get a show back**: what happened (a mistake, an earlier version, a missing show, a new computer, or something else, where a phone link brings it back) and the button that fixes it.
 - Shape handles you can move with the keyboard: Tab steps through them, arrows move them.
 - Import Pyware 3D (`.3dj`) shows, tested with files from 2008 to 2010.
-- **Help → Send feedback**: a short form that comes straight to me, with no account needed. Help also has **Support FreeFORM** (a tip jar on Ko-fi), **About FreeFORM Drill** (the front page), and **See the code on GitHub**.
+- **Help → Send feedback**: a short form that comes straight to me, with no account needed. Help also has **Support FreeFORM** (a tip jar on Ko-fi), **About FreeFORM Drill** (the front page), **See the code on GitHub**, and **Open-source credits** (every library FreeFORM ships, with its license).
 
 It runs on a current Chrome, Edge, Firefox, or Safari, and on iPadOS/iOS 16.4 or later. Write drill on a computer or an iPad (hide the timeline and sidebar for more field). Phones get only the performer view.
 
@@ -132,7 +132,7 @@ Every design decision is logged in [DECISIONS.md](DECISIONS.md): when, who made 
 
 ### Clean room
 
-FreeFORM is written from scratch. I studied Pyware and UDB only through how they behave and what their documentation says, never by decompiling them, and there's no third-party code or show file in this repo. The libraries FreeFORM uses come from npm (`package.json`). The one outside file in the repo is the rehearsal track's instrument sounds, [GeneralUser GS](https://www.schristiancollins.com/generaluser.php) by S. Christian Collins, in `public/sounds/` with its license.
+FreeFORM is written from scratch. I studied Pyware and UDB only through how they behave and what their documentation says, never by decompiling them, and there's no third-party code or show file in this repo. The libraries FreeFORM uses come from npm (`package.json`), and the build lists each one with its license in `licenses.txt` (**Help → Open-source credits**). The one outside file in the repo is the rehearsal track's instrument sounds, [GeneralUser GS](https://www.schristiancollins.com/generaluser.php) by S. Christian Collins, in `public/sounds/` with its license.
 
 ## Supporting FreeFORM Drill
 
