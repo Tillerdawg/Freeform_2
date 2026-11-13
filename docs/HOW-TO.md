@@ -376,10 +376,10 @@ The play controls are at the left end of the timeline: back to the start, back o
 
 FreeFORM can play your drill along with the recording, so the moves line up with the music the way they will on the field.
 
-**The easy way, with MuseScore:**
+**The easy way, from your notation program:**
 
-1. In MuseScore, export the score as audio (mp3).
-2. In FreeFORM, open **Music** (beside Tempo) and click **Add the score (MuseScore)…**. Choose the `.mscz` file (MusicXML, `.mxl`, and MIDI work too).
+1. In your notation program, export the score as audio (mp3).
+2. In FreeFORM, open **Music** (beside Tempo) and click **Add the score…**. From MuseScore, choose the `.mscz` file. From Finale, Sibelius, or Dorico, export the score as MusicXML first and choose that (`.musicxml`, `.xml`, or `.mxl`). MIDI works too.
 3. Click **Add the recording (mp3)…** and choose the mp3 you exported.
 
 You can do steps 2 and 3 in either order. Once both are in, FreeFORM takes the time of every count from the score, including meter changes, tempo marks, and fermatas, and places each set's counts in the measures you typed for it. It warns you if the recording's length doesn't match the score (usually a sign you picked the wrong file). Bars that no set covers, like a G.P. or an intro, get a hold sub-set (4A) so everyone stands still through them.
