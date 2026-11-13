@@ -1730,3 +1730,9 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - Jason asked for independent handle edits with touch or Apple Pencil, a way back to smooth editing, and pinch zoom that leaves the shape in place. The control and its behavior are Codex's choices, subject to Jason's review.
 - We considered using a long press on a handle. The Shape panel instead has an **Independent handles** toggle. Turning it off leaves the curve in place. The next drag of a round handle at a joint smooths that joint. Option-drag still moves a single handle.
 - A second finger cancels an unfinished finger edit and starts the pinch. When a Pencil edit is underway, the pinch keeps the Pencil's work up to that point and stops the handle drag.
+
+## 2026-11-13 12:17 EST — Preview earlier versions before restoring
+
+- Jason asked to see the field and step through the sets of an earlier version before choosing whether to restore. The preview controls are Codex's choices, subject to Jason's review.
+- The list used to offer Restore next to each timestamp. We considered opening the full editor temporarily. The list now opens a preview inside the same dialog, using the saved version's field, performers, props, and marks.
+- Previous set, Next set, and the set menu browse the saved formations. Back to versions returns to the list. Restore keeps a copy of the current show before applying the previewed version as an undoable edit.

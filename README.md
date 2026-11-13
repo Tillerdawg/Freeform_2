@@ -65,7 +65,7 @@ A note on where the ideas came from: FreeFORM is modeled on Pyware and the Ultim
 **Files**
 - Autosave in your browser, plus **Save** (to any folder you choose, where the browser allows it) and import of `.freeform` files. FreeFORM says so if the browser can't autosave. A box at the bottom of the sidebar says whether the show is saved in the browser, in a file, and on phones (a line each: "Browser ✓", "File: 2:14 PM", "Phones: rev 6"), with Save and Publish a click away.
 - Several shows in one browser (Opener, Ballad, Closer) under **Shows…**: open, rename, duplicate, or delete them, each with its own recording and tracing picture.
-- Earlier versions of each show, kept as you work, to look back at and restore.
+- Earlier versions of each show, kept as you work. Preview the field set by set before restoring.
 - A warning when the same show is changed in two tabs, instead of one quietly saving over the other.
 - **Full backup…**: a show file that also holds the recording and tracing picture, to move a show to another computer complete.
 - A sample show to look around in before you write your own, and a practice show: the same drill with three problems to find and fix in Review, each explained in its notes.
