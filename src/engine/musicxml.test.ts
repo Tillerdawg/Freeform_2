@@ -1,6 +1,11 @@
+// @ts-expect-error: only the tests run in Node
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { countsFromMidi, secondsAt } from './midi';
+import { BasicMIDI, MIDIMessageTypes } from 'spessasynth_core';
+import { countsFromMidi, parseMidi, secondsAt } from './midi';
 import { parseMscx, parseMusicXml, parseScore, parseXml } from './musicxml';
+import { renderMidi } from './rehearsal';
+import { scoreMidi } from './scoreMidi';
 
 // Two parts, divisions 2 (eighths). m. 1: a one-beat pickup in 3/4 (implicit). m. 2: 3/4 at ♩=120 (a metronome mark).
 // m. 3: everyone rests. m. 4: 4/4, <sound tempo="60">, a half note with a fermata in part 1 while part 2 moves on beat 2.
@@ -109,6 +114,78 @@ describe('counts from a MuseScore file', () => {
   it('opens a .mscz (a zip) and rejects scores from before MuseScore 3', async () => {
     expect((await parseScore(await zip({ 'score.mscx': mscx, 'Excerpts/part.mscx': '<museScore version="4.70"/>' }))).measures).toHaveLength(4);
     expect(() => parseMscx('<museScore version="2.06"><Score/></museScore>')).toThrow(/older version/);
+  });
+});
+
+describe('MusicXML rehearsal tracks', () => {
+  const pitch = (step: string, length: number, extra = '') =>
+    `<note>${extra}<pitch><step>${step}</step><octave>4</octave></pitch><duration>${length}</duration></note>`;
+  const repeated = `<score-partwise><part-list><score-part id="P1">
+    <score-instrument id="trumpet"/><midi-instrument id="trumpet"><midi-program>57</midi-program></midi-instrument>
+  </score-part></part-list><part id="P1">
+    <measure number="1"><attributes><divisions>4</divisions><transpose><chromatic>-2</chromatic></transpose></attributes>
+      <barline location="left"><repeat direction="forward"/></barline><sound tempo="120"/>${rest(4)}${pitch('C', 1)}${rest(11)}
+    </measure>
+    <measure number="2"><barline location="left"><ending type="start" number="1"/></barline>
+      <sound tempo="60"/>${pitch('E', 1)}${rest(15)}
+      <barline location="right"><ending type="stop" number="1"/><repeat direction="backward"/></barline>
+    </measure>
+    <measure number="3"><barline location="left"><ending type="start" number="2"/></barline>
+      <sound tempo="90"/>${pitch('G', 1)}${rest(15)}
+      <barline location="right"><ending type="stop" number="2"/></barline>
+    </measure></part></score-partwise>`;
+
+  it('keeps the rendered entrances aligned with drill counts on both passes and in each ending', async () => {
+    const xmlFile = new TextEncoder().encode(repeated).buffer;
+    const mxlFile = await zip({
+      'META-INF/container.xml': '<container><rootfiles><rootfile full-path="scores/repeat.musicxml"/></rootfiles></container>',
+      'scores/repeat.musicxml': repeated,
+    });
+    const plain = await parseScore(xmlFile);
+    const compressed = await parseScore(mxlFile);
+    expect(compressed).toEqual(plain);
+    const { rehearsal, ...map } = compressed;
+    if (!rehearsal || rehearsal instanceof ArrayBuffer) throw new Error('Expected MusicXML rehearsal notes.');
+    expect(rehearsal.order).toEqual([0, 1, 0, 2]);
+    const bytes = scoreMidi(rehearsal, map);
+    const midi = BasicMIDI.fromArrayBuffer(bytes);
+    const events = midi.tracks.flatMap((track) => track.events);
+    expect(events.filter((e) => e.statusByte === MIDIMessageTypes.programChange).map((e) => e.data[0])).toEqual([56]);
+    const noteOns = events.filter((e) => e.statusByte === MIDIMessageTypes.noteOn);
+    expect(noteOns.map((e) => e.data[0])).toEqual([58, 62, 58, 65]);
+    const counts = countsFromMidi(map, [{ name: '1', counts: 0 }, { name: '2', counts: 16, measures: '1–4' }]);
+    expect(counts.matched).toBe(1);
+    const entrances = [2, 5, 10, 13].map((count) => counts.taps[count]);
+    expect(entrances).toEqual([0.5, 2, 6.5, 8]);
+    const midiMap = parseMidi(bytes);
+    expect(noteOns.map((e) => secondsAt(midiMap, e.ticks))).toEqual(entrances);
+
+    const file: Uint8Array = readFileSync(new URL('../../public/sounds/GeneralUser-GS.sf3', import.meta.url));
+    const bank = file.buffer.slice(file.byteOffset, file.byteOffset + file.byteLength) as ArrayBuffer;
+    const audio = await renderMidi(bank, bytes);
+    const sample = (s: number) => Math.round(s * audio.sampleRate);
+    for (const at of entrances) {
+      const first = audio.left.findIndex((x, i) => i >= sample(at - 0.06) && (Math.abs(x) > 0.01 || Math.abs(audio.right[i]) > 0.01));
+      expect(first / audio.sampleRate).toBeGreaterThanOrEqual(at - 0.003);
+      expect(first / audio.sampleRate).toBeLessThan(at + 0.04);
+    }
+    expect(audio.left.length / audio.sampleRate).toBeCloseTo(secondsAt(map, map.end) + 2, 3);
+  });
+
+  it('uses chord and voice positions, carries ties, and maps unpitched instruments to MIDI drums', async () => {
+    const xml = `<score-partwise><part-list><score-part id="P1"><midi-instrument id="snare"><midi-unpitched>39</midi-unpitched></midi-instrument></score-part></part-list>
+      <part id="P1"><measure><attributes><divisions>2</divisions></attributes>
+        ${pitch('C', 2, '<tie type="start"/>')}${pitch('G', 2, '<chord/>')}
+        <backup><duration>2</duration></backup><note><unpitched/><duration>1</duration><instrument id="snare"/><voice>2</voice></note>
+      </measure><measure>${pitch('C', 2, '<tie type="stop"/>')}<note><cue/><pitch><step>B</step><octave>4</octave></pitch><duration>2</duration></note></measure></part></score-partwise>`;
+    const { rehearsal, ...map } = await parseScore(new TextEncoder().encode(xml).buffer);
+    if (!rehearsal || rehearsal instanceof ArrayBuffer) throw new Error('Expected MusicXML rehearsal notes.');
+    const midi = BasicMIDI.fromArrayBuffer(scoreMidi(rehearsal, map));
+    const events = midi.tracks.flatMap((track) => track.events);
+    const notes = events.filter((e) => (e.statusByte & 0xf0) === MIDIMessageTypes.noteOn);
+    expect(notes.map((e) => [e.ticks, e.statusByte & 15, e.data[0]])).toEqual([[0, 0, 60], [0, 0, 67], [0, 9, 38]]);
+    const release = events.find((e) => e.statusByte === MIDIMessageTypes.noteOff && e.data[0] === 60);
+    expect(release?.ticks).toBe(960);
   });
 });
 

@@ -1170,7 +1170,7 @@ export function App() {
         <section aria-label="Timeline" style={timelineOpen ? { [timelineTop ? 'borderBottom' : 'borderTop']: '1px solid var(--line)' } : { display: 'none' }}>
         <Timeline click={{ on: clickOn, set: (on) => { setClickOn(on); setClickWanted(on); if (on) wakeClick(); } }} wave={wave && show.music && show.music.taps.length >= 2 ? { peaks: wave, taps: show.music.taps } : undefined} show={show} setShow={setShow} t={t} setT={(x) => { setPlaying(false); setT(x); }} playing={playing} setPlaying={setPlaying} bpm={bpm} setBpm={setBpm}
           range={range} setRange={setRange} span={span} onCloseCall={showCloseCall} onOverLimit={showOverLimit}
-          music={<MusicMenu show={show} setShow={setShow} audio={audio} onAudio={() => setAudioTick((n) => n + 1)} useMusic={useMusic} setUseMusic={setUseMusic} />} />
+          music={<MusicMenu key={show.id} show={show} setShow={setShow} audio={audio} onAudio={() => setAudioTick((n) => n + 1)} useMusic={useMusic} setUseMusic={setUseMusic} />} />
         </section>
       </main>
       {/* Hidden, not unmounted: open panels and drafts survive closing it. */}
