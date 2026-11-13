@@ -50,7 +50,7 @@ A note on where the ideas came from: FreeFORM is modeled on Pyware and the Ultim
 **Timing and music**
 - A timeline you can scrub count by count, play at any tempo (with a click if you like, on the computer or the phone), or loop over a range of sets.
 - Lay out a show by counts first (one movement per tune), then add sets at any count.
-- Sync to a recording: take every count's timing from the score (MuseScore, MusicXML from Finale, Sibelius, or Dorico, or MIDI), with repeats and endings played out, or tap the counts along with any mp3.
+- Sync to a recording: take every count's timing from the score (MuseScore, MusicXML from Finale, Sibelius, or Dorico, or MIDI), with repeats and endings played out, or tap the counts along with any mp3. No recording yet? Make a rehearsal track: FreeFORM plays a MIDI score itself.
 
 **Getting it to the band**
 - Dot sheets (four cards per page, one per page with a notes column, or one per page with a small field picture for each set, like a dot book) and drill charts (one per set, with or without the paths into it), printed or saved as PDF, for the whole show or a range of sets.
@@ -111,7 +111,7 @@ node scripts/screenshots.mjs ftl print    # or just these
 |---|---|
 | `src/engine/` | The drill logic, with no UI: coordinates and readouts, the show model, shapes, markup, undo, which versions to keep, music timing, share links and locked files, QR codes, the Pyware reader, and the whole-show Review. Unit-tested. |
 | `src/field/` | Drawing the field, performers, shapes, and markup, plus dot-label placement and the rotate/stretch frame |
-| `src/ui/` | The toolbar, sidebar, the New show box and the field menu it shares (`FieldPicker.tsx`), timeline, Review list, music menu, show list, color palette, the keyboard handling every dialog shares (`useDialog`), where the sidebar and timeline sit (`layout.ts`), and browser storage (`audioStore.ts`, `showStore.ts`: recordings, pictures, the show library, and versions in IndexedDB) |
+| `src/ui/` | The toolbar, sidebar, the New show box and the field menu it shares (`FieldPicker.tsx`), timeline, Review list, music menu (with the rehearsal track's worker, `rehearsalWorker.ts`), show list, color palette, the keyboard handling every dialog shares (`useDialog`), where the sidebar and timeline sit (`layout.ts`), and browser storage (`audioStore.ts`, `showStore.ts`: recordings, pictures, the show library, and versions in IndexedDB) |
 | `src/print/` | Dot sheets and drill charts |
 | `src/perform/` | The performer view, the Share dialog (with saving its QR code as a picture), and the QR scanner |
 | `index.html`, `app/index.html` | The front page (freeformdrill.org) and the app (freeformdrill.org/app/), which old links (`/#show=…`) are forwarded to |
@@ -119,7 +119,7 @@ node scripts/screenshots.mjs ftl print    # or just these
 | `src/i18n/` | The Spanish for the phone's performer view: `tr('English text')` looks it up in `es.ts`, and a test fails if one is missing |
 | `src/guide/` | Turns `docs/HOW-TO.md` into the guide page on the site (`/guide/`) when the site is built |
 | `services/api/` | FreeFORM's small web service on Cloudflare (api.freeformdrill.org): the feedback form (emailed to Jason) and published shows (encrypted files only, in Workers KV, cleaned up after a year unused). Deploy steps in its README |
-| `public/` | App icons, logos, the link-preview image, the manifest, and the offline service worker (it keeps what the build lists in `precache.json`) |
+| `public/` | App icons, logos, the link-preview image, the manifest, the offline service worker (it keeps what the build lists in `precache.json`), and the rehearsal track's instrument sounds (`sounds/`, fetched only when someone makes a track) |
 | `docs/` | The How-to guide and its screenshots (the only copy: the site's guide page is made from it), and the student guide in English and Spanish (`STUDENTS.md`, `STUDENTS.es.md`, the site's /students/ pages) |
 | `scripts/` | The screenshot script |
 | `brand/` | Logo files, colors, and rules ([brand/README.md](brand/README.md)) |
@@ -132,7 +132,7 @@ Every design decision is logged in [DECISIONS.md](DECISIONS.md): when, who made 
 
 ### Clean room
 
-FreeFORM is written from scratch. I studied Pyware and UDB only through how they behave and what their documentation says, never by decompiling them, and there's no third-party code or show file in this repo.
+FreeFORM is written from scratch. I studied Pyware and UDB only through how they behave and what their documentation says, never by decompiling them, and there's no third-party code or show file in this repo. The libraries FreeFORM uses come from npm (`package.json`). The one outside file in the repo is the rehearsal track's instrument sounds, [GeneralUser GS](https://www.schristiancollins.com/generaluser.php) by S. Christian Collins, in `public/sounds/` with its license.
 
 ## Supporting FreeFORM Drill
 

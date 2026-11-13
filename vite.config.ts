@@ -41,7 +41,8 @@ const precache: Plugin = {
   name: 'precache',
   generateBundle(_, bundle) {
     const built = Object.keys(bundle).filter((f) => f.startsWith('assets/') && !f.endsWith('.png')); // not the front page's screenshots
-    const pub = readdirSync('public').filter((f) => f !== 'sw.js' && f !== 'og-image.png' && !f.startsWith('.'));
+    // Not the rehearsal track's sound library (sounds/, 7 MB): it's fetched the first time someone makes a track, then cached.
+    const pub = readdirSync('public').filter((f) => f !== 'sw.js' && f !== 'og-image.png' && f !== 'sounds' && !f.startsWith('.'));
     this.emitFile({ type: 'asset', fileName: 'precache.json', source: JSON.stringify(['./', 'app/', 'students/', 'es/students/', ...pub, ...built]) });
   },
 };

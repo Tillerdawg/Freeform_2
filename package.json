@@ -24,6 +24,7 @@
     "mediabunny": "1.62.1",
     "qrcode-generator": "^2.0.4",
     "react": "^19.3.1",
-    "react-dom": "^19.3.1"
+    "react-dom": "^19.3.1",
+    "spessasynth_core": "4.4.10"
   }
 }
