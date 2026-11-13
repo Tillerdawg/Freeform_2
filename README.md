@@ -33,7 +33,7 @@ A note on where the ideas came from: FreeFORM is modeled on Pyware and the Ultim
 - A football field with high school, college/DCI, or NFL hashes and an 8-to-5 grid, seen from the press box (Side 1 on the left), or a basketball court or custom floor for indoor shows, picked when you start the show.
 - Coordinates in standard drill language, like "2 steps outside the Side 2 45, 2 steps in front of Front Hash."
 - Sections with letters and colors, a roster of names (paste it from a spreadsheet), and labels that stay out of each other's way.
-- Shapes: line, arc, curve, Bézier, circle, polygon, star, spiral, block, and letters (spell a word). A picture under the field to trace. FreeFORM assigns spots by least total travel, so paths don't cross.
+- Shapes: line, arc, curve, Bézier, circle, polygon, star, spiral, block, and letters (spell a word). Edit Bézier handles independently with touch or Apple Pencil. A picture under the field to trace. FreeFORM assigns spots by least total travel, so paths don't cross.
 - Rotate and stretch a group by dragging handles on the field, or turn it around one performer for a gate turn. Flip across the 50 or front to back, or copy one side to the other.
 - Paths: straight, follow the leader (with turns or a smooth curve, and counter-marches), or a custom path for one performer.
 - Delayed step-offs (hold 4, move 12) and turning moves, where a rotating group marches arcs instead of straight lines.

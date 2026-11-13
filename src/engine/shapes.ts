@@ -371,8 +371,9 @@ function smoothAt(h: Point[], k: number): boolean {
 /**
  * Move handle k to p. For a Bézier (unless `free`, i.e. Option/Alt held): a smooth joint stays smooth (the other
  * control swings to stay opposite, keeping its own length), and an anchor carries its two controls with it.
+ * An explicit return to smooth editing also links a corner when one of its controls is dragged.
  */
-export function moveHandle(s: Shape, k: number, p: Point, free = false): Shape {
+export function moveHandle(s: Shape, k: number, p: Point, free = false, link = false): Shape {
   const h = [...s.handles];
   if (s.kind === 'star') { // the inside-corner handle only sets a distance; it stays on its corner as the star turns
     const r = distance(k === 2 ? p : s.handles[2], s.handles[0]); // moving the center or the point keeps the inside depth
@@ -387,7 +388,7 @@ export function moveHandle(s: Shape, k: number, p: Point, free = false): Shape {
     return { ...s, handles: h };
   }
   const anchor = k % 3 === 1 ? k - 1 : k + 1, partner = k % 3 === 1 ? k - 2 : k + 2;
-  const keep = h[partner] && smoothAt(h, anchor);
+  const keep = h[partner] && (link || smoothAt(h, anchor));
   h[k] = p;
   if (keep) {
     const a = h[anchor], len = Math.hypot(h[partner].x - a.x, h[partner].y - a.y);

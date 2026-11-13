@@ -201,7 +201,11 @@ The timeline then runs the full length, with the part you haven't written yet st
 
 **Moving handles with the keyboard.** With a shape open, press Tab (click the field first if a button has focus) to step to its first handle: a gold ring goes around it, and a note at the bottom of the field names it and says where it is, like "Arc, middle: 2 steps inside the Side 1 45, 3 steps in front of Back Hash." Tab goes to the next handle and Shift+Tab to the one before. The arrow keys move the handle 1 step (Shift for 4 steps, Option or Alt for half a step), Enter keeps it where it is, and Esc puts it back where it was when you picked it. Tab past the last handle goes on to the rest of the page as usual.
 
-FreeFORM decides who goes to which spot by keeping total travel from the previous set as short as it can, so the paths don't cross. Curves can take extra points (**+ Curve point**) and Béziers extra segments (**+ Segment**). Bézier joints stay smooth unless you hold Option (Alt on Windows) while you drag a handle. Blocks also take a number of **Columns**.
+FreeFORM decides who goes to which spot by keeping total travel from the previous set as short as it can, so the paths don't cross. Curves can take extra points (**+ Curve point**) and Béziers extra segments (**+ Segment**). Blocks also take a number of **Columns**.
+
+**Bézier handles.** In **Shape**, turn on **Independent handles** to drag one handle at a time with a finger, Apple Pencil, or mouse. Turn it off and drag a round handle at a joint to make that joint smooth again. The switch itself leaves the curve in place. If the panel covers a handle, tap **Shape** to tuck it away while you edit, then tap **Shape** again to bring it back. You can also hold Option (Alt on Windows) while dragging to move a single handle.
+
+![Independent Bézier handles on an iPad](img/shape-bezier.png)
 
 **Polygons** are regular: every side is the same length. Set the number of **Sides** (3 for a triangle, 4 for a diamond, 6 for a hexagon). A polygon has two handles: the center, and a corner. Drag the corner to size the polygon and turn it.
 
@@ -548,6 +552,7 @@ The editor works on an iPad the same way it does on a computer, with a few touch
 
 - **One finger** does whatever the tool does: tap to select or add, drag to move, drag on open field for a box (or, with **Lasso** on, draw around performers to select them).
 - **Two fingers** pan and pinch-zoom the field. If a second finger lands while the first one has started something, FreeFORM takes that back and moves the view instead.
+- While editing a Bézier, use **Shape → Independent handles** to move one handle. Turn it off and drag a round handle at a joint to make the joint smooth again. Pinch with two fingers to get closer without moving the handles.
 - **With an Apple Pencil**, the Pencil does the editing. Once you've used it on the field, a single finger or a palm resting on the screen does nothing there, so you can rest your hand while you work. Two fingers still pan and zoom, and they never undo what the Pencil just did. To go back to editing with your finger, reload the page.
 - Turn on **Add to selection** to build up a selection without a Shift key.
 - On the timeline, tap a set to go to it and swipe to scroll. To move a set to a new count, touch and hold its button until it lifts, then drag. That way a swipe can't move a set by accident.

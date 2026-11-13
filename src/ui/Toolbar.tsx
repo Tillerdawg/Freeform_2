@@ -35,6 +35,8 @@ export interface ToolbarProps {
   startShape: (k: ShapeKind) => void;
   updateShape: (patch: Partial<Shape>) => void;
   endShape: () => void;
+  independentHandles: boolean;
+  setIndependentHandles: (on: boolean) => void;
   openAdd?: number; // bumped by New: open the Add menu
   t: number;
   setT: (t: number) => void; // jump to a count (and stop playing)
@@ -145,7 +147,7 @@ export function Toolbar(p: ToolbarProps) {
       </Menu>
       <span className="tb-sep" />
 
-      <Menu label="Shape" disabled={needs(many, ids.length === 1 ? 'Select 2 or more performers' : pick)} keepOpen={!!p.shape} pressed={!!p.shape}
+      <Menu label="Shape" disabled={needs(many, ids.length === 1 ? 'Select 2 or more performers' : pick)} keepOpen={!!p.shape} collapsible={p.shape?.kind === 'bezier'} pressed={!!p.shape}
         title="Shape the selection into a line, arc, curve, Bézier, circle, polygon, star, spiral, block, or letters">
         {() => <ShapePanel {...p} />}
       </Menu>
@@ -231,15 +233,18 @@ export function confirmDelete(show: Show, ids: string[]): boolean {
 }
 
 /** A toolbar button that opens a small panel below it. Closes on a click elsewhere or Esc (unless `keepOpen`). */
-export function Menu({ label, name, panelName, title, disabled, keepOpen, pressed, openNow, main, children }: {
+export function Menu({ label, name, panelName, title, disabled, keepOpen, collapsible, pressed, openNow, main, children }: {
   label: ReactNode; name?: string; panelName?: string; title: string; disabled?: string; keepOpen?: boolean; pressed?: boolean; children: (close: () => void) => ReactNode;
+  collapsible?: boolean; // the trigger can hide a kept-open panel while its tool stays active
   main?: { onClick: () => void; title: string; disabled?: boolean }; // a split button: the label does this, and only the caret opens the panel
   openNow?: number; // changing it (to more than 0) opens the panel, as if its button were clicked
 }) {
   const [open, setOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   useEffect(() => { if (openNow) setOpen(true); }, [openNow]);
+  useEffect(() => { if (!collapsible) setCollapsed(false); }, [collapsible]);
   const ref = useRef<HTMLDivElement>(null), panel = useRef<HTMLDivElement>(null);
-  const shown = !disabled && (open || !!keepOpen);
+  const shown = !disabled && (keepOpen ? !(collapsible && collapsed) : open);
   // Placed against the window and rendered into <body>: inside the toolbar's sideways-scrolling row, iPad Safari clipped
   // it out of sight while its buttons still caught taps (a tap on the field picked the hidden first section).
   const [at, setAt] = useState<React.CSSProperties | null>(null);
@@ -250,7 +255,7 @@ export function Menu({ label, name, panelName, title, disabled, keepOpen, presse
     setAt(r.bottom > innerHeight * 0.6 ? { left, bottom: innerHeight - r.top + 6 } : { left, top: r.bottom + 6 });
   }, [shown]);
   // The panel isn't next to its button in the page any more, so Tab wouldn't reach it: start in its first button.
-  useEffect(() => { if (open && at) panel.current?.querySelector<HTMLButtonElement>('button:not(:disabled)')?.focus({ preventScroll: true }); }, [open, at]); // once placed: hidden buttons can't take focus
+  useEffect(() => { if ((open || collapsible) && shown && at) panel.current?.querySelector<HTMLButtonElement>('button:not(:disabled)')?.focus({ preventScroll: true }); }, [open, shown, at]); // once placed: hidden buttons can't take focus
   useEffect(() => {
     if (!open) return;
     const away = (e: PointerEvent) => { const t = e.target as Node; if (!ref.current?.contains(t) && !panel.current?.contains(t)) setOpen(false); };
@@ -266,7 +271,10 @@ export function Menu({ label, name, panelName, title, disabled, keepOpen, presse
         <button className="tb-caret" aria-haspopup="true" aria-expanded={shown} disabled={!!disabled} aria-label={`${name ?? 'More'}: choose`}
           title={title} onClick={() => setOpen(!open)}><span aria-hidden className="caret">▾</span></button>
       </> : <button aria-haspopup="true" aria-expanded={shown} aria-pressed={pressed || undefined} disabled={!!disabled} aria-label={name}
-        title={disabled ? `${title} (${disabled})` : title} onClick={() => setOpen(!open)}>
+        title={disabled ? `${title} (${disabled})` : title} onClick={() => {
+          if (keepOpen && collapsible) setCollapsed(!collapsed);
+          else setOpen(!open);
+        }}>
         {label} <span aria-hidden className="caret">▾</span>
       </button>}
       {shown && createPortal(<div ref={panel} className="tb-menu-panel" role="region" aria-label={panelName ?? name ?? (typeof label === 'string' ? label : title)} style={at ?? { visibility: 'hidden' }}>{children(() => setOpen(false))}</div>, document.body)}
@@ -274,7 +282,7 @@ export function Menu({ label, name, panelName, title, disabled, keepOpen, presse
   );
 }
 
-function ShapePanel({ shape, startShape, updateShape, endShape, openTrace }: ToolbarProps) {
+function ShapePanel({ shape, startShape, updateShape, endShape, openTrace, independentHandles, setIndependentHandles }: ToolbarProps) {
   return (
     <>
       <div style={{ ...row, marginTop: 0 }} role="radiogroup" aria-label="Shape">
@@ -328,7 +336,11 @@ function ShapePanel({ shape, startShape, updateShape, endShape, openTrace }: Too
           )}
           <div style={row}>
             {shape.kind === 'curve' && <button onClick={() => updateShape(addCurvePoint(shape))}>+ Curve point</button>}
-            {shape.kind === 'bezier' && <button onClick={() => updateShape(addBezierSegment(shape))}>+ Segment</button>}
+            {shape.kind === 'bezier' && <>
+              <button onClick={() => updateShape(addBezierSegment(shape))}>+ Segment</button>
+              <button aria-pressed={independentHandles} onClick={() => setIndependentHandles(!independentHandles)}
+                title="Turn on to move one handle at a time. Turn off to smooth a joint on the next control drag.">Independent handles</button>
+            </>}
             <button className="primary" onClick={endShape}>Done (Esc)</button>
           </div>
           <p style={help}>
@@ -336,7 +348,7 @@ function ShapePanel({ shape, startShape, updateShape, endShape, openTrace }: Too
             {(shape.kind === 'polygon' || shape.kind === 'star') && ` ${shape.kind === 'star' ? 'The middle handle is the center. Drag the point handle to size and turn the star, and the inside-corner handle to make the points longer or shorter.' : 'The first handle is the center; drag the corner handle to size and turn it.'} Performers go evenly around the outline, starting at the ${shape.kind === 'star' ? 'point' : 'corner'} handle.`}
             {shape.kind === 'spiral' && ' The first handle is the center; the second is the outer end. Intervals are measured performer to performer.'}
             {shape.kind === 'text' && ` The letters fill the box between the two handles. Capitals, numbers, and hyphens. Each letter reads best with about 8 to 12 performers${cleanText(shape.text ?? '').replace(/ /g, '').length ? ` (about ${8 * cleanText(shape.text ?? '').replace(/ /g, '').length} or more for this)` : ''}.`}
-            {shape.kind === 'bezier' && ' Squares are points the curve passes through; circles pull the curve toward them. Hold Option (Alt) while dragging to move one handle by itself, e.g. to make a corner.'}
+            {shape.kind === 'bezier' && ' Squares are points the curve passes through. Circles pull the curve toward them. Turn on Independent handles to make a corner. Turn it off and drag a circle at the joint to smooth it again. Option (Alt) also moves one handle by itself.'}
           </p>
         </>
       )}
