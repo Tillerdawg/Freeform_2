@@ -20,7 +20,7 @@ export const MAX_TRACK_SECONDS = 30 * 60;
 
 /** Write the notes against the same expanded bar starts and tempo events used by drill counts. */
 export function scoreMidi(score: ScoreNotes, map: Midi): ArrayBuffer {
-  if (!map.end || !score.parts.length) throw new Error('That MusicXML score has no playable notes.');
+  if (!map.end || !score.parts.length) throw new Error('That score has no playable notes.');
   if (!Number.isSafeInteger(map.end) || map.end > 0x0fffffff || secondsAt(map, map.end) > MAX_TRACK_SECONDS) {
     throw new Error('That score is too long for a rehearsal track.');
   }
@@ -82,7 +82,7 @@ export function scoreMidi(score: ScoreNotes, map: Midi): ArrayBuffer {
     // The synthesizer measures duration to the last channel event. Keep any written rests at the end.
     midi.controllerChange(map.end, track, channel, MIDIControllers.allNotesOff, 0);
   }
-  if (midi.tracks.length === 1) throw new Error('That MusicXML score has no playable notes.');
+  if (midi.tracks.length === 1) throw new Error('That score has no playable notes.');
   midi.flush();
   return midi.writeMIDI();
 }

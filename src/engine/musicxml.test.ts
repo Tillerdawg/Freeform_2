@@ -104,16 +104,78 @@ describe('counts from a MuseScore file', () => {
     const ms = `<museScore version="4.70"><Score><Staff id="1">
       ${bar('<TimeSig><sigN>4</sigN><sigD>4</sigD></TimeSig>', '<startRepeat/>')}
       ${bar('<Spanner type="Volta"><Volta><endings>1</endings></Volta><next><location><measures>1</measures></location></next></Spanner>', '<endRepeat>2</endRepeat>')}
-      ${bar('<Spanner type="Volta"><prev><location><measures>-1</measures></location></prev></Spanner><Spanner type="Volta"><Volta><endings>2</endings></Volta><next><location><measures>1</measures></location></next></Spanner><Marker><label>fine</label></Marker>')}
+      ${bar('<Spanner type="Volta"><prev><location><measures>-1</measures></location></prev></Spanner><Spanner type="Volta"><Volta><endings>2</endings></Volta><next><location><measures>1</measures><fractions>1/1</fractions></location></next></Spanner>')}
+      ${bar('<Marker><label>fine</label></Marker>')}
       ${bar('<Jump><jumpTo>start</jumpTo><playUntil>fine</playUntil></Jump>')}
     </Staff></Score></museScore>`;
     const m = parseMscx(ms);
-    // 1 2, again 1, 2nd ending 3, on to 4, D.C.: 1, last ending 3, Fine.
-    expect(m.measures.map((x) => x.written ?? null)).toEqual([null, null, 1, 3, 4, 1, 3]);
+    // 1 2, again 1, second ending 3–4, on to 5, D.C.: 1, last ending 3–4, Fine.
+    expect(m.measures.map((x) => x.written ?? null)).toEqual([null, null, 1, 3, 4, 5, 1, 3, 4]);
   });
   it('opens a .mscz (a zip) and rejects scores from before MuseScore 3', async () => {
     expect((await parseScore(await zip({ 'score.mscx': mscx, 'Excerpts/part.mscx': '<museScore version="4.70"/>' }))).measures).toHaveLength(4);
     expect(() => parseMscx('<museScore version="2.06"><Score/></museScore>')).toThrow(/older version/);
+  });
+  it('renders a native archive in the drill’s playback order through repeats and both endings', async () => {
+    // The native forms MuseScore writes for repeat bars, a volta to the next bar, and a volta to the end of the score.
+    const rest = (type: string) => `<Rest><durationType>${type}</durationType></Rest>`;
+    const note = (key: number) => `<Chord><durationType>16th</durationType><Note><pitch>${key}</pitch></Note></Chord>`;
+    const tail = rest('16th') + rest('eighth') + rest('half');
+    const volta = (n: number, location: string) => `<Spanner type="Volta"><Volta><endings>${n}</endings></Volta><next><location>${location}</location></next></Spanner>`;
+    const native = `<museScore version="4.70"><Score>
+      <Part><Staff id="1"/><Instrument id="bb-trumpet"><transposeChromatic>-2</transposeChromatic><Channel><program value="56"/></Channel></Instrument></Part>
+      <Staff id="1">
+        <Measure><startRepeat/><voice><Tempo><tempo>2</tempo></Tempo>${rest('quarter')}${note(58)}${tail}</voice></Measure>
+        <Measure><endRepeat>2</endRepeat><voice><Tempo><tempo>1</tempo></Tempo>
+          ${volta(1, '<measures>1</measures>')}${note(62)}${tail}${rest('quarter')}</voice></Measure>
+        <Measure><voice><Tempo><tempo>1.5</tempo></Tempo>
+          ${volta(2, '<fractions>1/1</fractions>')}${note(65)}${tail}${rest('quarter')}</voice></Measure>
+      </Staff></Score></museScore>`;
+    const archive = await zip({
+      'META-INF/container.xml': '<container><rootfiles><rootfile full-path="score_style.mss"/><rootfile full-path="scores/band.mscx"/></rootfiles></container>',
+      'Excerpts/trumpet.mscx': '<museScore version="4.70"/>',
+      'scores/band.mscx': native,
+    });
+    const { rehearsal, ...map } = await parseScore(archive);
+    expect(map).toEqual(parseMscx(native));
+    if (!rehearsal || rehearsal instanceof ArrayBuffer) throw new Error('Expected native rehearsal notes.');
+    expect(rehearsal.order).toEqual([0, 1, 0, 2]);
+    const bytes = scoreMidi(rehearsal, map);
+    const events = BasicMIDI.fromArrayBuffer(bytes).tracks.flatMap((track) => track.events);
+    expect(events.find((e) => e.statusByte === MIDIMessageTypes.programChange)?.data[0]).toBe(56);
+    const notes = events.filter((e) => e.statusByte === MIDIMessageTypes.noteOn);
+    expect(notes.map((e) => e.data[0])).toEqual([58, 62, 58, 65]);
+    const counts = countsFromMidi(map, [{ name: '1', counts: 0 }, { name: '2', counts: 16, measures: '1–4' }]);
+    expect(counts.matched).toBe(1);
+    const entrances = [2, 5, 10, 13].map((i) => counts.taps[i]);
+    expect(entrances).toEqual([0.5, 2, 6.5, 8]);
+    const midiMap = parseMidi(bytes);
+    expect(notes.map((e) => secondsAt(midiMap, e.ticks))).toEqual(entrances);
+    const audio = await renderMidi(soundBank(), bytes);
+    expectEntrances(audio, entrances);
+  });
+  it('reads chord tones, ties, and percussion from independent staves and voices', async () => {
+    const tie = (edge: 'prev' | 'next') => `<Spanner type="Tie"><${edge}><location><measures>1</measures></location></${edge}></Spanner>`;
+    const native = `<museScore version="3.02"><Score>
+      <Part><Staff id="1"/><Instrument><Channel><program value="71"/></Channel></Instrument></Part>
+      <Part><Staff id="2"/><Instrument><useDrumset>1</useDrumset></Instrument></Part>
+      <Staff id="1">
+        <Measure len="1/4"><voice><Chord><durationType>quarter</durationType>
+          <Note><pitch>60</pitch>${tie('next')}</Note><Note><pitch>64</pitch></Note>
+        </Chord></voice></Measure>
+        <Measure><voice><Chord><durationType>quarter</durationType><Note><pitch>60</pitch>${tie('prev')}</Note></Chord></voice></Measure>
+      </Staff><Staff id="2">
+        <Measure len="1/4"><voice><Rest><durationType>measure</durationType></Rest></voice>
+        <voice><location><fractions>1/8</fractions></location><Chord><durationType>eighth</durationType><Note><pitch>38</pitch></Note></Chord></voice></Measure>
+        <Measure><voice><Rest><durationType>measure</durationType></Rest></voice></Measure>
+      </Staff></Score></museScore>`;
+    const { rehearsal, ...map } = await parseScore(new TextEncoder().encode(native).buffer);
+    if (!rehearsal || rehearsal instanceof ArrayBuffer) throw new Error('Expected native rehearsal notes.');
+    const events = BasicMIDI.fromArrayBuffer(scoreMidi(rehearsal, map)).tracks.flatMap((track) => track.events);
+    const notes = events.filter((e) => (e.statusByte & 0xf0) === MIDIMessageTypes.noteOn);
+    expect(notes.map((e) => [e.ticks, e.statusByte & 15, e.data[0]])).toEqual([[0, 0, 60], [0, 0, 64], [240, 9, 38]]);
+    const release = events.find((e) => e.statusByte === MIDIMessageTypes.noteOff && e.data[0] === 60);
+    expect(release?.ticks).toBe(960);
   });
 });
 
@@ -160,15 +222,8 @@ describe('MusicXML rehearsal tracks', () => {
     const midiMap = parseMidi(bytes);
     expect(noteOns.map((e) => secondsAt(midiMap, e.ticks))).toEqual(entrances);
 
-    const file: Uint8Array = readFileSync(new URL('../../public/sounds/GeneralUser-GS.sf3', import.meta.url));
-    const bank = file.buffer.slice(file.byteOffset, file.byteOffset + file.byteLength) as ArrayBuffer;
-    const audio = await renderMidi(bank, bytes);
-    const sample = (s: number) => Math.round(s * audio.sampleRate);
-    for (const at of entrances) {
-      const first = audio.left.findIndex((x, i) => i >= sample(at - 0.06) && (Math.abs(x) > 0.01 || Math.abs(audio.right[i]) > 0.01));
-      expect(first / audio.sampleRate).toBeGreaterThanOrEqual(at - 0.003);
-      expect(first / audio.sampleRate).toBeLessThan(at + 0.04);
-    }
+    const audio = await renderMidi(soundBank(), bytes);
+    expectEntrances(audio, entrances);
     expect(audio.left.length / audio.sampleRate).toBeCloseTo(secondsAt(map, map.end) + 2, 3);
   });
 
@@ -188,6 +243,20 @@ describe('MusicXML rehearsal tracks', () => {
     expect(release?.ticks).toBe(960);
   });
 });
+
+function soundBank(): ArrayBuffer {
+  const file: Uint8Array = readFileSync(new URL('../../public/sounds/GeneralUser-GS.sf3', import.meta.url));
+  return file.buffer.slice(file.byteOffset, file.byteOffset + file.byteLength) as ArrayBuffer;
+}
+
+function expectEntrances(audio: Awaited<ReturnType<typeof renderMidi>>, entrances: number[]) {
+  for (const at of entrances) {
+    const start = Math.round((at - 0.06) * audio.sampleRate);
+    const first = audio.left.findIndex((x, i) => i >= start && Math.max(Math.abs(x), Math.abs(audio.right[i])) > 0.01);
+    expect(first / audio.sampleRate).toBeGreaterThanOrEqual(at - 0.003);
+    expect(first / audio.sampleRate).toBeLessThan(at + 0.04);
+  }
+}
 
 /** A minimal zip (deflated entries), as MuseScore's .mxl export is. */
 async function zip(files: Record<string, string>): Promise<ArrayBuffer> {
