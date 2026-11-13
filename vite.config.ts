@@ -1,10 +1,11 @@
-import { readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import { guidePage, studentPage } from './src/guide/page';
 import { sampleShow } from './src/engine/sample';
 import { qrSvg } from './src/engine/qr';
 import { QR_LOGO } from './src/ui/palette';
+import { creditsText, shipped } from './src/engine/credits';
 
 const SITE = 'https://freeformdrill.org/';
 
@@ -35,6 +36,20 @@ const sample: Plugin = {
   generateBundle() { this.emitFile({ type: 'asset', fileName: 'sample.freeform', source: sampleFile() }); },
 };
 
+// Open-source credits: licenses.txt, every shipped package's license in full plus the sound library's (Help → Open-source
+// credits). Made from what's installed, so it can't go stale; the build stops if a package has no license text.
+const files = { read: (f: string) => (existsSync(f) ? readFileSync(f, 'utf8') : null), list: (d: string) => (existsSync(d) ? readdirSync(d) : []) };
+const licenses = () => creditsText(shipped(files), [{
+  title: 'GeneralUser GS 1.471, by S. Christian Collins (the rehearsal track\'s instrument sounds, public/sounds/)',
+  source: 'https://www.schristiancollins.com/generaluser.php',
+  text: readFileSync('public/sounds/GeneralUser-GS-LICENSE.txt', 'utf8'),
+}]);
+const credits: Plugin = {
+  name: 'credits',
+  configureServer(server) { server.middlewares.use('/licenses.txt', (_req, res) => { res.setHeader('Content-Type', 'text/plain; charset=utf-8'); res.end(licenses()); }); },
+  generateBundle() { this.emitFile({ type: 'asset', fileName: 'licenses.txt', source: licenses() }); },
+};
+
 // Everything the app needs offline, for the service worker (public/sw.js) to keep: both pages, every built file, and the
 // icons and logos. The editor and the performer view are separate downloads now, so "the files the page links" isn't enough.
 const precache: Plugin = {
@@ -51,6 +66,6 @@ const precache: Plugin = {
 // The front page (index.html, and es/index.html in Spanish) and the app (app/index.html), which old links (/#show=…) are forwarded to.
 export default defineConfig({
   base: './',
-  plugins: [react(), guide, sample, precache],
+  plugins: [react(), guide, sample, precache, credits],
   build: { rollupOptions: { input: { main: 'index.html', es: 'es/index.html', app: 'app/index.html' } } },
 });
