@@ -1731,6 +1731,12 @@ Each entry: timestamp, who decided, context, options considered, decision.
 - We considered using a long press on a handle. The Shape panel instead has an **Independent handles** toggle. Turning it off leaves the curve in place. The next drag of a round handle at a joint smooths that joint. Option-drag still moves a single handle.
 - A second finger cancels an unfinished finger edit and starts the pinch. When a Pencil edit is underway, the pinch keeps the Pencil's work up to that point and stops the handle drag.
 
+## 2026-11-13 13:40 EST — Logo on the guide pages
+
+- Jason asked for the logo on the guide page (freeformdrill.org/guide/). The details below are Claude's choices, subject to Jason's review.
+- The header's "FreeFORM Drill" text link is now the small logo, linking to the front page, in the same size and with the same light and dark versions as the front page header. We considered adding the logo beside the text, but the logo already says the name, and its alt text keeps it for screen readers.
+- The student quickstart pages (students/ and es/students/) use the same page template, so they get the logo too. The Spanish page's logo links to the Spanish front page.
+  
 ## 2026-11-13 12:17 EST — Preview earlier versions before restoring
 
 - Jason asked to see the field and step through the sets of an earlier version before choosing whether to restore. The preview controls are Codex's choices, subject to Jason's review.
